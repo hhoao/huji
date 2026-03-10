@@ -1,0 +1,60 @@
+name: Release Drafter
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  update_release:
+    permissions:
+      contents: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.release_drafter.outputs.upload_url }}
+      tag_name: ${{ steps.release_drafter.outputs.tag_name }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: release_drafter
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          publish: true
+
+  build_android:
+    needs: update_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Get dependencies
+        run: flutter pub get
+        working-directory: restcut_app
+      - name: Build APK
+        run: flutter build apk --release
+        working-directory: restcut_app
+      - name: Build App Bundle
+        run: flutter build appbundle --release
+        working-directory: restcut_app
+      - name: Upload APK
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.update_release.outputs.upload_url }}
+          asset_path: restcut_app/build/app/outputs/flutter-apk/app-release.apk
+          asset_name: restcut-app-release.apk
+      - name: Upload AAB
+        uses: shogo82148/actions-upload-release-asset@v1
+        with:
+          upload_url: ${{ needs.update_release.outputs.upload_url }}
+          asset_path: restcut_app/build/app/outputs/bundle/release/app-release.aab
+          asset_name: restcut-app-release.aab
