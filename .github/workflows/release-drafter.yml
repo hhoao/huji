@@ -35,7 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: nttld/setup-ndk@v1
         with:
-          ndk-version: 28.0.13004108
+          ndk-version: r28
           link-to-sdk: true
       - uses: subosito/flutter-action@v2
         with:
