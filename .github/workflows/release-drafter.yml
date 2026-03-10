@@ -33,6 +33,10 @@ jobs:
       contents: write
     steps:
       - uses: actions/checkout@v4
+      - uses: nttld/setup-ndk@v1
+        with:
+          ndk-version: 28.0.13004108
+          link-to-sdk: true
       - uses: subosito/flutter-action@v2
         with:
           channel: stable

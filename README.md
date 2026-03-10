@@ -77,4 +77,4 @@ docker compose up -d
 
 ## License
 
-[MIT](LICENSE)
+[Apache License 2.0](LICENSE)
