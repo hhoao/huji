@@ -1,0 +1,52 @@
+logger_level: DEBUG
+env: dev
+job_type: train_model
+#job_type: service
+debug: True
+
+filesystem:
+  cos:
+    type: cos
+    bucket_name: xxx
+    access_key_id: xxx
+    access_key_secret: xxx
+    endpoint: xxx
+
+datasource:
+  mysql:
+    type: mysql
+    password: root
+    user: root
+    database: autoclip
+    host: localhost
+    port: 3306
+
+autoclip_service_config:
+  common:
+    cache_path: "$PROJECT_ROOT/output/cache"
+    output_dir: "$PROJECT_ROOT/output/clipped"
+    debug_clip_frame_output_dir: "$PROJECT_ROOT/output/clip_snippet"
+  ping_pong:
+    reserve_tail_seconds: 1.0
+    reserve_header_seconds: 0.0
+    is_ignore_playback: True
+  badminton:
+
+large_model:
+  debug: False
+
+kafka:
+  bootstrap_servers: "localhost:9094"
+  consumer_group: "autoclip_algorithm_group_dev"
+  auto_offset_reset: "latest"
+
+service:
+  host: 0.0.0.0
+  port: 8000
+  remote_video_output_dir: "output/remote/clipped"
+  handle_video_message_topic: HANDLE_VIDEO_MESSAGE_START_TOPIC_DEV
+
+internal:
+  http:
+   base_url: http://localhost:48081/admin-api
+   access_token: xxx

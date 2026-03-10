@@ -1,0 +1,44 @@
+logger_level: info
+env: "dev"
+job_type: service
+debug: True
+
+large_model:
+  train_model_name: ping_pong_singles_profession
+  models:
+    ping_pong_singles_profession:
+      train_output_path: output/models/classify/ping_pong/profession/result
+      total_dataset_path: "/home/hhoa/autoclip/materials/ping_pong/singles/profession/dataset"
+      train_dataset_path: "/home/hhoa/autoclip/materials/ping_pong/singles/profession/train_dataset"
+      train_model_path: "$PROJECT_RESOURCES/models/ping_pong/profession/last.pt"
+      predict_model_path: "$PROJECT_RESOURCES/models/ping_pong/profession/best.pt"
+    badminton_doubles:
+      train_output_path: output/models/classify/badminton/doubles/result
+      total_dataset_path: "/home/hhoa/autoclip/materials/badminton/doubles/dataset"
+      train_dataset_path: "/home/hhoa/autoclip/materials/badminton/doubles/train_dataset"
+      train_model_path: "$PROJECT_RESOURCES/models/badminton/doubles/last.pt"
+      predict_model_path: "$PROJECT_RESOURCES/models/badminton/doubles/best.pt"
+    badminton_singles:
+      train_output_path: output/models/classify/badminton/singles/result
+      total_dataset_path: "/home/hhoa/autoclip/materials/badminton/singles/dataset"
+      train_dataset_path: "/home/hhoa/autoclip/materials/badminton/singles/train_dataset"
+      train_model_path: "$PROJECT_RESOURCES/models/badminton/singles/last.pt"
+      predict_model_path: "$PROJECT_RESOURCES/models/badminton/singles/best.pt"
+
+autoclip_service_config:
+  ping_pong:
+    models:
+      singles: ping_pong_singles_profession
+  badminton:
+    models:
+      singles: badminton_singles
+      doubles: badminton_doubles
+  common:
+
+service:
+  video_result_processor_url: "/api/autoclip/result"
+
+kafka:
+  bootstrap_servers: "127.0.0.1:9094"
+  consumer_group: "auto_clip_group"
+  auto_offset_reset: "latest"

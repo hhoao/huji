@@ -1,0 +1,81 @@
+[tool.ruff]
+# 每行最大字符数
+line-length = 100
+
+# Python版本
+target-version = "py312"
+
+# 排除的目录
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "migrations",
+    ".venv",
+]
+
+[tool.ruff.lint]
+# 推荐的检查规则集合
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes - 基础语法和逻辑错误
+    "I",      # isort - 导入排序
+    "B",      # flake8-bugbear - 常见bug模式
+    "C4",     # flake8-comprehensions - 推导式优化
+    "UP",     # pyupgrade - 现代Python语法
+    "N",      # pep8-naming - 命名规范
+    "S",      # flake8-bandit - 安全问题
+    "T20",    # flake8-print - 检测print语句
+    "RET",    # flake8-return - return语句问题
+    "SIM",    # flake8-simplify - 代码简化建议
+    "ARG",    # flake8-unused-arguments - 未使用参数
+    "PERF",   # perflint - 性能优化建议
+]
+
+# 忽略的规则（根据实际需要调整）
+ignore = [
+    "S608",   # 允许使用SQL字符串
+    "S101",   # 允许使用assert（测试中常用）
+    "T201",   # 允许使用print（开发阶段需要）
+    "N806",   # 允许小写变量名在lambda中
+    "N802",   # 允许小写变量名在lambda中
+    "RET504", # 允许return后的不必要赋值
+    "S321",   # 允许FTP
+    "PERF203", # 允许 `try`-`except` within a loop incurs performance overhead
+    "SIM108", # 允许if-else而不强制三元运算符
+    "S603", #check for execution of untrusted input
+    "ARG002", # Unused method argument: `frame`
+    "B006",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# 测试文件的特殊规则
+"tests/**/*.py" = [
+    "S101",    # 测试中可以使用assert
+    "ARG001",  # 测试中可能有未使用的参数
+    "S608",    # 测试中可能使用SQL字符串
+]
+
+# __init__.py 文件
+"__init__.py" = [
+    "F401",    # 允许未使用的导入（用于re-export）
+]
+
+[tool.ruff.lint.isort]
+# 导入排序配置
+known-first-party = ["autoclip"]  # 替换为你的项目名
+lines-after-imports = 2
+
+[tool.ruff.lint.mccabe]
+# 最大复杂度
+max-complexity = 10
+
+[tool.ruff.format]
+# 格式化配置
+quote-style = "double"
+indent-style = "space"

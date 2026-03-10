@@ -1,0 +1,11 @@
+{
+  "cmake.sourceDirectory": "/home/hhoa/autoclip/flutter/user_settings/linux",
+  "files.exclude": {
+    "**/*.freezed.dart": true,
+    "**/*.g.dart": true
+  },
+  "cmake.ignoreCMakeListsMissing": true,
+  "cSpell.words": [
+    "class"
+  ]
+}

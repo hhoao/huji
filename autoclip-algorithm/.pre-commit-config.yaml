@@ -1,0 +1,19 @@
+repos:
+  - repo: local
+    hooks:
+      - id: commit-check
+        name: Commit Message Check
+        entry: ./scripts/commit-check.sh
+        language: python
+        stages: [commit-msg]
+        pass_filenames: true
+        always_run: true
+
+      - id: format-check
+        name: Format Check Script
+        entry: ./scripts/format-check.sh
+        language: python
+        files: \.py$
+        stages:
+          - pre-commit
+        pass_filenames: false

@@ -1,0 +1,23 @@
+{
+  "file_info": {
+    "config_id": 32,
+    "path": "public/badminton_doubles_1.mp4",
+    "name": "badminton_doubles_1.mp4",
+    "url": "https://restcut-1258599900.cos.ap-guangzhou.myqcloud.com/public/badminton_doubles_1.mp4",
+    "type": "video/mp4",
+    "size": 3153120
+  },
+  "video_clip_config": {
+    "mode": 0,
+    "match_type": 1,
+    "great_ball_editing": true,
+    "remove_replay": true,
+    "get_match_segments": true,
+    "reserve_time_before_single_round": 1.0,
+    "reserve_time_after_single_round": 1.0,
+    "minimum_duration_single_round": 5.0
+  },
+  "sport_type": 1,
+  "user_id": 286,
+  "record_id": 1
+}

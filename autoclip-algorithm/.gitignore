@@ -1,0 +1,19 @@
+### Example user template template
+### Example user template
+
+# IntelliJ project files
+.idea
+*.iml
+out
+gen
+output
+runs
+cache
+logs
+**/__pycache__
+typings
+**/.ruff_cache
+.specstory
+.venv
+
+src/resources/application_prod.yml

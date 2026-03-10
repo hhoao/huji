@@ -1,0 +1,25 @@
+{
+  "file_info": {
+    "config_id": null,
+    "path": null,
+    "name": "blue.mp4",
+    "url": "https://restcut-1258599900.cos.ap-guangzhou.myqcloud.com/public/blue.mp4",
+    "type": "video/mp4",
+    "size": 8323072
+  },
+  "video_clip_config": {
+    "mode": 0,
+    "match_type": 1,
+    "great_ball_editing": true,
+    "remove_replay": true,
+    "get_match_segments": true,
+    "max_fire_ball_time": 3.0,
+    "reserve_time_before_single_round": 2.0,
+    "reserve_time_after_single_round": 2.0,
+    "minimum_duration_single_round": null,
+    "minimum_duration_great_ball": null
+  },
+  "sport_type": 1,
+  "user_id": 286,
+  "record_id": 1
+}
