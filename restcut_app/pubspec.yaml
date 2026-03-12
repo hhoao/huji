@@ -54,7 +54,7 @@ dependencies:
   url_launcher: ^6.2.5
   flutter_local_notifications: ^19.3.0
   permission_handler: ^12.0.1
-  ffmpeg_kit_flutter_new: ^2.0.0
+  ffmpeg_kit_flutter_new: ^4.1.0
   package_info_plus: ^8.0.2
   device_info_plus: ^10.1.0
   cached_network_image: ^3.4.1
