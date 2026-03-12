@@ -44,24 +44,6 @@ android {
         versionCode = flutter.versionCode
         versionName = flutter.versionName
         
-        // ABI filters are handled automatically by Flutter
-        // When using --split-per-abi, Gradle will automatically split by ABI
-        // If you need specific ABIs, use --target-platform flag in build command
-        // ndk {
-        //     abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
-        // }
-
-                
-        // ABI filters are handled automatically by Flutter
-        // When using --split-per-abi, Gradle will automatically split by ABI
-        // If you need specific ABIs, use --target-platform flag in build command
-        // ndk {
-        //     abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
-        // }
-                // Add support for multiple ABIs for media_kit
-        ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
-        }
 
     }
     
