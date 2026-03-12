@@ -26,8 +26,22 @@ jobs:
         with:
           publish: true
 
+  check_changes:
+    runs-on: ubuntu-latest
+    outputs:
+      restcut_app: ${{ steps.filter.outputs.restcut_app }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            restcut_app:
+              - 'restcut_app/**'
+
   build_android:
-    needs: update_release
+    needs: [update_release, check_changes]
+    if: needs.check_changes.outputs.restcut_app == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
