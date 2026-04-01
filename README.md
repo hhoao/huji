@@ -24,7 +24,7 @@
   <img src="assets/cover.png" alt="弧迹"/>
 </p>
 
-弧迹是一个智能视频剪辑项目，包含 Flutter 客户端与 Python 算法服务。客户端支持多平台（Android、iOS、Linux、Windows、macOS、Web），算法服务基于 YOLO 模型自动检测乒乓球、羽毛球比赛中的精彩回合，去除捡球等冗余片段，输出精简的比赛集锦。
+弧迹是一个智能视频剪辑 Android 应用，它用于自动检测乒乓球、羽毛球比赛中的精彩回合，去除捡球等冗余片段，输出精简的比赛集锦。。
 
 ## 主要功能
 
@@ -57,7 +57,6 @@ Android(未统计):
 | 子项目 | 技术栈 | 说明 |
 | ----- | ------ | ---- |
 | `restcut_app` | Flutter | 弧迹客户端，提供视频选择、智能剪辑、片段编辑、任务管理等功能 |
-| `autoclip-algorithm` | Python | 算法服务，支持乒乓球单打、羽毛球单打/双打的自动检测与剪辑 |
 
 ## 快速开始
 
@@ -67,20 +66,6 @@ Android(未统计):
 cd restcut_app
 flutter pub get
 flutter run
-```
-
-### autoclip-algorithm（算法服务）
-
-```bash
-cd autoclip-algorithm
-./setup.sh
-```
-
-需配合 Kafka 环境，开发时可使用：
-
-```bash
-cd autoclip-algorithm/docker/dev
-docker compose up -d
 ```
 
 ## License
