@@ -1,0 +1,57 @@
+name: Build AppImage
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch: {}
+
+jobs:
+  build-x86_64:
+    name: Build x86_64
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev \
+            libjsoncpp-dev libstdc++-12-dev \
+            file fuse libfuse2
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.5'
+          channel: 'stable'
+
+      - name: Build AppImage
+        working-directory: restcut_app
+        run: |
+          flutter config --enable-linux-desktop
+          ./scripts/build_appimage.sh
+
+      - name: Get version
+        id: version
+        working-directory: restcut_app
+        run: |
+          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: huji-${{ steps.version.outputs.version }}-x86_64
+          path: restcut_app/build/appimage/huji-*-x86_64.AppImage
+          if-no-files-found: error
+
+      - name: Upload to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: restcut_app/build/appimage/huji-*-x86_64.AppImage
+          fail_on_unmatched_files: true
