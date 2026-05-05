@@ -7,12 +7,28 @@ on:
   workflow_dispatch: {}
 
 jobs:
-  build-x86_64:
-    name: Build x86_64
+  build:
+    name: Build ${{ matrix.arch }}
     runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            flutter_target: linux-x64
+            qemu_arch: ''
+          - arch: aarch64
+            flutter_target: linux-arm64
+            qemu_arch: arm64
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Setup QEMU (aarch64 only)
+        if: matrix.qemu_arch != ''
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.qemu_arch }}
 
       - name: Install Linux build dependencies
         run: |
@@ -29,11 +45,36 @@ jobs:
           flutter-version: '3.32.5'
           channel: 'stable'
 
-      - name: Build AppImage
+      - name: Build AppImage (native ${{ matrix.arch }})
+        if: matrix.qemu_arch == ''
         working-directory: restcut_app
+        env:
+          ARCH: ${{ matrix.arch }}
         run: |
           flutter config --enable-linux-desktop
           ./scripts/build_appimage.sh
+
+      - name: Build AppImage (cross ${{ matrix.arch }} via Docker+QEMU)
+        if: matrix.qemu_arch != ''
+        run: |
+          docker run --rm --platform linux/${{ matrix.qemu_arch }} \
+            -v "${{ github.workspace }}":/workspace -w /workspace/restcut_app \
+            ubuntu:22.04 bash -c '
+              set -e
+              apt-get update
+              apt-get install -y clang cmake ninja-build pkg-config \
+                libgtk-3-dev liblzma-dev libsecret-1-dev \
+                libjsoncpp-dev libstdc++-12-dev \
+                file fuse libfuse2 curl unzip xz-utils git ca-certificates
+              # Install Flutter inside the container
+              git clone --depth 1 -b stable https://github.com/flutter/flutter.git /opt/flutter
+              git config --global --add safe.directory /opt/flutter
+              git config --global --add safe.directory /workspace
+              export PATH="/opt/flutter/bin:$PATH"
+              flutter config --enable-linux-desktop
+              flutter pub get
+              ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
+            '
 
       - name: Get version
         id: version
@@ -45,13 +86,13 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: huji-${{ steps.version.outputs.version }}-x86_64
-          path: restcut_app/build/appimage/huji-*-x86_64.AppImage
+          name: huji-${{ steps.version.outputs.version }}-${{ matrix.arch }}
+          path: restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
           if-no-files-found: error
 
       - name: Upload to release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
-          files: restcut_app/build/appimage/huji-*-x86_64.AppImage
+          files: restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
           fail_on_unmatched_files: true
