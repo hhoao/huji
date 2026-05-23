@@ -3,9 +3,9 @@
   <component name="NewModuleRootManager" inherit-compiler-output="true">
     <exclude-output />
     <content url="file://$MODULE_DIR$">
-      <excludeFolder url="file://$MODULE_DIR$/restcut_app/.dart_tool" />
-      <excludeFolder url="file://$MODULE_DIR$/restcut_app/.pub" />
-      <excludeFolder url="file://$MODULE_DIR$/restcut_app/build" />
+      <excludeFolder url="file://$MODULE_DIR$/huji-app/.dart_tool" />
+      <excludeFolder url="file://$MODULE_DIR$/huji-app/.pub" />
+      <excludeFolder url="file://$MODULE_DIR$/huji-app/build" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />

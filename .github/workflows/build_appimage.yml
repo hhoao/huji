@@ -47,7 +47,7 @@ jobs:
 
       - name: Build AppImage (native ${{ matrix.arch }})
         if: matrix.qemu_arch == ''
-        working-directory: restcut_app
+        working-directory: huji-app
         env:
           ARCH: ${{ matrix.arch }}
         run: |
@@ -58,7 +58,7 @@ jobs:
         if: matrix.qemu_arch != ''
         run: |
           docker run --rm --platform linux/${{ matrix.qemu_arch }} \
-            -v "${{ github.workspace }}":/workspace -w /workspace/restcut_app \
+            -v "${{ github.workspace }}":/workspace -w /workspace/huji-app \
             ubuntu:22.04 bash -c '
               set -e
               apt-get update
@@ -78,7 +78,7 @@ jobs:
 
       - name: Get version
         id: version
-        working-directory: restcut_app
+        working-directory: huji-app
         run: |
           VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ')
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
@@ -88,8 +88,8 @@ jobs:
         with:
           name: huji-${{ steps.version.outputs.version }}-${{ matrix.arch }}
           path: |
-            restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
-            restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
+            huji-app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
+            huji-app/build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
           if-no-files-found: error
 
       - name: Upload to release
@@ -97,6 +97,6 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
-            restcut_app/build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
+            huji-app/build/appimage/huji-*-${{ matrix.arch }}.AppImage
+            huji-app/build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
           fail_on_unmatched_files: true

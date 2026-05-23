@@ -1,0 +1,3 @@
+[submodule "huji-algorithm"]
+	path = huji-algorithm
+	url = https://github.com/hhoao/huji-algorithm.git
