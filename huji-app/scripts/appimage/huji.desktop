@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=弧迹
+Name[en]=Huji
+GenericName=Smart Sports Video Editor
+GenericName[zh_CN]=智能体育视频剪辑
+Comment=Automatically detect and clip highlights from table tennis / badminton matches
+Comment[zh_CN]=自动识别乒乓球、羽毛球比赛中的精彩回合
+Exec=restcut
+Icon=huji
+Terminal=false
+Categories=AudioVideo;Video;
+Keywords=video;edit;sports;table-tennis;badminton;
+StartupWMClass=restcut

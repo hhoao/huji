@@ -1,0 +1,59 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Development",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "env": {
+        "LC_NUMERIC": "C"
+      }
+    },
+    {
+      "name": "Flutter (Debug)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "flutterMode": "debug",
+      "env": {
+        "LC_NUMERIC": "C"
+      }
+    },
+    {
+      "name": "Flutter (Profile)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "flutterMode": "profile",
+      "env": {
+        "LC_NUMERIC": "C"
+      }
+    },
+    {
+      "name": "Flutter (Release)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "flutterMode": "release",
+      "env": {
+        "LC_NUMERIC": "C"
+      }
+    },
+    {
+      "name": "Flutter (Custom Args)",
+      "type": "dart",
+      "request": "launch",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define=API_URL=https://api.example.com",
+        "--dart-define=ENV=production",
+        "--flavor",
+        "production"
+      ],
+      "env": {
+        "LC_NUMERIC": "C"
+      }
+    }
+  ]
+}

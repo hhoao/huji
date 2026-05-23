@@ -1,0 +1,21 @@
+#!/bin/bash
+# AppRun for 弧迹 (huji) AppImage
+# Runs at AppImage launch; sets up environment then execs the Flutter binary.
+
+set -e
+
+# Resolve $APPDIR (set automatically by AppImage runtime)
+HERE="$(dirname "$(readlink -f "${0}")")"
+export APPDIR="${APPDIR:-$HERE}"
+
+# Make bundled libraries findable
+export LD_LIBRARY_PATH="$APPDIR/usr/lib:$APPDIR/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+
+# Make bundled ffmpeg findable
+export PATH="$APPDIR/usr/bin:$PATH"
+
+# Optional: GDK / GTK environment for some distros
+export GDK_BACKEND="${GDK_BACKEND:-x11}"
+
+# Launch the Flutter app
+exec "$APPDIR/usr/bin/restcut" "$@"

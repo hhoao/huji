@@ -1,0 +1,6 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+
+repository_root=$(git rev-parse --show-toplevel)
+# . "$repository_root/scripts/check_format.sh" || exit 1
