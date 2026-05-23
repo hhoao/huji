@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/router/modules/main.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/router/modules/main.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../../models/task.dart';

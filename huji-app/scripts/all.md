@@ -18,7 +18,7 @@ flutter_rename
 
 ```bash
 dart pub global run rename setAppName -t ios,android,macos,linux,windows --value "弧迹"
-dart pub global run rename setBundleId -t ios,android,macos,linux,windows --value "com.hhoa.restcut"
+dart pub global run rename setBundleId -t ios,android,macos,linux,windows --value "com.hhoa.huji"
 ```
 
 ## 修改应用图标

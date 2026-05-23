@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/widgets/desktop/desktop_login_dialog.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 
 /// Navigation destinations the sidebar supports.
 enum DesktopNav {

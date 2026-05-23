@@ -1,4 +1,4 @@
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'mobile_ffmpeg_runner.dart';
 import 'desktop_ffmpeg_runner.dart';
 

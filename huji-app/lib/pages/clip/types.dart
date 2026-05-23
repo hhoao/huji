@@ -1,11 +1,11 @@
 // 配置项类型
 import 'package:path/path.dart' as path;
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/utils/clip_config_codec.dart';
-import 'package:restcut/utils/video_utils.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/utils/clip_config_codec.dart';
+import 'package:huji_app/utils/video_utils.dart';
 import 'package:uuid/uuid.dart';
 
 enum ConfigItemType { select, toggle, slider }

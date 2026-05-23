@@ -1,16 +1,16 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/exceptions/notify_exception.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/store/user/user_bloc_instance.dart';
-import 'package:restcut/store/user/user_event.dart';
-import 'package:restcut/pages/login/login_dialog.dart';
-import 'package:restcut/utils/app_error_utils.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/exceptions/notify_exception.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/store/user/user_bloc_instance.dart';
+import 'package:huji_app/store/user/user_event.dart';
+import 'package:huji_app/pages/login/login_dialog.dart';
+import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 // 响应结果枚举
 enum ResultEnum {

@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:dio/dio.dart';
-import 'package:restcut/api/internal/autoclip/video_api.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/internal/autoclip/video_api.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 class MultipartUploadService {
   final VideoApi _videoApi;

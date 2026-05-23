@@ -1,9 +1,9 @@
 import 'dart:typed_data';
 
-import 'package:restcut/services/inference/action_segment_detector.dart';
-import 'package:restcut/services/inference/image_preprocessor.dart';
-import 'package:restcut/services/inference/onnx_inference_engine.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/inference/action_segment_detector.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
+import 'package:huji_app/services/inference/onnx_inference_engine.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// Maps model output class index → ActionType.
 class ClassMapping {

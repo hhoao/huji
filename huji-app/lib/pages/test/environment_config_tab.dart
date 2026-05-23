@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/config/env_utils.dart';
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/config/env_utils.dart';
 
 class EnvironmentConfigTab extends StatefulWidget {
   const EnvironmentConfigTab({super.key});

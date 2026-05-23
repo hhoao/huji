@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/config/environment.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/config/environment.dart';
 
 class EnvUtils {
   /// 获取环境名称

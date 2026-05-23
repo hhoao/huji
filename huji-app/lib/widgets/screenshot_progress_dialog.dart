@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:gal/gal.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
 
 class ScreenshotProgressDialog extends StatefulWidget {
   final String videoPath;

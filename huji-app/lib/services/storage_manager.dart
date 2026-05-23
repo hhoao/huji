@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/utils/app_error_utils.dart';
-import 'package:restcut/utils/file_utils.dart' as path_utils;
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/utils/logger_utils.dart';
 
 class StorageManager extends GetxController {
   static StorageManager get to => Get.find();

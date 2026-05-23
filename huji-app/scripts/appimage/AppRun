@@ -18,4 +18,4 @@ export PATH="$APPDIR/usr/bin:$PATH"
 export GDK_BACKEND="${GDK_BACKEND:-x11}"
 
 # Launch the Flutter app
-exec "$APPDIR/usr/bin/restcut" "$@"
+exec "$APPDIR/usr/bin/huji" "$@"

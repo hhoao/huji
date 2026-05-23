@@ -5,13 +5,13 @@ import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/utils/video_utils.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_state.dart';
-import 'package:restcut/widgets/video_trimmer/lib/trim_viewer/clip_segment_overlay.dart';
-import 'package:restcut/widgets/video_trimmer/lib/trim_viewer/trim_area_properties.dart';
-import 'package:restcut/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
+import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/clip_segment_overlay.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_area_properties.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
 
 /// Widget for displaying the video trimmer.
 class ScrollableTrimViewer extends StatelessWidget {

@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as path;
 import 'package:permission_handler/permission_handler.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/constants/file_extensions.dart';
-import 'package:restcut/services/permission_service.dart';
-import 'package:restcut/utils/debounce/debounces.dart';
-import 'package:restcut/utils/file_utils.dart' as file_utils;
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/services/permission_service.dart';
+import 'package:huji_app/utils/debounce/debounces.dart';
+import 'package:huji_app/utils/file_utils.dart' as file_utils;
 import 'file_selection_page.dart';
 
 class FilesystemTab extends StatefulWidget {

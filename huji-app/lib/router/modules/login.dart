@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/login/login_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/login/login_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class LoginRoute implements RouteModule {
   static const String login = '/login';

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_split_view/multi_split_view.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_state.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/trim_viewer/custom_divider_painters.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/custom_divider_painters.dart';
 
 /// 视频剪辑片段覆盖层
 class ClipSegmentOverlay extends StatelessWidget {

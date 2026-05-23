@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/plan/subscription_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/plan/subscription_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class SubscriptionRoute implements RouteModule {
   static const String subscription = '/subscription';

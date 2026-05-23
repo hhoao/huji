@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 
 abstract class TrimmerEvent extends Equatable {
   const TrimmerEvent();

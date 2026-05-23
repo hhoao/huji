@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:restcut/services/inference/action_segment_detector.dart';
+import 'package:huji_app/services/inference/action_segment_detector.dart';
 
 void main() {
   group('ActionSegmentDetector', () {

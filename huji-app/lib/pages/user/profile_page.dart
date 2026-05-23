@@ -1,15 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/member/user_models.dart';
-import 'package:restcut/api/models/autoclip/subscription_models.dart';
-import 'package:restcut/constants/app_setting_constants.dart';
-import 'package:restcut/pages/login/need_login_wrapper_widget.dart';
-import 'package:restcut/pages/user/basic_info_page.dart';
-import 'package:restcut/pages/system/help_feedback_page.dart';
-import 'package:restcut/pages/user/security_settings_page.dart';
-import 'package:restcut/pages/system/settings_page.dart';
-import 'package:restcut/pages/plan/subscription_page.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
+import 'package:huji_app/api/models/autoclip/subscription_models.dart';
+import 'package:huji_app/constants/app_setting_constants.dart';
+import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
+import 'package:huji_app/pages/user/basic_info_page.dart';
+import 'package:huji_app/pages/system/help_feedback_page.dart';
+import 'package:huji_app/pages/user/security_settings_page.dart';
+import 'package:huji_app/pages/system/settings_page.dart';
+import 'package:huji_app/pages/plan/subscription_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});

@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/video_utils.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/video_utils.dart';
 
 import 'video_clip_progress_dialog_event.dart';
 import 'video_clip_progress_dialog_state.dart';

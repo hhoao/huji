@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/constants/file_extensions.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class DesktopDropZone extends StatefulWidget {
   final List<File> files;

@@ -1,0 +1,25 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "huji-app",
+      "cwd": "huji-app",
+      "request": "launch",
+      "type": "dart"
+    },
+    {
+      "name": "huji-app (profile mode)",
+      "cwd": "huji-app",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "profile"
+    },
+    {
+      "name": "huji-app (release mode)",
+      "cwd": "huji-app",
+      "request": "launch",
+      "type": "dart",
+      "flutterMode": "release"
+    }
+  ]
+}

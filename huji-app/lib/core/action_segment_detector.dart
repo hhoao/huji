@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/services/large_model_service.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/large_model_service.dart';
 
 abstract class ActionSegmentDetector<C extends VideoClipConfigReqVo> {
   /// 配置参数

@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:retrofit/retrofit.dart';
 
 import '../../models/member/user_models.dart';

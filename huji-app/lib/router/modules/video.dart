@@ -1,9 +1,9 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/home/home_page.dart';
-import 'package:restcut/pages/video/video_list_page.dart';
-import 'package:restcut/pages/video/video_progress_page.dart';
-import 'package:restcut/widgets/video_player/video_player_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/home/home_page.dart';
+import 'package:huji_app/pages/video/video_list_page.dart';
+import 'package:huji_app/pages/video/video_progress_page.dart';
+import 'package:huji_app/widgets/video_player/video_player_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class VideoRoute implements RouteModule {
   static const String home = '/home';

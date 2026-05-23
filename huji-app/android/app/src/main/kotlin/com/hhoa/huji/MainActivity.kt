@@ -1,4 +1,4 @@
-package com.hhoa.restcut
+package com.hhoa.huji
 
 import io.flutter.embedding.android.FlutterActivity
 

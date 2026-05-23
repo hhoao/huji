@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 class TaskFilter {
   Set<TaskTypeEnum> selectedTypes;

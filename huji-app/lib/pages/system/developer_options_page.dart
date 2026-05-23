@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/system/log_viewer_page.dart';
-import 'package:restcut/router/modules/tools.dart';
+import 'package:huji_app/pages/system/log_viewer_page.dart';
+import 'package:huji_app/router/modules/tools.dart';
 
 class DeveloperOptionsPage extends StatefulWidget {
   const DeveloperOptionsPage({super.key});

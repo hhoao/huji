@@ -2,13 +2,13 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:path/path.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/app_error_utils.dart';
-import 'package:restcut/utils/json_utils.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/utils/json_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:synchronized/synchronized.dart';
 

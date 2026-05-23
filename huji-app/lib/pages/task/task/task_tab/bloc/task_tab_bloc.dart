@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 
 import 'task_tab_event.dart';
 import 'task_tab_state.dart';

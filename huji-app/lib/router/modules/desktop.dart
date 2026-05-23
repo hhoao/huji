@@ -1,11 +1,11 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/desktop/desktop_home_page.dart';
-import 'package:restcut/pages/desktop/desktop_clip_config_page.dart';
-import 'package:restcut/pages/desktop/desktop_preview_export_page.dart';
-import 'package:restcut/pages/desktop/desktop_precision_edit_page.dart';
-import 'package:restcut/pages/desktop/desktop_tasks_page.dart';
-import 'package:restcut/pages/desktop/desktop_settings_page.dart';
-import 'package:restcut/pages/login/login_page.dart';
+import 'package:huji_app/pages/desktop/desktop_home_page.dart';
+import 'package:huji_app/pages/desktop/desktop_clip_config_page.dart';
+import 'package:huji_app/pages/desktop/desktop_preview_export_page.dart';
+import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
+import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
+import 'package:huji_app/pages/desktop/desktop_settings_page.dart';
+import 'package:huji_app/pages/login/login_page.dart';
 
 class DesktopRoutes {
   DesktopRoutes._();

@@ -35,9 +35,9 @@ class EnvironmentConfig {
   static String get appName {
     switch (_environment) {
       case Environment.development:
-        return 'Restcut Dev';
+        return '弧迹 Dev';
       case Environment.production:
-        return 'Restcut';
+        return '弧迹';
     }
   }
 

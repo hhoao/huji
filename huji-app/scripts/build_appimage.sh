@@ -155,7 +155,7 @@ LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppI
 "$TOOLS_DIR/linuxdeploy.AppImage" --appimage-extract-and-run \
   --appdir "$APPDIR" \
   --plugin gtk \
-  --executable "$APPDIR/usr/bin/restcut" \
+  --executable "$APPDIR/usr/bin/huji" \
   "${PLUGIN_LIB_FLAGS[@]}" \
   --desktop-file "$APPDIR/huji.desktop" \
   --icon-file "$APPIMAGE_RES/huji.svg" \

@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'package:get/get.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/store/user.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/store/user.dart';
 
 class MessageStore extends GetxController {
   static MessageStore get instance => Get.find<MessageStore>();

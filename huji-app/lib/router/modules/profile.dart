@@ -1,15 +1,15 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/user/basic_info_page.dart';
-import 'package:restcut/pages/user/profile_page.dart';
-import 'package:restcut/pages/user/security_settings_page.dart';
-import 'package:restcut/pages/system/changelog_page.dart';
-import 'package:restcut/pages/system/developer_options_page.dart';
-import 'package:restcut/pages/system/help_feedback_page.dart';
-import 'package:restcut/pages/system/log_viewer_page.dart';
-import 'package:restcut/pages/system/settings_page.dart';
-import 'package:restcut/pages/system/version_info_page.dart';
-import 'package:restcut/pages/permission/permission_management_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/user/basic_info_page.dart';
+import 'package:huji_app/pages/user/profile_page.dart';
+import 'package:huji_app/pages/user/security_settings_page.dart';
+import 'package:huji_app/pages/system/changelog_page.dart';
+import 'package:huji_app/pages/system/developer_options_page.dart';
+import 'package:huji_app/pages/system/help_feedback_page.dart';
+import 'package:huji_app/pages/system/log_viewer_page.dart';
+import 'package:huji_app/pages/system/settings_page.dart';
+import 'package:huji_app/pages/system/version_info_page.dart';
+import 'package:huji_app/pages/permission/permission_management_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class ProfileRoute implements RouteModule {
   static const String profile = '/profile';

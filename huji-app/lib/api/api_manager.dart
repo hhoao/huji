@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
-import 'package:restcut/constants/global.dart';
-import 'package:restcut/api/net_interceptor.dart';
-import 'package:restcut/services/multipart_upload_service.dart';
+import 'package:huji_app/constants/global.dart';
+import 'package:huji_app/api/net_interceptor.dart';
+import 'package:huji_app/services/multipart_upload_service.dart';
 
 import 'internal/member/auth_api.dart';
 import 'internal/member/user_api.dart';

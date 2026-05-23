@@ -1,9 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_state.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
 import 'package:uuid/uuid.dart';
 
 /// 视频剪辑片段管理器 Bloc

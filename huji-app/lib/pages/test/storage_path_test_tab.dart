@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/utils/file_utils.dart' as file_utils;
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/utils/file_utils.dart' as file_utils;
 
 class StoragePathTestTab extends StatefulWidget {
   const StoragePathTestTab({super.key});

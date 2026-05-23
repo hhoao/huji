@@ -1,13 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/router/modules/main.dart';
-import 'package:restcut/services/notification/task_notification_service.dart';
-import 'package:restcut/settings/settings_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/router/modules/main.dart';
+import 'package:huji_app/services/notification/task_notification_service.dart';
+import 'package:huji_app/settings/settings_manager.dart';
 
 abstract class NotificationService<T> {
   Future<void> showOrUpdateTaskNotification(T params);

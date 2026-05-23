@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/pages/task/record/bloc/video_record_detail_bloc.dart';
-import 'package:restcut/pages/task/record/bloc/video_record_detail_event.dart';
-import 'package:restcut/pages/task/record/bloc/video_record_detail_state.dart';
-import 'package:restcut/utils/time_utils.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/pages/task/record/bloc/video_record_detail_bloc.dart';
+import 'package:huji_app/pages/task/record/bloc/video_record_detail_event.dart';
+import 'package:huji_app/pages/task/record/bloc/video_record_detail_state.dart';
+import 'package:huji_app/utils/time_utils.dart';
 
 class VideoRecordDetailDialog extends StatelessWidget {
   final VideoProcessRecordVO record;

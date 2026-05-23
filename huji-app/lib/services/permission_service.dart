@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class PermissionService {

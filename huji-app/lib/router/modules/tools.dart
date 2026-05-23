@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/test/test_page.dart';
-import 'package:restcut/pages/tools/image_compress_page.dart';
-import 'package:restcut/pages/tools/video_compress_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/test/test_page.dart';
+import 'package:huji_app/pages/tools/image_compress_page.dart';
+import 'package:huji_app/pages/tools/video_compress_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class ToolsRoute implements RouteModule {
   static const String imageCompress = '/tools/image-compress';

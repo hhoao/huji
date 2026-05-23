@@ -1,17 +1,17 @@
 import 'dart:io';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/constants/autoclip_constants.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/services/large_model_service.dart';
-import 'package:restcut/utils/image_utils.dart';
-import 'package:restcut/utils/time_utils.dart';
-import 'package:restcut/widgets/camerax/bloc/camerax_bloc.dart';
-import 'package:restcut/widgets/camerax/bloc/camerax_state.dart';
-import 'package:restcut/widgets/camerax/camera_widget.dart';
+import 'package:huji_app/constants/autoclip_constants.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/large_model_service.dart';
+import 'package:huji_app/utils/image_utils.dart';
+import 'package:huji_app/utils/time_utils.dart';
+import 'package:huji_app/widgets/camerax/bloc/camerax_bloc.dart';
+import 'package:huji_app/widgets/camerax/bloc/camerax_state.dart';
+import 'package:huji_app/widgets/camerax/camera_widget.dart';
 
 /// RecordClipWidget 测试页面
 class RecordClipWidgetTestTab extends StatefulWidget {

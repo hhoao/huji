@@ -4,11 +4,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:path/path.dart' as p;
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({super.key});

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/pages/clip/types.dart';
-import 'package:restcut/router/modules/clip.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/pages/clip/types.dart';
+import 'package:huji_app/router/modules/clip.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class SportSelectionPage extends StatefulWidget {
   final String? videoPath;

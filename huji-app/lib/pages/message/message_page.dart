@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/common/page.dart';
-import 'package:restcut/api/models/member/notify_models.dart';
-import 'package:restcut/widgets/common_app_bar_with_tabs.dart';
-import 'package:restcut/utils/time_utils.dart';
-import 'package:restcut/pages/login/need_login_wrapper_widget.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/common/page.dart';
+import 'package:huji_app/api/models/member/notify_models.dart';
+import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/utils/time_utils.dart';
+import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
 
 class MessagePage extends StatefulWidget {
   const MessagePage({super.key});

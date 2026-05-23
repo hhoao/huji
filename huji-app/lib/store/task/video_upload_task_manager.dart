@@ -1,7 +1,7 @@
-import 'package:restcut/models/task.dart';
-import 'package:restcut/models/upload.dart';
-import 'package:restcut/services/multipart_uploader.dart';
-import 'package:restcut/store/task/task_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/models/upload.dart';
+import 'package:huji_app/services/multipart_uploader.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 import 'package:uuid/uuid.dart';
 
 // 上传任务管理器 - 连接FileUploader和TaskManager

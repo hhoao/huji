@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/pages/message/message_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/message/message_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class MessageRoute implements RouteModule {
   static const String message = '/message';

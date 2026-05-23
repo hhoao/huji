@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/models/autoclip_models.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/models/autoclip_models.dart';
 
 /// Simple display-only timeline bar showing a segment's time range.
 /// Phase 3: no drag handles yet — just a visual highlight of start..end.

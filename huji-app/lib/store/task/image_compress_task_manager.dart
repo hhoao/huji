@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_image_compress/flutter_image_compress.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 
 class ImageCompressTaskManager extends AbstractTaskManager {
   static const String imageCompressTable = 'image_compress_tasks';

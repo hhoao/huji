@@ -4,20 +4,20 @@ import 'dart:io';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart' as cache;
 import 'package:get/get_utils/get_utils.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/constants/global.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/models/upload.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/services/multipart_uploader.dart';
-import 'package:restcut/services/websocket_service.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/clip_config_codec.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/constants/global.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/models/upload.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/services/multipart_uploader.dart';
+import 'package:huji_app/services/websocket_service.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/clip_config_codec.dart';
 
 class StateNotMatchException implements Exception {
   final String message;

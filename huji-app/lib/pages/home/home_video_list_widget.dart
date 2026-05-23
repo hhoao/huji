@@ -3,16 +3,16 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/pages/clip/round_clip_page.dart';
-import 'package:restcut/pages/home/bloc/home_video_list_bloc.dart';
-import 'package:restcut/pages/home/bloc/home_video_list_event.dart';
-import 'package:restcut/pages/home/bloc/home_video_list_state.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/pages/clip/round_clip_page.dart';
+import 'package:huji_app/pages/home/bloc/home_video_list_bloc.dart';
+import 'package:huji_app/pages/home/bloc/home_video_list_event.dart';
+import 'package:huji_app/pages/home/bloc/home_video_list_state.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/clip.dart';
-import 'package:restcut/router/modules/video.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/utils/time_utils.dart' as time_utils;
+import 'package:huji_app/router/modules/clip.dart';
+import 'package:huji_app/router/modules/video.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/time_utils.dart' as time_utils;
 
 class HomeVideoListWidget extends StatelessWidget {
   const HomeVideoListWidget({super.key});

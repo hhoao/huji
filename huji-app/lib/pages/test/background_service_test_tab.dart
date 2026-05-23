@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/services/background_service.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/services/background_service.dart';
 
 class BackgroundServiceTestTab extends StatefulWidget {
   const BackgroundServiceTestTab({super.key});

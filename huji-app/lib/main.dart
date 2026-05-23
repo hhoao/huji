@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/constants/theme.dart';
-import 'package:restcut/init.dart';
-import 'package:restcut/main_desktop.dart';
-import 'package:restcut/pages/home/home_page.dart';
-import 'package:restcut/pages/system/error_page.dart';
-import 'package:restcut/pages/task/task_record_page.dart';
-import 'package:restcut/pages/user/profile_page.dart';
-import 'package:restcut/pages/video/video_list_page.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/services/error_log_service.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/services/storage_service.dart';
-import 'package:restcut/store/user/user_bloc_instance.dart';
-import 'package:restcut/store/user/user_bloc.dart';
+import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/init.dart';
+import 'package:huji_app/main_desktop.dart';
+import 'package:huji_app/pages/home/home_page.dart';
+import 'package:huji_app/pages/system/error_page.dart';
+import 'package:huji_app/pages/task/task_record_page.dart';
+import 'package:huji_app/pages/user/profile_page.dart';
+import 'package:huji_app/pages/video/video_list_page.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/services/error_log_service.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/store/user/user_bloc_instance.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
 
 void main(List<String> args) async {
   try {
@@ -74,7 +74,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return BlocProvider<UserBloc>.value(
       value: UserBlocInstance.instance,
       child: MaterialApp.router(
-        title: 'Restcut',
+        title: '弧迹',
         routerConfig: appRouter,
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,

@@ -3,20 +3,20 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:path/path.dart';
-import 'package:restcut/constants/global.dart';
-import 'package:restcut/services/notification/notification_manager.dart';
-import 'package:restcut/store/task/download_task_manager.dart';
-import 'package:restcut/store/task/image_compress_task_manager.dart';
-import 'package:restcut/store/task/video_clip_task_manager.dart';
-import 'package:restcut/store/task/video_segment_detect_task.dart';
-import 'package:restcut/store/task/video_compress_task_manager.dart';
-import 'package:restcut/store/task/video_upload_task_manager.dart';
-import 'package:restcut/utils/app_error_utils.dart';
+import 'package:huji_app/constants/global.dart';
+import 'package:huji_app/services/notification/notification_manager.dart';
+import 'package:huji_app/store/task/download_task_manager.dart';
+import 'package:huji_app/store/task/image_compress_task_manager.dart';
+import 'package:huji_app/store/task/video_clip_task_manager.dart';
+import 'package:huji_app/store/task/video_segment_detect_task.dart';
+import 'package:huji_app/store/task/video_compress_task_manager.dart';
+import 'package:huji_app/store/task/video_upload_task_manager.dart';
+import 'package:huji_app/utils/app_error_utils.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:synchronized/synchronized.dart';
-import 'package:restcut/services/telemetry_service.dart';
+import 'package:huji_app/services/telemetry_service.dart';
 
 import '../../models/task.dart';
 

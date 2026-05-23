@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/api/models/member/user_models.dart';
-import 'package:restcut/pages/login/common.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
+import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
 import 'login_dialog.dart';
 

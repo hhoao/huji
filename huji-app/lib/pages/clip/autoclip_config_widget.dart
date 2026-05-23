@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/pages/clip/types.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/pages/clip/types.dart';
 
 // 视频配置组件
 class VideoConfigWidget extends StatefulWidget {

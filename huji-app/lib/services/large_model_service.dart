@@ -3,10 +3,10 @@ import 'dart:typed_data';
 
 import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/models/large_model.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/models/large_model.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:ultralytics_yolo/yolo.dart';
 
 import '../constants/autoclip_constants.dart';

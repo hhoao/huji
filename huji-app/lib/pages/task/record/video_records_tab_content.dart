@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/pages/task/record/bloc/video_records_tab_bloc.dart';
-import 'package:restcut/pages/task/record/bloc/video_records_tab_event.dart';
-import 'package:restcut/pages/task/record/bloc/video_records_tab_state.dart';
-import 'package:restcut/pages/task/record/video_record_detail_dialog.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/pages/task/record/bloc/video_records_tab_bloc.dart';
+import 'package:huji_app/pages/task/record/bloc/video_records_tab_event.dart';
+import 'package:huji_app/pages/task/record/bloc/video_records_tab_state.dart';
+import 'package:huji_app/pages/task/record/video_record_detail_dialog.dart';
 
 class VideoRecordsTabContent extends StatefulWidget {
   final VideoRecordsTabBloc? bloc;

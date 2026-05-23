@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:open_file/open_file.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/utils/file_utils.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/file_utils.dart';
 
 class DownloadProgressDialog extends StatefulWidget {
   final DownloadTask task;

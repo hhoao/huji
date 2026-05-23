@@ -1,5 +1,5 @@
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart';
 
 enum VideoSource { remote, local }
 

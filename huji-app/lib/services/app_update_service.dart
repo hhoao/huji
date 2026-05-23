@@ -1,14 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/app_models.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/app_models.dart';
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
 import 'package:uuid/uuid.dart';
 
 class AppUpdateService {

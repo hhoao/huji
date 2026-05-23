@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
-import 'package:restcut/services/multipart_uploader.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/task/video_upload_task_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/services/multipart_uploader.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/task/video_upload_task_manager.dart';
 
 class FileUploaderTestTab extends StatefulWidget {
   const FileUploaderTestTab({super.key});

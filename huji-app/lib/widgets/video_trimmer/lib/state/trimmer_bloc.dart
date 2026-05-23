@@ -3,15 +3,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/services/storage_service.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/utils/video_utils.dart';
-import 'package:restcut/utils/debounce/debounces.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_state.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
+import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/utils/debounce/debounces.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
 import 'package:video_player/video_player.dart';
 
 class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {

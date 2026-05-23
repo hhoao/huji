@@ -3,17 +3,17 @@ import 'dart:io';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/pages/home/home_video_list_widget.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/pages/home/home_video_list_widget.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/clip.dart';
-import 'package:restcut/router/modules/message.dart';
-import 'package:restcut/router/modules/profile.dart';
-import 'package:restcut/router/modules/tools.dart';
-import 'package:restcut/store/message.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/router/modules/clip.dart';
+import 'package:huji_app/router/modules/message.dart';
+import 'package:huji_app/router/modules/profile.dart';
+import 'package:huji_app/router/modules/tools.dart';
+import 'package:huji_app/store/message.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 import '../../widgets/common_app_bar_with_tabs.dart';
 

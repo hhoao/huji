@@ -3,11 +3,11 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/upload.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/upload.dart';
 
 typedef UploadProgressCallback = Future<void> Function(UploadTask task);
 typedef UploadStatusCallback =

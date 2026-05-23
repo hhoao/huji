@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:path/path.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
 
 class Global {
   static String get baseUrl => EnvironmentConfig.apiBaseUrl;

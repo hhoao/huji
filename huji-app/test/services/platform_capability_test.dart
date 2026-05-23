@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 
 void main() {
   group('PlatformCapability', () {

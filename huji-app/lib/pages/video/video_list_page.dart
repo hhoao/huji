@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/profile.dart';
-import 'package:restcut/widgets/common_app_bar_with_tabs.dart';
-import 'package:restcut/pages/login/need_login_wrapper_widget.dart';
-import 'package:restcut/pages/video/video_list_tab_content.dart';
+import 'package:huji_app/router/modules/profile.dart';
+import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
+import 'package:huji_app/pages/video/video_list_tab_content.dart';
 
 class VideoListPage extends StatefulWidget {
   final TabController? tabController;

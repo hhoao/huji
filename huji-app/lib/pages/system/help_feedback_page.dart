@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/issue_models.dart';
-import 'package:restcut/constants/theme_manager.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/issue_models.dart';
+import 'package:huji_app/constants/theme_manager.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 class HelpFeedbackPage extends StatefulWidget {
   const HelpFeedbackPage({super.key});

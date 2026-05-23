@@ -6,21 +6,21 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restcut/config/environment.dart';
-import 'package:restcut/constants/theme_manager.dart';
-import 'package:restcut/services/app_update_checker.dart';
-import 'package:restcut/services/error_log_service.dart';
-import 'package:restcut/services/notification/notification_manager.dart';
-import 'package:restcut/services/permission_service.dart';
-import 'package:restcut/services/storage_manager.dart';
-import 'package:restcut/services/storage_service.dart';
-import 'package:restcut/settings/settings_manager.dart';
-import 'package:restcut/store/message.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/store/user/user_bloc_instance.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/config/environment.dart';
+import 'package:huji_app/constants/theme_manager.dart';
+import 'package:huji_app/services/app_update_checker.dart';
+import 'package:huji_app/services/error_log_service.dart';
+import 'package:huji_app/services/notification/notification_manager.dart';
+import 'package:huji_app/services/permission_service.dart';
+import 'package:huji_app/services/storage_manager.dart';
+import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/settings/settings_manager.dart';
+import 'package:huji_app/store/message.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/store/user/user_bloc_instance.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 /// Will be called before the MaterialApp started

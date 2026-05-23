@@ -1,13 +1,13 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/clip.dart';
-import 'package:restcut/router/modules/login.dart';
-import 'package:restcut/router/modules/main.dart';
-import 'package:restcut/router/modules/message.dart';
-import 'package:restcut/router/modules/profile.dart';
-import 'package:restcut/router/modules/splash.dart';
-import 'package:restcut/router/modules/subscription.dart';
-import 'package:restcut/router/modules/tools.dart';
-import 'package:restcut/router/modules/video.dart';
+import 'package:huji_app/router/modules/clip.dart';
+import 'package:huji_app/router/modules/login.dart';
+import 'package:huji_app/router/modules/main.dart';
+import 'package:huji_app/router/modules/message.dart';
+import 'package:huji_app/router/modules/profile.dart';
+import 'package:huji_app/router/modules/splash.dart';
+import 'package:huji_app/router/modules/subscription.dart';
+import 'package:huji_app/router/modules/tools.dart';
+import 'package:huji_app/router/modules/video.dart';
 
 /// 聚合所有路由模块
 /// 这个类用于聚合所有路由模块的 GoRoute

@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart'
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart'
     show RawVideoRecord, ClipMode, EdittingVideoRecord;
-import 'package:restcut/pages/clip/autoclip_page.dart';
-import 'package:restcut/pages/clip/clip_type_selection_page.dart';
-import 'package:restcut/pages/clip/round_clip_page.dart';
-import 'package:restcut/pages/clip/sport_selection_page.dart';
-import 'package:restcut/pages/clip/video_post_edit_page.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/pages/clip/autoclip_page.dart';
+import 'package:huji_app/pages/clip/clip_type_selection_page.dart';
+import 'package:huji_app/pages/clip/round_clip_page.dart';
+import 'package:huji_app/pages/clip/sport_selection_page.dart';
+import 'package:huji_app/pages/clip/video_post_edit_page.dart';
+import 'package:huji_app/router/types.dart';
 
 class ClipRoute implements RouteModule {
   static const String clipTypeSelection = '/clip/type-selection';

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/subscription.dart';
+import 'package:huji_app/router/modules/subscription.dart';
 
 class SubscriptionTestTab extends StatefulWidget {
   const SubscriptionTestTab({super.key});

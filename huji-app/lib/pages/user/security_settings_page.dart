@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
-import 'package:restcut/api/models/member/user_models.dart';
-import 'package:restcut/pages/login/common.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/router/modules/login.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
+import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/router/modules/login.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
   const SecuritySettingsPage({super.key});

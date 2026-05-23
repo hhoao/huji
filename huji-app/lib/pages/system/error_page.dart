@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:restcut/pages/system/log_viewer_page.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/pages/system/log_viewer_page.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// Shows an alternative app if the initialization failed.
 void showInitErrorApp({

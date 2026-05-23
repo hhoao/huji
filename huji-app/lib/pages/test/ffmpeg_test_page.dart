@@ -1,9 +1,9 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/models/ffmpeg.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 import '../../utils/ffmpeg_manager.dart';
 import '../../utils/video_compress_utils.dart';

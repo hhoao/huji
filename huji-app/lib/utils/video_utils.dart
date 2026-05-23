@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:watcher/watcher.dart';
 
 import '../models/autoclip_models.dart';

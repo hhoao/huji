@@ -4,16 +4,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/pages/clip/bloc/round_clip_bloc.dart';
-import 'package:restcut/pages/clip/bloc/round_clip_event.dart';
-import 'package:restcut/pages/clip/bloc/round_clip_state.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
-import 'package:restcut/widgets/desktop/desktop_timeline_editor.dart';
-import 'package:restcut/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/pages/clip/bloc/round_clip_bloc.dart';
+import 'package:huji_app/pages/clip/bloc/round_clip_event.dart';
+import 'package:huji_app/pages/clip/bloc/round_clip_state.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/widgets/desktop/desktop_timeline_editor.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 
 /// Precision edit page: left round list + right editor with timeline.
 /// Wired to RoundClipBloc for real segment data.

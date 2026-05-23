@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
-import 'package:restcut/api/models/member/user_models.dart';
-import 'package:restcut/store/user.dart';
-import 'package:restcut/store/user/user_bloc_instance.dart';
-import 'package:restcut/store/user/user_event.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
+import 'package:huji_app/store/user.dart';
+import 'package:huji_app/store/user/user_bloc_instance.dart';
+import 'package:huji_app/store/user/user_event.dart';
 
 class UserService {
   static final Dio _dio = Dio();

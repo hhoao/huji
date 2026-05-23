@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:restcut/services/permission_service.dart';
+import 'package:huji_app/services/permission_service.dart';
 
 class PermissionTestTab extends StatefulWidget {
   const PermissionTestTab({super.key});

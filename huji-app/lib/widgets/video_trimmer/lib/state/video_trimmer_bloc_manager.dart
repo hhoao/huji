@@ -1,9 +1,9 @@
 import 'dart:io';
 
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
-import 'package:restcut/widgets/video_trimmer/lib/state/trimmer_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 
 class VideoTrimmerBlocManager {
   late final ClipSegmentBloc clipSegmentBloc;

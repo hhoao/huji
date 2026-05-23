@@ -1,17 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/widgets/desktop/desktop_drop_zone.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/task.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/task.dart';
 
-import 'package:restcut/services/local_detection_service.dart';
-import 'package:restcut/services/multipart_uploader.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/store/task/task_manager.dart';
+import 'package:huji_app/services/local_detection_service.dart';
+import 'package:huji_app/services/multipart_uploader.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 
 /// Smart clip configuration page: left config panel + right upload area.
 /// Mockup reference: smart-edit-v3.html

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 enum LocalModelStatus { available, notFound, incompatible }
 
@@ -159,11 +159,11 @@ class LocalDetectionService {
     final candidates = [
       '$execDir/../scripts/local_inference.py',
       '$execDir/../../scripts/local_inference.py',
-      '$execDir/../../../../restcut_app/scripts/local_inference.py',
-      '$execDir/../../../restcut_app/scripts/local_inference.py',
+      '$execDir/../../../../huji-app/scripts/local_inference.py',
+      '$execDir/../../../huji-app/scripts/local_inference.py',
       // Absolute fallback
-      '/home/hhoa/git/hhoa/huji/.worktrees/desktop-phase1/restcut_app/scripts/local_inference.py',
-      '/home/hhoa/git/hhoa/huji/restcut_app/scripts/local_inference.py',
+      '/home/hhoa/git/hhoa/huji/.worktrees/desktop-phase1/huji-app/scripts/local_inference.py',
+      '/home/hhoa/git/hhoa/huji/huji-app/scripts/local_inference.py',
     ];
     for (final c in candidates) {
       if (File(c).existsSync()) return c;

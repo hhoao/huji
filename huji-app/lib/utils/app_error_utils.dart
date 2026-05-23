@@ -3,9 +3,9 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:restcut/exceptions/notify_exception.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/utils/ffmpeg_error_utils.dart';
+import 'package:huji_app/exceptions/notify_exception.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/utils/ffmpeg_error_utils.dart';
 
 enum AppErrorKind { unexpected, network, auth, storage, pluginRace }
 

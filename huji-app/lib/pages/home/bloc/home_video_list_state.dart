@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/models/video.dart';
+import 'package:huji_app/models/video.dart';
 
 /// 首页视频列表状态
 class HomeVideoListState extends Equatable {

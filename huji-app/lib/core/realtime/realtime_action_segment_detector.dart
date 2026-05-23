@@ -3,9 +3,9 @@ import 'dart:collection';
 import 'dart:developer';
 
 import 'package:logger/logger.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/core/action_segment_detector.dart';
-import 'package:restcut/utils/time_utils.dart' as time_utils;
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/core/action_segment_detector.dart';
+import 'package:huji_app/utils/time_utils.dart' as time_utils;
 import 'package:synchronized/synchronized.dart';
 
 import '../../models/autoclip_models.dart';

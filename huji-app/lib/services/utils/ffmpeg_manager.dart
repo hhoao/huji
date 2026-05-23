@@ -1,6 +1,6 @@
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
-import 'package:restcut/utils/ffmpeg_error_utils.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/utils/ffmpeg_error_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// FFmpeg管理工具类
 class FFmpegManager {

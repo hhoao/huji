@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restcut/pages/system/error_page.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/router/modules/main.dart';
-import 'package:restcut/services/error_log_service.dart';
+import 'package:huji_app/pages/system/error_page.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/router/modules/main.dart';
+import 'package:huji_app/services/error_log_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});

@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:retrofit/retrofit.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/api/models/common/page.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/models/common/page.dart';
 
 part 'video_api.g.dart';
 

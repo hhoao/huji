@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 class ClipConfigCodec {
   static VideoClipConfigReqVo? decode(Object? raw, SportType? sportType) {

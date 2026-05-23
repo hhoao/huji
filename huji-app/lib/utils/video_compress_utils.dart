@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:restcut/models/ffmpeg.dart';
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/utils/ffmpeg_error_utils.dart';
-import 'package:restcut/utils/file_utils.dart' as path_utils;
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/utils/ffmpeg_error_utils.dart';
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/utils/logger_utils.dart';
 
 /**
  * Youtube 视频码率推荐表 (H.264编码)

@@ -1,6 +1,6 @@
 import 'package:go_router/go_router.dart';
-import 'package:restcut/main.dart';
-import 'package:restcut/router/types.dart';
+import 'package:huji_app/main.dart';
+import 'package:huji_app/router/types.dart';
 
 class MainRoute implements RouteModule {
   static const String main = '/main';

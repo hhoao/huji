@@ -1,8 +1,8 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/widgets/multi_video_player/models/video_playback_item.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/widgets/multi_video_player/models/video_playback_item.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 
 /// 回合编辑页面事件
 abstract class RoundClipEvent extends Equatable {

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 /// 视频记录详情对话框状态
 class VideoRecordDetailState extends Equatable {

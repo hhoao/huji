@@ -2,9 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:logger/logger.dart';
-import 'package:restcut/services/error_log_service.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/utils/app_error_utils.dart';
+import 'package:huji_app/services/error_log_service.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/utils/app_error_utils.dart';
 
 enum LogLevel {
   info,

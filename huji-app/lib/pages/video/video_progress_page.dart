@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 class VideoProgressPage extends StatefulWidget {
   final int? highlightProcessRecordId;

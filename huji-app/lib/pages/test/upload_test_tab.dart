@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class UploadTestTab extends StatefulWidget {
   const UploadTestTab({super.key});

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/pages/login/login_dialog.dart';
-import 'package:restcut/store/user/user_bloc.dart';
-import 'package:restcut/store/user/user_state.dart';
+import 'package:huji_app/pages/login/login_dialog.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
+import 'package:huji_app/store/user/user_state.dart';
 
 class NeedLoginWrapperWidget extends StatelessWidget {
   final Widget? child;

@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/api/models/member/user_models.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
 
 /// 用户事件基类
 abstract class UserEvent extends Equatable {

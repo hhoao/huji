@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:restcut/api/models/autoclip/app_models.dart';
-import 'package:restcut/services/app_update_service.dart';
+import 'package:huji_app/api/models/autoclip/app_models.dart';
+import 'package:huji_app/services/app_update_service.dart';
 
 class ChangelogEntry {
   final String version;

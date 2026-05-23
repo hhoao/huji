@@ -1,4 +1,4 @@
-import 'package:restcut/constants/file_extensions.dart';
+import 'package:huji_app/constants/file_extensions.dart';
 
 /// 自动剪辑相关常量定义
 class AutoclipConstants {

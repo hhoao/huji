@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/widgets/desktop/desktop_sidebar.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/widgets/desktop/desktop_sidebar.dart';
 
 /// Shell wrapping every desktop page: sidebar + header + body.
 ///

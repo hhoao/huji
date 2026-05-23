@@ -25,17 +25,17 @@ jobs:
 
       - name: Install Flutter dependencies
         run: flutter pub get
-        working-directory: restcut_app
+        working-directory: huji-app
 
       - name: Build Flutter Linux release
         run: flutter build linux --release
-        working-directory: restcut_app
+        working-directory: huji-app
 
       - name: Build AppImage
         run: bash scripts/build_appimage.sh
-        working-directory: restcut_app
+        working-directory: huji-app
 
       - name: Upload AppImage
         uses: softprops/action-gh-release@v2
         with:
-          files: restcut_app/build/appimage/*.AppImage
+          files: huji-app/build/appimage/*.AppImage

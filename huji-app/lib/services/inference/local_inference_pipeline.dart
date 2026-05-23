@@ -1,7 +1,7 @@
-import 'package:restcut/services/inference/action_classifier.dart';
-import 'package:restcut/services/inference/action_segment_detector.dart';
-import 'package:restcut/services/inference/frame_extractor.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/inference/action_classifier.dart';
+import 'package:huji_app/services/inference/action_segment_detector.dart';
+import 'package:huji_app/services/inference/frame_extractor.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// Result of the local inference pipeline.
 class LocalInferenceResult {

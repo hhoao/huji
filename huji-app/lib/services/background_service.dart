@@ -1,7 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter_background_service/flutter_background_service.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 
 class BackgroundService {
   static final BackgroundService _instance = BackgroundService._internal();

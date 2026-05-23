@@ -1,12 +1,12 @@
 import 'package:gal/gal.dart';
-import 'package:restcut/models/ffmpeg.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/services/background_service.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/ffmpeg_error_utils.dart';
-import 'package:restcut/utils/video_compress_utils.dart';
+import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/services/background_service.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/ffmpeg_error_utils.dart';
+import 'package:huji_app/utils/video_compress_utils.dart';
 
 class VideoCompressTaskManager extends AbstractTaskManager {
   static const String videoCompressTable = 'video_compress_tasks';

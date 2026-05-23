@@ -3,13 +3,13 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/models/video_display_item.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/time_utils.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/models/video_display_item.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/time_utils.dart';
 
 class VideoListTabContent extends StatefulWidget {
   final TabController? tabController;

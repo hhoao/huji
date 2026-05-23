@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class WebSocketService {

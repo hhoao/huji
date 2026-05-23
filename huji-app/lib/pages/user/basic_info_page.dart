@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/member/user_models.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/pages/user/avatar_picker_widget.dart';
-import 'package:restcut/constants/theme_manager.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/pages/user/avatar_picker_widget.dart';
+import 'package:huji_app/constants/theme_manager.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 class BasicInfoPage extends StatefulWidget {
   const BasicInfoPage({super.key});

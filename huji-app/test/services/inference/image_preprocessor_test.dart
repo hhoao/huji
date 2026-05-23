@@ -1,6 +1,6 @@
 import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:restcut/services/inference/image_preprocessor.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
 
 void main() {
   group('ImagePreprocessor', () {

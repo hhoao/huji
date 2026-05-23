@@ -1,11 +1,11 @@
 import 'dart:convert';
 
 import 'package:json_annotation/json_annotation.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/ffmpeg.dart';
-import 'package:restcut/utils/clip_config_codec.dart';
-import 'package:restcut/utils/json_utils.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/utils/clip_config_codec.dart';
+import 'package:huji_app/utils/json_utils.dart';
 
 part 'task.g.dart';
 

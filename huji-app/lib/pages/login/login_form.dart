@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
-import 'package:restcut/exceptions/notify_exception.dart';
-import 'package:restcut/pages/login/common.dart';
-import 'package:restcut/services/user_service.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/exceptions/notify_exception.dart';
+import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 import 'login_dialog.dart';
 

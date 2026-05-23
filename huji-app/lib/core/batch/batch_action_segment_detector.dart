@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/core/action_segment_detector.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/core/action_segment_detector.dart';
 
 import '../../models/autoclip_models.dart';
 import '../../services/large_model_service.dart';

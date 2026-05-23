@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/pages/task/task/task_tab/task_tab_content_filter_dialog.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/pages/task/task/task_tab/task_tab_content_filter_dialog.dart';
 
 /// 任务标签页事件
 abstract class TaskTabEvent extends Equatable {

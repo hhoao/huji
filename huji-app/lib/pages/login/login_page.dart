@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/services/user_service.dart';
+import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
 

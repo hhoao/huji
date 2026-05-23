@@ -4,12 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_rx/src/rx_workers/utils/debouncer.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/api/models/autoclip/permission_models.dart';
-import 'package:restcut/pages/clip/round_selection_dialog.dart';
-import 'package:restcut/router/modules/main.dart';
-import 'package:restcut/widgets/multi_video_player/bloc/multi_video_player_event.dart';
-import 'package:restcut/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
-import 'package:restcut/widgets/video_trimmer/trimmer_view.dart';
+import 'package:huji_app/api/models/autoclip/permission_models.dart';
+import 'package:huji_app/pages/clip/round_selection_dialog.dart';
+import 'package:huji_app/router/modules/main.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../api/api_manager.dart';

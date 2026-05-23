@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:restcut/services/inference/frame_extractor.dart';
+import 'package:huji_app/services/inference/frame_extractor.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

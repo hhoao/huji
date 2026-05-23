@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/constants/autoclip_constants.dart';
-import 'package:restcut/constants/file_extensions.dart';
+import 'package:huji_app/constants/autoclip_constants.dart';
+import 'package:huji_app/constants/file_extensions.dart';
 
 import '../../models/autoclip_models.dart';
 import '../../services/large_model_service.dart';

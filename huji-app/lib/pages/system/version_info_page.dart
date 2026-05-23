@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/profile.dart';
+import 'package:huji_app/router/modules/profile.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:device_info_plus/device_info_plus.dart';
@@ -204,8 +204,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   void _verifyPassword(String password) {
-    // 这里可以设置你想要的密码，比如 "restcut2025"
-    const correctPassword = 'restcut2025';
+    // 这里可以设置你想要的密码，比如 "huji2025"
+    const correctPassword = 'huji2025';
 
     if (password == correctPassword) {
       Navigator.pop(context); // 关闭密码输入框
@@ -363,7 +363,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
               Image.asset('assets/icons/logo_no_bg.png', width: 80, height: 80),
 
               Text(
-                _packageInfo?.appName ?? 'Restcut',
+                _packageInfo?.appName ?? '弧迹',
                 style: context.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -387,7 +387,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
           children: [
             _buildInfoRow(
               '应用名称',
-              _packageInfo?.appName ?? 'Restcut',
+              _packageInfo?.appName ?? '弧迹',
               onTap: _onVersionTap,
             ),
             _buildInfoRow('版本号', _packageInfo?.version ?? '1.0.0'),

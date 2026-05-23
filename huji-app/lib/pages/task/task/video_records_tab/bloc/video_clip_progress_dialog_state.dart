@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:restcut/models/task.dart';
+import 'package:huji_app/models/task.dart';
 
 /// 视频剪辑进度对话框状态
 class VideoClipProgressDialogState extends Equatable {

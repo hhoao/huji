@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/subscription_models.dart';
-import 'package:restcut/api/models/autoclip/minutes_models.dart';
-import 'package:restcut/constants/theme.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/subscription_models.dart';
+import 'package:huji_app/api/models/autoclip/minutes_models.dart';
+import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 
 class SubscriptionPage extends StatefulWidget {
   const SubscriptionPage({super.key});

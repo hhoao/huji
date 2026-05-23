@@ -2,8 +2,8 @@ import 'dart:ffi';
 import 'dart:typed_data';
 
 import 'package:ffi/ffi.dart';
-import 'package:restcut/services/inference/onnx_runtime_bindings.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/inference/onnx_runtime_bindings.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// Manages an ONNX Runtime inference session for a single YOLO classification model.
 class OnnxInferenceEngine {

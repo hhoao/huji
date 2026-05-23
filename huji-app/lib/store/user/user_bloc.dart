@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/store/user.dart';
+import 'package:huji_app/store/user.dart';
 
 import 'user_event.dart';
 import 'user_state.dart';

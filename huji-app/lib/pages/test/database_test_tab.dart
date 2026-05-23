@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/video.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/video.dart';
 
 class DatabaseTestTab extends StatefulWidget {
   const DatabaseTestTab({super.key});

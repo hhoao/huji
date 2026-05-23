@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:restcut/constants/file_extensions.dart';
-import 'package:restcut/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'filesystem_tab.dart';
 import 'photo_gallery_tab.dart';
 

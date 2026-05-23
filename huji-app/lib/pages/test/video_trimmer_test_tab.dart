@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
-import 'package:restcut/widgets/video_trimmer/trimmer_view.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
 
 class VideoTrimmerTestTab extends StatefulWidget {
   const VideoTrimmerTestTab({super.key});

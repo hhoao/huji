@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
-import 'package:restcut/services/user_service.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/services/user_service.dart';
 
 class LoginDialog extends StatefulWidget {
   const LoginDialog({super.key});

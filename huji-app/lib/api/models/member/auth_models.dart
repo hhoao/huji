@@ -1,6 +1,6 @@
 // 认证相关枚举
 import 'package:json_annotation/json_annotation.dart';
-import 'package:restcut/api/models/member/user_models.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
 
 part 'auth_models.g.dart';
 

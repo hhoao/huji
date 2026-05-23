@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:restcut/services/storage_service.dart' show storage;
+import 'package:huji_app/services/storage_service.dart' show storage;
 
 bool isExternalStorage(String path) {
   if (Platform.isAndroid) {

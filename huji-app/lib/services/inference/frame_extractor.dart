@@ -2,8 +2,8 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:path_provider/path_provider.dart';
-import 'package:restcut/services/ffmpeg/ffmpeg_runner.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 /// Extracts frames from video as raw RGB24 pixel data using ffmpeg.
 class FrameExtractor {

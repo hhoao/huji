@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:restcut/constants/theme_manager.dart';
+import 'package:huji_app/constants/theme_manager.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/profile.dart';
-import 'package:restcut/services/app_update_service.dart';
-import 'package:restcut/services/storage_manager.dart';
-import 'package:restcut/settings/settings_manager.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/widgets/app_update_dialog.dart';
+import 'package:huji_app/router/modules/profile.dart';
+import 'package:huji_app/services/app_update_service.dart';
+import 'package:huji_app/services/storage_manager.dart';
+import 'package:huji_app/settings/settings_manager.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/app_update_dialog.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});

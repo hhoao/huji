@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:flutter/services.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
-import 'package:restcut/api/models/member/user_models.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/user_models.dart';
 
 class UserStore {
   static const String _tokenKey = 'auth_token';

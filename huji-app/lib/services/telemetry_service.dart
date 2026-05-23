@@ -4,10 +4,10 @@ import 'package:device_info_plus/device_info_plus.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'dart:convert';
 
-import 'package:restcut/api/api_manager.dart';
-import 'package:restcut/api/models/autoclip/telemetry_models.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/api/models/autoclip/telemetry_models.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 class TelemetryService {
   static final TelemetryService instance = TelemetryService._internal();

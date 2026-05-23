@@ -1,10 +1,10 @@
 import 'package:camerawesome/camerawesome_plugin.dart';
 import 'package:flutter/material.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/utils/image_utils.dart';
-import 'package:restcut/widgets/camerax/bloc/camerax_bloc.dart';
-import 'package:restcut/widgets/camerax/camera_widget.dart';
+import 'package:huji_app/utils/image_utils.dart';
+import 'package:huji_app/widgets/camerax/bloc/camerax_bloc.dart';
+import 'package:huji_app/widgets/camerax/camera_widget.dart';
 
 /// CameraX 图像分析测试页面
 class CameraXAnalysisTestTab extends StatefulWidget {

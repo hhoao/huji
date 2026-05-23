@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 import 'home_video_list_event.dart';
 import 'home_video_list_state.dart';

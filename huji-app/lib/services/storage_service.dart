@@ -7,12 +7,12 @@ import 'package:flutter/foundation.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:path/path.dart' as p;
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 class StorageService {
   static StorageService? _instance;
   static StorageService get instance => _instance!;
-  static const String cleanupDirPrefix = 'restcut_cleanup';
+  static const String cleanupDirPrefix = 'huji_cleanup';
 
   late final Directory _appDir;
   late final Directory _tempDir;

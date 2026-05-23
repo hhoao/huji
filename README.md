@@ -56,7 +56,7 @@ Android(未统计):
 
 | 子项目 | 技术栈 | 说明 |
 | ----- | ------ | ---- |
-| `restcut_app` | Flutter | 弧迹客户端，提供视频选择、智能剪辑、片段编辑、任务管理等功能 |
+| `huji-app` | Flutter | 弧迹客户端，提供视频选择、智能剪辑、片段编辑、任务管理等功能 |
 | `huji-algorithm` | Python | 算法服务（Git 子模块），负责乒乓球/羽毛球比赛检测与自动剪辑 |
 
 `huji-algorithm` 以 Git 子模块方式引入，仓库地址：[hhoao/huji-algorithm](https://github.com/hhoao/huji-algorithm)。
@@ -77,10 +77,10 @@ git clone --recurse-submodules https://github.com/hhoao/huji.git
 git submodule update --init --recursive
 ```
 
-### restcut_app（客户端）
+### huji-app（客户端）
 
 ```bash
-cd restcut_app
+cd huji-app
 flutter pub get
 flutter run
 ```

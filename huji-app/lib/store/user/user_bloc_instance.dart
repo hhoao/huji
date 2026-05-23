@@ -1,4 +1,4 @@
-import 'package:restcut/store/user/user_bloc.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
 
 /// 全局 UserBloc 实例
 class UserBlocInstance {

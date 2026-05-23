@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:json_annotation/json_annotation.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/api/models/common/page.dart';
-import 'package:restcut/utils/clip_config_codec.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/common/page.dart';
+import 'package:huji_app/utils/clip_config_codec.dart';
 
 part 'video_models.g.dart';
 

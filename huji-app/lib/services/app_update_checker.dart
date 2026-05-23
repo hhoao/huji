@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/api/models/autoclip/app_models.dart';
-import 'package:restcut/services/app_update_service.dart';
-import 'package:restcut/widgets/app_update_dialog.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/api/models/autoclip/app_models.dart';
+import 'package:huji_app/services/app_update_service.dart';
+import 'package:huji_app/widgets/app_update_dialog.dart';
 
 class AppUpdateChecker {
   static final AppUpdateChecker _instance = AppUpdateChecker._internal();

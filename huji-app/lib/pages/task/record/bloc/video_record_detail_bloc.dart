@@ -1,5 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/api/api_manager.dart';
+import 'package:huji_app/api/api_manager.dart';
 
 import 'video_record_detail_event.dart';
 import 'video_record_detail_state.dart';

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/models/ffmpeg.dart';
-import 'package:restcut/services/notification/notification_manager.dart';
-import 'package:restcut/models/task.dart';
+import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/services/notification/notification_manager.dart';
+import 'package:huji_app/models/task.dart';
 
 class NotificationTestTab extends StatefulWidget {
   const NotificationTestTab({super.key});

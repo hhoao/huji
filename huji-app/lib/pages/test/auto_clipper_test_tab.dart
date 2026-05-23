@@ -4,19 +4,19 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/autoclip/clip_models.dart';
-import 'package:restcut/services/storage_service.dart' show storage;
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/pages/clip/round_clip_page.dart';
-import 'package:restcut/services/memory_stream_service.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/utils/video_utils.dart';
-import 'package:restcut/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/pages/clip/round_clip_page.dart';
+import 'package:huji_app/services/memory_stream_service.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:uuid/uuid.dart';
 
 /// 视频片段检测任务测试页面

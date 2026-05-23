@@ -1,5 +1,5 @@
 import 'package:logger/logger.dart';
-import 'package:restcut/models/task.dart';
+import 'package:huji_app/models/task.dart';
 
 /// 进度回调函数类型
 typedef ProgressCallback = void Function(double progress, String message);

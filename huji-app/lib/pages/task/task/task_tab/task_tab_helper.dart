@@ -2,8 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 import '../../../../models/task.dart';
 

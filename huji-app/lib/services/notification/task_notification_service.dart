@@ -1,8 +1,8 @@
 import 'dart:ui';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/services/notification/notification_manager.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/services/notification/notification_manager.dart';
 
 class TaskNotificationService implements NotificationService<Task> {
   final FlutterLocalNotificationsPlugin _notifications;

@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/services/user_service.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/services/user_service.dart';
 
 class AvatarPickerWidget extends StatefulWidget {
   final String? currentAvatar;

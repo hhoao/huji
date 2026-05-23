@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/store/user/user_bloc_instance.dart';
-import 'package:restcut/store/user/user_event.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/store/user/user_bloc_instance.dart';
+import 'package:huji_app/store/user/user_event.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 /// Settings page: left section nav + right content panels.
 /// Mockup reference: task-and-settings.html (settings section)

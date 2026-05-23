@@ -2,6 +2,10 @@
 cmake_minimum_required(VERSION 3.14)
 project(test1 LANGUAGES CXX)
 
+# MSVC 14.51+ (VS 18.6+) deprecates experimental coroutine headers used by
+# C++/WinRT plugins such as flutter_local_notifications_windows.
+add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "test1")

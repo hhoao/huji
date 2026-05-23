@@ -1,16 +1,16 @@
 import 'dart:io';
 
 import 'package:android_package_installer/android_package_installer.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/autoclip/app_models.dart';
-import 'package:restcut/models/changelog.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/router/app_router.dart';
-import 'package:restcut/services/app_update_service.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/utils/file_utils.dart';
+import 'package:huji_app/api/models/autoclip/app_models.dart';
+import 'package:huji_app/models/changelog.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/router/app_router.dart';
+import 'package:huji_app/services/app_update_service.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AppUpdateDialog extends StatefulWidget {

@@ -7,11 +7,11 @@ import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:path/path.dart' as p;
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/models/autoclip_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {

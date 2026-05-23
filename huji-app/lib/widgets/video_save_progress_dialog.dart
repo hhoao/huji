@@ -3,18 +3,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:gal/gal.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
-import 'package:restcut/api/models/autoclip/video_models.dart';
-import 'package:restcut/models/video.dart';
-import 'package:restcut/store/video.dart';
-import 'package:restcut/utils/debounce/throttles.dart';
-import 'package:restcut/utils/file_utils.dart' as path_utils;
-import 'package:restcut/utils/logger_utils.dart';
-import 'package:restcut/utils/video_utils.dart';
-import 'package:restcut/widgets/video_player/video_player_page.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'package:uuid/uuid.dart';
 
 import '../models/autoclip_models.dart';

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:restcut/api/models/autoclip/video_models.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 class VideoProgressOverlay extends StatefulWidget {
   final bool isProcessing;

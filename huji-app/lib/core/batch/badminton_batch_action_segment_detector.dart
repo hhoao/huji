@@ -1,4 +1,4 @@
-import 'package:restcut/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/api/models/autoclip/clip_models.dart';
 
 import '../../constants/autoclip_constants.dart';
 import '../../models/autoclip_models.dart';

@@ -2,9 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
-import 'package:restcut/services/platform_capability.dart';
-import 'package:restcut/utils/app_error_utils.dart';
-import 'package:restcut/widgets/video_player/video_player_page.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'file_selection_page.dart';
 
 // 媒体类型枚举

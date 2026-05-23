@@ -1,6 +1,6 @@
 // 用户等级信息
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:restcut/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/auth_models.dart';
 
 part 'user_models.freezed.dart';
 part 'user_models.g.dart';

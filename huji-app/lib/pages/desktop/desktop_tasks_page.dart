@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/models/task.dart';
-import 'package:restcut/store/task/task_manager.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 /// Tasks page: tab filters + task list rows with real data from TaskStorage.
 class DesktopTasksPage extends StatefulWidget {

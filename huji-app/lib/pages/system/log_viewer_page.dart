@@ -1,8 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:restcut/utils/debounce/debounces.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/debounce/debounces.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 // import 'package:share_plus/share_plus.dart';
 
 /// 过滤选项底部弹出面板

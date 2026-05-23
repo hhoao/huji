@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/utils/logger_utils.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 
 class LogTestTab extends StatefulWidget {
   const LogTestTab({super.key});

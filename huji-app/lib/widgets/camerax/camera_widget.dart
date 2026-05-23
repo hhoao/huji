@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'package:camerawesome/camerawesome_plugin.dart';
-import 'package:restcut/services/platform_capability.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:camerawesome/pigeon.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:restcut/utils/file_utils.dart' as directory_utils;
-import 'package:restcut/utils/time_utils.dart';
+import 'package:huji_app/utils/file_utils.dart' as directory_utils;
+import 'package:huji_app/utils/time_utils.dart';
 
 import 'bloc/camerax_bloc.dart';
 import 'bloc/camerax_event.dart';

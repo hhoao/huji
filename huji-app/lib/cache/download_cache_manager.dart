@@ -2,7 +2,7 @@ import 'package:file/file.dart' hide FileSystem;
 import 'package:file/local.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:path/path.dart' as p;
-import 'package:restcut/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/utils/file_utils.dart' as path_utils;
 
 class DownloadFileSystem extends FileSystem {
   final Future<Directory> _fileDir;
