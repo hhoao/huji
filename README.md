@@ -77,6 +77,12 @@ git clone --recurse-submodules https://github.com/hhoao/huji.git
 git submodule update --init --recursive
 ```
 
+### 桌面 Linux 依赖
+
+```bash
+sudo apt-get install -y libasound2-dev libmpv-dev mpv
+```
+
 ### huji-app（客户端）
 
 ```bash

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/widgets/desktop/app_hover_box.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 /// macOS-style toggle switch.
 class AppSwitch extends StatelessWidget {

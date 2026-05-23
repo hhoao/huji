@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:restcut/router/modules/desktop.dart';
-import 'package:restcut/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 void main() {
   test('desktop routes keep navigation chrome in a ShellRoute', () {

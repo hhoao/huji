@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
-import 'package:restcut/widgets/desktop/app_hover_box.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 /// Toggle chip with selected/unselected visual states and hover feedback.
 class AppChip extends StatelessWidget {

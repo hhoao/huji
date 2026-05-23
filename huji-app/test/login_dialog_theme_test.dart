@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:restcut/constants/theme.dart';
-import 'package:restcut/pages/login/login_dialog.dart';
+import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/pages/login/login_dialog.dart';
 
 void main() {
   testWidgets('login dialog uses the active theme in dark mode', (

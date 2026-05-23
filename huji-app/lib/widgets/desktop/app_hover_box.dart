@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/constants/desktop_theme.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
 
 /// Universal hover/press wrapper for all desktop interactive widgets.
 ///

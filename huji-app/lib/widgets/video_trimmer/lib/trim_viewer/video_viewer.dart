@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:restcut/widgets/video_trimmer/lib/services/universal_video_controller.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/services/universal_video_controller.dart';
 
 class VideoViewer extends StatelessWidget {
   final UniversalVideoController? videoPlayerController;

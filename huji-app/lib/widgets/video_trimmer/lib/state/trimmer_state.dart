@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:restcut/widgets/video_trimmer/lib/services/universal_video_controller.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/services/universal_video_controller.dart';
 
 part 'trimmer_state.freezed.dart';
 
