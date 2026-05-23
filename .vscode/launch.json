@@ -1,0 +1,12 @@
+{
+  "configurations": [
+    {
+      "name": "restcut_app (Flutter Linux)",
+      "program": "lib/main.dart",
+      "cwd": "restcut_app",
+      "deviceId": "linux",
+      "request": "launch",
+      "type": "dart"
+    }
+  ]
+}

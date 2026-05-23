@@ -50,8 +50,8 @@ jobs:
       - name: Get version from pubspec
         id: version
         run: echo "version=$(grep '^version:' restcut_app/pubspec.yaml | sed 's/version:[[:space:]]*//' | tr -d ' ')" >> $GITHUB_OUTPUT
-      - name: Install NDK
-        run: echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;27.0.12077973" "ndk;28.0.13004108" "cmake;3.22.1"
+      - name: Install Android SDK components
+        run: echo "y" | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "ndk;27.0.12077973" "ndk;28.0.13004108" "cmake;3.22.1"
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
