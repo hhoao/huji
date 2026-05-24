@@ -21,8 +21,7 @@ enum DesktopNav {
   const DesktopNav({required this.label, required this.icon, required this.route});
 }
 
-/// Sidebar matching the mockup layout:
-///   account area → search → nav → categories → status → bottom links
+/// App sidebar: account area → primary nav → bottom nav links.
 class DesktopSidebar extends StatefulWidget {
   final String currentRoute;
 
@@ -67,9 +66,7 @@ class _DesktopSidebarState extends State<DesktopSidebar> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const _AccountArea(),
-          const SizedBox(height: 4),
-          const _SearchField(),
-          const SizedBox(height: 8),
+          const SizedBox(height: 12),
           _NavItem(
             nav: DesktopNav.library,
             active: widget.currentRoute == '/',
@@ -77,34 +74,6 @@ class _DesktopSidebarState extends State<DesktopSidebar> {
           _TaskNavItem(
             active: widget.currentRoute == '/tasks',
             badge: _processingCount > 0 ? '$_processingCount' : null,
-          ),
-          const SizedBox(height: 8),
-          const _SectionLabel('分类'),
-          _LabelNavItem(
-            label: '乒乓球',
-            emoji: '🏓',
-            active: widget.currentRoute == '/category/table-tennis',
-            onTap: () => context.go('/?category=table-tennis'),
-          ),
-          _LabelNavItem(
-            label: '羽毛球',
-            emoji: '🏸',
-            active: widget.currentRoute == '/category/badminton',
-            onTap: () => context.go('/?category=badminton'),
-          ),
-          const SizedBox(height: 8),
-          const _SectionLabel('状态'),
-          _LabelNavItem(
-            label: '处理中',
-            emoji: '⏱',
-            active: widget.currentRoute == '/status/processing',
-            onTap: () => context.go('/?status=processing'),
-          ),
-          _LabelNavItem(
-            label: '已完成',
-            emoji: '✓',
-            active: widget.currentRoute == '/status/done',
-            onTap: () => context.go('/?status=done'),
           ),
           const Spacer(),
           const Divider(color: DesktopTheme.borderLight),
@@ -253,52 +222,6 @@ class _Avatar extends StatelessWidget {
   }
 }
 
-class _SearchField extends StatelessWidget {
-  const _SearchField();
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: DesktopTheme.borderLight,
-          border: Border.all(color: DesktopTheme.borderMedium),
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.search, size: 16, color: DesktopTheme.textMuted),
-            SizedBox(width: 8),
-            Text('搜索视频...', style: TextStyle(fontSize: 12, color: DesktopTheme.textMuted)),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _SectionLabel extends StatelessWidget {
-  final String label;
-  const _SectionLabel(this.label);
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(18, 10, 10, 4),
-      child: Text(
-        label,
-        style: const TextStyle(
-          fontSize: 10,
-          color: Color(0xFF555555),
-          letterSpacing: 0.6,
-        ),
-      ),
-    );
-  }
-}
-
 class _NavItem extends StatelessWidget {
   final DesktopNav nav;
   final bool active;
@@ -374,43 +297,6 @@ class _TaskNavItem extends StatelessWidget {
                     style: const TextStyle(color: Colors.white, fontSize: 10),
                   ),
                 ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _LabelNavItem extends StatelessWidget {
-  final String label;
-  final String emoji;
-  final bool active;
-  final VoidCallback? onTap;
-
-  const _LabelNavItem({required this.label, required this.emoji, required this.active, this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(6),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-          decoration: BoxDecoration(
-            color: active ? DesktopTheme.indigoSubtle : null,
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Row(
-            children: [
-              Text(emoji, style: const TextStyle(fontSize: 14)),
-              const SizedBox(width: 10),
-              Text(
-                label,
-                style: TextStyle(fontSize: 13, color: active ? DesktopTheme.indigoText : DesktopTheme.textSecondary),
-              ),
             ],
           ),
         ),
