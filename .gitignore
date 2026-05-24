@@ -2,3 +2,6 @@
 .idea/caches/
 .idea/libraries/
 .worktrees/
+
+# Legacy RestCut tree (migrated to huji-app); local copy may remain untracked
+restcut_app/

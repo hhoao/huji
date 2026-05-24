@@ -2,7 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
+import 'desktop_file_picker.dart';
 import 'filesystem_tab.dart';
 import 'photo_gallery_tab.dart';
 
@@ -44,6 +46,17 @@ class FileSelection extends StatefulWidget {
     SelectionMode selectionMode = SelectionMode.files,
     bool showHiddenFiles = false,
   }) async {
+    if (PlatformCapability.isDesktop) {
+      return _pickOnDesktop(
+        allowMultiple: allowMultiple,
+        allowedExtensions: allowedExtensions,
+        title: title,
+        maxSelectionCount: maxSelectionCount,
+        initialPath: initialPath,
+        selectionMode: selectionMode,
+      );
+    }
+
     final selectedFiles = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FileSelection(
@@ -60,6 +73,32 @@ class FileSelection extends StatefulWidget {
     );
 
     return selectedFiles;
+  }
+
+  static Future<List<FileSystemEntity>?> _pickOnDesktop({
+    required bool allowMultiple,
+    List<String>? allowedExtensions,
+    String? title,
+    int? maxSelectionCount,
+    String? initialPath,
+    required SelectionMode selectionMode,
+  }) {
+    switch (selectionMode) {
+      case SelectionMode.directories:
+        return DesktopFilePicker.pickDirectory(
+          dialogTitle: title,
+          initialDirectory: initialPath,
+        );
+      case SelectionMode.files:
+      case SelectionMode.both:
+        return DesktopFilePicker.pickFiles(
+          allowMultiple: allowMultiple,
+          allowedExtensions: allowedExtensions,
+          dialogTitle: title,
+          initialDirectory: initialPath,
+          maxSelectionCount: maxSelectionCount,
+        );
+    }
   }
 
   /// 静态方法：选择视频文件
@@ -127,6 +166,14 @@ class FileSelection extends StatefulWidget {
     String? initialPath,
     bool showHiddenFiles = false,
   }) async {
+    if (PlatformCapability.isDesktop) {
+      final picked = await DesktopFilePicker.pickDirectory(
+        dialogTitle: '选择目录',
+        initialDirectory: initialPath,
+      );
+      return picked?.whereType<Directory>().toList();
+    }
+
     final selectedItems = await Navigator.of(context).push(
       MaterialPageRoute(
         builder: (context) => FileSelection(
@@ -141,7 +188,6 @@ class FileSelection extends StatefulWidget {
       ),
     );
 
-    // 直接返回Directory列表，因为_onConfirmSelection已经处理了类型转换
     return selectedItems as List<Directory>?;
   }
 
@@ -156,22 +202,17 @@ class FileSelection extends StatefulWidget {
     String? initialPath,
     bool showHiddenFiles = false,
   }) async {
-    final selectedItems = await Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FileSelection(
-          allowMultiple: allowMultiple,
-          allowedExtensions: allowedExtensions,
-          title: title ?? '选择文件和目录',
-          maxSelectionCount: maxSelectionCount,
-          initialTab: initialTab,
-          initialPath: initialPath,
-          selectionMode: SelectionMode.both,
-          showHiddenFiles: showHiddenFiles,
-        ),
-      ),
+    return show(
+      context: context,
+      allowMultiple: allowMultiple,
+      allowedExtensions: allowedExtensions,
+      title: title ?? '选择文件和目录',
+      maxSelectionCount: maxSelectionCount,
+      initialTab: initialTab,
+      initialPath: initialPath,
+      selectionMode: SelectionMode.both,
+      showHiddenFiles: showHiddenFiles,
     );
-
-    return selectedItems;
   }
 
   @override
