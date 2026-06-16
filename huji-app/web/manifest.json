@@ -1,6 +1,6 @@
 {
-    "name": "test1",
-    "short_name": "test1",
+    "name": "huji",
+    "short_name": "huji",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#000000",

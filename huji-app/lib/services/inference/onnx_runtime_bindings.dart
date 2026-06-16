@@ -115,66 +115,34 @@ class OnnxRuntime {
       return DynamicLibrary.open(fromEnv);
     }
 
-    if (Platform.isLinux) {
-      // 2. AppImage bundled path
-      final appDir = Platform.environment['APPDIR'];
-      if (appDir != null && appDir.isNotEmpty) {
-        final bundled = '$appDir/usr/lib/libonnxruntime.so';
-        if (File(bundled).existsSync()) return DynamicLibrary.open(bundled);
-      }
-
-      // 3. Relative to executable
-      final execDir = File(Platform.resolvedExecutable).parent.path;
-      final relPath = '$execDir/../lib/libonnxruntime.so';
-      if (File(relPath).existsSync()) return DynamicLibrary.open(relPath);
-
-      // 4. Common pip/venv installation paths
-      final home = Platform.environment['HOME'] ?? '/home';
-      final pipPaths = <String>[
-        // pyenv python
-        '$home/.pyenv/versions',
-        // autoclip-algorithm venv
-        '$home/autoclip/autoclip-algorithm/.venv/lib/python3.12/site-packages',
-      ];
-      final soNames = [
-        'libonnxruntime.so.1.23.2',
-        'libonnxruntime.so.1.22.1',
-        'libonnxruntime.so.1.19.2',
-        'libonnxruntime.so',
-      ];
-      for (final base in pipPaths) {
-        for (final name in soNames) {
-          // Try to find under any Python version in pyenv
-          if (base.contains('pyenv')) {
-            final versionsDir = Directory(base);
-            if (versionsDir.existsSync()) {
-              for (final ver in versionsDir.listSync()) {
-                final path =
-                    '$base/${ver.path.split('/').last}/lib/python3.12/site-packages/onnxruntime/capi/$name';
-                if (File(path).existsSync()) return DynamicLibrary.open(path);
-              }
-            }
-          } else {
-            final path = '$base/onnxruntime/capi/$name';
-            if (File(path).existsSync()) return DynamicLibrary.open(path);
-          }
-        }
-      }
+    // 2. Bundled beside executable
+    final execDir = File(Platform.resolvedExecutable).parent.path;
+    final bundledNames = _platformLibraryNames();
+    for (final name in bundledNames) {
+      final bundled = '$execDir/$name';
+      if (File(bundled).existsSync()) return DynamicLibrary.open(bundled);
+      final inLib = '$execDir/../lib/$name';
+      if (File(inLib).existsSync()) return DynamicLibrary.open(inLib);
     }
 
-    // 5. System library search (versioned names first)
-    final candidates = [
-      'libonnxruntime.so.1.23.2',
-      'libonnxruntime.so.1.22.1',
-      'libonnxruntime.so.1.19.2',
-      'libonnxruntime.so',
-    ];
-    for (final name in candidates) {
+    // 3. System library search
+    for (final name in bundledNames) {
       try {
         return DynamicLibrary.open(name);
       } catch (_) {}
     }
-    return DynamicLibrary.open('libonnxruntime.so');
+
+    throw Exception(
+      'ONNX Runtime library not found. Set HUJI_ONNXRUNTIME_LIB to the '
+      'library path, or place ${bundledNames.first} beside the executable.',
+    );
+  }
+
+  static List<String> _platformLibraryNames() {
+    if (Platform.isLinux) return ['libonnxruntime.so'];
+    if (Platform.isMacOS) return ['libonnxruntime.dylib'];
+    if (Platform.isWindows) return ['onnxruntime.dll'];
+    return ['libonnxruntime.so'];
   }
 
   // ---- Helpers ----

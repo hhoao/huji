@@ -2,18 +2,11 @@
   "version": "0.2.0",
   "configurations": [
     {
-      "name": "huji-app (Flutter Linux)",
-      "program": "lib/main.dart",
-      "cwd": "huji-app",
-      "deviceId": "linux",
-      "request": "launch",
-      "type": "dart"
-    },
-    {
-      "name": "huji-app",
+      "name": "huji-app (debug mode)",
       "cwd": "huji-app",
       "request": "launch",
-      "type": "dart"
+      "type": "dart",
+      "flutterMode": "debug"
     },
     {
       "name": "huji-app (profile mode)",

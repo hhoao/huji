@@ -60,12 +60,12 @@ mkdir -p "$PROJECT_DIR/build/native_assets/linux"
 echo "[ok] native_assets/linux dir ensured"
 
 # === 1. Ensure tools are installed ===
-echo -e "${BLUE}[1/7] Installing AppImage tools...${NC}"
+echo -e "${BLUE}[1/5] Installing AppImage tools...${NC}"
 ARCH="$ARCH" "$SCRIPT_DIR/install_appimage_tools.sh"
 
 # === 2. Build Flutter Linux release ===
 if [[ "${SKIP_FLUTTER_BUILD:-0}" != "1" ]]; then
-  echo -e "${BLUE}[2/7] Building Flutter Linux release...${NC}"
+  echo -e "${BLUE}[2/5] Building Flutter Linux release...${NC}"
   cd "$PROJECT_DIR"
   flutter pub get
   # Re-apply the ultralytics_yolo workaround AFTER pub get (in case pub get
@@ -77,7 +77,7 @@ if [[ "${SKIP_FLUTTER_BUILD:-0}" != "1" ]]; then
 fi
 
 # === 3. Prepare AppDir ===
-echo -e "${BLUE}[3/7] Preparing AppDir...${NC}"
+echo -e "${BLUE}[3/5] Preparing AppDir...${NC}"
 rm -rf "$APPDIR"
 mkdir -p "$APPDIR/usr/bin" "$APPDIR/usr/lib" "$APPDIR/usr/share/applications" "$APPDIR/usr/share/icons/hicolor/256x256/apps"
 
@@ -101,7 +101,7 @@ cp "$APPIMAGE_RES/huji.svg" "$APPDIR/huji.svg"
 cp "$APPIMAGE_RES/huji.svg" "$APPDIR/usr/share/icons/hicolor/256x256/apps/huji.svg"
 
 # === 4. Bundle ffmpeg + ffprobe static binaries ===
-echo -e "${BLUE}[4/7] Downloading and bundling ffmpeg + ffprobe...${NC}"
+echo -e "${BLUE}[4/5] Downloading and bundling ffmpeg + ffprobe...${NC}"
 FFMPEG_DIR="$BUILD_DIR/ffmpeg"
 mkdir -p "$FFMPEG_DIR"
 case "$ARCH" in
@@ -116,29 +116,8 @@ cp "$FFMPEG_DIR/ffmpeg" "$APPDIR/usr/bin/ffmpeg"
 cp "$FFMPEG_DIR/ffprobe" "$APPDIR/usr/bin/ffprobe"
 chmod +x "$APPDIR/usr/bin/ffmpeg" "$APPDIR/usr/bin/ffprobe"
 
-# === 5. Bundle ONNX models for local detection ===
-echo -e "${BLUE}[5/7] Bundling ONNX models...${NC}"
-MODEL_DIR="$APPDIR/usr/share/huji/models"
-mkdir -p "$MODEL_DIR"
-ALGORITHM_DIR="${ALGORITHM_DIR:-/home/hhoa/autoclip/autoclip-algorithm}"
-for model in \
-    ping_pong/normal/best.onnx \
-    ping_pong/profession/best.onnx \
-    badminton/singles/best.onnx \
-    badminton/doubles/best.onnx; do
-    src="$ALGORITHM_DIR/src/resources/models/$model"
-    if [ -f "$src" ]; then
-        target_dir="$MODEL_DIR/$(dirname "$model")"
-        mkdir -p "$target_dir"
-        cp "$src" "$target_dir/"
-        echo "[ok] Copied: $model"
-    else
-        echo -e "${YELLOW}[warn] Model not found: $src${NC}"
-    fi
-done
-
-# === 6. Run linuxdeploy to bundle Linux libraries ===
-echo -e "${BLUE}[6/7] Running linuxdeploy...${NC}"
+# === 5. Run linuxdeploy to bundle Linux libraries ===
+echo -e "${BLUE}[5/5] Running linuxdeploy...${NC}"
 cd "$BUILD_DIR"
 
 # Build --library flags for each Flutter plugin .so so linuxdeploy can
