@@ -1,0 +1,72 @@
+name: Auto Tag on Version Bump
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "huji-app/pubspec.yaml"
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  tag-if-version-bumped:
+    name: Create release tag from pubspec version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create and push tag when version changed
+        id: tag
+        run: |
+          set -euo pipefail
+
+          read_version_from_file() {
+            grep -E '^version:' "$1" | head -1 | sed 's/version:[[:space:]]*//' | cut -d+ -f1
+          }
+
+          version=$(read_version_from_file huji-app/pubspec.yaml)
+          if [ -z "$version" ]; then
+            echo "Could not read version from huji-app/pubspec.yaml"
+            exit 1
+          fi
+
+          tag="v${version}"
+          prev=""
+          if git show HEAD^:huji-app/pubspec.yaml >/tmp/prev-pubspec.yaml 2>/dev/null; then
+            prev=$(read_version_from_file /tmp/prev-pubspec.yaml)
+          fi
+
+          if [ "$version" = "$prev" ]; then
+            echo "Version unchanged ($version); skip tagging."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if git rev-parse "$tag" >/dev/null 2>&1; then
+            echo "Tag $tag already exists; skip."
+            echo "created=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "Version bump: ${prev:-<none>} -> $version; creating $tag"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "$tag" -m "Release $tag"
+          git push origin "$tag"
+          echo "created=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+
+      - name: Trigger Release Packages
+        if: steps.tag.outputs.created == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="${{ steps.tag.outputs.tag }}"
+          echo "Dispatching release.yml for $tag"
+          gh workflow run release.yml \
+            --repo "${{ github.repository }}" \
+            --ref "$tag"

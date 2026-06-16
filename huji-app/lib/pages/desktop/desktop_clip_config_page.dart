@@ -49,7 +49,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   void _checkLocalModels() {
     if (PlatformCapability.supportsLocalDetection) {
       LocalDetectionService().checkModels().then((status) {
-        if (mounted) setState(() => _localModelStatus = status);
+        if (mounted) {
+          setState(() {
+            _localModelStatus = status;
+            if (status == LocalModelStatus.available) {
+              _detectionMode = 'local';
+            }
+          });
+        }
       });
     }
   }
@@ -444,7 +451,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 ? _detectionMode == 'local'
                     ? '使用本地 ONNX 模型进行离线检测'
                     : '使用云端服务进行检测，需要联网'
-                : '桌面版仅支持云端检测，需要联网',
+                : '未找到本地模型，已回退为云端检测',
             style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim),
           ),
         ],

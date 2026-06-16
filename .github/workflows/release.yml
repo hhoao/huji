@@ -1,0 +1,398 @@
+name: Release Packages
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to build (branch / tag / sha). Leave empty for current."
+        required: false
+        default: ""
+
+defaults:
+  run:
+    working-directory: huji-app
+
+jobs:
+  build-linux:
+    name: Build Linux (deb + AppImage)
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            flutter_target: linux-x64
+            qemu_arch: ''
+          - arch: aarch64
+            flutter_target: linux-arm64
+            qemu_arch: arm64
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          submodules: recursive
+
+      - name: Setup QEMU (aarch64 only)
+        if: matrix.qemu_arch != ''
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.qemu_arch }}
+
+      - name: Install Linux build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev \
+            libjsoncpp-dev libstdc++-12-dev \
+            file fuse libfuse2 \
+            libasound2-dev libmpv-dev mpv \
+            dpkg fakeroot
+
+      - name: Install appimagetool
+        run: |
+          wget -qO /tmp/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x /tmp/appimagetool
+          sudo mv /tmp/appimagetool /usr/local/bin/appimagetool
+          appimagetool --version || true
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Activate fastforge
+        run: dart pub global activate fastforge
+
+      - name: Add pub-cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Apply ultralytics_yolo workaround
+        run: |
+          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
+            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
+          fi
+
+      - name: Build AppImage (native x86_64)
+        if: matrix.qemu_arch == ''
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: ./scripts/build_appimage.sh
+
+      - name: Build AppImage (cross aarch64 via Docker+QEMU)
+        if: matrix.qemu_arch != ''
+        run: |
+          docker run --rm --platform linux/${{ matrix.qemu_arch }} \
+            -v "${{ github.workspace }}":/workspace -w /workspace/huji-app \
+            ubuntu:22.04 bash -c '
+              set -e
+              apt-get update
+              apt-get install -y clang cmake ninja-build pkg-config \
+                libgtk-3-dev liblzma-dev libsecret-1-dev \
+                libjsoncpp-dev libstdc++-12-dev \
+                file fuse libfuse2 curl unzip xz-utils git ca-certificates
+              git clone --depth 1 -b stable https://github.com/flutter/flutter.git /opt/flutter
+              git config --global --add safe.directory /opt/flutter
+              git config --global --add safe.directory /workspace
+              export PATH="/opt/flutter/bin:$PATH"
+              flutter config --enable-linux-desktop
+              flutter pub get
+              ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
+            '
+
+      - name: Package DEB
+        if: matrix.qemu_arch == ''
+        run: fastforge package --platform linux --targets deb
+
+      - name: Get version
+        id: version
+        run: |
+          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d+ -f1)
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-${{ matrix.arch }}
+          path: |
+            build/appimage/huji-*-${{ matrix.arch }}.AppImage
+            build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
+            dist/**/*.deb
+          if-no-files-found: error
+
+  build-macos:
+    name: Build macOS (DMG)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          submodules: recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Activate fastforge
+        run: dart pub global activate fastforge
+
+      - name: Add pub-cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Apply ultralytics_yolo workaround
+        run: |
+          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
+            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
+          fi
+
+      - name: Package
+        run: fastforge package --platform macos --targets dmg
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-packages
+          path: dist/**/*
+          if-no-files-found: error
+
+  build-windows:
+    name: Build Windows (MSIX + EXE + ZIP)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          submodules: recursive
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Activate fastforge
+        run: dart pub global activate fastforge
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          choco install innosetup --no-progress -y
+          Add-Content $env:GITHUB_PATH "C:\Program Files (x86)\Inno Setup 6"
+
+      - name: Install Inno Chinese (Simplified) language file
+        shell: pwsh
+        run: |
+          $langDir = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\Languages"
+          New-Item -ItemType Directory -Force -Path $langDir | Out-Null
+          $url = "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl"
+          $out = Join-Path $langDir "ChineseSimplified.isl"
+          Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing
+          if (-not (Test-Path -LiteralPath $out)) { throw "Failed to download ChineseSimplified.isl" }
+
+      - name: Add pub-cache to PATH (Windows)
+        shell: pwsh
+        run: |
+          Add-Content $env:GITHUB_PATH "$env:LOCALAPPDATA\Pub\Cache\bin"
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Apply ultralytics_yolo workaround
+        shell: pwsh
+        run: |
+          $cacheDir = "$env:USERPROFILE\.pub-cache\hosted\pub.dev\ultralytics_yolo-0.1.29"
+          if (Test-Path $cacheDir) {
+            New-Item -ItemType Directory -Force -Path "$cacheDir\example\assets" | Out-Null
+          }
+
+      - name: Package Windows (ZIP + MSIX)
+        run: fastforge package --platform windows --targets zip,msix
+
+      - name: Package Windows (EXE installer)
+        run: fastforge package --platform windows --targets exe
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-packages
+          path: |
+            dist/**/*.msix
+            dist/**/*.exe
+            dist/**/*.zip
+          if-no-files-found: error
+
+  build-android:
+    name: Build Android (APK + AAB)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          submodules: recursive
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Accept Android SDK licenses
+        run: yes | flutter doctor --android-licenses
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Apply ultralytics_yolo workaround
+        run: |
+          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
+            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
+          fi
+
+      - name: Build Android (split APK per ABI + AAB)
+        run: |
+          flutter build apk --release \
+            --split-per-abi \
+            --target-platform android-arm,android-arm64
+          flutter build appbundle --release
+          version=$(grep -E '^version:' pubspec.yaml | head -1 | sed 's/version:[[:space:]]*//' | cut -d+ -f1)
+          dist_dir="dist/${version}"
+          mkdir -p "$dist_dir"
+          for apk in build/app/outputs/flutter-apk/app-*-release.apk; do
+            arch=$(basename "$apk" .apk | sed 's/app-//;s/-release//')
+            cp "$apk" "${dist_dir}/huji-${version}-android-${arch}.apk"
+          done
+          cp build/app/outputs/bundle/release/app-release.aab \
+            "${dist_dir}/huji-${version}.aab"
+
+      - name: Verify Android artifacts
+        run: |
+          version=$(grep -E '^version:' pubspec.yaml | head -1 | sed 's/version:[[:space:]]*//' | cut -d+ -f1)
+          dist_dir="dist/${version}"
+          ls -la "$dist_dir"
+          test -f "${dist_dir}/huji-${version}-android-arm64-v8a.apk"
+          test -f "${dist_dir}/huji-${version}-android-armeabi-v7a.apk"
+          test -f "${dist_dir}/huji-${version}.aab"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-packages
+          path: dist/**/*.{apk,aab}
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub Release
+    needs: [build-linux, build-macos, build-windows, build-android]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    defaults:
+      run:
+        working-directory: .
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Flatten artifacts
+        run: |
+          mkdir -p release-files
+          python3 << 'PY'
+          import os, shutil, pathlib, sys
+          artifacts = pathlib.Path("artifacts")
+          out = pathlib.Path("release-files")
+          out.mkdir(parents=True, exist_ok=True)
+          suffixes = (".deb", ".appimage", ".zsync", ".dmg", ".msix", ".exe", ".zip", ".apk", ".aab")
+          staging_suffixes = ("_exe", "_msix", "_zip", "_deb", "_dmg", "_appimage", "_apk", "_aab")
+          # Expected: linux×3 (AppImage+zsync+deb) × 2 arches + macos×1 + windows×3 + android×3 = 13
+          # But aarch64 may not have deb; flexible count, just validate each category
+          def is_inside_packaging_staging(path: pathlib.Path) -> bool:
+              return any(
+                  part.endswith(staging_suffixes) for part in path.parts[:-1]
+              )
+
+          matched = []
+          for root, _dirs, files in os.walk(artifacts):
+              for name in files:
+                  p = pathlib.Path(root) / name
+                  if is_inside_packaging_staging(p):
+                      continue
+                  low = name.lower()
+                  if not any(low.endswith(s) for s in suffixes):
+                      continue
+                  if low.endswith(".exe") and "-setup" not in low:
+                      continue
+                  matched.append(p)
+
+          print("Matched artifact files:")
+          for p in sorted(matched, key=lambda x: str(x)):
+              print(" ", p)
+
+          categories = {
+              "deb": sum(1 for p in matched if p.name.endswith(".deb")),
+              "appimage": sum(1 for p in matched if p.name.endswith(".AppImage")),
+              "dmg": sum(1 for p in matched if p.name.endswith(".dmg")),
+              "msix": sum(1 for p in matched if p.name.endswith(".msix")),
+              "exe": sum(1 for p in matched if p.name.endswith(".exe") or p.name.endswith(".exe")),
+              "zip": sum(1 for p in matched if p.name.endswith(".zip")),
+              "apk": sum(1 for p in matched if p.name.endswith(".apk")),
+              "aab": sum(1 for p in matched if p.name.endswith(".aab")),
+          }
+
+          ok = True
+          if categories["appimage"] < 2:
+              print(f"ERROR: expected >=2 AppImages, got {categories['appimage']}", file=sys.stderr)
+              ok = False
+          if categories["dmg"] < 1:
+              print(f"ERROR: expected >=1 .dmg, got {categories['dmg']}", file=sys.stderr)
+              ok = False
+          if categories["zip"] < 1:
+              print(f"ERROR: expected >=1 .zip, got {categories['zip']}", file=sys.stderr)
+              ok = False
+          if categories["apk"] < 2:
+              print(f"ERROR: expected >=2 .apk, got {categories['apk']}", file=sys.stderr)
+              ok = False
+          if not ok:
+              sys.exit(1)
+
+          for p in matched:
+              dest = out / p.name
+              if dest.exists():
+                  print("WARN: duplicate basename, overwriting:", p.name)
+              shutil.copy2(p, dest)
+
+          print("release-files:")
+          for f in sorted(out.iterdir()):
+              print(f"  {f.name}  {f.stat().st_size}")
+          PY
+
+      - name: Generate release notes
+        id: git-cliff
+        uses: orhun/git-cliff-action@v4
+        with:
+          args: --latest --strip header --github-repo ${{ github.repository }}
+        env:
+          OUTPUT: release-notes.md
+          GITHUB_REPO: ${{ github.repository }}
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-files/*
+          body_path: ${{ steps.git-cliff.outputs.changelog }}
+          fail_on_unmatched_files: true

@@ -1,0 +1,10 @@
+app_id: 4c7a5257-a3a1-4062-9a9c-d0697e6c3400
+publisher: hhoa
+publisher_url: https://github.com/hhoao/huji
+display_name: 弧迹
+executable_name: huji.exe
+create_desktop_icon: true
+setup_icon_file: windows\runner\resources\app_icon.ico
+locales:
+  - en
+  - zh

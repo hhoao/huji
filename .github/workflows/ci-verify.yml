@@ -1,0 +1,95 @@
+name: CI Verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "huji-app/**"
+      - ".github/workflows/ci-verify.yml"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/auto-tag.yml"
+  pull_request:
+    paths:
+      - "huji-app/**"
+      - ".github/workflows/ci-verify.yml"
+      - ".github/workflows/release.yml"
+      - ".github/workflows/auto-tag.yml"
+
+concurrency:
+  group: ci-verify-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: huji-app
+
+jobs:
+  verify:
+    name: ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: Linux
+            platform: linux
+            install_linux_deps: true
+          - os: windows-latest
+            label: Windows
+            platform: windows
+            install_linux_deps: false
+          - os: macos-latest
+            label: macOS
+            platform: macos
+            install_linux_deps: false
+          - os: ubuntu-22.04
+            label: Android
+            platform: android
+            install_linux_deps: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install Linux build dependencies
+        if: matrix.install_linux_deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev \
+            libjsoncpp-dev libstdc++-12-dev \
+            libasound2-dev libmpv-dev mpv
+
+      - uses: actions/setup-java@v4
+        if: matrix.platform == 'android'
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Accept Android SDK licenses
+        if: matrix.platform == 'android'
+        run: yes | flutter doctor --android-licenses
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Apply ultralytics_yolo workaround
+        shell: bash
+        run: |
+          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
+            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
+          fi
+
+      - name: Analyze (errors only)
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Unit and widget tests
+        run: flutter test --exclude-tags integration

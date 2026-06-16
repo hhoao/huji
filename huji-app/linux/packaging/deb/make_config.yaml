@@ -1,0 +1,17 @@
+display_name: 弧迹
+package_name: huji
+installed_size: 200000
+description: 智能视频剪辑应用
+maintainer:
+  name: hhoa
+  email: m45937494@gmail.com
+section: utility
+priority: optional
+homepage: https://github.com/hhoao/huji
+icon: assets/icons/logo_bg.png
+dependencies:
+  - libgtk-3-0
+  - libglib2.0-0
+  - libgdk-pixbuf-2.0-0
+  - libmpv2
+  - libasound2

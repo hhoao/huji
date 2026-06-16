@@ -13,7 +13,7 @@ class PlatformCapability {
 
   /// On-device YOLO inference (ultralytics_yolo).
   static bool get supportsLocalDetection =>
-      Platform.isAndroid || Platform.isIOS || Platform.isLinux;
+      Platform.isAndroid || Platform.isIOS || isDesktop;
 
   /// Cloud-based detection (HTTP/WebSocket to backend).
   static bool get supportsCloudDetection => true;

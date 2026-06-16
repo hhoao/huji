@@ -1,0 +1,25 @@
+output: dist/
+
+releases:
+  - name: dev
+    jobs:
+      - name: linux-deb
+        package:
+          platform: linux
+          target: deb
+      - name: macos-dmg
+        package:
+          platform: macos
+          target: dmg
+      - name: windows-msix
+        package:
+          platform: windows
+          target: msix
+      - name: windows-exe
+        package:
+          platform: windows
+          target: exe
+      - name: windows-zip
+        package:
+          platform: windows
+          target: zip

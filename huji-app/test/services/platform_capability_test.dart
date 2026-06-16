@@ -4,10 +4,10 @@ import 'package:huji_app/services/platform_capability.dart';
 
 void main() {
   group('PlatformCapability', () {
-    test('Linux: no recording, no local detection, no gallery, no background service', () {
+    test('Linux: no recording, local detection via isDesktop, no gallery, no background service', () {
       if (!Platform.isLinux) return; // skip on other platforms
       expect(PlatformCapability.supportsRecording, isFalse);
-      expect(PlatformCapability.supportsLocalDetection, isFalse);
+      expect(PlatformCapability.supportsLocalDetection, isTrue);
       expect(PlatformCapability.supportsGalleryAccess, isFalse);
       expect(PlatformCapability.supportsBackgroundService, isFalse);
       expect(PlatformCapability.supportsCloudDetection, isTrue);
