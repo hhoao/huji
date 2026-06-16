@@ -35,7 +35,7 @@ dependencies:
   video_player: ^2.10.0
   media_kit: ^1.1.11
   media_kit_video: ^1.2.5
-  media_kit_libs_linux: ^1.1.0
+  media_kit_libs_video: ^1.0.7
 
   retrofit: ^4.6.0
   dio: ^5.8.0
