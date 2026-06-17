@@ -8,6 +8,8 @@ class OnnxImagePreprocessor {
   OnnxImagePreprocessor._();
 
   static const inputSize = 640;
+  /// ffmpeg `pad` default fill — matches [local_inference.py] preprocessing.
+  /// Ultralytics YOLO classify uses 114 for letterbox padding.
   static const padValue = 114;
 
   /// Decode PNG/JPEG bytes, letterbox to [size]×[size], return RGB HWC bytes.
@@ -22,7 +24,12 @@ class OnnxImagePreprocessor {
     final scale = math.min(size / rgb.width, size / rgb.height);
     final newW = (rgb.width * scale).round().clamp(1, size);
     final newH = (rgb.height * scale).round().clamp(1, size);
-    final resized = img.copyResize(rgb, width: newW, height: newH);
+    final resized = img.copyResize(
+      rgb,
+      width: newW,
+      height: newH,
+      interpolation: img.Interpolation.cubic,
+    );
 
     final canvas = img.Image(width: size, height: size);
     img.fill(canvas, color: img.ColorRgb8(padValue, padValue, padValue));

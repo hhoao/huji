@@ -3,18 +3,25 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class DesktopDropZone extends StatefulWidget {
   final List<File> files;
   final ValueChanged<List<File>> onFilesAdded;
   final ValueChanged<int> onRemoveFile;
+  final DemoVideoTap? onDemoVideoSelected;
+  final bool demoLoading;
+  final String? demoSportLabel;
 
   const DesktopDropZone({
     super.key,
     required this.files,
     required this.onFilesAdded,
     required this.onRemoveFile,
+    this.onDemoVideoSelected,
+    this.demoLoading = false,
+    this.demoSportLabel,
   });
 
   @override
@@ -97,6 +104,15 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             '支持常见视频格式',
             style: TextStyle(fontSize: 11, color: DesktopTheme.textDim),
           ),
+          if (widget.onDemoVideoSelected != null) ...[
+            const SizedBox(height: 20),
+            DemoVideoPicker(
+              dense: true,
+              loading: widget.demoLoading,
+              filterSportLabel: widget.demoSportLabel,
+              onDemoSelected: widget.onDemoVideoSelected!,
+            ),
+          ],
         ],
       ),
     );

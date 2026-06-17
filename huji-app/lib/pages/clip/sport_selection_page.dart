@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/types.dart';
 import 'package:huji_app/router/modules/clip.dart';
+import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class SportSelectionPage extends StatefulWidget {
@@ -27,6 +30,7 @@ class SportSelectionPage extends StatefulWidget {
 
 class _SportSelectionPageState extends State<SportSelectionPage> {
   ClipMode? clipMode;
+  bool _demoLoading = false;
 
   @override
   void initState() {
@@ -72,6 +76,38 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
     }
     if (mounted) {
       context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+    }
+  }
+
+  Future<void> _startDemoClip(DemoVideo demo) async {
+    if (clipMode == ClipMode.recordAndClip) {
+      return;
+    }
+    setState(() => _demoLoading = true);
+    try {
+      final file = await DemoVideoService.materialize(demo);
+      final sportType = demo.sportTypeKey == 'ping_pong'
+          ? SportType.pingpong
+          : SportType.badminton;
+      final config = getDefaultConfig(sportType);
+      final rawRecord = await createRawVideoRecord(
+        file.path,
+        sportType,
+        config,
+        clipMode: clipMode ?? ClipMode.existingVideo,
+      );
+      await LocalVideoStorage().add(rawRecord);
+      if (mounted) {
+        context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('加载演示视频失败：$e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _demoLoading = false);
     }
   }
 
@@ -189,6 +225,30 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 color: Colors.green,
                 description: '支持单打、双打比赛，自动识别精彩球片段',
               ),
+
+              if (clipMode != ClipMode.recordAndClip) ...[
+                const SizedBox(height: 32),
+                const Divider(),
+                const SizedBox(height: 24),
+                const Text(
+                  '快速体验',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '无需自备视频，使用内置样例立即体验剪辑流程',
+                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                ),
+                const SizedBox(height: 16),
+                DemoVideoPicker(
+                  loading: _demoLoading,
+                  onDemoSelected: _startDemoClip,
+                ),
+              ],
             ],
           ),
         ),

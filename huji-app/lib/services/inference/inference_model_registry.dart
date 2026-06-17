@@ -1,10 +1,12 @@
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/services/inference/onnx_inference_engine.dart';
 
-/// Resolves ONNX model assets and class-name order for desktop inference.
+/// Resolves ONNX model assets for desktop inference.
 class InferenceModelRegistry {
   InferenceModelRegistry._();
 
+  /// Known class-name order per bundled model (fallback when ONNX metadata is
+  /// unavailable — flutter_onnxruntime on Linux returns empty customMetadataMap).
   static const Map<String, List<String>> _classNamesBySportMatch = {
     'ping_pong/normal': ['fire_ball', 'pick_ball', 'play_ball'],
     'ping_pong/profession': ['fireball', 'pickball', 'playball', 'transition'],
@@ -23,6 +25,7 @@ class InferenceModelRegistry {
     }
   }
 
+  /// Default match type aligned with huji-algorithm (ping_pong_singles_profession).
   static String defaultMatchTypeForModel(String modelName) {
     switch (modelName) {
       case AutoclipConstants.pingPongModelName:

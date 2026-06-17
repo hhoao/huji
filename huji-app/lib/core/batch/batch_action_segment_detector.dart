@@ -292,20 +292,35 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         }
       }
 
-      final predictions = await _predictVideoActionPointsInternalV2(
-        videoPath: videoPath,
-        modelName: modelName,
-        classMappings: classMappings,
-        segmentDetectConfig: segmentDetectConfig,
-        progressHandler: progressHandler,
-      );
+      final resizeTempDir = await Directory.systemTemp.createTemp('video_resize_');
+      try {
+        final stem = path.basenameWithoutExtension(videoPath);
+        final resizedPath = path.join(resizeTempDir.path, '${stem}_640.mp4');
+        _logger.i('缩放视频至 640 宽度: $resizedPath');
+        await VideoUtils.resizeVideoRatio(
+          inputFile: videoPath,
+          outputFile: resizedPath,
+          width: 640,
+        );
+        cleanableFileCollection.addFile(resizedPath);
 
-      // 缓存预测结果
-      if (isUseCache) {
-        _cachePredictInfos(predictions, videoPath);
+        final predictions = await _predictVideoActionPointsInternalV2(
+          videoPath: resizedPath,
+          modelName: modelName,
+          classMappings: classMappings,
+          segmentDetectConfig: segmentDetectConfig,
+          progressHandler: progressHandler,
+        );
+
+        // 缓存预测结果
+        if (isUseCache) {
+          _cachePredictInfos(predictions, videoPath);
+        }
+
+        return predictions;
+      } finally {
+        await resizeTempDir.delete(recursive: true);
       }
-
-      return predictions;
     } catch (e) {
       _logger.e('预测视频动作点失败: ${e.toString()}');
       rethrow;

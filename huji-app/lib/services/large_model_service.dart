@@ -193,7 +193,7 @@ class LargeModelService {
         InferenceModelRegistry.classNamesFor(scope.sport, scope.match);
     return OnnxModelPredictor(
       modelAsset: asset,
-      classNames: classNames,
+      fallbackClassNames: classNames,
     );
   }
 

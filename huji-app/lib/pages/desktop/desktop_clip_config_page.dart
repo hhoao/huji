@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/constants/autoclip_constants.dart';
+import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
@@ -12,6 +14,7 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
 
+import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -37,8 +40,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   bool _highlightClip = true;
   bool _removeReplay = true;
   bool _mergeAdjacent = false;
-  double _minDuration = 10.0;
+  double _minDuration = 2.0;
   LocalModelStatus _localModelStatus = LocalModelStatus.notFound;
+  bool _demoLoading = false;
 
   @override
   void initState() {
@@ -78,6 +82,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         removeReplay: _removeReplay,
         getMatchSegments: _mergeAdjacent,
         minimumDurationSingleRound: _minDuration,
+        minimumDurationGreatBall: 10.0,
+        reserveTimeBeforeSingleRound: 0.0,
+        reserveTimeAfterSingleRound: 1.0,
+        mergeFireBallAndPlayBall: AutoclipConstants.defaultMergeFireBallAndPlayBall,
       );
     } else {
       return BadmintonVideoClipConfigReqVo(
@@ -85,7 +93,31 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         removeReplay: _removeReplay,
         getMatchSegments: _mergeAdjacent,
         minimumDurationSingleRound: _minDuration,
+        minimumDurationGreatBall: 10.0,
+        reserveTimeBeforeSingleRound: 1.0,
+        reserveTimeAfterSingleRound: 1.0,
       );
+    }
+  }
+
+  Future<void> _useDemoVideo(DemoVideo demo) async {
+    setState(() => _demoLoading = true);
+    try {
+      final file = await DemoVideoService.materialize(demo);
+      if (!mounted) return;
+      setState(() {
+        _sportType = demo.sportLabel;
+        _selectedFiles
+          ..clear()
+          ..add(file);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('加载演示视频失败：$e')),
+      );
+    } finally {
+      if (mounted) setState(() => _demoLoading = false);
     }
   }
 
@@ -398,9 +430,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '乒乓球比赛视频剪辑',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
+                  Text(
+                    _sportType == '乒乓球' ? '乒乓球比赛视频剪辑' : '羽毛球比赛视频剪辑',
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
                   ),
                   const SizedBox(height: 4),
                   const Text(
@@ -623,6 +655,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   Widget _buildDropZone() {
     return DesktopDropZone(
       files: _selectedFiles,
+      demoLoading: _demoLoading,
+      demoSportLabel: _sportType,
+      onDemoVideoSelected: _useDemoVideo,
       onFilesAdded: (newFiles) => setState(() {
         final existing = _selectedFiles.map((f) => f.path).toSet();
         for (final f in newFiles) {

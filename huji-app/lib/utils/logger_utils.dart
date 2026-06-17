@@ -74,6 +74,9 @@ class AppLogger {
   static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB
   static const int _maxLogFiles = 5; // 最多保留5个日志文件
   static const int _maxDays = 7; // 最多保留7天的日志
+  static const _excludeLoggerPaths = [
+    'package:huji_app/utils/logger_utils.dart',
+  ];
   // 控制台日志记录器（立即初始化）
   late Logger _consoleLogger;
 
@@ -92,6 +95,7 @@ class AppLogger {
       printer: PrettyPrinter(
         methodCount: 2, // 显示调用栈的方法数量
         errorMethodCount: 8, // 错误时显示更多方法
+        excludePaths: _excludeLoggerPaths,
         lineLength: 120, // 行长度
         colors: true, // 启用颜色
         printEmojis: true, // 启用表情符号
@@ -139,6 +143,7 @@ class AppLogger {
         printer: PrettyPrinter(
           methodCount: 2,
           errorMethodCount: 8,
+          excludePaths: _excludeLoggerPaths,
           lineLength: 120,
           colors: false, // 文件日志不需要颜色
           printEmojis: false, // 文件日志不需要表情符号
@@ -404,6 +409,7 @@ class AppLogger {
           printer: PrettyPrinter(
             methodCount: 2,
             errorMethodCount: 8,
+            excludePaths: _excludeLoggerPaths,
             lineLength: 120,
             colors: false,
             printEmojis: false,

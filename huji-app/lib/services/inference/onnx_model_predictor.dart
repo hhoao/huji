@@ -13,20 +13,23 @@ import 'package:huji_app/services/large_model_service.dart';
 /// pipelines can share the same code path.
 class OnnxModelPredictor implements ModelPredictor {
   final String modelAsset;
-  final List<String> classNames;
+  final List<String> fallbackClassNames;
 
   OnnxInferenceEngine? _engine;
   Future<void>? _predictQueue;
 
   OnnxModelPredictor({
     required this.modelAsset,
-    required this.classNames,
+    required this.fallbackClassNames,
   });
 
   Future<OnnxInferenceEngine> _ensureLoaded() async {
     if (_engine != null) return _engine!;
     final engine = OnnxInferenceEngine();
-    await engine.loadModelFromAsset(modelAsset);
+    await engine.loadModelFromAsset(
+      modelAsset,
+      fallbackClassNames: fallbackClassNames,
+    );
     _engine = engine;
     return engine;
   }
@@ -72,22 +75,19 @@ class OnnxModelPredictor implements ModelPredictor {
     return _enqueue(() async {
       final stopwatch = Stopwatch()..start();
       final engine = await _ensureLoaded();
+      final classNames = engine.classNames;
 
       final rgb = OnnxImagePreprocessor.decodeAndLetterbox(imageBytes);
       const size = OnnxImagePreprocessor.inputSize;
       final tensor = OnnxImagePreprocessor.toTensor(rgb, size, size);
-      final logits = await engine.predict(
-        tensor,
-        size,
-        size,
-        numClasses: classNames.length,
-      );
+      final logits = await engine.predict(tensor, size, size);
 
-      final (topIdx, topConfidence) = _topPrediction(logits);
+      final (topIdx, topConfidence) = _topPrediction(logits, classNames.length);
       final topClass = classNames[topIdx];
       _mapClassName(topClass, classMappings);
 
-      final top5 = _topK(logits, 5);
+      final topK = classNames.length < 5 ? classNames.length : 5;
+      final top5 = _topK(logits, topK, classNames.length);
       stopwatch.stop();
 
       return ClassifierResult(
@@ -128,18 +128,21 @@ class OnnxModelPredictor implements ModelPredictor {
     throw Exception('Unknown action type: $className');
   }
 
-  (int, double) _topPrediction(Float32List logits) {
+  (int, double) _topPrediction(Float32List logits, int numClasses) {
+    final limit = numClasses.clamp(0, logits.length);
+    if (limit == 0) return (0, 0.0);
     var bestIdx = 0;
-    for (var i = 1; i < logits.length; i++) {
+    for (var i = 1; i < limit; i++) {
       if (logits[i] > logits[bestIdx]) bestIdx = i;
     }
     return (bestIdx, logits[bestIdx]);
   }
 
-  List<(int, double)> _topK(Float32List logits, int k) {
-    final indexed = List.generate(logits.length, (i) => (i, logits[i]));
+  List<(int, double)> _topK(Float32List logits, int k, int numClasses) {
+    final limit = numClasses.clamp(0, logits.length);
+    final indexed = List.generate(limit, (i) => (i, logits[i]));
     indexed.sort((a, b) => b.$2.compareTo(a.$2));
-    return indexed.take(k).toList();
+    return indexed.take(k.clamp(0, limit)).toList();
   }
 
   @override
