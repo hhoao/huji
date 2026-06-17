@@ -5,7 +5,15 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_content_filter_dialog
 import 'package:huji_app/store/task/task_manager.dart';
 
 /// Actions available on a task row, independent of platform UI.
-enum TaskRowAction { pause, resume, cancel, retry, view, delete }
+enum TaskRowAction {
+  viewProgress,
+  pause,
+  resume,
+  cancel,
+  retry,
+  view,
+  delete,
+}
 
 /// Status tab counts derived from [TaskTabState].
 class TaskStatusCounts {
@@ -48,7 +56,12 @@ class TaskTabListUtils {
     );
   }
 
-  static bool hasTaskChanged(List<Task> previous, List<Task> current) {
+  /// Whether the list shell should rebuild (excludes progress — rows subscribe
+  /// to progress via their own [BlocBuilder], same as mobile [TaskRowMobile]).
+  static bool hasTaskListStructureChanged(
+    List<Task> previous,
+    List<Task> current,
+  ) {
     if (previous.length != current.length) return true;
 
     final previousMap = {for (final task in previous) task.id: task};
@@ -56,12 +69,84 @@ class TaskTabListUtils {
       final prev = previousMap[curr.id];
       if (prev == null ||
           prev.status != curr.status ||
-          prev.progress != curr.progress ||
-          prev.extraInfo != curr.extraInfo) {
+          prev.name != curr.name ||
+          prev.image != curr.image) {
         return true;
       }
     }
     return false;
+  }
+
+  static bool hasTaskProgressDisplayChanged(Task previous, Task current) {
+    return progressPercent(previous) != progressPercent(current) ||
+        previous.status != current.status ||
+        previous.extraInfo != current.extraInfo;
+  }
+
+  /// True when [current] differs from [previous] only in volatile fields
+  /// (progress, extraInfo, etc.) — safe to skip list/bloc structural rebuilds.
+  static bool isProgressOnlySnapshot(List<Task> previous, List<Task> current) {
+    if (previous.length != current.length) return false;
+
+    final previousMap = {for (final task in previous) task.id: task};
+    for (final curr in current) {
+      final prev = previousMap[curr.id];
+      if (prev == null) return false;
+      if (prev.status != curr.status ||
+          prev.name != curr.name ||
+          prev.image != curr.image ||
+          prev.type != curr.type ||
+          prev.createdAt != curr.createdAt) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// Normalizes task progress to 0..1 (API may return 0..100).
+  static double normalizedProgress(Task task) {
+    final value = task.progress;
+    if (value > 1.0) return (value / 100).clamp(0.0, 1.0);
+    return value.clamp(0.0, 1.0);
+  }
+
+  static int progressPercent(Task task) {
+    return (normalizedProgress(task) * 100).round();
+  }
+
+  /// Phase description shown while progress is unavailable or zero.
+  static String buildTaskPhaseDescription(Task task) {
+    if (task.extraInfo != null && task.extraInfo!.isNotEmpty) {
+      return task.extraInfo!;
+    }
+
+    final progress = normalizedProgress(task);
+    return switch (task.status) {
+      TaskStatusEnum.pending => '任务已提交，等待处理…',
+      TaskStatusEnum.processing when progress <= 0 => '正在处理…',
+      TaskStatusEnum.processing when progress < 0.1 => '正在上传视频…',
+      TaskStatusEnum.processing when progress < 0.3 => '正在分析视频内容…',
+      TaskStatusEnum.processing when progress < 0.7 => '正在剪辑视频…',
+      TaskStatusEnum.processing when progress < 0.9 => '正在生成最终视频…',
+      TaskStatusEnum.processing => '正在下载结果…',
+      TaskStatusEnum.paused => '已暂停',
+      TaskStatusEnum.completed => '已完成',
+      TaskStatusEnum.failed => '处理失败',
+      TaskStatusEnum.cancelled => '已取消',
+    };
+  }
+
+  static String buildProgressStatusText(Task task) {
+    return buildTaskPhaseDescription(task);
+  }
+
+  static String buildProgressPercentLabel(Task task) {
+    final percent = progressPercent(task);
+    if (task.status == TaskStatusEnum.pending ||
+        (task.status == TaskStatusEnum.processing && percent <= 0)) {
+      return '处理中';
+    }
+    return '$percent%';
   }
 
   static bool statusSetEquals(Set<TaskStatusEnum> a, Set<TaskStatusEnum> b) {
@@ -123,15 +208,32 @@ class TaskTabListUtils {
       return info.length > 80 ? '${info.substring(0, 80)}…' : info;
     }
     if (task.status == TaskStatusEnum.processing && task.progress > 0) {
-      final pct = (task.progress * 100).toStringAsFixed(0);
+      final pct = progressPercent(task);
       return '${taskTypeLabel(task.type)} · $pct%';
     }
     return taskTypeLabel(task.type);
   }
 
+  static bool canShowClipProgress(Task task) {
+    if (task is! VideoClipTask || task.outputPath.isNotEmpty) return false;
+    return task.status == TaskStatusEnum.processing ||
+        task.status == TaskStatusEnum.pending ||
+        task.status == TaskStatusEnum.failed;
+  }
+
+  static bool shouldShowInlineProgress(Task task) {
+    return task.status == TaskStatusEnum.processing ||
+        task.status == TaskStatusEnum.pending ||
+        task.status == TaskStatusEnum.paused;
+  }
+
   static List<TaskRowAction> resolveTaskActions(Task task) {
     final actions = <TaskRowAction>[];
     final status = task.status;
+
+    if (canShowClipProgress(task)) {
+      actions.add(TaskRowAction.viewProgress);
+    }
 
     if (status == TaskStatusEnum.processing ||
         status == TaskStatusEnum.pending) {

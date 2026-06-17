@@ -14,7 +14,6 @@ import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/main.dart';
 
 import '../../../../models/task.dart';
-import '../video_records_tab/video_clip_progress_dialog.dart';
 
 class TaskTabContent extends StatefulWidget {
   final String? clipTaskId; // 用于自动显示视频剪辑进度弹窗的任务ID
@@ -49,7 +48,13 @@ class _TaskTabContentState extends State<TaskTabContent> {
     // 如果有指定的视频剪辑任务ID，延迟显示进度弹窗
     if (widget.clipTaskId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _showClipTaskProgressDialog();
+        showClipTaskProgressWhenReady(
+          context: context,
+          bloc: _taskTabBloc,
+          clipTaskId: widget.clipTaskId!,
+          isAlreadyShown: () => _clipTaskDialogShown,
+          markShown: () => _clipTaskDialogShown = true,
+        );
       });
     }
   }
@@ -58,30 +63,6 @@ class _TaskTabContentState extends State<TaskTabContent> {
   void dispose() {
     _taskTabBloc.close();
     super.dispose();
-  }
-
-  void _showClipTaskProgressDialog() {
-    // 如果已经显示过，不再重复显示
-    if (_clipTaskDialogShown) return;
-
-    // 延迟一点时间确保任务已经加载
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (!mounted || _clipTaskDialogShown) return;
-
-      // 从 Bloc 状态中查找指定的任务（优化：使用 Map 快速查找）
-      final state = _taskTabBloc.state;
-      final taskMap = {for (final t in state.allTasks) t.id: t};
-      final task = taskMap[widget.clipTaskId];
-
-      if (task != null && mounted && !_clipTaskDialogShown) {
-        _clipTaskDialogShown = true;
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => VideoClipProgressDialog(task: task),
-        );
-      }
-    });
   }
 
   // 批量选择相关方法
@@ -176,16 +157,14 @@ class _TaskTabContentState extends State<TaskTabContent> {
             loadMoreBuilder: TaskTabLoadMoreIndicator.mobile,
             emptyBuilder: (_) => _buildEmptyState(),
             onListBuilt: (context, state) {
-              if (widget.clipTaskId != null && !_clipTaskDialogShown) {
-                final taskMap = {for (final t in state.allTasks) t.id: t};
-                if (taskMap.containsKey(widget.clipTaskId)) {
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (mounted && !_clipTaskDialogShown) {
-                      _showClipTaskProgressDialog();
-                    }
-                  });
-                }
-              }
+              watchClipTaskProgressPrompt(
+                context: context,
+                state: state,
+                clipTaskId: widget.clipTaskId,
+                bloc: _taskTabBloc,
+                isAlreadyShown: () => _clipTaskDialogShown,
+                markShown: () => _clipTaskDialogShown = true,
+              );
             },
             itemBuilder: (context, task, state) {
               return TaskRowMobile(

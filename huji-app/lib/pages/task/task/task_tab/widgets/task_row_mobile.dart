@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
+import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_callbacks.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
@@ -116,9 +117,10 @@ class TaskRowMobile extends StatelessWidget {
     final previousTask = previousTaskMap[task.id];
     final currentTask = currentTaskMap[task.id];
     if (previousTask == null || currentTask == null) return true;
-    return previousTask.progress != currentTask.progress ||
-        previousTask.status != currentTask.status ||
-        previousTask.extraInfo != currentTask.extraInfo;
+    return TaskTabListUtils.hasTaskProgressDisplayChanged(
+      previousTask,
+      currentTask,
+    );
   }
 
   @override

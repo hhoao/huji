@@ -14,6 +14,7 @@ class HomeVideoListBloc extends Bloc<HomeVideoListEvent, HomeVideoListState> {
   final TaskStorage _taskStorage = TaskStorage();
   final LocalVideoStorage _videoStorage = LocalVideoStorage();
   Timer? _debounceTimer;
+  Timer? _taskProgressDebounce;
   DateTime? _lastUpdateTime;
 
   HomeVideoListBloc() : super(const HomeVideoListState()) {
@@ -128,13 +129,16 @@ class HomeVideoListBloc extends Bloc<HomeVideoListEvent, HomeVideoListState> {
 
   /// TaskStorage 变化监听器
   void _onTaskStorageChanged() {
-    // 如果列表已加载，只更新任务进度，不重新加载整个列表
-    if (state.videoList.isNotEmpty && !state.isLoading) {
-      add(const HomeVideoListUpdateTaskProgressEvent());
-    } else {
-      // 如果列表未加载，触发完整的数据加载
+    if (state.videoList.isEmpty || state.isLoading) {
       add(const HomeVideoListDataChangedEvent());
+      return;
     }
+    _taskProgressDebounce?.cancel();
+    _taskProgressDebounce = Timer(const Duration(milliseconds: 400), () {
+      if (!isClosed) {
+        add(const HomeVideoListUpdateTaskProgressEvent());
+      }
+    });
   }
 
   /// LocalVideoStorage 变化监听器
@@ -145,6 +149,7 @@ class HomeVideoListBloc extends Bloc<HomeVideoListEvent, HomeVideoListState> {
   @override
   Future<void> close() {
     _debounceTimer?.cancel();
+    _taskProgressDebounce?.cancel();
     _taskStorage.removeListener(_onTaskStorageChanged);
     _videoStorage.removeListener(_onVideoStorageChanged);
     return super.close();

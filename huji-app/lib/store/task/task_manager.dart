@@ -86,6 +86,8 @@ class TaskStorage extends ChangeNotifier
   factory TaskStorage() => _instance;
   var lock = Lock(reentrant: true);
   int _lastNotifyTime = DateTime.now().millisecondsSinceEpoch;
+  Timer? _progressNotifyTimer;
+  bool _progressNotifyPending = false;
 
   TaskStorage._internal() {
     _taskManagers[TaskTypeEnum.videoCompress] = VideoCompressTaskManager(this);
@@ -401,6 +403,37 @@ class TaskStorage extends ChangeNotifier
     }
   }
 
+  bool _isProgressOnlyUpdate(Task oldTask, Task updatedTask) {
+    return oldTask.status == updatedTask.status &&
+        oldTask.name == updatedTask.name &&
+        oldTask.image == updatedTask.image &&
+        oldTask.type == updatedTask.type &&
+        oldTask.createdAt == updatedTask.createdAt &&
+        oldTask.hide == updatedTask.hide &&
+        oldTask.supportsPause == updatedTask.supportsPause &&
+        oldTask.total == updatedTask.total &&
+        oldTask.processed == updatedTask.processed;
+  }
+
+  void _scheduleProgressNotify() {
+    if (_progressNotifyTimer != null) {
+      _progressNotifyPending = true;
+      return;
+    }
+    notifyListeners();
+    _progressNotifyTimer = Timer(const Duration(milliseconds: 300), () {
+      _progressNotifyTimer = null;
+      if (_progressNotifyPending) {
+        _progressNotifyPending = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  void _notifyProgressOnly(Task task) {
+    _scheduleProgressNotify();
+  }
+
   // 修改 updateTask 的接口
   @override
   Future<Task> updateTask(String taskId, Task Function(Task) updateFn) async {
@@ -427,6 +460,11 @@ class TaskStorage extends ChangeNotifier
 
       _tasks[idx] = updatedTask;
       try {
+        final progressOnly = _isProgressOnlyUpdate(oldTask, updatedTask);
+        if (progressOnly) {
+          _notifyProgressOnly(updatedTask);
+          return updatedTask;
+        }
         await _saveTask(updatedTask);
       } catch (e, stackTrace) {
         final decision = AppErrorUtils.classify(e);
@@ -540,6 +578,9 @@ class TaskStorage extends ChangeNotifier
 
   @override
   void dispose() {
+    _progressNotifyTimer?.cancel();
+    _progressNotifyTimer = null;
+    _progressNotifyPending = false;
     super.dispose();
     for (final taskManager in _taskManagers.values) {
       taskManager.dispose();

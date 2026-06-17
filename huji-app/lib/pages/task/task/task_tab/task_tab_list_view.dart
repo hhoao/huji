@@ -52,12 +52,23 @@ class TaskTabListView extends StatelessWidget {
     Widget list;
     if (itemSeparatorHeight != null) {
       list = ListView.separated(
+        cacheExtent: 400,
         itemCount: itemCount,
+        findItemIndexCallback: (Key key) {
+          if (key is ValueKey<String>) {
+            final index = state.filteredTasks.indexWhere(
+              (task) => task.id == key.value,
+            );
+            return index >= 0 ? index : null;
+          }
+          return null;
+        },
         separatorBuilder: (_, __) => SizedBox(height: itemSeparatorHeight),
         itemBuilder: (context, index) => _buildItem(context, state, index),
       );
     } else {
       list = ListView.builder(
+        cacheExtent: 400,
         addAutomaticKeepAlives: true,
         addRepaintBoundaries: true,
         itemCount: itemCount,
@@ -95,7 +106,7 @@ class TaskTabListView extends StatelessWidget {
           previous.filter.isLoadingMore != current.filter.isLoadingMore ||
           previous.isBatchMode != current.isBatchMode ||
           previous.selectedTaskIds != current.selectedTaskIds ||
-          TaskTabListUtils.hasTaskChanged(
+          TaskTabListUtils.hasTaskListStructureChanged(
             previous.filteredTasks,
             current.filteredTasks,
           ),

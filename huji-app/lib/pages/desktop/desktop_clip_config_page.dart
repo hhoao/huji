@@ -17,6 +17,7 @@ import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 
@@ -88,6 +89,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     }
   }
 
+  void _goToTasks(String? clipTaskId) {
+    if (clipTaskId != null) {
+      context.go('/tasks?clipTaskId=${Uri.encodeComponent(clipTaskId)}');
+    } else {
+      context.go('/tasks');
+    }
+  }
+
   Future<void> _startDetection() async {
     if (_selectedFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -111,6 +120,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     int successCount = 0;
     int failCount = 0;
+    String? lastSubmittedTaskId;
 
     for (final file in _selectedFiles) {
       try {
@@ -149,6 +159,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         );
         await LocalVideoStorage().add(processRecord);
 
+        lastSubmittedTaskId = task.id;
         successCount++;
       } catch (e) {
         failCount++;
@@ -164,7 +175,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         ),
         action: SnackBarAction(
           label: '查看任务',
-          onPressed: () => context.go('/tasks'),
+          onPressed: () => _goToTasks(lastSubmittedTaskId),
         ),
       ),
     );
@@ -179,6 +190,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     final clipConfig = _buildClipConfig(sportType);
     final taskStorage = TaskStorage();
     int submittedCount = 0;
+    String? lastSubmittedTaskId;
 
     for (final file in _selectedFiles) {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -210,15 +222,37 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       ));
 
       submittedCount++;
+      lastSubmittedTaskId = task.id;
 
-      // Inference runs asynchronously via flutter_onnxruntime; the future-chain
-      // below updates task state when done. The user can navigate away meanwhile.
+      await taskStorage.updateTask(task.id, (oldTask) {
+        return oldTask.copyWith(
+          status: TaskStatusEnum.processing,
+          extraInfo: '正在本地检测…',
+        );
+      });
+
+      // Inference runs asynchronously; progress is reported frame-by-frame.
       final videoPath = file.path;
+      final progressThrottler = Throttler(
+        tag: 'local_progress_${task.id}',
+        duration: const Duration(milliseconds: 500),
+      );
       LocalDetectionService.runInferenceAsync(
         videoPath: videoPath,
         clipConfig: clipConfig,
         sportTypeKey: sportTypeKey,
         matchType: matchType,
+        onProgress: (progress, message) {
+          progressThrottler.call(() {
+            taskStorage.updateTask(task.id, (oldTask) {
+              return oldTask.copyWith(
+                status: TaskStatusEnum.processing,
+                progress: progress,
+                extraInfo: message.isNotEmpty ? message : '正在本地检测…',
+              );
+            });
+          });
+        },
       ).then((result) async {
         try {
           final output = result.clipOutput;
@@ -241,6 +275,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           await taskStorage.updateTask(task.id, (oldTask) {
             return oldTask.copyWith(
               status: TaskStatusEnum.completed,
+              progress: 1.0,
               image: thumbPath,
               extraInfo:
                   '检测到 ${allSegments.length} 个比赛片段 (${(processingTimeMs / 1000).toStringAsFixed(1)}s)',
@@ -301,7 +336,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         content: Text('已提交 $submittedCount 个本地检测任务，可离开页面查看任务列表'),
         action: SnackBarAction(
           label: '查看任务',
-          onPressed: () => context.go('/tasks'),
+          onPressed: () => _goToTasks(lastSubmittedTaskId),
         ),
       ),
     );

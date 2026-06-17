@@ -75,8 +75,13 @@ class DesktopRoutes {
           GoRoute(
             path: '/tasks',
             name: 'desktop-tasks',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopTasksPage()),
+            pageBuilder: (context, state) {
+              final clipTaskId = state.uri.queryParameters['clipTaskId'];
+              return _noTransitionPage(
+                state,
+                DesktopTasksPage(clipTaskId: clipTaskId),
+              );
+            },
           ),
           GoRoute(
             path: '/settings',

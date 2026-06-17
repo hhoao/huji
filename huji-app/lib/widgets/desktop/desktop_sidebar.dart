@@ -48,13 +48,12 @@ class _DesktopSidebarState extends State<DesktopSidebar> {
   }
 
   void _updateBadge() {
-    if (mounted) {
-      setState(() {
-        final counts = TaskStorage().getTaskCounts();
-        _processingCount = (counts[TaskStatusEnum.processing] ?? 0) +
-            (counts[TaskStatusEnum.pending] ?? 0);
-      });
-    }
+    if (!mounted) return;
+    final counts = TaskStorage().getTaskCounts();
+    final next = (counts[TaskStatusEnum.processing] ?? 0) +
+        (counts[TaskStatusEnum.pending] ?? 0);
+    if (next == _processingCount) return;
+    setState(() => _processingCount = next);
   }
 
   @override

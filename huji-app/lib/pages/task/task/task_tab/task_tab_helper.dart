@@ -10,7 +10,70 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
 import '../../../../models/task.dart';
+import 'bloc/task_tab_bloc.dart';
+import 'bloc/task_tab_state.dart';
 import '../video_records_tab/video_clip_progress_dialog.dart';
+
+/// Opens the shared video clip progress dialog for a task.
+void showVideoClipProgressDialog(BuildContext context, Task task) {
+  showDialog(
+    context: context,
+    barrierDismissible: task.status == TaskStatusEnum.failed,
+    builder: (context) => VideoClipProgressDialog(task: task),
+  );
+}
+
+Task? findTaskById(TaskTabState state, String taskId) {
+  for (final task in state.allTasks) {
+    if (task.id == taskId) return task;
+  }
+  return null;
+}
+
+/// Delays briefly, then shows the clip progress dialog once the task is loaded.
+void showClipTaskProgressWhenReady({
+  required BuildContext context,
+  required TaskTabBloc bloc,
+  required String clipTaskId,
+  required bool Function() isAlreadyShown,
+  required VoidCallback markShown,
+}) {
+  if (isAlreadyShown()) return;
+
+  Future.delayed(const Duration(milliseconds: 500), () {
+    if (!context.mounted || isAlreadyShown()) return;
+
+    final task = findTaskById(bloc.state, clipTaskId);
+    if (task != null && context.mounted && !isAlreadyShown()) {
+      markShown();
+      showVideoClipProgressDialog(context, task);
+    }
+  });
+}
+
+/// Called from list builders when tasks finish loading.
+void watchClipTaskProgressPrompt({
+  required BuildContext context,
+  required TaskTabState state,
+  required String? clipTaskId,
+  required TaskTabBloc bloc,
+  required bool Function() isAlreadyShown,
+  required VoidCallback markShown,
+}) {
+  if (clipTaskId == null || isAlreadyShown()) return;
+  if (findTaskById(state, clipTaskId) == null) return;
+
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    if (!context.mounted || isAlreadyShown()) return;
+    showClipTaskProgressWhenReady(
+      context: context,
+      bloc: bloc,
+      clipTaskId: clipTaskId,
+      isAlreadyShown: isAlreadyShown,
+      markShown: markShown,
+    );
+  });
+}
 
 void showImageCompressResults(BuildContext context, ImageCompressTask task) {
   showModalBottomSheet(
@@ -369,17 +432,9 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
       );
     } else if ((task.status == TaskStatusEnum.processing ||
         task.status == TaskStatusEnum.pending)) {
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => VideoClipProgressDialog(task: task),
-      );
+      showVideoClipProgressDialog(context, task);
     } else if (task.status == TaskStatusEnum.failed) {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (context) => VideoClipProgressDialog(task: task),
-      );
+      showVideoClipProgressDialog(context, task);
     }
   } else if (task is ImageCompressTask &&
       task.outputList.isNotEmpty &&

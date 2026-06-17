@@ -24,7 +24,9 @@ import 'package:huji_app/widgets/desktop/app_chip.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 class DesktopTasksPage extends StatefulWidget {
-  const DesktopTasksPage({super.key});
+  final String? clipTaskId;
+
+  const DesktopTasksPage({super.key, this.clipTaskId});
 
   @override
   State<DesktopTasksPage> createState() => _DesktopTasksPageState();
@@ -40,12 +42,25 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
 
   late final TaskTabBloc _bloc;
   int _pageTabIndex = 0;
+  bool _clipTaskDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     _bloc = TaskTabBloc();
     _bloc.add(const TaskTabInitializeEvent());
+
+    if (widget.clipTaskId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        showClipTaskProgressWhenReady(
+          context: context,
+          bloc: _bloc,
+          clipTaskId: widget.clipTaskId!,
+          isAlreadyShown: () => _clipTaskDialogShown,
+          markShown: () => _clipTaskDialogShown = true,
+        );
+      });
+    }
   }
 
   @override
@@ -318,9 +333,20 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
       itemSeparatorHeight: 10,
       loadMoreBuilder: TaskTabLoadMoreIndicator.desktop,
       emptyBuilder: (_) => _buildEmptyState(),
+      onListBuilt: (context, state) {
+        watchClipTaskProgressPrompt(
+          context: context,
+          state: state,
+          clipTaskId: widget.clipTaskId,
+          bloc: _bloc,
+          isAlreadyShown: () => _clipTaskDialogShown,
+          markShown: () => _clipTaskDialogShown = true,
+        );
+      },
       itemBuilder: (context, task, state) {
         return TaskRowDesktop(
           key: ValueKey(task.id),
+          bloc: _bloc,
           task: task,
           isBatchMode: state.isBatchMode,
           isSelected: state.selectedTaskIds.contains(task.id),

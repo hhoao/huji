@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 
+import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
+
 import 'task_tab_event.dart';
 import 'task_tab_state.dart';
 
@@ -27,12 +29,13 @@ class TaskTabBloc extends Bloc<TaskTabEvent, TaskTabState> {
     on<TaskTabBatchDeleteTasksEvent>(_onBatchDeleteTasks);
     on<TaskTabCancelTaskEvent>(_onCancelTask);
 
-    // 监听 TaskStorage 的变化，使用节流器限制更新频率
     _taskStorageListener = () {
-      // 检查 Bloc 是否已关闭，避免在关闭后添加事件
-      if (!isClosed) {
-        add(const TaskTabTasksUpdatedEvent());
+      if (isClosed) return;
+      final tasks = _taskStorage.tasks;
+      if (TaskTabListUtils.isProgressOnlySnapshot(state.allTasks, tasks)) {
+        return;
       }
+      add(const TaskTabTasksUpdatedEvent());
     };
     _taskStorage.addListener(_taskStorageListener);
   }
@@ -287,7 +290,6 @@ class TaskTabBloc extends Bloc<TaskTabEvent, TaskTabState> {
 
   @override
   Future<void> close() {
-    // 移除 TaskStorage 的监听器，避免在 Bloc 关闭后仍然收到通知
     _taskStorage.removeListener(_taskStorageListener);
     return super.close();
   }
