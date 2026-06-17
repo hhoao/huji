@@ -212,12 +212,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
       submittedCount++;
 
-      // Process.run is already async (uses non-blocking I/O to wait for the
-      // subprocess), so we don't need an Isolate — we just need to not block
-      // the UI with a modal dialog. The future-chain below updates task state
-      // asynchronously; the user can navigate away and check back later.
+      // Inference runs asynchronously via flutter_onnxruntime; the future-chain
+      // below updates task state when done. The user can navigate away meanwhile.
       final videoPath = file.path;
-      LocalDetectionService.runInferenceInIsolate({
+      LocalDetectionService.runInferenceAsync({
         'videoPath': videoPath,
         'sportType': sportTypeKey,
         'matchType': matchType,

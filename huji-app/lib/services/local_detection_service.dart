@@ -3,7 +3,6 @@ import 'dart:typed_data';
 
 import 'package:huji_app/services/inference/action_segment_detector.dart';
 import 'package:huji_app/services/inference/onnx_inference_engine.dart';
-import 'package:huji_app/utils/logger_utils.dart';
 
 enum LocalModelStatus { available, notFound, incompatible }
 
@@ -23,7 +22,7 @@ class LocalInferenceResult {
 /// Per-model class-index → ActionType mapping.
 ///
 /// Derived from the ONNX model metadata (ultralytics YOLO export).
-/// Keys match the directory layout under assets/models/: <sport>/<match_type>.
+/// Keys match the directory layout under assets/models/: `<sport>/<match_type>`.
 const _classMaps = <String, Map<int, ActionType>>{
   'ping_pong/normal': {0: ActionType.fireBall, 1: ActionType.pickBall, 2: ActionType.playBall},
   'ping_pong/profession': {0: ActionType.fireBall, 1: ActionType.pickBall, 2: ActionType.playBall, 3: ActionType.transition},
@@ -36,39 +35,23 @@ const _fps = 6;
 const _frameW = 640;
 const _frameH = 640;
 
-/// Pure-Dart local YOLO inference engine using ONNX Runtime FFI.
+/// Local YOLO inference on desktop using flutter_onnxruntime.
 ///
 /// Frame extraction uses the system `ffmpeg` binary (bundled with the app on
-/// desktop).  Preprocessing, ONNX inference, and sliding-window segment
-/// detection all run in Dart — no Python dependency.
+/// desktop). Preprocessing, ONNX inference, and sliding-window segment detection
+/// run asynchronously without blocking the UI.
 class LocalDetectionService {
-  final AppLogger _logger = AppLogger();
-  OnnxInferenceEngine? _engine;
   final ActionSegmentDetector _detector = ActionSegmentDetector();
-
-  OnnxInferenceEngine get _inferenceEngine =>
-      _engine ??= OnnxInferenceEngine();
 
   // ---------------------------------------------------------------------------
   // Public API
   // ---------------------------------------------------------------------------
 
-  /// Check whether ONNX models are available on disk.
+  /// Whether bundled ONNX models are available on this platform.
   Future<LocalModelStatus> checkModels() async {
     if (!(Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
       return LocalModelStatus.incompatible;
     }
-    final modelsDir = _resolveModelsDir();
-    if (modelsDir == null) return LocalModelStatus.notFound;
-
-    final dir = Directory(modelsDir);
-    if (!await dir.exists()) return LocalModelStatus.notFound;
-
-    final entries =
-        await dir.list(recursive: true).where((e) => e.path.endsWith('.onnx')).toList();
-    if (entries.isEmpty) return LocalModelStatus.notFound;
-
-    _logger.i('Found ${entries.length} local ONNX models');
     return LocalModelStatus.available;
   }
 
@@ -84,16 +67,8 @@ class LocalDetectionService {
   }) async {
     final stopwatch = Stopwatch()..start();
 
-    // 1. Resolve model
-    final modelsDir = _resolveModelsDir();
-    if (modelsDir == null) throw Exception('Models directory not found');
+    final modelAsset = OnnxInferenceEngine.modelAssetFor(sportType, matchType);
 
-    final modelPath = '$modelsDir/$sportType/$matchType/best.onnx';
-    if (!File(modelPath).existsSync()) {
-      throw Exception('Model not found: $modelPath');
-    }
-
-    // 2. Extract frames via ffmpeg
     onProgress?.call(0.0, '正在抽帧…');
     final tmpdir = await _extractFrames(videoPath);
     try {
@@ -101,22 +76,28 @@ class LocalDetectionService {
       final frameCount = frameFiles.length;
       if (frameCount == 0) throw Exception('No frames extracted from video');
 
-      // 3. Load ONNX model
       onProgress?.call(0.05, '加载模型…');
       final classKey = '$sportType/$matchType';
       final classMap =
           _classMaps[classKey] ?? _classMaps['ping_pong/normal']!;
-      _inferenceEngine.loadModel(modelPath);
+      final numClasses = classMap.length;
+
+      final engine = OnnxInferenceEngine();
+      await engine.loadModelFromAsset(modelAsset);
 
       try {
-        // 4. Classify every frame
         onProgress?.call(0.1, '正在分析视频…');
         final predictions = <FramePrediction>[];
 
         for (var i = 0; i < frameCount; i++) {
           final raw = await File(frameFiles[i]).readAsBytes();
           final tensor = _preprocess(raw, _frameW, _frameH);
-          final logits = _inferenceEngine.predict(tensor, _frameW, _frameH);
+          final logits = await engine.predict(
+            tensor,
+            _frameW,
+            _frameH,
+            numClasses: numClasses,
+          );
           final actionType = classMap[_argmax(logits)] ?? ActionType.transition;
           predictions.add(
             FramePrediction(actionType: actionType, seconds: i / _fps),
@@ -130,7 +111,6 @@ class LocalDetectionService {
           }
         }
 
-        // 5. Detect segments using the existing pipeline
         onProgress?.call(0.8, '检测片段…');
 
         final segments = sportType == 'badminton'
@@ -153,50 +133,42 @@ class LocalDetectionService {
           processingTime: stopwatch.elapsed,
         );
       } finally {
-        _inferenceEngine.dispose();
-        _engine = null;
+        await engine.dispose();
       }
     } finally {
-      // Clean up temp frames
       try {
         await Directory(tmpdir).delete(recursive: true);
       } catch (_) {}
     }
   }
 
-  /// Run inference in a separate isolate. Parameters are sendable so this
-  /// can be passed to Isolate.run.
-  static Future<Map<String, dynamic>> runInferenceInIsolate(
+  /// Serialize concurrent local detection jobs (one ONNX session at a time).
+  static Future<void>? _inferenceQueue;
+
+  /// Run local detection asynchronously without blocking the UI thread.
+  static Future<Map<String, dynamic>> runInferenceAsync(
     Map<String, String> params,
-  ) async {
-    final service = LocalDetectionService();
-    final result = await service.runInference(
-      videoPath: params['videoPath']!,
-      sportType: params['sportType']!,
-      matchType: params['matchType']!,
-    );
-    return {
-      'matchSegments': result.matchSegments,
-      'frameCount': result.frameCount,
-      'processingTimeMs': result.processingTime.inMilliseconds,
-    };
+  ) {
+    final job = (_inferenceQueue ?? Future.value()).then((_) async {
+      final service = LocalDetectionService();
+      final result = await service.runInference(
+        videoPath: params['videoPath']!,
+        sportType: params['sportType']!,
+        matchType: params['matchType']!,
+      );
+      return {
+        'matchSegments': result.matchSegments,
+        'frameCount': result.frameCount,
+        'processingTimeMs': result.processingTime.inMilliseconds,
+      };
+    });
+    _inferenceQueue = job.then((_) {}, onError: (_) {});
+    return job;
   }
 
   // ---------------------------------------------------------------------------
-  // Path resolution
+  // Frame extraction
   // ---------------------------------------------------------------------------
-
-  /// Models directory: env var → Flutter asset bundle.
-  String? _resolveModelsDir() {
-    final fromEnv = Platform.environment['HUJI_MODELS_DIR'];
-    if (fromEnv != null && fromEnv.isNotEmpty && Directory(fromEnv).existsSync()) {
-      return fromEnv;
-    }
-    final execDir = File(Platform.resolvedExecutable).parent.path;
-    final bundled = '$execDir/data/flutter_assets/assets/models';
-    if (Directory(bundled).existsSync()) return bundled;
-    return null;
-  }
 
   /// ffmpeg binary: env var → AppDir (AppImage) → PATH.
   String _resolveFfmpeg() {
@@ -212,13 +184,6 @@ class LocalDetectionService {
     return 'ffmpeg';
   }
 
-  // ---------------------------------------------------------------------------
-  // Frame extraction
-  // ---------------------------------------------------------------------------
-
-  /// Extract raw RGB24 frames from [videoPath] into a temp directory.
-  ///
-  /// Returns the temp directory path.  Caller is responsible for cleanup.
   Future<String> _extractFrames(String videoPath) async {
     final tmpdir = Directory.systemTemp.createTempSync('huji_frames_').path;
     final ffmpeg = _resolveFfmpeg();
@@ -245,7 +210,6 @@ class LocalDetectionService {
     return tmpdir;
   }
 
-  /// List extracted frame files in order.
   List<String> _listFrames(String tmpdir) {
     final dir = Directory(tmpdir);
     final files = dir
@@ -257,14 +221,6 @@ class LocalDetectionService {
     return files.map((f) => f.path).toList();
   }
 
-  // ---------------------------------------------------------------------------
-  // Preprocessing
-  // ---------------------------------------------------------------------------
-
-  /// Convert raw RGB24 bytes → Float32List in CHW layout, normalized to [0,1].
-  ///
-  /// YOLO11n-cls models use identity normalization (mean=0, std=1), so the
-  /// only preprocessing required is uint8→float32 scaling.
   Float32List _preprocess(Uint8List raw, int w, int h) {
     final chw = Float32List(3 * w * h);
     final pixels = w * h;
@@ -272,14 +228,13 @@ class LocalDetectionService {
       final r = raw[i * 3] / 255.0;
       final g = raw[i * 3 + 1] / 255.0;
       final b = raw[i * 3 + 2] / 255.0;
-      chw[i] = r;              // R channel
-      chw[pixels + i] = g;     // G channel
-      chw[2 * pixels + i] = b; // B channel
+      chw[i] = r;
+      chw[pixels + i] = g;
+      chw[2 * pixels + i] = b;
     }
     return chw;
   }
 
-  /// Argmax over a Float32List.
   int _argmax(Float32List values) {
     var best = 0;
     for (var i = 1; i < values.length; i++) {

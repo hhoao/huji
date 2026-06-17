@@ -50,46 +50,41 @@ class ActionClassifier {
   final AppLogger _logger = AppLogger();
   final OnnxInferenceEngine _engine;
   final ClassMapping _classMapping;
-  bool _loaded = false;
 
-  ActionClassifier({
-    required String modelPath,
+  ActionClassifier._(this._engine, this._classMapping);
+
+  static Future<ActionClassifier> load({
+    required String modelAsset,
     required ClassMapping classMapping,
-    OnnxInferenceEngine? engine,
-  })  : _engine = engine ?? OnnxInferenceEngine(),
-        _classMapping = classMapping {
-    _engine.loadModel(modelPath);
-    _loaded = true;
-    _logger.i('ActionClassifier loaded with ${classMapping.numClasses} classes');
+  }) async {
+    final engine = OnnxInferenceEngine();
+    await engine.loadModelFromAsset(modelAsset);
+    final classifier = ActionClassifier._(engine, classMapping);
+    classifier._logger.i(
+      'ActionClassifier loaded with ${classMapping.numClasses} classes',
+    );
+    return classifier;
   }
 
   /// Classify a single raw RGB24 frame (HWC, already 640x640).
-  ActionType classifyFrame(Uint8List rgb, int width, int height) {
-    if (!_loaded) throw StateError('Classifier not loaded');
-
-    // Preprocess: RGB HWC → CHW float32 normalized
+  Future<ActionType> classifyFrame(Uint8List rgb, int width, int height) async {
     final tensor = ImagePreprocessor.preprocess(rgb, width, height);
+    final logits = await _engine.predict(
+      tensor,
+      width,
+      height,
+      numClasses: _classMapping.numClasses,
+    );
 
-    // Run inference
-    final logits = _engine.predict(tensor, width, height);
-
-    // Argmax
     var maxIdx = 0;
-    var maxVal = logits[0];
     for (var i = 1; i < _classMapping.numClasses; i++) {
-      if (logits[i] > maxVal) {
-        maxVal = logits[i];
-        maxIdx = i;
-      }
+      if (logits[i] > logits[maxIdx]) maxIdx = i;
     }
 
     return _classMapping.classify(maxIdx);
   }
 
-  bool get isLoaded => _loaded;
+  bool get isLoaded => _engine.isLoaded;
 
-  void dispose() {
-    _loaded = false;
-    _engine.dispose();
-  }
+  Future<void> dispose() => _engine.dispose();
 }

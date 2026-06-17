@@ -5,8 +5,7 @@ import 'dart:typed_data';
 /// Input: raw RGB bytes (HWC layout), already resized to model input size via ffmpeg.
 /// Output: Float32List in CHW layout (channels first) with ImageNet normalization.
 ///
-/// The batch dimension (N=1) is implied and not included in the output tensor.
-/// The caller (OnnxInferenceEngine) adds it when creating the ONNX tensor.
+/// The batch dimension (N=1) is added by [OnnxInferenceEngine] via tensor shape.
 class ImagePreprocessor {
   // ImageNet normalization constants used by ultralytics YOLO classification
   static const _meanR = 0.485;

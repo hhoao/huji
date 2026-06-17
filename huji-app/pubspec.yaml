@@ -79,7 +79,7 @@ dependencies:
   go_router: ^16.3.0
   camerawesome: ^2.5.0
   image: ^4.3.0
-  ffi: ^2.2.0
+  flutter_onnxruntime: ^1.8.0
   
 
 dev_dependencies:

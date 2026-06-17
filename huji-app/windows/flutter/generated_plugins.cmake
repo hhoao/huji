@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   ffmpeg_kit_flutter_new
   file_selector_windows
+  flutter_onnxruntime
   gal
   media_kit_libs_windows_video
   media_kit_video

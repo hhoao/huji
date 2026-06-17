@@ -18,7 +18,7 @@ class LocalInferenceResult {
 
 /// Inference parameters for the pipeline.
 class InferenceConfig {
-  final String modelPath;
+  final String modelAsset;
   final ClassMapping classMapping;
   final int fps;
   final int frameWidth;
@@ -28,7 +28,7 @@ class InferenceConfig {
   final bool mergeFireBallAndPlayBall;
 
   const InferenceConfig({
-    required this.modelPath,
+    required this.modelAsset,
     required this.classMapping,
     this.fps = 6,
     this.frameWidth = 640,
@@ -84,8 +84,8 @@ class LocalInferencePipeline {
 
     // Step 2: Classify each frame
     onProgress?.call(0.1, 'Loading model...');
-    final classifier = ActionClassifier(
-      modelPath: config.modelPath,
+    final classifier = await ActionClassifier.load(
+      modelAsset: config.modelAsset,
       classMapping: config.classMapping,
     );
 
@@ -94,7 +94,7 @@ class LocalInferencePipeline {
       final totalFrames = frames.length;
 
       for (var i = 0; i < totalFrames; i++) {
-        final action = classifier.classifyFrame(
+        final action = await classifier.classifyFrame(
           frames[i],
           config.frameWidth,
           config.frameHeight,
@@ -146,7 +146,7 @@ class LocalInferencePipeline {
         processingTime: stopwatch.elapsed,
       );
     } finally {
-      classifier.dispose();
+      await classifier.dispose();
     }
   }
 }
