@@ -105,7 +105,10 @@ flutter:
     - assets/images/
     - assets/svg/
     - assets/icons/
-    - assets/models/
+    - assets/models/ping_pong/normal/
+    - assets/models/ping_pong/profession/
+    - assets/models/badminton/singles/
+    - assets/models/badminton/doubles/
     - CHANGELOG.md
 
 flutter_launcher_icons:
