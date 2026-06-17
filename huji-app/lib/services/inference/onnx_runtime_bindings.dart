@@ -108,41 +108,38 @@ class OnnxRuntime {
 
   factory OnnxRuntime() => OnnxRuntime._(_loadLibrary());
 
-  static DynamicLibrary _loadLibrary() {
-    // 1. Explicit path from environment variable
-    final fromEnv = Platform.environment['HUJI_ONNXRUNTIME_LIB'];
-    if (fromEnv != null && fromEnv.isNotEmpty && File(fromEnv).existsSync()) {
-      return DynamicLibrary.open(fromEnv);
-    }
+  /// ONNX Runtime version bundled at build time (see scripts/fetch_onnxruntime.sh).
+  static const bundledVersion = '1.19.2';
 
-    // 2. Bundled beside executable
+  /// Fixed path: `<executable>/lib/libonnxruntime.*`, installed by linux/CMakeLists.txt.
+  static String bundledLibraryPath() {
     final execDir = File(Platform.resolvedExecutable).parent.path;
-    final bundledNames = _platformLibraryNames();
-    for (final name in bundledNames) {
-      final bundled = '$execDir/$name';
-      if (File(bundled).existsSync()) return DynamicLibrary.open(bundled);
-      final inLib = '$execDir/../lib/$name';
-      if (File(inLib).existsSync()) return DynamicLibrary.open(inLib);
-    }
-
-    // 3. System library search
-    for (final name in bundledNames) {
-      try {
-        return DynamicLibrary.open(name);
-      } catch (_) {}
-    }
-
-    throw Exception(
-      'ONNX Runtime library not found. Set HUJI_ONNXRUNTIME_LIB to the '
-      'library path, or place ${bundledNames.first} beside the executable.',
-    );
+    return '$execDir/lib/${_platformLibraryFileName()}';
   }
 
-  static List<String> _platformLibraryNames() {
-    if (Platform.isLinux) return ['libonnxruntime.so'];
-    if (Platform.isMacOS) return ['libonnxruntime.dylib'];
-    if (Platform.isWindows) return ['onnxruntime.dll'];
-    return ['libonnxruntime.so'];
+  static DynamicLibrary _loadLibrary() {
+    // Debug override only — normal builds always use the bundled library.
+    final override = Platform.environment['HUJI_ONNXRUNTIME_LIB'];
+    if (override != null && override.isNotEmpty) {
+      return DynamicLibrary.open(override);
+    }
+
+    final bundled = bundledLibraryPath();
+    if (!File(bundled).existsSync()) {
+      throw StateError(
+        'Bundled ONNX Runtime v$bundledVersion not found at: $bundled\n'
+        'Run: flutter build linux  (downloads and installs the library automatically)\n'
+        'Debug override: HUJI_ONNXRUNTIME_LIB=/path/to/libonnxruntime.so',
+      );
+    }
+    return DynamicLibrary.open(bundled);
+  }
+
+  static String _platformLibraryFileName() {
+    if (Platform.isLinux) return 'libonnxruntime.so';
+    if (Platform.isMacOS) return 'libonnxruntime.dylib';
+    if (Platform.isWindows) return 'onnxruntime.dll';
+    return 'libonnxruntime.so';
   }
 
   // ---- Helpers ----

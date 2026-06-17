@@ -106,6 +106,29 @@ foreach(bundled_library ${PLUGIN_BUNDLED_LIBRARIES})
     COMPONENT Runtime)
 endforeach(bundled_library)
 
+# Bundle ONNX Runtime for desktop local inference (downloaded at build time).
+set(HUJI_APP_ROOT "${CMAKE_CURRENT_SOURCE_DIR}/..")
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64|arm64|ARM64")
+  set(ONNX_FETCH_ARCH "aarch64")
+  set(ONNX_LINUX_ARCH "aarch64")
+else()
+  set(ONNX_FETCH_ARCH "x86_64")
+  set(ONNX_LINUX_ARCH "x64")
+endif()
+set(ONNXRUNTIME_SO "${HUJI_APP_ROOT}/native/onnxruntime/linux-${ONNX_LINUX_ARCH}/libonnxruntime.so")
+add_custom_target(fetch_onnxruntime ALL
+  COMMAND ${CMAKE_COMMAND} -E env "ARCH=${ONNX_FETCH_ARCH}"
+    bash "${HUJI_APP_ROOT}/scripts/fetch_onnxruntime.sh"
+  BYPRODUCTS "${ONNXRUNTIME_SO}"
+  WORKING_DIRECTORY "${HUJI_APP_ROOT}"
+  COMMENT "Fetching ONNX Runtime ${ONNX_LINUX_ARCH} shared library"
+)
+add_dependencies(${BINARY_NAME} fetch_onnxruntime)
+install(FILES "${ONNXRUNTIME_SO}"
+  DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+  RENAME "libonnxruntime.so"
+  COMPONENT Runtime)
+
 # Copy the native assets provided by the build.dart from all packages.
 set(NATIVE_ASSETS_DIR "${PROJECT_BUILD_DIR}native_assets/linux/")
 install(DIRECTORY "${NATIVE_ASSETS_DIR}"

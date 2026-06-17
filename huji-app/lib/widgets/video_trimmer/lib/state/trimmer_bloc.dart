@@ -417,7 +417,14 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     TrimmerUpdateCurrentMilliseconds event,
     Emitter<TrimmerState> emit,
   ) {
-    emit(state.copyWith(currentMilliseconds: event.milliseconds));
+    final maxMs = state.totalDuration > 0
+        ? state.totalDuration.round()
+        : event.milliseconds;
+    emit(
+      state.copyWith(
+        currentMilliseconds: event.milliseconds.clamp(0, maxMs),
+      ),
+    );
   }
 
   void _onUpdatePlaybackState(

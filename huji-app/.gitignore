@@ -33,6 +33,11 @@ migrate_working_dir/
 .pub/
 /build/
 
+# ONNX Runtime binaries (downloaded by scripts/fetch_onnxruntime.sh)
+native/onnxruntime/**/*
+!native/onnxruntime/**/.gitkeep
+native/onnxruntime/.cache/
+
 # Symbolication related
 app.*.symbols
 

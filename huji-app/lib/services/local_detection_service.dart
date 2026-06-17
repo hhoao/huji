@@ -43,8 +43,11 @@ const _frameH = 640;
 /// detection all run in Dart — no Python dependency.
 class LocalDetectionService {
   final AppLogger _logger = AppLogger();
-  final OnnxInferenceEngine _engine = OnnxInferenceEngine();
+  OnnxInferenceEngine? _engine;
   final ActionSegmentDetector _detector = ActionSegmentDetector();
+
+  OnnxInferenceEngine get _inferenceEngine =>
+      _engine ??= OnnxInferenceEngine();
 
   // ---------------------------------------------------------------------------
   // Public API
@@ -103,7 +106,7 @@ class LocalDetectionService {
       final classKey = '$sportType/$matchType';
       final classMap =
           _classMaps[classKey] ?? _classMaps['ping_pong/normal']!;
-      _engine.loadModel(modelPath);
+      _inferenceEngine.loadModel(modelPath);
 
       try {
         // 4. Classify every frame
@@ -113,7 +116,7 @@ class LocalDetectionService {
         for (var i = 0; i < frameCount; i++) {
           final raw = await File(frameFiles[i]).readAsBytes();
           final tensor = _preprocess(raw, _frameW, _frameH);
-          final logits = _engine.predict(tensor, _frameW, _frameH);
+          final logits = _inferenceEngine.predict(tensor, _frameW, _frameH);
           final actionType = classMap[_argmax(logits)] ?? ActionType.transition;
           predictions.add(
             FramePrediction(actionType: actionType, seconds: i / _fps),
@@ -150,7 +153,8 @@ class LocalDetectionService {
           processingTime: stopwatch.elapsed,
         );
       } finally {
-        _engine.dispose();
+        _inferenceEngine.dispose();
+        _engine = null;
       }
     } finally {
       // Clean up temp frames

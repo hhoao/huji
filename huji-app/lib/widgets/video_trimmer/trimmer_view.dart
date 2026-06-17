@@ -308,7 +308,8 @@ class TrimmerEditor extends StatelessWidget {
               ),
               child: Slider(
                 value: state.totalDuration > 0
-                    ? (state.currentMilliseconds) / state.totalDuration
+                    ? (state.currentMilliseconds / state.totalDuration)
+                        .clamp(0.0, 1.0)
                     : 0.0,
                 onChanged: (value) {
                   final targetTime = (value * state.totalDuration).round();
