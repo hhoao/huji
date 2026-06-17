@@ -17,7 +17,6 @@ import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 
@@ -215,23 +214,21 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       // Inference runs asynchronously via flutter_onnxruntime; the future-chain
       // below updates task state when done. The user can navigate away meanwhile.
       final videoPath = file.path;
-      LocalDetectionService.runInferenceAsync({
-        'videoPath': videoPath,
-        'sportType': sportTypeKey,
-        'matchType': matchType,
-      }).then((resultMap) async {
+      LocalDetectionService.runInferenceAsync(
+        videoPath: videoPath,
+        clipConfig: clipConfig,
+        sportTypeKey: sportTypeKey,
+        matchType: matchType,
+      ).then((result) async {
         try {
-          final segments = (resultMap['matchSegments'] as List<dynamic>)
-              .map((s) {
-                final m = s as Map<String, dynamic>;
-                return SegmentInfo(
-                  actionType: ActionType.fromString(m['action'] as String?),
-                  startSeconds: (m['start'] as num).toDouble(),
-                  endSeconds: (m['end'] as num).toDouble(),
-                );
-              })
+          final output = result.clipOutput;
+          final allSegments = output.allMatchSegments
+              .map((segmentMap) => segmentMap.values.first)
               .toList();
-          final processingTimeMs = resultMap['processingTimeMs'] as int;
+          final greatSegments = output.greatMatchSegments
+              .map((segmentMap) => segmentMap.values.first)
+              .toList();
+          final processingTimeMs = result.processingTime.inMilliseconds;
 
           // Generate thumbnail from source video
           String? thumbPath;
@@ -246,7 +243,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               status: TaskStatusEnum.completed,
               image: thumbPath,
               extraInfo:
-                  '检测到 ${segments.length} 个比赛片段 (${(processingTimeMs / 1000).toStringAsFixed(1)}s)',
+                  '检测到 ${allSegments.length} 个比赛片段 (${(processingTimeMs / 1000).toStringAsFixed(1)}s)',
             );
           });
 
@@ -257,12 +254,13 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             filePath: videoPath,
             thumbnailPath: thumbPath,
             clipMode: ClipMode.existingVideo,
-            allMatchSegments: segments,
-            favoritesMatchSegments: segments,
+            allMatchSegments: allSegments,
+            favoritesMatchSegments:
+                greatSegments.isNotEmpty ? greatSegments : allSegments,
           ));
 
           debugPrint(
-              '[local-detection] ${task.name}: done — ${segments.length} segments');
+              '[local-detection] ${task.name}: done — ${allSegments.length} segments');
         } catch (e, st) {
           AppLogger().e(
             'Local detection completion handler failed: $e',

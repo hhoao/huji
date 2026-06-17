@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/models/large_model.dart';
+import 'package:huji_app/services/inference/inference_model_registry.dart';
+import 'package:huji_app/services/inference/onnx_model_predictor.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:ultralytics_yolo/yolo.dart';
@@ -142,18 +144,57 @@ class LargeModelService {
 
   final Map<String, ModelPredictor> _predictorCache = {};
 
+  /// Desktop ONNX scope: sport/match type for asset resolution.
+  ({String sport, String match})? _desktopInferenceScope;
+
   LargeModelService._();
 
   final Map<String, String> _modelNamePathMapping =
       AutoclipConstants.modelNamePathMapping;
 
+  /// Run [action] with desktop ONNX model scope (sport + match type).
+  Future<T> runWithDesktopScope<T>({
+    required String sportType,
+    required String matchType,
+    required Future<T> Function() action,
+  }) async {
+    _desktopInferenceScope = (sport: sportType, match: matchType);
+    try {
+      return await action();
+    } finally {
+      _desktopInferenceScope = null;
+    }
+  }
+
   ModelPredictor getPredictor(String modelName) {
+    if (PlatformCapability.isDesktop) {
+      return _getDesktopPredictor(modelName);
+    }
+
     if (_predictorCache.containsKey(modelName)) {
       return _predictorCache[modelName]!;
     }
     final predictor = FastModelPredictor(getModelPath(modelName));
     _predictorCache[modelName] = predictor;
     return predictor;
+  }
+
+  ModelPredictor _getDesktopPredictor(String modelName) {
+    final scope = _desktopInferenceScope;
+    if (scope == null) {
+      throw StateError(
+        'Desktop inference requires runWithDesktopScope() before getPredictor()',
+      );
+    }
+
+    // Not cached: batch pipeline disposes the predictor after each video.
+    final asset = InferenceModelRegistry.onnxAssetFor(scope.sport, scope.match);
+    final classNames =
+        InferenceModelRegistry.classNamesFor(scope.sport, scope.match);
+    return OnnxModelPredictor(
+      modelAsset: asset,
+      classNames: classNames,
+    );
   }
 
   String getModelPath(String modelName) {
