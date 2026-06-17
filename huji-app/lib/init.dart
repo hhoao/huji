@@ -27,6 +27,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 Future<void> preInit() async {
   // 初始化存储服务（必须在其他服务之前初始化，因为它们可能需要路径）
   await StorageService.init();
+  await AppLogger.instance.initializeFileLogger();
   AppLogger.instance.i('StorageService initialized');
 
   // 初始化错误日志服务

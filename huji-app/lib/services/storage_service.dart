@@ -11,6 +11,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 
 class StorageService {
   static StorageService? _instance;
+  static bool get isInitialized => _instance != null;
   static StorageService get instance => _instance!;
   static const String cleanupDirPrefix = 'huji_cleanup';
 
