@@ -143,6 +143,7 @@ class _RegisterFormState extends State<RegisterForm> {
 
               const SizedBox(height: 24),
               buildTextField(
+                context,
                 '手机号/邮箱',
                 '请输入手机号或邮箱',
                 Icons.person,
@@ -155,6 +156,7 @@ class _RegisterFormState extends State<RegisterForm> {
               const SizedBox(height: 16),
 
               buildTextField(
+                context,
                 '验证码',
                 '请输入验证码',
                 Icons.key,

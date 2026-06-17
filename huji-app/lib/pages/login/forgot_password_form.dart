@@ -138,6 +138,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
               const SizedBox(height: 24),
               buildTextField(
+                context,
                 '手机号/邮箱',
                 '请输入手机号或邮箱',
                 Icons.email,
@@ -150,6 +151,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               const SizedBox(height: 16),
 
               buildTextField(
+                context,
                 '验证码',
                 '请输入验证码',
                 Icons.key,
@@ -178,6 +180,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               const SizedBox(height: 16),
 
               buildTextField(
+                context,
                 '新密码',
                 '请输入新密码',
                 Icons.lock,
@@ -202,6 +205,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               const SizedBox(height: 16),
 
               buildTextField(
+                context,
                 '确认新密码',
                 '请确认新密码',
                 Icons.lock_outline,

@@ -153,12 +153,11 @@ class _LoginFormState extends State<LoginForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 标题
-              const Text(
+              Text(
                 '登录',
-                style: TextStyle(
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -237,6 +236,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // 账号输入
               buildTextField(
+                context,
                 '手机号/邮箱',
                 '请输入手机号或邮箱',
                 Icons.person,
@@ -250,6 +250,7 @@ class _LoginFormState extends State<LoginForm> {
 
               // 密码/验证码输入
               buildTextField(
+                context,
                 _loginType == LoginType.password ? '密码' : '验证码',
                 _loginType == LoginType.password ? '请输入密码' : '请输入验证码',
                 _loginType == LoginType.password ? Icons.lock : Icons.key,
