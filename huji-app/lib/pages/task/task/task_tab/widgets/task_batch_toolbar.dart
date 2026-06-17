@@ -1,0 +1,165 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
+import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/widgets/desktop/app_button.dart';
+
+enum TaskBatchToolbarVariant { mobile, desktop }
+
+/// Shared batch-mode toolbar for mobile and desktop task lists.
+class TaskBatchToolbar extends StatelessWidget {
+  final TaskTabBloc bloc;
+  final TaskBatchToolbarVariant variant;
+  final VoidCallback onEnterBatchMode;
+  final VoidCallback onExitBatchMode;
+  final VoidCallback onSelectAll;
+  final VoidCallback onDeselectAll;
+  final void Function(Set<String> selectedIds) onBatchDelete;
+
+  const TaskBatchToolbar({
+    super.key,
+    required this.bloc,
+    required this.variant,
+    required this.onEnterBatchMode,
+    required this.onExitBatchMode,
+    required this.onSelectAll,
+    required this.onDeselectAll,
+    required this.onBatchDelete,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<TaskTabBloc, TaskTabState>(
+      bloc: bloc,
+      buildWhen: (previous, current) =>
+          previous.isBatchMode != current.isBatchMode ||
+          previous.selectedTaskIds.length != current.selectedTaskIds.length ||
+          (variant == TaskBatchToolbarVariant.mobile &&
+              previous.filteredTasks.length != current.filteredTasks.length),
+      builder: (context, state) {
+        if (!state.isBatchMode) {
+          if (variant == TaskBatchToolbarVariant.desktop) {
+            return Align(
+              alignment: Alignment.centerRight,
+              child: AppButton.outlined(
+                label: '选择',
+                onTap: onEnterBatchMode,
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        }
+
+        final allSelected =
+            state.selectedTaskIds.length == state.filteredTasks.length;
+
+        if (variant == TaskBatchToolbarVariant.desktop) {
+          return _buildDesktopToolbar(context, state, allSelected);
+        }
+        return _buildMobileToolbar(context, state, allSelected);
+      },
+    );
+  }
+
+  Widget _buildDesktopToolbar(
+    BuildContext context,
+    TaskTabState state,
+    bool allSelected,
+  ) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: DesktopTheme.primaryColor.withAlpha(20),
+        border: Border.all(color: DesktopTheme.primaryColor.withAlpha(60)),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '已选择 ${state.selectedTaskIds.length} 项',
+            style: const TextStyle(fontSize: 13, color: DesktopTheme.indigoText),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: allSelected ? onDeselectAll : onSelectAll,
+            child: Text(
+              allSelected ? '取消全选' : '全选',
+              style: const TextStyle(fontSize: 12),
+            ),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: state.selectedTaskIds.isEmpty
+                ? null
+                : () => onBatchDelete(state.selectedTaskIds),
+            icon: const Icon(Icons.delete, size: 14),
+            label: const Text('删除', style: TextStyle(fontSize: 12)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: onExitBatchMode,
+            icon: const Icon(Icons.close, size: 18),
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            padding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMobileToolbar(
+    BuildContext context,
+    TaskTabState state,
+    bool allSelected,
+  ) {
+    final primary = Theme.of(context).primaryColor;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: primary.withValues(alpha: 0.1),
+        border: Border(
+          bottom: BorderSide(color: primary.withValues(alpha: 0.2)),
+        ),
+      ),
+      child: Row(
+        children: [
+          Text(
+            '已选择 ${state.selectedTaskIds.length} 项',
+            style: TextStyle(color: primary, fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          TextButton(
+            onPressed: allSelected ? onDeselectAll : onSelectAll,
+            child: Text(allSelected ? '取消全选' : '全选'),
+          ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: state.selectedTaskIds.isEmpty
+                ? null
+                : () {
+                    Throttles.throttle(
+                      'batch_delete',
+                      const Duration(milliseconds: 500),
+                      () => onBatchDelete(state.selectedTaskIds),
+                    );
+                  },
+            icon: const Icon(Icons.delete, size: 16),
+            label: const Text('删除'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 8),
+          IconButton(onPressed: onExitBatchMode, icon: const Icon(Icons.close)),
+        ],
+      ),
+    );
+  }
+}
