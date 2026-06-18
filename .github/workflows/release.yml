@@ -103,7 +103,17 @@ jobs:
               flutter pub get
               bash scripts/ensure_ultralytics_yolo_assets.sh
               ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
+              mkdir -p dist/appimage
+              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage dist/appimage/
+              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync dist/appimage/ 2>/dev/null || true
             '
+
+      - name: Stage AppImage before DEB packaging
+        if: matrix.qemu_arch == ''
+        run: |
+          mkdir -p dist/appimage
+          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage dist/appimage/
+          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync dist/appimage/ 2>/dev/null || true
 
       - name: Package DEB
         if: matrix.qemu_arch == ''
@@ -119,8 +129,8 @@ jobs:
         with:
           name: linux-packages-${{ matrix.arch }}
           path: |
-            build/appimage/huji-*-${{ matrix.arch }}.AppImage
-            build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
+            dist/appimage/huji-*-${{ matrix.arch }}.AppImage
+            dist/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
             dist/**/*.deb
           if-no-files-found: error
 
@@ -138,8 +148,10 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Activate fastforge
-        run: dart pub global activate fastforge
+      - name: Install fastforge + appdmg
+        run: |
+          dart pub global activate fastforge
+          npm install -g appdmg
 
       - name: Add pub-cache to PATH
         run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
@@ -256,7 +268,7 @@ jobs:
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "ndk;27.0.12077973" "ndk;28.0.13004108"
+          "$SDKMANAGER" "platforms;android-33" "ndk;27.0.12077973"
 
       - name: Resolve Flutter packages
         run: flutter pub get
