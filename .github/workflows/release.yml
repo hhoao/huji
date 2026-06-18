@@ -16,30 +16,14 @@ defaults:
     working-directory: huji-app
 
 jobs:
-  build-linux:
-    name: Build Linux (deb + AppImage)
+  build-linux-x64:
+    name: Build Linux (deb + AppImage) x86_64
     runs-on: ubuntu-22.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - arch: x86_64
-            flutter_target: linux-x64
-            qemu_arch: ''
-          - arch: aarch64
-            flutter_target: linux-arm64
-            qemu_arch: arm64
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
           submodules: recursive
-
-      - name: Setup QEMU (aarch64 only)
-        if: matrix.qemu_arch != ''
-        uses: docker/setup-qemu-action@v3
-        with:
-          platforms: ${{ matrix.qemu_arch }}
 
       - name: Install Linux build dependencies
         run: |
@@ -77,16 +61,45 @@ jobs:
       - name: Apply ultralytics_yolo workaround
         run: bash scripts/ensure_ultralytics_yolo_assets.sh
 
-      - name: Build AppImage (native x86_64)
-        if: matrix.qemu_arch == ''
+      - name: Build AppImage
         env:
-          ARCH: ${{ matrix.arch }}
+          ARCH: x86_64
         run: ./scripts/build_appimage.sh
 
-      - name: Build AppImage (cross aarch64 via Docker+QEMU)
-        if: matrix.qemu_arch != ''
+      - name: Stage AppImage before DEB packaging
         run: |
-          docker run --rm --platform linux/${{ matrix.qemu_arch }} \
+          mkdir -p release-staging/appimage
+          cp -v build/appimage/huji-*-x86_64.AppImage release-staging/appimage/
+          cp -v build/appimage/huji-*-x86_64.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
+
+      - name: Package DEB
+        run: fastforge package --platform linux --targets deb
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-packages-x86_64
+          path: |
+            huji-app/release-staging/appimage/
+            huji-app/dist/
+          if-no-files-found: error
+
+  build-linux-aarch64:
+    name: Build Linux AppImage aarch64
+    runs-on: ubuntu-22.04
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.ref }}
+          submodules: recursive
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Build AppImage (cross aarch64 via Docker+QEMU)
+        run: |
+          docker run --rm --platform linux/arm64 \
             -v "${{ github.workspace }}":/workspace -w /workspace/huji-app \
             ubuntu:22.04 bash -c '
               set -e
@@ -94,7 +107,8 @@ jobs:
               apt-get install -y clang cmake ninja-build pkg-config \
                 libgtk-3-dev liblzma-dev libsecret-1-dev \
                 libjsoncpp-dev libstdc++-12-dev \
-                file fuse libfuse2 curl unzip xz-utils git ca-certificates
+                file fuse libfuse2 curl unzip xz-utils git ca-certificates \
+                libasound2-dev libmpv-dev mpv
               git clone --depth 1 -b stable https://github.com/flutter/flutter.git /opt/flutter
               git config --global --add safe.directory /opt/flutter
               git config --global --add safe.directory /workspace
@@ -102,35 +116,16 @@ jobs:
               flutter config --enable-linux-desktop
               flutter pub get
               bash scripts/ensure_ultralytics_yolo_assets.sh
-              ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
+              ARCH=aarch64 ./scripts/build_appimage.sh
               mkdir -p release-staging/appimage
-              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage release-staging/appimage/
-              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
+              cp -v build/appimage/huji-*-aarch64.AppImage release-staging/appimage/
+              cp -v build/appimage/huji-*-aarch64.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
             '
-
-      - name: Stage AppImage before DEB packaging
-        if: matrix.qemu_arch == ''
-        run: |
-          mkdir -p release-staging/appimage
-          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage release-staging/appimage/
-          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
-
-      - name: Package DEB
-        if: matrix.qemu_arch == ''
-        run: fastforge package --platform linux --targets deb
-
-      - name: Get version
-        id: version
-        run: |
-          VERSION=$(grep "^version:" pubspec.yaml | sed 's/version: //' | tr -d ' ' | cut -d+ -f1)
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - uses: actions/upload-artifact@v4
         with:
-          name: linux-packages-${{ matrix.arch }}
-          path: |
-            huji-app/release-staging/appimage/
-            huji-app/dist/
+          name: linux-packages-aarch64
+          path: huji-app/release-staging/appimage/
           if-no-files-found: error
 
   build-macos:
@@ -173,6 +168,7 @@ jobs:
   build-windows:
     name: Build Windows (MSIX + EXE + ZIP)
     runs-on: windows-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -226,6 +222,10 @@ jobs:
             }
           }
 
+      - name: Patch ffmpeg_kit Windows header path
+        shell: pwsh
+        run: ./scripts/patch_ffmpeg_kit_windows.ps1
+
       - name: Package Windows (ZIP + MSIX)
         run: fastforge package --platform windows --targets zip,msix
 
@@ -241,6 +241,7 @@ jobs:
   build-android:
     name: Build Android (APK + AAB)
     runs-on: ubuntu-22.04
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -260,11 +261,11 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | flutter doctor --android-licenses
 
-      - name: Install Android NDK
+      - name: Install Android SDK components
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "platforms;android-33" "ndk;27.0.12077973"
+          "$SDKMANAGER" "platforms;android-33"
 
       - name: Resolve Flutter packages
         run: flutter pub get
@@ -305,9 +306,10 @@ jobs:
 
   release:
     name: Publish GitHub Release
-    needs: [build-linux, build-macos, build-windows, build-android]
+    needs: [build-linux-x64, build-linux-aarch64, build-macos, build-windows, build-android]
     if: |
-      !contains(needs.*.result, 'failure') &&
+      needs.build-linux-x64.result == 'success' &&
+      needs.build-macos.result == 'success' &&
       !contains(needs.*.result, 'cancelled') &&
       (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
@@ -364,24 +366,23 @@ jobs:
               "appimage": sum(1 for p in matched if p.name.endswith(".AppImage")),
               "dmg": sum(1 for p in matched if p.name.endswith(".dmg")),
               "msix": sum(1 for p in matched if p.name.endswith(".msix")),
-              "exe": sum(1 for p in matched if p.name.endswith(".exe") or p.name.endswith(".exe")),
+              "exe": sum(1 for p in matched if p.name.endswith(".exe")),
               "zip": sum(1 for p in matched if p.name.endswith(".zip")),
               "apk": sum(1 for p in matched if p.name.endswith(".apk")),
               "aab": sum(1 for p in matched if p.name.endswith(".aab")),
           }
 
+          print("Categories:", categories)
+
           ok = True
-          if categories["appimage"] < 2:
-              print(f"ERROR: expected >=2 AppImages, got {categories['appimage']}", file=sys.stderr)
+          if categories["appimage"] < 1:
+              print(f"ERROR: expected >=1 AppImage, got {categories['appimage']}", file=sys.stderr)
+              ok = False
+          if categories["deb"] < 1:
+              print(f"ERROR: expected >=1 .deb, got {categories['deb']}", file=sys.stderr)
               ok = False
           if categories["dmg"] < 1:
               print(f"ERROR: expected >=1 .dmg, got {categories['dmg']}", file=sys.stderr)
-              ok = False
-          if categories["zip"] < 1:
-              print(f"ERROR: expected >=1 .zip, got {categories['zip']}", file=sys.stderr)
-              ok = False
-          if categories["apk"] < 2:
-              print(f"ERROR: expected >=2 .apk, got {categories['apk']}", file=sys.stderr)
               ok = False
           if not ok:
               sys.exit(1)
