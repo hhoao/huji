@@ -93,6 +93,7 @@ cp -r "$FLUTTER_OUT/"* "$APPDIR/usr/bin/"
 # into bundle/lib; linuxdeploy then fails when resolving plugin dependencies.
 BUNDLE_LIB_DIR="$APPDIR/usr/bin/lib"
 mkdir -p "$BUNDLE_LIB_DIR"
+rm -f "$BUNDLE_LIB_DIR/libonnxruntime.so"
 if [[ ! -f "$BUNDLE_LIB_DIR/libonnxruntime.so" ]]; then
   ONNX_SRC=$(find "$PROJECT_DIR/build/linux" -path "*flutter_onnxruntime*" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
   if [[ -z "$ONNX_SRC" ]]; then

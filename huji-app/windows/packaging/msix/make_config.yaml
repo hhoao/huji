@@ -1,0 +1,7 @@
+display_name: 弧迹
+publisher_display_name: hhoa
+identity_name: com.hhoa.huji
+publisher: CN=hhoa
+logo_path: assets/icons/logo_bg.png
+languages: en-us, zh-cn
+capabilities: internetClient, internetClientServer, privateNetworkClientServer

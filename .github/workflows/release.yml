@@ -206,8 +206,8 @@ jobs:
           $roots = @($env:PUB_CACHE, "$env:USERPROFILE\.pub-cache", "$env:LOCALAPPDATA\Pub\Cache") |
             Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
           foreach ($root in $roots) {
-            foreach ($host in @('pub.dev', 'pub.flutter-io.cn')) {
-              $dir = Join-Path $root "hosted\$host\ultralytics_yolo-0.1.29"
+            foreach ($mirror in @('pub.dev', 'pub.flutter-io.cn')) {
+              $dir = Join-Path $root "hosted\$mirror\ultralytics_yolo-0.1.29"
               if (Test-Path $dir) {
                 New-Item -ItemType Directory -Force -Path (Join-Path $dir 'example\assets') | Out-Null
                 Write-Host "[ok] ensured $dir\example\assets"
@@ -256,7 +256,7 @@ jobs:
         run: |
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
-          "$SDKMANAGER" "ndk;28.0.13004108"
+          "$SDKMANAGER" "ndk;27.0.12077973" "ndk;28.0.13004108"
 
       - name: Resolve Flutter packages
         run: flutter pub get

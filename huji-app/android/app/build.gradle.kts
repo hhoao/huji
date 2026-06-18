@@ -8,7 +8,7 @@ plugins {
 android {
     namespace = "com.hhoa.huji"
     compileSdk = 36  // tflite_flutter 需要 SDK 36
-    ndkVersion = "28.0.13004108"
+    ndkVersion = "27.0.12077973"
     
 
     compileOptions {
