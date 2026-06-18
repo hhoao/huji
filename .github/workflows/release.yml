@@ -103,17 +103,17 @@ jobs:
               flutter pub get
               bash scripts/ensure_ultralytics_yolo_assets.sh
               ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
-              mkdir -p dist/appimage
-              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage dist/appimage/
-              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync dist/appimage/ 2>/dev/null || true
+              mkdir -p release-staging/appimage
+              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage release-staging/appimage/
+              cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
             '
 
       - name: Stage AppImage before DEB packaging
         if: matrix.qemu_arch == ''
         run: |
-          mkdir -p dist/appimage
-          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage dist/appimage/
-          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync dist/appimage/ 2>/dev/null || true
+          mkdir -p release-staging/appimage
+          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage release-staging/appimage/
+          cp -v build/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
 
       - name: Package DEB
         if: matrix.qemu_arch == ''
@@ -129,8 +129,8 @@ jobs:
         with:
           name: linux-packages-${{ matrix.arch }}
           path: |
-            dist/appimage/huji-*-${{ matrix.arch }}.AppImage
-            dist/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
+            release-staging/appimage/huji-*-${{ matrix.arch }}.AppImage
+            release-staging/appimage/huji-*-${{ matrix.arch }}.AppImage.zsync
             dist/**/*.deb
           if-no-files-found: error
 
@@ -168,7 +168,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: macos-packages
-          path: dist/**/*
+          path: dist/**/*.dmg
           if-no-files-found: error
 
   build-windows:
