@@ -75,10 +75,7 @@ jobs:
         run: flutter pub get
 
       - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
+        run: bash scripts/ensure_ultralytics_yolo_assets.sh
 
       - name: Build AppImage (native x86_64)
         if: matrix.qemu_arch == ''
@@ -104,6 +101,7 @@ jobs:
               export PATH="/opt/flutter/bin:$PATH"
               flutter config --enable-linux-desktop
               flutter pub get
+              bash scripts/ensure_ultralytics_yolo_assets.sh
               ARCH=${{ matrix.arch }} ./scripts/build_appimage.sh
             '
 
@@ -150,10 +148,7 @@ jobs:
         run: flutter pub get
 
       - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
+        run: bash scripts/ensure_ultralytics_yolo_assets.sh
 
       - name: Package
         run: fastforge package --platform macos --targets dmg
@@ -208,9 +203,16 @@ jobs:
       - name: Apply ultralytics_yolo workaround
         shell: pwsh
         run: |
-          $cacheDir = "$env:USERPROFILE\.pub-cache\hosted\pub.dev\ultralytics_yolo-0.1.29"
-          if (Test-Path $cacheDir) {
-            New-Item -ItemType Directory -Force -Path "$cacheDir\example\assets" | Out-Null
+          $roots = @($env:PUB_CACHE, "$env:USERPROFILE\.pub-cache", "$env:LOCALAPPDATA\Pub\Cache") |
+            Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique
+          foreach ($root in $roots) {
+            foreach ($host in @('pub.dev', 'pub.flutter-io.cn')) {
+              $dir = Join-Path $root "hosted\$host\ultralytics_yolo-0.1.29"
+              if (Test-Path $dir) {
+                New-Item -ItemType Directory -Force -Path (Join-Path $dir 'example\assets') | Out-Null
+                Write-Host "[ok] ensured $dir\example\assets"
+              }
+            }
           }
 
       - name: Package Windows (ZIP + MSIX)
@@ -250,14 +252,17 @@ jobs:
       - name: Accept Android SDK licenses
         run: yes | flutter doctor --android-licenses
 
+      - name: Install Android NDK
+        run: |
+          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
+          yes | "$SDKMANAGER" --licenses >/dev/null || true
+          "$SDKMANAGER" "ndk;28.0.13004108"
+
       - name: Resolve Flutter packages
         run: flutter pub get
 
       - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
+        run: bash scripts/ensure_ultralytics_yolo_assets.sh
 
       - name: Build Android (split APK per ABI + AAB)
         run: |
@@ -293,7 +298,10 @@ jobs:
   release:
     name: Publish GitHub Release
     needs: [build-linux, build-macos, build-windows, build-android]
-    if: startsWith(github.ref, 'refs/tags/')
+    if: |
+      !contains(needs.*.result, 'failure') &&
+      !contains(needs.*.result, 'cancelled') &&
+      (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
     permissions:
       contents: write
