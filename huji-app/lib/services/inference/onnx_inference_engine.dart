@@ -21,7 +21,7 @@ class OnnxInferenceEngine {
   List<String> get classNames {
     final names = _classNames;
     if (names == null || names.isEmpty) {
-      throw StateError('Class names not loaded. Call loadModelFromAsset() first.');
+      throw StateError('Class names not loaded. Call loadModelFromFile() first.');
     }
     return names;
   }
@@ -30,17 +30,23 @@ class OnnxInferenceEngine {
   static String modelAssetFor(String sportType, String matchType) =>
       'assets/models/$sportType/$matchType/best.onnx';
 
-  /// Load an ONNX model bundled as a Flutter asset.
+  /// Load an ONNX model from an on-disk file path.
   ///
   /// [fallbackClassNames] is used when the plugin cannot read ONNX custom
   /// metadata (known limitation on Linux desktop).
-  Future<void> loadModelFromAsset(
-    String assetPath, {
+  Future<void> loadModelFromFile(
+    String filePath, {
     List<String>? fallbackClassNames,
   }) async {
-    _session = await _ort.createSessionFromAsset(assetPath);
+    _session = await _ort.createSession(filePath);
     _loaded = true;
+    await _loadClassNames(filePath, fallbackClassNames);
+  }
 
+  Future<void> _loadClassNames(
+    String sourceLabel,
+    List<String>? fallbackClassNames,
+  ) async {
     List<String>? classNames;
     try {
       final metadata = await _session!.getMetadata();
@@ -54,7 +60,7 @@ class OnnxInferenceEngine {
     classNames ??= fallbackClassNames;
     if (classNames == null || classNames.isEmpty) {
       throw StateError(
-        'No class names for $assetPath: ONNX metadata empty and no fallback provided',
+        'No class names for $sourceLabel: ONNX metadata empty and no fallback provided',
       );
     }
 
@@ -73,7 +79,7 @@ class OnnxInferenceEngine {
 
     _classNames = List.unmodifiable(classNames);
     _logger.i(
-      'Model loaded: $assetPath (${_classNames!.length} classes: ${_classNames!.join(", ")})',
+      'Model loaded: $sourceLabel (${_classNames!.length} classes: ${_classNames!.join(", ")})',
     );
   }
 
@@ -136,7 +142,7 @@ class OnnxInferenceEngine {
   ) async {
     final session = _session;
     if (!_loaded || session == null) {
-      throw StateError('Model not loaded. Call loadModelFromAsset() first.');
+      throw StateError('Model not loaded. Call loadModelFromFile() first.');
     }
 
     final input = await OrtValue.fromList(

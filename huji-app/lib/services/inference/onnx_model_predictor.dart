@@ -9,25 +9,25 @@ import 'package:huji_app/services/large_model_service.dart';
 
 /// Desktop ONNX implementation of [ModelPredictor].
 ///
-/// Matches the mobile [FastModelPredictor] interface so batch/realtime
-/// pipelines can share the same code path.
+/// Loads models from on-disk paths only — asset resolution happens on the UI
+/// isolate before inference workers are spawned.
 class OnnxModelPredictor implements ModelPredictor {
-  final String modelAsset;
+  final String modelFilePath;
   final List<String> fallbackClassNames;
 
   OnnxInferenceEngine? _engine;
   Future<void>? _predictQueue;
 
   OnnxModelPredictor({
-    required this.modelAsset,
+    required this.modelFilePath,
     required this.fallbackClassNames,
   });
 
   Future<OnnxInferenceEngine> _ensureLoaded() async {
     if (_engine != null) return _engine!;
     final engine = OnnxInferenceEngine();
-    await engine.loadModelFromAsset(
-      modelAsset,
+    await engine.loadModelFromFile(
+      modelFilePath,
       fallbackClassNames: fallbackClassNames,
     );
     _engine = engine;

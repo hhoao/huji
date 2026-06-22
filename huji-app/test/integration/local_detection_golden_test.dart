@@ -1,19 +1,23 @@
-import 'dart:io';
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
 import 'package:huji_app/services/local_detection_service.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import '../helpers/autoclip_fixtures.dart';
 import '../helpers/fake_path_provider.dart';
 
-Future<bool> _onnxPluginAvailable(String assetPath) async {
+Future<bool> _onnxPluginAvailable(String sportType, String matchType) async {
   try {
+    final spec = await OnnxModelAssetResolver.resolve(
+      sportType: sportType,
+      matchType: matchType,
+    );
     final ort = OnnxRuntime();
-    final session = await ort.createSessionFromAsset(assetPath);
+    final session = await ort.createSession(spec.modelFilePath);
     await session.close();
     return true;
   } catch (_) {
@@ -27,7 +31,6 @@ typedef _GoldenCase = ({
   String goldenRel,
   String sportTypeKey,
   String matchType,
-  String onnxAsset,
   VideoClipConfigReqVo Function() clipConfig,
 });
 
@@ -38,7 +41,6 @@ final _cases = <_GoldenCase>[
     goldenRel: pingPongGoldenRel,
     sportTypeKey: 'ping_pong',
     matchType: 'profession',
-    onnxAsset: 'assets/models/ping_pong/profession/best.onnx',
     clipConfig: algorithmPingPongConfig,
   ),
   (
@@ -47,7 +49,6 @@ final _cases = <_GoldenCase>[
     goldenRel: badmintonGoldenRel,
     sportTypeKey: 'badminton',
     matchType: 'singles',
-    onnxAsset: 'assets/models/badminton/singles/best.onnx',
     clipConfig: algorithmBadmintonConfig,
   ),
 ];
@@ -67,7 +68,10 @@ void main() {
       late bool onnxAvailable;
 
       setUp(() async {
-        onnxAvailable = await _onnxPluginAvailable(testCase.onnxAsset);
+        onnxAvailable = await _onnxPluginAvailable(
+          testCase.sportTypeKey,
+          testCase.matchType,
+        );
       });
 
       test('bundled video and golden fixture are present', () {
@@ -83,7 +87,7 @@ void main() {
       });
 
       test('matches golden segment count', () async {
-        if (!(Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+        if (!PlatformCapability.isDesktop) {
           return;
         }
         if (!onnxAvailable) {
@@ -116,7 +120,7 @@ void main() {
       }, timeout: const Timeout(Duration(minutes: 15)));
 
       test('segment timings within tolerance of algorithm golden', () async {
-        if (!(Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+        if (!PlatformCapability.isDesktop) {
           return;
         }
         if (!onnxAvailable) {
@@ -162,7 +166,7 @@ void main() {
       }, timeout: const Timeout(Duration(minutes: 15)));
 
       test('produces stable action types from golden set', () async {
-        if (!(Platform.isLinux || Platform.isMacOS || Platform.isWindows)) {
+        if (!PlatformCapability.isDesktop) {
           return;
         }
         if (!onnxAvailable) {
@@ -196,6 +200,30 @@ void main() {
             reason: 'Expected action $action in $actualActions',
           );
         }
+      }, timeout: const Timeout(Duration(minutes: 15)));
+
+      test('runInferenceAsync via worker isolate matches golden segment count', () async {
+        if (!PlatformCapability.isDesktop) {
+          return;
+        }
+        if (!onnxAvailable) {
+          markTestSkipped('flutter_onnxruntime native plugin not available in test VM');
+          return;
+        }
+
+        final appRoot = findAppRoot();
+        final videoPath = resolveFixtureFile(testCase.videoRel, appRoot: appRoot).path;
+        final golden = loadGoldenJson(testCase.goldenRel, appRoot: appRoot);
+        final expectedCount = golden['all_match_segment_count'] as int;
+
+        final result = await LocalDetectionService.runInferenceAsync(
+          videoPath: videoPath,
+          clipConfig: testCase.clipConfig(),
+          sportTypeKey: testCase.sportTypeKey,
+          matchType: testCase.matchType,
+        );
+
+        expect(result.clipOutput.allMatchSegments.length, expectedCount);
       }, timeout: const Timeout(Duration(minutes: 15)));
     });
   }

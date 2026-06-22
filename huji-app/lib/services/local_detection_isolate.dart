@@ -1,20 +1,24 @@
 import 'dart:async';
 import 'dart:isolate';
+import 'dart:ui';
 
 import 'package:flutter/services.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/inference/desktop_inference_spec.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 
 /// Runs batch autoclip off the UI isolate so inference does not freeze the app.
+///
+/// ONNX assets are resolved on the UI isolate before spawning; the worker only
+/// loads models from on-disk paths and never touches [rootBundle].
 class LocalDetectionIsolateRunner {
   LocalDetectionIsolateRunner._();
 
   static Future<LocalDetectionResult> run({
     required String videoPath,
     required VideoClipConfigReqVo clipConfig,
-    required String sportTypeKey,
-    required String matchType,
+    required DesktopInferenceSpec inferenceSpec,
     void Function(double progress, String message)? onProgress,
   }) async {
     final rootToken = RootIsolateToken.instance;
@@ -32,8 +36,7 @@ class LocalDetectionIsolateRunner {
         rootToken: rootToken,
         videoPath: videoPath,
         clipConfigJson: clipConfig.toJson(),
-        sportTypeKey: sportTypeKey,
-        matchType: matchType,
+        inferenceSpecMessage: inferenceSpec.toIsolateMessage(),
       ),
     );
 
@@ -82,27 +85,28 @@ class _LocalDetectionIsolateArgs {
   final RootIsolateToken rootToken;
   final String videoPath;
   final Map<String, dynamic> clipConfigJson;
-  final String sportTypeKey;
-  final String matchType;
+  final Map<String, dynamic> inferenceSpecMessage;
 
   const _LocalDetectionIsolateArgs({
     required this.replyPort,
     required this.rootToken,
     required this.videoPath,
     required this.clipConfigJson,
-    required this.sportTypeKey,
-    required this.matchType,
+    required this.inferenceSpecMessage,
   });
 }
 
 @pragma('vm:entry-point')
 Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
   BackgroundIsolateBinaryMessenger.ensureInitialized(args.rootToken);
+  DartPluginRegistrant.ensureInitialized();
 
   try {
+    final inferenceSpec =
+        DesktopInferenceSpec.fromIsolateMessage(args.inferenceSpecMessage);
     final clipConfig = _decodeClipConfig(
       args.clipConfigJson,
-      args.sportTypeKey,
+      inferenceSpec.sportType,
     );
     final service = LocalDetectionService();
     var lastSentPercent = -1;
@@ -110,8 +114,7 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
     final result = await service.runAutoclip(
       videoPath: args.videoPath,
       clipConfig: clipConfig,
-      sportTypeKey: args.sportTypeKey,
-      matchType: args.matchType,
+      desktopInferenceSpec: inferenceSpec,
       onProgress: (progress, message) {
         final percent = (progress * 100).round();
         if (percent == lastSentPercent) return;
@@ -129,10 +132,10 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
       'processingTimeMs': result.processingTime.inMilliseconds,
       'clipOutput': result.clipOutput,
     });
-  } catch (e) {
+  } catch (e, stackTrace) {
     args.replyPort.send({
       'type': 'error',
-      'message': e.toString(),
+      'message': '$e\n$stackTrace',
     });
   }
 }

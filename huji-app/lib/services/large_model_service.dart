@@ -5,7 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/models/large_model.dart';
-import 'package:huji_app/services/inference/inference_model_registry.dart';
+import 'package:huji_app/services/inference/desktop_inference_spec.dart';
 import 'package:huji_app/services/inference/onnx_model_predictor.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -144,25 +144,24 @@ class LargeModelService {
 
   final Map<String, ModelPredictor> _predictorCache = {};
 
-  /// Desktop ONNX scope: sport/match type for asset resolution.
-  ({String sport, String match})? _desktopInferenceScope;
+  /// Active desktop ONNX spec for the current inference scope.
+  DesktopInferenceSpec? _desktopInferenceSpec;
 
   LargeModelService._();
 
   final Map<String, String> _modelNamePathMapping =
       AutoclipConstants.modelNamePathMapping;
 
-  /// Run [action] with desktop ONNX model scope (sport + match type).
-  Future<T> runWithDesktopScope<T>({
-    required String sportType,
-    required String matchType,
+  /// Run [action] with a resolved desktop ONNX model on disk.
+  Future<T> runWithDesktopSpec<T>({
+    required DesktopInferenceSpec spec,
     required Future<T> Function() action,
   }) async {
-    _desktopInferenceScope = (sport: sportType, match: matchType);
+    _desktopInferenceSpec = spec;
     try {
       return await action();
     } finally {
-      _desktopInferenceScope = null;
+      _desktopInferenceSpec = null;
     }
   }
 
@@ -180,20 +179,17 @@ class LargeModelService {
   }
 
   ModelPredictor _getDesktopPredictor(String modelName) {
-    final scope = _desktopInferenceScope;
-    if (scope == null) {
+    final spec = _desktopInferenceSpec;
+    if (spec == null) {
       throw StateError(
-        'Desktop inference requires runWithDesktopScope() before getPredictor()',
+        'Desktop inference requires runWithDesktopSpec() before getPredictor()',
       );
     }
 
     // Not cached: batch pipeline disposes the predictor after each video.
-    final asset = InferenceModelRegistry.onnxAssetFor(scope.sport, scope.match);
-    final classNames =
-        InferenceModelRegistry.classNamesFor(scope.sport, scope.match);
     return OnnxModelPredictor(
-      modelAsset: asset,
-      fallbackClassNames: classNames,
+      modelFilePath: spec.modelFilePath,
+      fallbackClassNames: spec.classNames,
     );
   }
 
