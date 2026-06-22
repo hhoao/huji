@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
+
+enum _AppButtonVariant { custom, primary, outlined, text }
 
 /// Desktop button with hover highlight and press scale.
 ///
@@ -21,6 +23,7 @@ class AppButton extends StatelessWidget {
   final TextStyle? textStyle;
   final double iconSize;
   final MainAxisSize mainAxisSize;
+  final _AppButtonVariant _variant;
 
   const AppButton({
     super.key,
@@ -35,7 +38,7 @@ class AppButton extends StatelessWidget {
     this.textStyle,
     this.iconSize = 14,
     this.mainAxisSize = MainAxisSize.min,
-  });
+  }) : _variant = _AppButtonVariant.custom;
 
   const AppButton.primary({
     super.key,
@@ -47,9 +50,10 @@ class AppButton extends StatelessWidget {
     this.textStyle,
     this.iconSize = 14,
     this.mainAxisSize = MainAxisSize.min,
-  })  : backgroundColor = DesktopTheme.primaryColor,
-        foregroundColor = Colors.white,
-        borderColor = DesktopTheme.primaryColor;
+  })  : backgroundColor = null,
+        foregroundColor = null,
+        borderColor = null,
+        _variant = _AppButtonVariant.primary;
 
   const AppButton.outlined({
     super.key,
@@ -61,9 +65,10 @@ class AppButton extends StatelessWidget {
     this.textStyle,
     this.iconSize = 14,
     this.mainAxisSize = MainAxisSize.min,
-  })  : backgroundColor = Colors.transparent,
-        foregroundColor = DesktopTheme.textSecondary,
-        borderColor = DesktopTheme.borderMedium;
+  })  : backgroundColor = null,
+        foregroundColor = null,
+        borderColor = null,
+        _variant = _AppButtonVariant.outlined;
 
   const AppButton.text({
     super.key,
@@ -76,15 +81,40 @@ class AppButton extends StatelessWidget {
     this.iconSize = 14,
     this.mainAxisSize = MainAxisSize.min,
   })  : backgroundColor = null,
-        foregroundColor = DesktopTheme.textSecondary,
-        borderColor = Colors.transparent;
+        foregroundColor = null,
+        borderColor = null,
+        _variant = _AppButtonVariant.text;
 
   @override
   Widget build(BuildContext context) {
-    final effectiveBg = backgroundColor ?? Colors.transparent;
-    final effectiveFg = foregroundColor ?? DesktopTheme.textSecondary;
-    final effectiveBorder = borderColor ?? Colors.transparent;
-    final effectiveRadius = borderRadius ?? DesktopTheme.radiusMd;
+    final cs = context.desktopColors;
+    final (variantBg, variantFg, variantBorder) = switch (_variant) {
+      _AppButtonVariant.primary => (
+          cs.primary,
+          cs.onPrimary,
+          cs.primary,
+        ),
+      _AppButtonVariant.outlined => (
+          Colors.transparent,
+          cs.onSurfaceVariant,
+          context.desktopBorderMedium,
+        ),
+      _AppButtonVariant.text => (
+          null as Color?,
+          cs.onSurfaceVariant,
+          Colors.transparent,
+        ),
+      _AppButtonVariant.custom => (
+          backgroundColor,
+          foregroundColor,
+          borderColor,
+        ),
+    };
+
+    final effectiveBg = variantBg ?? Colors.transparent;
+    final effectiveFg = variantFg ?? cs.onSurfaceVariant;
+    final effectiveBorder = variantBorder ?? Colors.transparent;
+    final effectiveRadius = borderRadius ?? desktopRadiusMd;
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
     final effectiveTextStyle =

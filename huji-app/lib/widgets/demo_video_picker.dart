@@ -34,7 +34,7 @@ class DemoVideoPicker extends StatelessWidget {
         Text(
           '或使用演示视频',
           style: TextStyle(
-            fontSize: dense ? 11 : 12,
+            fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
             color: dense ? Colors.white70 : Colors.grey,
           ),
           textAlign: TextAlign.center,
@@ -104,15 +104,16 @@ class _DemoChip extends StatelessWidget {
               Text(
                 demo.title,
                 style: TextStyle(
-                  fontSize: dense ? 12 : 13,
-                  fontWeight: FontWeight.w600,
+                  fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
                 ),
               ),
               Text(
                 demo.subtitle,
                 style: TextStyle(
                   fontSize: dense ? 10 : 11,
-                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
                 ),
               ),
             ],

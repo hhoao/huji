@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class LoginDialog extends StatefulWidget {
   const LoginDialog({super.key});
@@ -120,20 +122,22 @@ class _LoginDialogState extends State<LoginDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF232328),
+      backgroundColor: cs.surfaceContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       title: Row(
         children: [
-          const Text('登录',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text('登录', style: styles.dialogTitle.copyWith(color: cs.onSurface)),
           const Spacer(),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Color(0xFF999999), size: 20),
+            icon: Icon(Icons.close, color: cs.outline, size: 20),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -147,10 +151,9 @@ class _LoginDialogState extends State<LoginDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Login mode toggle
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF333333),
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -169,34 +172,37 @@ class _LoginDialogState extends State<LoginDialog> {
                   ),
                 ),
                 const SizedBox(height: 20),
-
-                // Identifier
                 TextFormField(
                   controller: _identifierController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDecoration('手机号或邮箱', Icons.person_outline),
+                  style: styles.body.copyWith(color: cs.onSurface),
+                  decoration: _inputDecoration(
+                    context,
+                    '手机号或邮箱',
+                    Icons.person_outline,
+                  ),
                   validator: (v) =>
                       (v == null || v.isEmpty) ? '请输入手机号或邮箱' : null,
                 ),
                 const SizedBox(height: 14),
-
-                // Password or code
                 if (_isPasswordLogin)
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _inputDecoration('密码', Icons.lock_outline).copyWith(
+                    style: styles.body.copyWith(color: cs.onSurface),
+                    decoration:
+                        _inputDecoration(context, '密码', Icons.lock_outline)
+                            .copyWith(
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordVisible
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: const Color(0xFF999999),
+                          color: cs.outline,
                           size: 18,
                         ),
-                        onPressed: () =>
-                            setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        onPressed: () => setState(
+                          () => _isPasswordVisible = !_isPasswordVisible,
+                        ),
                       ),
                     ),
                     validator: (v) =>
@@ -208,10 +214,12 @@ class _LoginDialogState extends State<LoginDialog> {
                       Expanded(
                         child: TextFormField(
                           controller: _codeController,
-                          style:
-                              const TextStyle(color: Colors.white, fontSize: 14),
-                          decoration:
-                              _inputDecoration('验证码', Icons.security),
+                          style: styles.body.copyWith(color: cs.onSurface),
+                          decoration: _inputDecoration(
+                            context,
+                            '验证码',
+                            Icons.security,
+                          ),
                           validator: (v) =>
                               (v == null || v.isEmpty) ? '请输入验证码' : null,
                         ),
@@ -221,17 +229,20 @@ class _LoginDialogState extends State<LoginDialog> {
                         width: 110,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed:
-                              (_countdown > 0 || _isSendingCode) ? null : _sendAuthCode,
+                          onPressed: (_countdown > 0 || _isSendingCode)
+                              ? null
+                              : _sendAuthCode,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: cs.primary,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: Text(
                             _countdown > 0 ? '${_countdown}s' : '发送验证码',
-                            style:
-                                const TextStyle(color: Colors.white, fontSize: 13),
+                            style: styles.bodySmall.copyWith(
+                              color: cs.onPrimary,
+                            ),
                           ),
                         ),
                       ),
@@ -249,35 +260,44 @@ class _LoginDialogState extends State<LoginDialog> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _login,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: cs.primary,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
+                      color: cs.onPrimary,
+                      strokeWidth: 2,
+                    ),
                   )
-                : const Text('登录',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600)),
+                : Text(
+                    '登录',
+                    style: styles.sectionTitle.copyWith(color: cs.onPrimary),
+                  ),
           ),
         ),
       ],
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
+  InputDecoration _inputDecoration(
+    BuildContext context,
+    String hint,
+    IconData icon,
+  ) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-      prefixIcon: Icon(icon, color: const Color(0xFF666666), size: 18),
+      hintStyle: styles.mutedBody,
+      prefixIcon: Icon(icon, color: cs.outline, size: 18),
       filled: true,
-      fillColor: const Color(0xFF2A2A30),
+      fillColor: cs.surfaceContainerHigh,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -300,21 +320,23 @@ class _ModeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF6366F1) : Colors.transparent,
+            color: active ? cs.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: active ? Colors.white : const Color(0xFF999999),
-              fontSize: 13,
+            style: styles.body.copyWith(
+              color: active ? cs.onPrimary : cs.outline,
               fontWeight: FontWeight.w500,
             ),
           ),

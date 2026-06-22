@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Error page shown when desktop route navigation fails.
 class DesktopErrorPage extends StatelessWidget {
@@ -8,19 +10,26 @@ class DesktopErrorPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Scaffold(
-      backgroundColor: const Color(0xFF1F1F23),
+      backgroundColor: cs.surface,
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
             const SizedBox(height: 16),
-            const Text('页面加载失败',
-                style: TextStyle(color: Colors.white70, fontSize: 16)),
+            Text(
+              '页面加载失败',
+              style: styles.subtitle.copyWith(color: cs.onSurfaceVariant),
+            ),
             const SizedBox(height: 8),
-            Text(error?.toString() ?? '未知错误',
-                style: const TextStyle(color: Colors.white38, fontSize: 12)),
+            Text(
+              error?.toString() ?? '未知错误',
+              style: styles.mutedBodySmall,
+            ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.go('/'),

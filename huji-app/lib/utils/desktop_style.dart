@@ -15,6 +15,11 @@ extension DesktopColorScheme on BuildContext {
   Color get desktopBorderLight =>
       desktopColors.outlineVariant.withValues(alpha: 0.35);
 
+  Color get desktopBorderMedium =>
+      desktopColors.outlineVariant.withValues(alpha: 0.55);
+
+  Color get desktopHoverHighlight => Theme.of(this).hoverColor;
+
   Color get desktopActiveBg =>
       desktopColors.primaryContainer.withValues(alpha: 0.35);
 
@@ -23,3 +28,10 @@ extension DesktopColorScheme on BuildContext {
 
 const desktopAnimationNormal = Duration(milliseconds: 250);
 const desktopAnimationFast = Duration(milliseconds: 150);
+const desktopDefaultCurve = Curves.easeOut;
+const desktopRadiusMd = 6.0;
+const desktopRadiusLg = 8.0;
+
+const desktopClickCursor = SystemMouseCursors.click;
+const desktopDefaultCursor = SystemMouseCursors.basic;
+

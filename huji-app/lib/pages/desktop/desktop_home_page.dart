@@ -382,14 +382,16 @@ class _StatusBadge extends StatelessWidget {
       LocalVideoProcessStatusEnum.processing => ('检测中', cs.primary),
       LocalVideoProcessStatusEnum.completed => ('已完成', const Color(0xFF22C55E)),
     };
-    final fontSize = Theme.of(context).textTheme.bodySmall?.fontSize;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
       decoration: BoxDecoration(
         color: color.withAlpha(217),
         borderRadius: BorderRadius.circular(3),
       ),
-      child: Text(label, style: TextStyle().copyWith(fontSize: fontSize ?? 12)),
+      child: Text(
+        label,
+        style: AppTextStyles.of(context).caption.copyWith(color: cs.onPrimary),
+      ),
     );
   }
 }

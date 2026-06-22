@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/constants/demo_videos.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
@@ -395,11 +396,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       ],
       child: Row(
         children: [
-          // Left: config panel
           SizedBox(
             width: 320,
-            child: Container(
-              color: DesktopTheme.subMainBg,
+            child: ColoredBox(
+              color: context.desktopColors.surfaceContainerLow,
               child: Column(
                 children: [
                   Expanded(
@@ -423,7 +423,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               ),
             ),
           ),
-          // Right: upload / preview area
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(36),
@@ -432,12 +431,15 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 children: [
                   Text(
                     _sportType == '乒乓球' ? '乒乓球比赛视频剪辑' : '羽毛球比赛视频剪辑',
-                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
+                    style: AppTextStyles.of(context).subtitle.copyWith(
+                          color: context.desktopOnSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     '上传你收集的视频，自动裁剪掉休息片段。视频处理期间可离开页面，处理完后会有桌面通知。',
-                    style: TextStyle(fontSize: 13, color: DesktopTheme.textMuted),
+                    style: AppTextStyles.of(context).mutedBody,
                   ),
                   const SizedBox(height: 16),
                   _buildWarning(),
@@ -453,14 +455,19 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildConfigHeader() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.tune, size: 16, color: Colors.white),
-            SizedBox(width: 8),
-            Text('剪辑配置', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+            Icon(Icons.tune, size: 16, color: cs.onSurface),
+            const SizedBox(width: 8),
+            Text(
+              '剪辑配置',
+              style: styles.sectionTitle.copyWith(color: cs.onSurface),
+            ),
           ],
         ),
         AppDropdown<String>(
@@ -485,6 +492,8 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildDetectionMode() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final localAvailable = _localModelStatus == LocalModelStatus.available;
     return _ConfigSection(
       label: '检测方式',
@@ -515,7 +524,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                     ? '使用本地 ONNX 模型进行离线检测'
                     : '使用云端服务进行检测，需要联网'
                 : '未找到本地模型，已回退为云端检测',
-            style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim),
+            style: styles.caption.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -551,6 +560,8 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildMinDuration() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return _ConfigSection(
       label: '精彩球最小时长',
       child: Column(
@@ -561,10 +572,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 child: SliderTheme(
                   data: SliderThemeData(
                     trackHeight: 4,
-                    activeTrackColor: DesktopTheme.primaryColor,
-                    inactiveTrackColor: DesktopTheme.borderMedium,
-                    thumbColor: Colors.white,
-                    overlayColor: DesktopTheme.primaryColor.withAlpha(40),
+                    activeTrackColor: cs.primary,
+                    inactiveTrackColor: context.desktopBorderMedium,
+                    thumbColor: cs.onPrimary,
+                    overlayColor: cs.primary.withAlpha(40),
                   ),
                   child: Slider(
                     value: _minDuration,
@@ -579,14 +590,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 width: 40,
                 child: Text(
                   '${_minDuration.toStringAsFixed(1)} 秒',
-                  style: const TextStyle(fontSize: 12, color: DesktopTheme.indigoText),
+                  style: styles.bodySmall.copyWith(color: cs.primary),
                 ),
               ),
             ],
           ),
-          const Text(
+          Text(
             '小于此时长的回合不会被保留',
-            style: TextStyle(fontSize: 11, color: DesktopTheme.textDim),
+            style: styles.caption.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -594,18 +605,20 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildConfigFooter() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: const BoxDecoration(
-        color: DesktopTheme.sidebarBg,
-        border: Border(top: BorderSide(color: DesktopTheme.borderLight)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(top: BorderSide(color: context.desktopBorderLight)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
+          Text(
             '已设置 4 项参数 · 与"默认预设" 不一致',
-            style: TextStyle(fontSize: 11, color: DesktopTheme.textMuted),
+            style: styles.caption.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 10),
           OutlinedButton.icon(
@@ -617,9 +630,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             icon: const Icon(Icons.save_outlined, size: 14),
             label: const Text('保存当前为预设'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: DesktopTheme.indigoText,
-              side: BorderSide(color: DesktopTheme.primaryColor.withAlpha(64)),
-              backgroundColor: DesktopTheme.primaryColor.withAlpha(31),
+              foregroundColor: cs.onPrimaryContainer,
+              side: BorderSide(color: cs.primary.withAlpha(64)),
+              backgroundColor: cs.primary.withAlpha(31),
               padding: const EdgeInsets.symmetric(vertical: 9),
             ),
           ),
@@ -629,6 +642,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildWarning() {
+    final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -636,15 +650,18 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         border: Border.all(color: const Color(0xFFEAB308).withAlpha(64)),
         borderRadius: BorderRadius.circular(7),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('⚠️', style: TextStyle(fontSize: 14)),
-          SizedBox(width: 10),
+          Text('⚠️', style: styles.body),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
               '视频的角度、大小、分辨率会影响检测效果。建议水平拍摄，分辨率 ≥ 720p，不要过度压缩。',
-              style: TextStyle(fontSize: 12, color: Color(0xFFFDE68A), height: 1.6),
+              style: styles.bodySmall.copyWith(
+                color: const Color(0xFFFDE68A),
+                height: 1.6,
+              ),
             ),
           ),
         ],
@@ -683,17 +700,24 @@ class _ConfigSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: DesktopTheme.textMuted, letterSpacing: 0.5)),
+        Text(
+          label,
+          style: styles.caption.copyWith(
+            color: cs.onSurfaceVariant,
+            letterSpacing: 0.5,
+          ),
+        ),
         const SizedBox(height: 8),
         child,
       ],
     );
   }
 }
-
 
 class _DetectionOption extends StatelessWidget {
   final String label;
@@ -712,15 +736,17 @@ class _DetectionOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return AppHoverBox(
       onTap: onTap,
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: desktopRadiusMd,
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: selected ? DesktopTheme.primaryColor.withAlpha(20) : DesktopTheme.cardBg,
+          color: selected ? cs.primary.withAlpha(20) : cs.surfaceContainer,
           border: Border.all(
-            color: selected ? DesktopTheme.primaryColor : DesktopTheme.borderMedium,
+            color: selected ? cs.primary : context.desktopBorderMedium,
             width: selected ? 1.5 : 1.0,
           ),
           borderRadius: BorderRadius.circular(6),
@@ -733,22 +759,25 @@ class _DetectionOption extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? DesktopTheme.primaryColor : const Color(0xFF555555),
+                  color: selected ? cs.primary : cs.outline,
                   width: selected ? 5.0 : 1.5,
                 ),
                 color: Colors.transparent,
               ),
             ),
             const SizedBox(width: 10),
-            Text(emoji, style: const TextStyle(fontSize: 14)),
+            Text(emoji, style: styles.body),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
+                  Text(
+                    label,
+                    style: styles.body.copyWith(color: cs.onSurface),
+                  ),
                   const SizedBox(height: 2),
-                  Text(help, style: const TextStyle(fontSize: 10, color: DesktopTheme.textDim)),
+                  Text(help, style: styles.caption.copyWith(color: cs.outline)),
                 ],
               ),
             ),
@@ -769,12 +798,14 @@ class _CheckOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: DesktopTheme.borderLight,
-        border: Border.all(color: DesktopTheme.borderLight),
+        color: context.desktopBorderLight,
+        border: Border.all(color: context.desktopBorderLight),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -786,15 +817,17 @@ class _CheckOption extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               fillColor: WidgetStateProperty.resolveWith((s) {
-                if (s.contains(WidgetState.selected)) return DesktopTheme.primaryColor;
+                if (s.contains(WidgetState.selected)) return cs.primary;
                 return Colors.transparent;
               }),
               side: BorderSide(
-                color: value ? DesktopTheme.primaryColor : const Color(0xFF555555),
+                color: value ? cs.primary : cs.outline,
                 width: 1.5,
               ),
-              checkColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+              checkColor: cs.onPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
           const SizedBox(width: 10),
@@ -802,9 +835,12 @@ class _CheckOption extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
+                Text(
+                  label,
+                  style: styles.body.copyWith(color: cs.onSurface),
+                ),
                 const SizedBox(height: 2),
-                Text(help, style: const TextStyle(fontSize: 10, color: DesktopTheme.textDim)),
+                Text(help, style: styles.caption.copyWith(color: cs.outline)),
               ],
             ),
           ),

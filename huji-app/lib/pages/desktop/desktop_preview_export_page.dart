@@ -7,7 +7,8 @@ import 'package:go_router/go_router.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:path/path.dart' as p;
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart' hide AppIconButton;
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
@@ -227,6 +228,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
     final videoName = _record?.filePath != null ? p.basename(_record!.filePath!) : '未知';
 
     return DesktopPageShell(
@@ -239,9 +241,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         OutlinedButton(
           onPressed: () => context.go('/clip/${widget.clipId}/edit'),
           style: OutlinedButton.styleFrom(
-            foregroundColor: DesktopTheme.indigoText,
-            side: BorderSide(color: DesktopTheme.primaryColor.withAlpha(89)),
-            backgroundColor: DesktopTheme.primaryColor.withAlpha(26),
+            foregroundColor: cs.onPrimaryContainer,
+            side: BorderSide(color: cs.primary.withAlpha(89)),
+            backgroundColor: cs.primary.withAlpha(26),
           ),
           child: const Text('✎ 精修编辑'),
         ),
@@ -259,6 +261,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   void _showExportModal(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
 
@@ -266,34 +270,44 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setModalState) => AlertDialog(
-          backgroundColor: DesktopTheme.cardBg,
+          backgroundColor: cs.surfaceContainer,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          title: const Text('确认导出', style: TextStyle(color: Colors.white)),
+          title: Text('确认导出', style: styles.dialogTitle.copyWith(color: cs.onSurface)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _exportInfoRow('文件名', '$_fileName.mp4'),
+              _exportInfoRow(ctx, '文件名', '$_fileName.mp4'),
               const SizedBox(height: 8),
-              _exportInfoRow('格式', 'MP4 (H.264)'),
+              _exportInfoRow(ctx, '格式', 'MP4 (H.264)'),
               const SizedBox(height: 8),
-              _exportInfoRow('清晰度', _selectedQuality),
+              _exportInfoRow(ctx, '清晰度', _selectedQuality),
               const SizedBox(height: 8),
-              _exportInfoRow('保存到', _savePath),
+              _exportInfoRow(ctx, '保存到', _savePath),
               const SizedBox(height: 8),
-              _exportInfoRow('回合数', '$segCount 个 · 合计 $durationStr'),
+              _exportInfoRow(ctx, '回合数', '$segCount 个 · 合计 $durationStr'),
               const SizedBox(height: 12),
-              const Divider(color: DesktopTheme.borderMedium),
+              Divider(color: context.desktopBorderMedium),
               if (_isExporting) ...[
                 const SizedBox(height: 16),
-                LinearProgressIndicator(value: _exportProgress, backgroundColor: DesktopTheme.borderMedium, valueColor: const AlwaysStoppedAnimation(DesktopTheme.primaryColor)),
+                LinearProgressIndicator(
+                  value: _exportProgress,
+                  backgroundColor: context.desktopBorderMedium,
+                  valueColor: AlwaysStoppedAnimation(cs.primary),
+                ),
                 const SizedBox(height: 8),
-                Text('导出中... ${(_exportProgress * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 13, color: DesktopTheme.textSecondary)),
+                Text(
+                  '导出中... ${(_exportProgress * 100).toStringAsFixed(0)}%',
+                  style: styles.body.copyWith(color: cs.onSurfaceVariant),
+                ),
               ],
             ],
           ),
           actions: [
-            TextButton(onPressed: _isExporting ? null : () => Navigator.of(ctx).pop(), child: const Text('取消', style: TextStyle(color: DesktopTheme.textSecondary))),
+            TextButton(
+              onPressed: _isExporting ? null : () => Navigator.of(ctx).pop(),
+              child: Text('取消', style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+            ),
             ElevatedButton.icon(
               onPressed: _isExporting ? null : () async { Navigator.of(ctx).pop(); await _startExport(); },
               icon: const Icon(Icons.play_arrow, size: 16),
@@ -305,23 +319,30 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     );
   }
 
-  Widget _exportInfoRow(String label, String value) {
+  Widget _exportInfoRow(BuildContext context, String label, String value) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textMuted)),
-        Flexible(child: Text(value, style: const TextStyle(fontSize: 13, color: Colors.white), textAlign: TextAlign.right)),
+        Text(label, style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+        Flexible(
+          child: Text(
+            value,
+            style: styles.body.copyWith(color: cs.onSurface),
+            textAlign: TextAlign.right,
+          ),
+        ),
       ],
     );
   }
 
-  // ── Left panel ──
-
   Widget _buildExportConfig() {
+    final cs = context.desktopColors;
     return SizedBox(
       width: 300,
-      child: Container(
-        color: DesktopTheme.subMainBg,
+      child: ColoredBox(
+        color: cs.surfaceContainerLow,
         child: Column(children: [
           Expanded(
             child: ListView(padding: const EdgeInsets.all(22), children: [
@@ -340,11 +361,23 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildFileName() {
-    return _ExSection(label: '文件名', child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(color: DesktopTheme.cardBg, border: Border.all(color: DesktopTheme.borderMedium), borderRadius: BorderRadius.circular(6)),
-      child: Text(_fileName, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
-    ));
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+    return _ExSection(
+      label: '文件名',
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        decoration: BoxDecoration(
+          color: cs.surfaceContainer,
+          border: Border.all(color: context.desktopBorderMedium),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          _fileName,
+          style: styles.body.copyWith(color: cs.onSurface),
+        ),
+      ),
+    );
   }
 
   Widget _buildFormat() => _ExSection(label: '格式', child: const AppDropdown<String>(value: 'MP4 (H.264)', items: ['MP4 (H.264)', 'MOV']));
@@ -360,39 +393,81 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildSavePath() {
-    return _ExSection(label: '保存到', child: Row(children: [
-      Expanded(child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(color: DesktopTheme.cardBg, border: Border.all(color: DesktopTheme.borderMedium), borderRadius: BorderRadius.circular(6)),
-        child: Text(_savePath, style: const TextStyle(fontSize: 13, color: DesktopTheme.textSecondary)),
-      )),
-      const SizedBox(width: 8),
-      AppIconButton(
-        icon: Icons.folder_open,
-        size: 32,
-        iconSize: 16,
-        color: DesktopTheme.textSecondary,
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+    return _ExSection(
+      label: '保存到',
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+              decoration: BoxDecoration(
+                color: cs.surfaceContainer,
+                border: Border.all(color: context.desktopBorderMedium),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: Text(
+                _savePath,
+                style: styles.body.copyWith(color: cs.onSurfaceVariant),
+              ),
+            ),
+          ),
+          const SizedBox(width: 8),
+          AppIconButton(
+            icon: Icons.folder_open,
+            size: 32,
+            iconSize: 16,
+            color: cs.onSurfaceVariant,
+          ),
+        ],
       ),
-    ]));
+    );
   }
 
   Widget _buildConfigFooter() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: const BoxDecoration(color: DesktopTheme.sidebarBg, border: Border(top: BorderSide(color: DesktopTheme.borderLight))),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('回合数', style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary)),
-          Text('$segCount 个 · 合计 $durationStr', style: const TextStyle(fontSize: 12, color: DesktopTheme.indigoText, fontWeight: FontWeight.w600)),
-        ]),
-        const SizedBox(height: 4),
-        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-          const Text('输出清晰度', style: TextStyle(fontSize: 12, color: DesktopTheme.textSecondary)),
-          Text(_selectedQuality, style: const TextStyle(fontSize: 12, color: DesktopTheme.indigoText, fontWeight: FontWeight.w600)),
-        ]),
-      ]),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(top: BorderSide(color: context.desktopBorderLight)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('回合数', style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant)),
+              Text(
+                '$segCount 个 · 合计 $durationStr',
+                style: styles.bodySmall.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('输出清晰度', style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant)),
+              Text(
+                _selectedQuality,
+                style: styles.bodySmall.copyWith(
+                  color: cs.primary,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -414,12 +489,24 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildPlayer() {
+    final cs = context.desktopColors;
     if (_player == null) {
       return AspectRatio(
         aspectRatio: 16 / 9,
         child: Container(
-          decoration: BoxDecoration(color: const Color(0xFF0A0A0C), borderRadius: BorderRadius.circular(10), border: Border.all(color: DesktopTheme.borderLight)),
-          child: const Center(child: Text('🏓', style: TextStyle(fontSize: 48, color: Color(0xFF444444)))),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0A0C),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: context.desktopBorderLight),
+          ),
+          child: Center(
+            child: Text(
+              '🏓',
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: cs.outline,
+                  ),
+            ),
+          ),
         ),
       );
     }
@@ -428,7 +515,10 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       AspectRatio(
         aspectRatio: 16 / 9,
         child: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(10), border: Border.all(color: DesktopTheme.borderLight)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: context.desktopBorderLight),
+          ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(9),
             child: _videoController != null ? media_kit_video.Video(controller: _videoController!) : const SizedBox.shrink(),
@@ -441,6 +531,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildPlayerControls() {
+    final styles = AppTextStyles.of(context);
+    final cs = context.desktopColors;
     final pos = _player?.state.position ?? Duration.zero;
     final dur = _player?.state.duration ?? const Duration(seconds: 1);
     final playing = _player?.state.playing ?? false;
@@ -459,7 +551,10 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           color: const Color(0xFF18181B),
         ),
         const SizedBox(width: 12),
-        Text(_formatDuration(pos), style: const TextStyle(fontSize: 12, color: Colors.white, fontFamily: 'monospace')),
+        Text(
+          _formatDuration(pos),
+          style: styles.mono.copyWith(color: cs.onSurface),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: SliderTheme(
@@ -475,7 +570,10 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           ),
         ),
         const SizedBox(width: 12),
-        Text(_formatDuration(dur), style: const TextStyle(fontSize: 12, color: Colors.white, fontFamily: 'monospace')),
+        Text(
+          _formatDuration(dur),
+          style: styles.mono.copyWith(color: cs.onSurface),
+        ),
       ]),
     );
   }
@@ -483,10 +581,22 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   Widget _buildRoundStrip() {
     if (_segments.isEmpty) return const SizedBox.shrink();
 
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        const Text('回合顺序', style: TextStyle(fontSize: 13, color: DesktopTheme.textSecondary, fontWeight: FontWeight.w500)),
-        Text('${_segments.length}个回合', style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim)),
+        Text(
+          '回合顺序',
+          style: styles.body.copyWith(
+            color: cs.onSurfaceVariant,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          '${_segments.length}个回合',
+          style: styles.caption.copyWith(color: cs.outline),
+        ),
       ]),
       const SizedBox(height: 8),
       SizedBox(
@@ -507,8 +617,12 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               child: Container(
                 width: 120,
                 decoration: BoxDecoration(
-                  color: DesktopTheme.cardBg,
-                  border: Border.all(color: active ? DesktopTheme.primaryColor.withAlpha(179) : DesktopTheme.borderLight),
+                  color: cs.surfaceContainer,
+                  border: Border.all(
+                    color: active
+                        ? cs.primary.withAlpha(179)
+                        : context.desktopBorderLight,
+                  ),
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
@@ -519,22 +633,40 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                         gradient: LinearGradient(colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
                       ),
                       child: Stack(children: [
-                        const Center(child: Text('🏓', style: TextStyle(fontSize: 22))),
+                        Center(
+                          child: Text(
+                            '🏓',
+                            style: styles.sectionTitle,
+                          ),
+                        ),
                         Positioned(bottom: 4, right: 4, child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                           decoration: BoxDecoration(color: Colors.black.withAlpha(179), borderRadius: BorderRadius.circular(2)),
-                          child: Text('#${i + 1}', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600)),
+                          child: Text(
+                            '#${i + 1}',
+                            style: styles.caption.copyWith(
+                              color: cs.onSurface,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                         )),
                         if (active)
-                          const Positioned(top: 4, left: 4, child: Text('▶ 播放中', style: TextStyle(fontSize: 9, color: Colors.white))),
+                          Positioned(
+                            top: 4,
+                            left: 4,
+                            child: Text(
+                              '▶ 播放中',
+                              style: styles.caption.copyWith(color: cs.onSurface),
+                            ),
+                          ),
                       ]),
                     ),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                     child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text(startStr, style: const TextStyle(fontSize: 10, color: DesktopTheme.textMuted)),
-                      Text(durStr, style: const TextStyle(fontSize: 10, color: DesktopTheme.textMuted)),
+                      Text(startStr, style: styles.caption.copyWith(color: cs.onSurfaceVariant)),
+                      Text(durStr, style: styles.caption.copyWith(color: cs.onSurfaceVariant)),
                     ]),
                   ),
                 ]),
@@ -569,9 +701,14 @@ class _ConfigTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Row(
       children: [
-        Text(title, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+        Text(
+          title,
+          style: styles.sectionTitle.copyWith(color: cs.onSurface),
+        ),
       ],
     );
   }
@@ -584,10 +721,18 @@ class _ExSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: DesktopTheme.textMuted, letterSpacing: 0.5)),
+        Text(
+          label,
+          style: styles.caption.copyWith(
+            color: cs.onSurfaceVariant,
+            letterSpacing: 0.5,
+          ),
+        ),
         const SizedBox(height: 8),
         child,
       ],
@@ -604,34 +749,50 @@ class _RadioOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return AppHoverBox(
       onTap: onTap,
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: desktopRadiusMd,
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: active ? DesktopTheme.primaryColor.withAlpha(26) : DesktopTheme.borderLight,
+          color: active ? cs.primary.withAlpha(26) : context.desktopBorderLight,
           border: Border.all(
-            color: active ? DesktopTheme.primaryColor.withAlpha(77) : DesktopTheme.borderLight,
+            color: active ? cs.primary.withAlpha(77) : context.desktopBorderLight,
           ),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
           children: [
             Container(
-              width: 14, height: 14,
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                border: Border.all(color: active ? DesktopTheme.primaryColor : const Color(0xFF555555), width: 1.5),
+                border: Border.all(
+                  color: active ? cs.primary : cs.outline,
+                  width: 1.5,
+                ),
               ),
               alignment: Alignment.center,
-              child: active ? Container(width: 7, height: 7, decoration: const BoxDecoration(shape: BoxShape.circle, color: DesktopTheme.primaryColor)) : null,
+              child: active
+                  ? Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: cs.primary,
+                      ),
+                    )
+                  : null,
             ),
             const SizedBox(width: 10),
-            Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
+            Text(label, style: styles.body.copyWith(color: cs.onSurface)),
             const Spacer(),
-            if (meta != null) Text(meta!, style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim)),
+            if (meta != null)
+              Text(meta!, style: styles.caption.copyWith(color: cs.outline)),
           ],
         ),
       ),
@@ -646,12 +807,20 @@ class _SummaryStat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(num, style: const TextStyle(fontSize: 13, color: DesktopTheme.indigoText, fontWeight: FontWeight.w600)),
+        Text(
+          num,
+          style: styles.body.copyWith(
+            color: cs.primary,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim)),
+        Text(label, style: styles.caption.copyWith(color: cs.outline)),
       ],
     );
   }

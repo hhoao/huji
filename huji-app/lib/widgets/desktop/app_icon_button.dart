@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 /// Small icon-only button with hover/tap feedback.
@@ -21,11 +21,11 @@ class AppIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveColor = color ?? DesktopTheme.textSecondary;
+    final effectiveColor = color ?? context.desktopOnSurfaceVariant;
 
     return AppHoverBox(
       onTap: onTap,
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: desktopRadiusMd,
       padding: EdgeInsets.zero,
       child: SizedBox(
         width: size,

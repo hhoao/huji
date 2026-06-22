@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 
 /// Universal hover/press wrapper for all desktop interactive widgets.
 ///
@@ -42,15 +42,14 @@ class _AppHoverBoxState extends State<AppHoverBox> {
   @override
   Widget build(BuildContext context) {
     final effectiveHoverColor =
-        widget.hoverColor ?? DesktopTheme.hoverHighlight;
+        widget.hoverColor ?? context.desktopHoverHighlight;
     final effectiveBg = widget.backgroundColor ?? Colors.transparent;
-    final effectiveRadius =
-        widget.borderRadius ?? DesktopTheme.radiusMd;
+    final effectiveRadius = widget.borderRadius ?? desktopRadiusMd;
 
     return MouseRegion(
       cursor: widget.enabled && widget.onTap != null
-          ? DesktopTheme.clickCursor
-          : DesktopTheme.defaultCursor,
+          ? desktopClickCursor
+          : desktopDefaultCursor,
       onEnter: (_) {
         if (widget.enabled) setState(() => _isHovered = true);
       },
@@ -74,11 +73,11 @@ class _AppHoverBoxState extends State<AppHoverBox> {
         onLongPress: widget.onLongPress,
         child: AnimatedScale(
           scale: _isPressed ? widget.pressScale : 1.0,
-          duration: DesktopTheme.animationFast,
-          curve: DesktopTheme.defaultCurve,
+          duration: desktopAnimationFast,
+          curve: desktopDefaultCurve,
           child: AnimatedContainer(
-            duration: DesktopTheme.animationFast,
-            curve: DesktopTheme.defaultCurve,
+            duration: desktopAnimationFast,
+            curve: desktopDefaultCurve,
             padding: widget.padding,
             decoration: BoxDecoration(
               color: _isHovered
@@ -86,8 +85,7 @@ class _AppHoverBoxState extends State<AppHoverBox> {
                       ? effectiveHoverColor
                       : effectiveBg)
                   : effectiveBg,
-              borderRadius:
-                  BorderRadius.circular(effectiveRadius),
+              borderRadius: BorderRadius.circular(effectiveRadius),
             ),
             child: widget.child,
           ),
