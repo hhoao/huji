@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
-import 'package:huji_app/widgets/desktop/app_tab.dart';
-import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
+import 'package:shared_ui/shared_ui.dart';
 
-/// Settings page: left section nav + right content panels.
-/// Mockup reference: task-and-settings.html (settings section)
+enum _SettingsSection { general, appearance, account, network }
+
+/// Desktop settings — Teampilot Skills-style section layout in the main right pane.
 class DesktopSettingsPage extends StatefulWidget {
   const DesktopSettingsPage({super.key});
 
@@ -18,58 +17,99 @@ class DesktopSettingsPage extends StatefulWidget {
 }
 
 class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
-  int _activeSection = 0;
-
-  ThemeMode _themeMode = ThemeMode.dark;
+  _SettingsSection _section = _SettingsSection.general;
   bool _checkUpdateOnStart = true;
   bool _sendUsageStats = false;
   String _apiServer = '默认';
   int _downloadConcurrency = 3;
 
   @override
-  void initState() {
-    super.initState();
-    DesktopTheme.loadThemeMode().then((m) => setState(() => _themeMode = m));
-  }
-
-  void _setThemeMode(ThemeMode mode) {
-    setState(() => _themeMode = mode);
-    DesktopTheme.saveThemeMode(mode);
-    // In Phase 3 this will actually toggle the app theme
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return DesktopPageShell(
-      currentRoute: '/settings',
-      title: '设置',
-      breadcrumbs: const ['设置'],
-      child: Padding(
-        padding: const EdgeInsets.all(32),
+    final l10n = context.sharedL10n;
+
+    return WorkspaceSectionLayout(
+      title: l10n.settings,
+      subtitle: l10n.settingsPageSubtitle,
+      bodyAnimationKey: ValueKey(_section.name),
+      nav: WorkspaceHubNavList(
+        sidebarStyle: true,
+        animateEntries: true,
+        entries: [
+          WorkspaceHubEntry(
+            title: l10n.general,
+            icon: Icons.settings_outlined,
+            selected: _section == _SettingsSection.general,
+            density: WorkspaceHubNavDensity.relaxed,
+            onTap: () => setState(() => _section = _SettingsSection.general),
+          ),
+          WorkspaceHubEntry(
+            title: l10n.appearance,
+            icon: Icons.palette_outlined,
+            selected: _section == _SettingsSection.appearance,
+            density: WorkspaceHubNavDensity.relaxed,
+            onTap: () => setState(() => _section = _SettingsSection.appearance),
+          ),
+          WorkspaceHubEntry(
+            title: l10n.account,
+            icon: Icons.person_outline,
+            selected: _section == _SettingsSection.account,
+            density: WorkspaceHubNavDensity.relaxed,
+            onTap: () => setState(() => _section = _SettingsSection.account),
+          ),
+          WorkspaceHubEntry(
+            title: l10n.network,
+            icon: Icons.wifi_outlined,
+            selected: _section == _SettingsSection.network,
+            density: WorkspaceHubNavDensity.relaxed,
+            onTap: () => setState(() => _section = _SettingsSection.network),
+          ),
+        ],
+      ),
+      body: _buildSectionBody(),
+    );
+  }
+
+  Widget _buildSectionBody() {
+    return switch (_section) {
+      _SettingsSection.general => _buildGeneralBody(),
+      _SettingsSection.appearance => const HujiAppearanceSettingsSection(),
+      _SettingsSection.account => _buildAccountBody(),
+      _SettingsSection.network => _buildNetworkBody(),
+    };
+  }
+
+  Widget _buildGeneralBody() {
+    return SingleChildScrollView(
+      child: SettingsSurfaceCard(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Text('设置', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white)),
-            const SizedBox(height: 6),
-            const Text('个性化你的弧迹桌面体验', style: TextStyle(fontSize: 12, color: DesktopTheme.textMuted)),
-            const SizedBox(height: 24),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildSectionNav(),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: AnimatedSwitcher(
-                      duration: DesktopTheme.animationFast,
-                      child: KeyedSubtree(
-                        key: ValueKey(_activeSection),
-                        child: _buildSectionContent(),
-                      ),
-                    ),
-                  ),
-                ],
+            SettingsLabeledRow(
+              title: '默认保存路径',
+              subtitle: '~/Videos/弧迹',
+              trailing: Icon(
+                Icons.folder_outlined,
+                size: 18,
+                color: Theme.of(context).colorScheme.outline,
               ),
+            ),
+            SettingsLabeledRow(
+              title: '启动时检查更新',
+              subtitle: '应用启动时自动检查新版本',
+              trailing: AppSwitch(
+                active: _checkUpdateOnStart,
+                onTap: () =>
+                    setState(() => _checkUpdateOnStart = !_checkUpdateOnStart),
+              ),
+            ),
+            SettingsLabeledRow(
+              title: '发送使用统计',
+              subtitle: '匿名发送使用数据以帮助我们改进应用',
+              trailing: AppSwitch(
+                active: _sendUsageStats,
+                onTap: () => setState(() => _sendUsageStats = !_sendUsageStats),
+              ),
+              showDividerBelow: false,
             ),
           ],
         ),
@@ -77,411 +117,73 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     );
   }
 
-  Widget _buildSectionNav() {
-    return SizedBox(
-      width: 180,
-      child: AppTabNav(
-        labels: const ['常规', '外观', '账户', '网络', '预设', '关于'],
-        icons: const [
-          Icons.settings,
-          Icons.palette,
-          Icons.person,
-          Icons.wifi,
-          Icons.bookmark,
-          Icons.info,
-        ],
-        activeIndex: _activeSection,
-        onChanged: (i) => setState(() => _activeSection = i),
-      ),
-    );
-  }
-
-  Widget _buildSectionContent() {
-    switch (_activeSection) {
-      case 0: return _buildGeneralTab();
-      case 1: return _buildAppearanceTab();
-      case 2: return _buildAccountTab();
-      case 3: return _buildNetworkTab();
-      case 4: return _buildPresetsTab();
-      case 5: return _buildAboutTab();
-      default: return const SizedBox();
-    }
-  }
-
-  Widget _buildAppearanceTab() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildThemeSection(),
-          const SizedBox(height: 28),
-          _buildInterfaceSection(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildThemeSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _SectionTitle('主题', '选择默认外观，或跟随系统设置'),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            _ThemeCard(
-              label: '深色',
-              active: _themeMode == ThemeMode.dark,
-              previewBuilder: (ctx) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: DesktopTheme.sidebarBg,
-                ),
-                child: Row(
-                  children: [
-                    Container(width: 24, color: const Color(0xFF18181B)),
-                    Expanded(child: Container(color: const Color(0xFF1F1F23))),
-                  ],
-                ),
-              ),
-              onTap: () => _setThemeMode(ThemeMode.dark),
-            ),
-            const SizedBox(width: 10),
-            _ThemeCard(
-              label: '浅色',
-              active: _themeMode == ThemeMode.light,
-              previewBuilder: (ctx) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                  color: Colors.white,
-                ),
-                child: Row(
-                  children: [
-                    Container(width: 24, color: const Color(0xFFF5F5F7)),
-                    Expanded(child: Container(color: Colors.white)),
-                  ],
-                ),
-              ),
-              onTap: () => _setThemeMode(ThemeMode.light),
-            ),
-            const SizedBox(width: 10),
-            _ThemeCard(
-              label: '跟随系统',
-              active: _themeMode == ThemeMode.system,
-              previewBuilder: (ctx) => Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.horizontal(left: Radius.circular(4)),
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF18181B), Color(0xFFF5F5F7)],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Container(
-                        decoration: const BoxDecoration(
-                          borderRadius: BorderRadius.horizontal(right: Radius.circular(4)),
-                          gradient: LinearGradient(
-                            colors: [Color(0xFF1F1F23), Colors.white],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              onTap: () => _setThemeMode(ThemeMode.system),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildInterfaceSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const _SectionTitle('界面', ''),
-        const SizedBox(height: 14),
-        _SettingsRow(
-          label: '侧栏始终显示',
-          help: '关闭后，可通过快捷键 Ctrl+B 折叠侧栏',
-          trailing: const AppSwitch(active: true),
-        ),
-        _SettingsRow(
-          label: '视频卡片密度',
-          help: '紧凑 = 一行更多视频 / 舒适 = 更大缩略图',
-          trailing: const AppDropdown<String>(value: '舒适', items: ['紧凑', '舒适']),
-        ),
-        _SettingsRow(
-          label: '语言',
-          help: '应用界面语言',
-          trailing: const AppDropdown<String>(value: '简体中文', items: ['简体中文', 'English']),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGeneralTab() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SettingsRow(
-            label: '默认保存路径',
-            help: '~/Videos/弧迹',
-            trailing: const Icon(Icons.folder, size: 18, color: DesktopTheme.textDim),
-          ),
-          _SettingsRow(
-            label: '启动时检查更新',
-            help: '应用启动时自动检查新版本',
-            trailing: AppSwitch(
-              active: _checkUpdateOnStart,
-              onTap: () => setState(() => _checkUpdateOnStart = !_checkUpdateOnStart),
-            ),
-          ),
-          _SettingsRow(
-            label: '发送使用统计',
-            help: '匿名发送使用数据以帮助我们改进应用',
-            trailing: AppSwitch(
-              active: _sendUsageStats,
-              onTap: () => setState(() => _sendUsageStats = !_sendUsageStats),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAccountTab() {
+  Widget _buildAccountBody() {
     final userState = UserBlocInstance.instance.state;
     final isLoggedIn = userState.isLoggedIn;
     final userName = userState.user?.nickname ?? '未登录';
 
     return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SettingsRow(
-            label: '用户名',
-            help: userName,
-            trailing: Icon(
-              isLoggedIn ? Icons.person : Icons.person_outline,
-              size: 18,
-              color: DesktopTheme.textDim,
-            ),
-          ),
-          if (isLoggedIn)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    UserBlocInstance.instance.add(const UserLogoutEvent());
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.red.withAlpha(40),
-                    foregroundColor: Colors.redAccent,
-                    side: const BorderSide(color: Colors.redAccent, width: 0.5),
-                  ),
-                  child: const Text('退出登录'),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNetworkTab() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SettingsRow(
-            label: 'API 服务器',
-            help: '选择连接的 API 环境',
-            trailing: AppDropdown<String>(
-              value: _apiServer,
-              items: const ['默认', 'Sandbox'],
-              onChanged: (v) => setState(() => _apiServer = v),
-            ),
-          ),
-          _SettingsRow(
-            label: '下载并发数',
-            help: '同时下载的视频数量',
-            trailing: AppDropdown<int>(
-              value: _downloadConcurrency,
-              items: const [1, 2, 3, 5],
-              onChanged: (v) => setState(() => _downloadConcurrency = v),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPresetsTab() {
-    return const Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.bookmark, size: 40, color: DesktopTheme.textMuted),
-          SizedBox(height: 12),
-          Text(
-            '预设管理将在后续版本中提供',
-            style: TextStyle(fontSize: 14, color: DesktopTheme.textMuted),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAboutTab() {
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _SettingsRow(
-            label: '版本',
-            help: '1.0.0',
-            trailing: const Icon(Icons.info_outline, size: 18, color: DesktopTheme.textDim),
-          ),
-          _SettingsRow(
-            label: '构建',
-            help: 'Linux Desktop (AppImage)',
-            trailing: const Icon(Icons.desktop_windows, size: 18, color: DesktopTheme.textDim),
-          ),
-          _SettingsRow(
-            label: '开源许可',
-            help: 'Apache 2.0',
-            trailing: const Icon(Icons.description, size: 18, color: DesktopTheme.textDim),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _SectionTitle extends StatelessWidget {
-  final String title;
-  final String desc;
-  const _SectionTitle(this.title, this.desc);
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(title, style: const TextStyle(fontSize: 14, color: Colors.white, fontWeight: FontWeight.w600)),
-        if (desc.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(desc, style: const TextStyle(fontSize: 12, color: DesktopTheme.textMuted)),
-        ],
-      ],
-    );
-  }
-}
-
-class _SettingsRow extends StatelessWidget {
-  final String label;
-  final String help;
-  final Widget trailing;
-  const _SettingsRow({required this.label, required this.help, required this.trailing});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: DesktopTheme.cardBg,
-        border: Border.all(color: DesktopTheme.borderLight),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
-                const SizedBox(height: 3),
-                Text(help, style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim)),
-              ],
-            ),
-          ),
-          const SizedBox(width: 16),
-          trailing,
-        ],
-      ),
-    );
-  }
-}
-
-
-
-
-
-
-
-
-
-
-class _ThemeCard extends StatelessWidget {
-  final String label;
-  final bool active;
-  final WidgetBuilder previewBuilder;
-  final VoidCallback onTap;
-
-  const _ThemeCard({
-    required this.label,
-    required this.active,
-    required this.previewBuilder,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return AppHoverBox(
-      onTap: onTap,
-      borderRadius: DesktopTheme.radiusLg,
-      child: Container(
-        width: 150,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: DesktopTheme.subMainBg,
-          border: Border.all(
-            color: active ? DesktopTheme.primaryColor : DesktopTheme.borderMedium,
-            width: active ? 2 : 1,
-          ),
-          borderRadius: BorderRadius.circular(8),
-        ),
+      child: SettingsSurfaceCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            AspectRatio(
-              aspectRatio: 16 / 10,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: previewBuilder(context),
+            SettingsLabeledRow(
+              title: '用户名',
+              subtitle: userName,
+              trailing: Icon(
+                isLoggedIn ? Icons.person : Icons.person_outline,
+                size: 18,
+                color: Theme.of(context).colorScheme.outline,
+              ),
+              showDividerBelow: false,
+            ),
+            if (isLoggedIn) ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () {
+                      UserBlocInstance.instance.add(const UserLogoutEvent());
+                      setState(() {});
+                    },
+                    child: const Text('退出登录'),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNetworkBody() {
+    return SingleChildScrollView(
+      child: SettingsSurfaceCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SettingsLabeledRow(
+              title: 'API 服务器',
+              subtitle: '选择连接的 API 环境',
+              trailing: AppDropdown<String>(
+                value: _apiServer,
+                items: const ['默认', 'Sandbox'],
+                onChanged: (v) => setState(() => _apiServer = v),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontSize: 12, color: Colors.white)),
+            SettingsLabeledRow(
+              title: '下载并发数',
+              subtitle: '同时下载的视频数量',
+              trailing: AppDropdown<int>(
+                value: _downloadConcurrency,
+                items: const [1, 2, 3, 5],
+                onChanged: (v) => setState(() => _downloadConcurrency = v),
+              ),
+              showDividerBelow: false,
+            ),
           ],
         ),
       ),

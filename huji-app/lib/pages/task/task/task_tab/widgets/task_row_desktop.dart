@@ -2,14 +2,15 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/store/task/task_manager.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class TaskRowDesktop extends StatelessWidget {
   final TaskTabBloc bloc;
@@ -37,7 +38,7 @@ class TaskRowDesktop extends StatelessWidget {
     required this.onDelete,
   });
 
-  List<Widget> _buildActions(Task currentTask) {
+  List<Widget> _buildActions(BuildContext context, Task currentTask) {
     return TaskTabListUtils.resolveTaskActions(currentTask).map((action) {
       final (label, callback) = switch (action) {
         TaskRowAction.viewProgress => ('查看进度', onTap),
@@ -48,18 +49,18 @@ class TaskRowDesktop extends StatelessWidget {
         TaskRowAction.view => ('查看', onTap),
         TaskRowAction.delete => ('删除', onDelete),
       };
-      return _actionButton(label, callback);
+      return _actionButton(context, label, callback);
     }).toList();
   }
 
   static Color _statusColor(TaskStatusEnum status) {
     return switch (status) {
       TaskStatusEnum.pending => const Color(0xFFEAB308),
-      TaskStatusEnum.processing => DesktopTheme.primaryColor,
+      TaskStatusEnum.processing => const Color(0xFF6366F1),
       TaskStatusEnum.completed => const Color(0xFF22C55E),
       TaskStatusEnum.failed => const Color(0xFFEF4444),
       TaskStatusEnum.paused => const Color(0xFFEAB308),
-      TaskStatusEnum.cancelled => DesktopTheme.textDim,
+      TaskStatusEnum.cancelled => const Color(0xFF9CA3AF),
     };
   }
 
@@ -74,25 +75,25 @@ class TaskRowDesktop extends StatelessWidget {
     };
   }
 
-  static Color _iconBgColor(TaskStatusEnum status) {
+  static Color _iconBgColor(TaskStatusEnum status, Color primary) {
     return switch (status) {
       TaskStatusEnum.pending => const Color(0xFFEAB308).withAlpha(31),
-      TaskStatusEnum.processing => DesktopTheme.primaryColor.withAlpha(31),
+      TaskStatusEnum.processing => primary.withAlpha(31),
       TaskStatusEnum.completed => const Color(0xFF22C55E).withAlpha(31),
       TaskStatusEnum.failed => const Color(0xFFEF4444).withAlpha(31),
       TaskStatusEnum.paused => const Color(0xFFEAB308).withAlpha(31),
-      TaskStatusEnum.cancelled => DesktopTheme.textDim.withAlpha(31),
+      TaskStatusEnum.cancelled => const Color(0xFF9CA3AF).withAlpha(31),
     };
   }
 
-  static Color _iconColor(TaskStatusEnum status) {
+  static Color _iconColor(TaskStatusEnum status, Color primary) {
     return switch (status) {
       TaskStatusEnum.pending => const Color(0xFFFDE047),
-      TaskStatusEnum.processing => DesktopTheme.indigoText,
+      TaskStatusEnum.processing => primary,
       TaskStatusEnum.completed => const Color(0xFF86EFAC),
       TaskStatusEnum.failed => const Color(0xFFFCA5A5),
       TaskStatusEnum.paused => const Color(0xFFFDE047),
-      TaskStatusEnum.cancelled => DesktopTheme.textDim,
+      TaskStatusEnum.cancelled => const Color(0xFF9CA3AF),
     };
   }
 
@@ -100,25 +101,26 @@ class TaskRowDesktop extends StatelessWidget {
     return TaskTabListUtils.taskTypeIcon(task.type);
   }
 
-  Widget _actionButton(String label, VoidCallback? onPressed) {
+  Widget _actionButton(BuildContext context, String label, VoidCallback? onPressed) {
+    final cs = context.desktopColors;
     return Padding(
       padding: const EdgeInsets.only(left: 6),
       child: AppButton(
         label: label,
         onTap: onPressed,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        textStyle: const TextStyle(fontSize: 11),
-        foregroundColor: DesktopTheme.textSecondary,
-        backgroundColor: DesktopTheme.borderLight,
-        borderColor: DesktopTheme.borderMedium,
+        textStyle: AppTextStyles.of(context).caption,
+        foregroundColor: cs.onSurfaceVariant,
+        backgroundColor: cs.surfaceContainer,
+        borderColor: cs.outlineVariant.withValues(alpha: 0.55),
         borderRadius: 5,
       ),
     );
   }
 
-  Widget _buildTaskIcon(Task currentTask) {
+  Widget _buildTaskIcon(Task currentTask, Color primary) {
     final icon = _taskTypeIcon(currentTask);
-    return Icon(icon, size: 18, color: _iconColor(currentTask.status));
+    return Icon(icon, size: 18, color: _iconColor(currentTask.status, primary));
   }
 
   bool _taskRowChanged(TaskTabState previous, TaskTabState current) {
@@ -142,6 +144,9 @@ class TaskRowDesktop extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return RepaintBoundary(
       child: BlocBuilder<TaskTabBloc, TaskTabState>(
         bloc: bloc,
@@ -160,14 +165,14 @@ class TaskRowDesktop extends StatelessWidget {
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? DesktopTheme.primaryColor.withAlpha(20)
-                    : DesktopTheme.cardBg,
+                    ? cs.primary.withAlpha(20)
+                    : cs.surfaceContainer,
                 border: Border.all(
                   color: isSelected
-                      ? DesktopTheme.primaryColor.withAlpha(102)
+                      ? cs.primary.withAlpha(102)
                       : status == TaskStatusEnum.processing
-                      ? DesktopTheme.primaryColor.withAlpha(102)
-                      : DesktopTheme.borderLight,
+                      ? cs.primary.withAlpha(102)
+                      : context.desktopBorderLight,
                 ),
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -179,18 +184,14 @@ class TaskRowDesktop extends StatelessWidget {
                       height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected
-                            ? DesktopTheme.primaryColor
-                            : Colors.transparent,
+                        color: isSelected ? cs.primary : Colors.transparent,
                         border: Border.all(
-                          color: isSelected
-                              ? DesktopTheme.primaryColor
-                              : DesktopTheme.textDim,
+                          color: isSelected ? cs.primary : cs.outline,
                           width: 2,
                         ),
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                          ? Icon(Icons.check, size: 14, color: cs.onPrimary)
                           : null,
                     ),
                     const SizedBox(width: 12),
@@ -199,7 +200,7 @@ class TaskRowDesktop extends StatelessWidget {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: _iconBgColor(status),
+                      color: _iconBgColor(status, cs.primary),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     alignment: Alignment.center,
@@ -215,9 +216,9 @@ class TaskRowDesktop extends StatelessWidget {
                             cacheHeight: 72,
                             gaplessPlayback: true,
                             errorBuilder: (_, __, ___) =>
-                                _buildTaskIcon(currentTask),
+                                _buildTaskIcon(currentTask, cs.primary),
                           )
-                        : _buildTaskIcon(currentTask),
+                        : _buildTaskIcon(currentTask, cs.primary),
                   ),
                   const SizedBox(width: 14),
                   Expanded(
@@ -226,29 +227,21 @@ class TaskRowDesktop extends StatelessWidget {
                       children: [
                         Text(
                           currentTask.name,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
+                          style: styles.bodyStrong.copyWith(
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           TaskTabListUtils.buildTaskExtraInfo(currentTask),
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: DesktopTheme.textMuted,
-                          ),
+                          style: styles.mutedCaption,
                         ),
                         if (showProgress)
                           _TaskRowProgressDesktop(taskId: currentTask.id),
                         const SizedBox(height: 4),
                         Text(
                           timeStampToTimeAgo(currentTask.createdAt),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: DesktopTheme.textDim,
-                          ),
+                          style: styles.caption.copyWith(color: cs.outline),
                         ),
                       ],
                     ),
@@ -263,15 +256,14 @@ class TaskRowDesktop extends StatelessWidget {
                     ),
                     child: Text(
                       _statusLabel(status),
-                      style: TextStyle(
-                        fontSize: 12,
+                      style: styles.bodySmall.copyWith(
                         fontWeight: FontWeight.w500,
                         color: statusColor,
                       ),
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Row(children: _buildActions(currentTask)),
+                  Row(children: _buildActions(context, currentTask)),
                 ],
               ),
             ),
@@ -322,11 +314,11 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
     setState(() => _task = next);
   }
 
-  Color _progressColor(TaskStatusEnum status) {
+  Color _progressColor(TaskStatusEnum status, Color primary) {
     return switch (status) {
       TaskStatusEnum.failed => const Color(0xFFEF4444),
       TaskStatusEnum.completed => const Color(0xFF22C55E),
-      _ => DesktopTheme.primaryColor,
+      _ => primary,
     };
   }
 
@@ -335,9 +327,11 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
     final task = _task;
     if (task == null) return const SizedBox.shrink();
 
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final taskStatus = task.status;
     final progressValue = task.progress;
-    final progressColor = _progressColor(taskStatus);
+    final progressColor = _progressColor(taskStatus, cs.primary);
     final taskStatusText =
         task.extraInfo != null && task.extraInfo!.isNotEmpty
         ? task.extraInfo!
@@ -352,7 +346,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
             borderRadius: BorderRadius.circular(2),
             child: LinearProgressIndicator(
               value: progressValue,
-              backgroundColor: DesktopTheme.borderMedium,
+              backgroundColor: cs.outlineVariant.withValues(alpha: 0.55),
               valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               minHeight: 4,
             ),
@@ -362,10 +356,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
             children: [
               Text(
                 '${(progressValue * 100).toStringAsFixed(0)}%',
-                style: const TextStyle(
-                  fontSize: 11,
-                  color: DesktopTheme.textSecondary,
-                ),
+                style: styles.caption.copyWith(color: cs.onSurfaceVariant),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -373,7 +364,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
                   taskStatusText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(fontSize: 11, color: progressColor),
+                  style: styles.caption.copyWith(color: progressColor),
                 ),
               ),
             ],

@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 enum TaskBatchToolbarVariant { mobile, desktop }
 
@@ -68,25 +69,28 @@ class TaskBatchToolbar extends StatelessWidget {
     TaskTabState state,
     bool allSelected,
   ) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
-        color: DesktopTheme.primaryColor.withAlpha(20),
-        border: Border.all(color: DesktopTheme.primaryColor.withAlpha(60)),
+        color: cs.primary.withAlpha(20),
+        border: Border.all(color: cs.primary.withAlpha(60)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         children: [
           Text(
             '已选择 ${state.selectedTaskIds.length} 项',
-            style: const TextStyle(fontSize: 13, color: DesktopTheme.indigoText),
+            style: styles.body.copyWith(color: cs.primary),
           ),
           const Spacer(),
           TextButton(
             onPressed: allSelected ? onDeselectAll : onSelectAll,
             child: Text(
               allSelected ? '取消全选' : '全选',
-              style: const TextStyle(fontSize: 12),
+              style: styles.bodySmall,
             ),
           ),
           const SizedBox(width: 8),
@@ -95,7 +99,7 @@ class TaskBatchToolbar extends StatelessWidget {
                 ? null
                 : () => onBatchDelete(state.selectedTaskIds),
             icon: const Icon(Icons.delete, size: 14),
-            label: const Text('删除', style: TextStyle(fontSize: 12)),
+            label: Text('删除', style: styles.bodySmall),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,

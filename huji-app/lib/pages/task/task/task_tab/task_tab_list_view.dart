@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 typedef TaskTabItemBuilder = Widget Function(
   BuildContext context,
@@ -19,7 +20,7 @@ class TaskTabListView extends StatelessWidget {
   final TaskTabBloc bloc;
   final TaskTabItemBuilder itemBuilder;
   final WidgetBuilder emptyBuilder;
-  final Widget Function(TaskTabState state) loadMoreBuilder;
+  final Widget Function(BuildContext context, TaskTabState state) loadMoreBuilder;
   final bool enablePullToRefresh;
   final double loadMoreOffsetFromEnd;
   final double? itemSeparatorHeight;
@@ -89,7 +90,7 @@ class TaskTabListView extends StatelessWidget {
 
   Widget _buildItem(BuildContext context, TaskTabState state, int index) {
     if (index == state.filteredTasks.length) {
-      return loadMoreBuilder(state);
+      return loadMoreBuilder(context, state);
     }
     final task = state.filteredTasks[index];
     return itemBuilder(context, task, state);
@@ -136,7 +137,7 @@ class TaskTabListView extends StatelessWidget {
 class TaskTabLoadMoreIndicator {
   TaskTabLoadMoreIndicator._();
 
-  static Widget mobile(TaskTabState state) {
+  static Widget mobile(BuildContext context, TaskTabState state) {
     if (state.filter.isLoadingMore) {
       return const Padding(
         padding: EdgeInsets.all(16),
@@ -154,7 +155,7 @@ class TaskTabLoadMoreIndicator {
     );
   }
 
-  static Widget desktop(TaskTabState state) {
+  static Widget desktop(BuildContext context, TaskTabState state) {
     if (state.filter.isLoadingMore) {
       return const Padding(
         padding: EdgeInsets.all(16),
@@ -167,12 +168,18 @@ class TaskTabLoadMoreIndicator {
         ),
       );
     }
-    return const Padding(
-      padding: EdgeInsets.all(16),
+    if (state.filter.hasMore) {
+      return const SizedBox.shrink();
+    }
+    final cs = context.desktopColors;
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Center(
         child: Text(
           '没有更多数据了',
-          style: TextStyle(color: DesktopTheme.textDim, fontSize: 12),
+          style: AppTextStyles.of(context).mutedBodySmall.copyWith(
+                color: cs.outline,
+              ),
         ),
       ),
     );

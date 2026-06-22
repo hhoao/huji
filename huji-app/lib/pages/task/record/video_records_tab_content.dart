@@ -6,6 +6,7 @@ import 'package:huji_app/pages/task/record/bloc/video_records_tab_bloc.dart';
 import 'package:huji_app/pages/task/record/bloc/video_records_tab_event.dart';
 import 'package:huji_app/pages/task/record/bloc/video_records_tab_state.dart';
 import 'package:huji_app/pages/task/record/video_record_detail_dialog.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoRecordsTabContent extends StatefulWidget {
   final VideoRecordsTabBloc? bloc;
@@ -301,6 +302,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
     String buttonKey,
     VideoRecordsTabState state,
   ) {
+    final styles = AppTextStyles.of(context);
     // 如果有活跃的筛选条件，按钮不高亮
     final bool isSelected =
         !state.hasActiveFilters && state.selectedStatButton == buttonKey;
@@ -325,8 +327,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
             const SizedBox(width: 4),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
+              style: styles.bodySmall.copyWith(
                 color: isSelected ? Colors.white : Colors.black,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -340,9 +341,8 @@ class _VideoRecordsTabContent extends StatelessWidget {
               ),
               child: Text(
                 count,
-                style: TextStyle(
+                style: styles.bodySmall.copyWith(
                   color: isSelected ? color : Colors.grey[800],
-                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -354,6 +354,8 @@ class _VideoRecordsTabContent extends StatelessWidget {
   }
 
   Widget _buildRecordCard(BuildContext context, VideoProcessRecordVO record) {
+    final styles = AppTextStyles.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -373,10 +375,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                       children: [
                         Text(
                           record.videoName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: styles.bodyStrong,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -394,9 +393,8 @@ class _VideoRecordsTabContent extends StatelessWidget {
                               ),
                               child: Text(
                                 _getStatusText(record.status),
-                                style: const TextStyle(
+                                style: styles.caption.copyWith(
                                   color: Colors.white,
-                                  fontSize: 10,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -413,9 +411,8 @@ class _VideoRecordsTabContent extends StatelessWidget {
                               ),
                               child: Text(
                                 _getSportTypeText(record.sportType),
-                                style: TextStyle(
-                                  color: Colors.grey[700],
-                                  fontSize: 10,
+                                style: styles.caption.copyWith(
+                                  color: cs.onSurfaceVariant,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -432,14 +429,13 @@ class _VideoRecordsTabContent extends StatelessWidget {
                     children: [
                       Text(
                         '${record.progress.toStringAsFixed(1)}%',
-                        style: const TextStyle(
-                          fontSize: 16,
+                        style: styles.prominent.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
                         '时长: ${_formatDuration(record.videoDuration)}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: styles.mutedBodySmall,
                       ),
                     ],
                   ),
@@ -465,7 +461,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 children: [
                   Text(
                     '创建时间: ${_formatDate(record.createTime)}',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: styles.mutedBodySmall,
                   ),
                   if (record.extraInfo != null && record.extraInfo!.isNotEmpty)
                     Container(
@@ -476,7 +472,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 100),
                       child: Text(
                         '备注: ${record.extraInfo}',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        style: styles.mutedBodySmall,
 
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -548,6 +544,7 @@ class _FilterDialogState extends State<_FilterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -557,9 +554,9 @@ class _FilterDialogState extends State<_FilterDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 '筛选条件',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: styles.dialogTitle,
               ),
               TextButton(
                 onPressed: () {
@@ -685,9 +682,9 @@ class _FilterDialogState extends State<_FilterDialog> {
                 backgroundColor: Colors.deepPurple,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text(
+              child: Text(
                 '应用筛选',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+                style: styles.subtitle.copyWith(color: Colors.white),
               ),
             ),
           ),

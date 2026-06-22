@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Toggle chip with selected/unselected visual states and hover feedback.
 class AppChip extends StatelessWidget {
@@ -8,7 +9,6 @@ class AppChip extends StatelessWidget {
   final bool selected;
   final VoidCallback? onTap;
   final IconData? icon;
-  final double fontSize;
 
   const AppChip({
     super.key,
@@ -16,44 +16,45 @@ class AppChip extends StatelessWidget {
     this.selected = false,
     this.onTap,
     this.icon,
-    this.fontSize = 11,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final Color bg;
     final Color fg;
     final Color border;
 
     if (selected) {
-      bg = DesktopTheme.primaryColor.withAlpha(51);
-      fg = DesktopTheme.indigoText;
-      border = DesktopTheme.primaryColor;
+      bg = cs.primary.withAlpha(51);
+      fg = cs.primary;
+      border = cs.primary;
     } else {
-      bg = DesktopTheme.cardBg;
-      fg = DesktopTheme.textSecondary;
-      border = DesktopTheme.borderMedium;
+      bg = cs.surfaceContainer;
+      fg = cs.onSurfaceVariant;
+      border = cs.outlineVariant.withValues(alpha: 0.55);
     }
 
     return AppHoverBox(
       onTap: onTap,
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: 6,
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       backgroundColor: bg,
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: border),
-          borderRadius: BorderRadius.circular(DesktopTheme.radiusMd),
+          borderRadius: BorderRadius.circular(6),
         ),
         padding: EdgeInsets.zero,
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (icon != null) ...[
-              Icon(icon, size: fontSize + 2, color: fg),
+              Icon(icon, size: 13, color: fg),
               const SizedBox(width: 4),
             ],
-            Text(label, style: TextStyle(fontSize: fontSize, color: fg)),
+            Text(label, style: styles.caption.copyWith(color: fg)),
           ],
         ),
       ),

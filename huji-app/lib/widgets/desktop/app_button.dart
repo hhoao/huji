@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop button with hover highlight and press scale.
 ///
@@ -87,7 +88,7 @@ class AppButton extends StatelessWidget {
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
     final effectiveTextStyle =
-        textStyle ?? const TextStyle(fontSize: 12);
+        textStyle ?? AppTextStyles.of(context).bodySmall;
 
     final child = Row(
       mainAxisSize: mainAxisSize,

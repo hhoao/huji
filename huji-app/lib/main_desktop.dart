@@ -1,24 +1,22 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/services/desktop_shortcuts.dart';
+import 'package:huji_app/services/notification/notification_manager.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
-import 'package:huji_app/services/notification/notification_manager.dart';
-import 'package:huji_app/services/desktop_shortcuts.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_ui/shared_ui.dart';
+import 'package:window_manager/window_manager.dart';
 
-/// Desktop application root widget.
-///
-/// Sets up the MaterialApp.router with desktop-specific theme,
-/// go_router with desktop routes, and shares BLoC state with mobile.
 class DesktopApp extends StatefulWidget {
   const DesktopApp({super.key});
 
@@ -29,33 +27,30 @@ class DesktopApp extends StatefulWidget {
 class _DesktopAppState extends State<DesktopApp> {
   late final GoRouter _router;
   late final WindowListener _windowListener;
-
-  ThemeMode _themeMode = ThemeMode.dark;
+  late final AppearanceCubit _appearanceCubit;
 
   @override
   void initState() {
     super.initState();
+    _appearanceCubit = AppearanceCubit();
     _router = GoRouter(
       initialLocation: '/',
       routes: DesktopRoutes.getRoutes(),
       errorBuilder: (context, state) => DesktopErrorPage(state.error),
     );
-    DesktopTheme.loadThemeMode().then((m) {
-      if (mounted) setState(() => _themeMode = m);
-    });
-    // Initialize stores
     LocalVideoStorage().init();
     TaskStorage().init();
-    // Initialize desktop notifications
     NotificationManager().initialize();
 
     if (PlatformCapability.isDesktop) {
+      unawaited(preloadSharedUiFonts());
       _initWindowManager();
     }
   }
 
   Future<void> _initWindowManager() async {
     await windowManager.ensureInitialized();
+    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
 
     final prefs = await SharedPreferences.getInstance();
     final savedX = prefs.getDouble('window_x');
@@ -63,7 +58,7 @@ class _DesktopAppState extends State<DesktopApp> {
     final savedW = prefs.getDouble('window_w');
     final savedH = prefs.getDouble('window_h');
 
-    WindowOptions options;
+    final WindowOptions options;
     if (savedX != null && savedY != null && savedW != null && savedH != null) {
       options = WindowOptions(
         size: Size(savedW, savedH),
@@ -72,9 +67,9 @@ class _DesktopAppState extends State<DesktopApp> {
       );
       await windowManager.setPosition(Offset(savedX, savedY));
     } else {
-      options = WindowOptions(
-        size: const Size(1280, 800),
-        minimumSize: const Size(900, 600),
+      options = const WindowOptions(
+        size: Size(1280, 800),
+        minimumSize: Size(900, 600),
         title: '弧迹',
       );
     }
@@ -90,8 +85,11 @@ class _DesktopAppState extends State<DesktopApp> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<UserBloc>.value(
-      value: UserBlocInstance.instance,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<UserBloc>.value(value: UserBlocInstance.instance),
+        BlocProvider<AppearanceCubit>.value(value: _appearanceCubit),
+      ],
       child: Shortcuts(
         shortcuts: desktopShortcuts(),
         child: Actions(
@@ -101,23 +99,40 @@ class _DesktopAppState extends State<DesktopApp> {
             CloseIntent: CloseAction(),
             OpenTasksIntent: OpenTasksAction(),
           },
-          child: MaterialApp.router(
-            title: '弧迹',
-            debugShowCheckedModeBanner: false,
-            routerConfig: _router,
-            theme: DesktopTheme.lightTheme,
-            darkTheme: DesktopTheme.darkTheme,
-            themeMode: _themeMode,
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [
-              Locale('zh', 'CN'),
-              Locale('en', 'US'),
-            ],
-            locale: const Locale('zh', 'CN'),
+          child: BlocBuilder<AppearanceCubit, AppearancePreferences>(
+            builder: (context, prefs) {
+              final systemView =
+                  WidgetsBinding.instance.platformDispatcher.implicitView;
+              final systemMq = systemView == null
+                  ? const MediaQueryData()
+                  : MediaQueryData.fromView(systemView);
+              final bundle = resolveAppearanceTheme(prefs, systemMq);
+
+              return MaterialApp.router(
+                title: '弧迹',
+                debugShowCheckedModeBanner: false,
+                routerConfig: _router,
+                theme: bundle.lightTheme,
+                darkTheme: bundle.darkTheme,
+                themeMode: bundle.themeMode,
+                locale: bundle.locale,
+                localizationsDelegates: const [
+                  ...SharedUiLocalizations.localizationsDelegates,
+                  GlobalMaterialLocalizations.delegate,
+                  GlobalWidgetsLocalizations.delegate,
+                  GlobalCupertinoLocalizations.delegate,
+                ],
+                supportedLocales: SharedUiLocalizations.supportedLocales,
+                builder: (context, child) {
+                  Widget content = AppTextScaleBoundary(
+                    child: child ?? const SizedBox.shrink(),
+                  );
+                  content = UiZoom(scale: bundle.uiZoom, child: content);
+                  content = DragToResizeWrapper(child: content);
+                  return content;
+                },
+              );
+            },
           ),
         ),
       ),
@@ -129,6 +144,7 @@ class _DesktopAppState extends State<DesktopApp> {
     if (PlatformCapability.isDesktop) {
       windowManager.removeListener(_windowListener);
     }
+    _appearanceCubit.close();
     super.dispose();
   }
 }

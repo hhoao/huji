@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_tab.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop status filter tabs (全部 / 进行中 / 已完成 / 失败).
 class TaskStatusFilterDesktop extends StatelessWidget {
@@ -204,20 +205,23 @@ class DesktopLoginPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_outline, size: 64, color: DesktopTheme.textDim),
+          Icon(Icons.person_outline, size: 64, color: cs.outline),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             '需要登录才能查看剪辑记录',
-            style: TextStyle(fontSize: 14, color: DesktopTheme.textSecondary),
+            style: styles.body.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             '请先登录您的账户以继续使用',
-            style: TextStyle(fontSize: 12, color: DesktopTheme.textMuted),
+            style: styles.mutedBodySmall,
           ),
           const SizedBox(height: 24),
           AppButton(

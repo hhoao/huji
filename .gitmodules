@@ -1,3 +1,6 @@
 [submodule "huji-algorithm"]
 	path = huji-algorithm
 	url = https://github.com/hhoao/huji-algorithm.git
+[submodule "huji-app/packages/shared_ui"]
+	path = huji-app/packages/shared_ui
+	url = https://github.com/hhoao/shared_ui.git

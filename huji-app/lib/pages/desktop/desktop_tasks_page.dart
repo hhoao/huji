@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
 import 'package:huji_app/models/task.dart';
-import 'package:huji_app/pages/task/record/video_records_tab_content.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
@@ -15,11 +15,10 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_list_view.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_batch_toolbar.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_desktop.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dart';
+import 'package:huji_app/pages/task/record/video_records_tab_content.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
-import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
-import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
-import 'package:huji_app/widgets/desktop/app_tab.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/desktop/app_chip.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
@@ -33,12 +32,15 @@ class DesktopTasksPage extends StatefulWidget {
 }
 
 class _DesktopTasksPageState extends State<DesktopTasksPage> {
-  static const _dialogStyle = TaskDialogStyle(
-    backgroundColor: DesktopTheme.cardBg,
-    titleStyle: TextStyle(color: Colors.white),
-    contentStyle: TextStyle(color: DesktopTheme.textSecondary),
-    cancelStyle: TextStyle(color: DesktopTheme.textMuted),
-  );
+  static TaskDialogStyle _dialogStyle(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    return TaskDialogStyle(
+      backgroundColor: cs.surfaceContainer,
+      titleStyle: TextStyle(color: cs.onSurface),
+      contentStyle: TextStyle(color: cs.onSurfaceVariant),
+      cancelStyle: TextStyle(color: cs.outline),
+    );
+  }
 
   late final TaskTabBloc _bloc;
   int _pageTabIndex = 0;
@@ -75,7 +77,7 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
       _bloc.add(TaskTabToggleTaskSelectionEvent(id));
 
   void _showBatchDeleteConfirm(Set<String> ids) {
-    TaskTabActions.confirmBatchDelete(context, _bloc, ids, style: _dialogStyle);
+    TaskTabActions.confirmBatchDelete(context, _bloc, ids, style: _dialogStyle(context));
   }
 
   void _toggleTaskStatus(Task task) {
@@ -83,11 +85,11 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
   }
 
   void _confirmDelete(Task task) {
-    TaskTabActions.confirmDelete(context, _bloc, task, style: _dialogStyle);
+    TaskTabActions.confirmDelete(context, _bloc, task, style: _dialogStyle(context));
   }
 
   void _confirmCancel(Task task) {
-    TaskTabActions.confirmCancel(context, _bloc, task, style: _dialogStyle);
+    TaskTabActions.confirmCancel(context, _bloc, task, style: _dialogStyle(context));
   }
 
   void _handleRetry(Task task) {
@@ -104,50 +106,20 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
 
   @override
   Widget build(BuildContext context) {
-    return DesktopPageShell(
-      currentRoute: '/tasks',
-      title: '任务',
-      breadcrumbs: const ['任务'],
+    return WorkspaceIdentityPane(
+      header: const WorkspaceIdentityTitle(
+        title: '任务',
+        icon: Icons.assignment_outlined,
+      ),
+      tabs: const ['本地任务', '剪辑记录'],
+      selectedTabIndex: _pageTabIndex,
+      onSelectTab: (i) => setState(() => _pageTabIndex = i),
+      contentKey: 'tasks-tab-$_pageTabIndex',
       child: BlocProvider.value(
         value: _bloc,
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '任务',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                _pageTabIndex == 0
-                    ? '所有进行中和已完成的本地任务'
-                    : '云端剪辑记录与处理状态',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: DesktopTheme.textMuted,
-                ),
-              ),
-              const SizedBox(height: 18),
-              AppTab(
-                tabs: const ['本地任务', '剪辑记录'],
-                activeIndex: _pageTabIndex,
-                onChanged: (i) => setState(() => _pageTabIndex = i),
-              ),
-              const SizedBox(height: 18),
-              Expanded(
-                child: _pageTabIndex == 0
-                    ? _buildLocalTasksTab()
-                    : _buildVideoRecordsTab(),
-              ),
-            ],
-          ),
-        ),
+        child: _pageTabIndex == 0
+            ? _buildLocalTasksTab()
+            : _buildVideoRecordsTab(),
       ),
     );
   }
@@ -197,6 +169,7 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
           prev.filter.dateRange != curr.filter.dateRange,
       builder: (context, state) {
         final filter = state.filter;
+        final cs = context.desktopColors;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -250,34 +223,35 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
                       );
                     }
                   },
-                  borderRadius: DesktopTheme.radiusMd,
+                  borderRadius: 6,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 10,
                       vertical: 5,
                     ),
                     decoration: BoxDecoration(
-                      color: DesktopTheme.cardBg,
-                      border: Border.all(color: DesktopTheme.borderMedium),
+                      color: cs.surfaceContainer,
+                      border: Border.all(
+                        color: cs.outlineVariant.withValues(alpha: 0.55),
+                      ),
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.date_range,
                           size: 14,
-                          color: DesktopTheme.textMuted,
+                          color: cs.outline,
                         ),
                         const SizedBox(width: 6),
                         Text(
                           filter.dateRange != null
                               ? '${DateFormat('MM-dd').format(filter.dateRange!.start)} ~ ${DateFormat('MM-dd').format(filter.dateRange!.end)}'
                               : '时间范围',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: DesktopTheme.textSecondary,
-                          ),
+                          style: AppTextStyles.of(context)
+                              .caption
+                              .copyWith(color: cs.onSurfaceVariant),
                         ),
                       ],
                     ),
@@ -296,12 +270,12 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
                         ),
                       );
                     },
-                    borderRadius: DesktopTheme.radiusMd,
+                    borderRadius: 6,
                     padding: const EdgeInsets.all(4),
-                    child: const Icon(
+                    child: Icon(
                       Icons.clear,
                       size: 14,
-                      color: DesktopTheme.textMuted,
+                      color: cs.outline,
                     ),
                   ),
                 ],
@@ -309,12 +283,17 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
                 if (filter.hasActiveFilters)
                   AppHoverBox(
                     onTap: () => _updateFilter(TaskFilter()),
-                    borderRadius: DesktopTheme.radiusMd,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                    borderRadius: 6,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 2,
+                      ),
                       child: Text(
                         '清除筛选',
-                        style: TextStyle(fontSize: 11, color: Colors.redAccent),
+                        style: AppTextStyles.of(context)
+                            .caption
+                            .copyWith(color: Colors.redAccent),
                       ),
                     ),
                   ),
@@ -362,15 +341,18 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
   }
 
   Widget _buildEmptyState() {
-    return const Center(
+    final cs = context.desktopColors;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_outlined, size: 64, color: DesktopTheme.textDim),
-          SizedBox(height: 16),
+          Icon(Icons.inbox_outlined, size: 64, color: cs.outline),
+          const SizedBox(height: 16),
           Text(
             '暂无任务',
-            style: TextStyle(fontSize: 14, color: DesktopTheme.textSecondary),
+            style: AppTextStyles.of(context)
+                .body
+                .copyWith(color: cs.onSurfaceVariant),
           ),
         ],
       ),

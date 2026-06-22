@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop tab bar with animated underline indicator.
 class AppTab extends StatelessWidget {
@@ -21,6 +22,9 @@ class AppTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Row(
       children: List.generate(tabs.length, (i) {
         final active = i == activeIndex;
@@ -36,9 +40,7 @@ class AppTab extends StatelessWidget {
               decoration: BoxDecoration(
                 border: Border(
                   bottom: BorderSide(
-                    color: active
-                        ? DesktopTheme.primaryColor
-                        : Colors.transparent,
+                    color: active ? cs.primary : Colors.transparent,
                     width: 2,
                   ),
                 ),
@@ -48,28 +50,24 @@ class AppTab extends StatelessWidget {
                 children: [
                   Text(
                     tabs[i],
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: active
-                          ? Colors.white
-                          : DesktopTheme.textMuted,
+                    style: styles.body.copyWith(
+                      color: active ? cs.onSurface : cs.onSurfaceVariant,
                     ),
                   ),
                   if (badge != null) ...[
                     const SizedBox(width: 6),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 1),
+                        horizontal: 7,
+                        vertical: 1,
+                      ),
                       decoration: BoxDecoration(
-                        color: DesktopTheme.primaryColor
-                            .withAlpha(51),
+                        color: cs.primary.withAlpha(51),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         badge,
-                        style: const TextStyle(
-                            fontSize: 11,
-                            color: DesktopTheme.indigoText),
+                        style: styles.caption.copyWith(color: cs.primary),
                       ),
                     ),
                   ],
@@ -100,35 +98,32 @@ class AppTabNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(labels.length, (i) {
         final active = i == activeIndex;
         return AppHoverBox(
           onTap: () => onChanged?.call(i),
-          borderRadius: DesktopTheme.radiusMd,
+          borderRadius: 6,
           backgroundColor: active
-              ? DesktopTheme.primaryColor.withAlpha(31)
+              ? cs.primaryContainer.withValues(alpha: 0.35)
               : Colors.transparent,
-          padding: const EdgeInsets.symmetric(
-              horizontal: 12, vertical: 9),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
           child: Row(
             children: [
               Icon(
                 icons[i],
                 size: 16,
-                color: active
-                    ? DesktopTheme.indigoText
-                    : DesktopTheme.textSecondary,
+                color: active ? cs.primary : cs.onSurfaceVariant,
               ),
               const SizedBox(width: 10),
               Text(
                 labels[i],
-                style: TextStyle(
-                  fontSize: 13,
-                  color: active
-                      ? DesktopTheme.indigoText
-                      : DesktopTheme.textSecondary,
+                style: styles.body.copyWith(
+                  color: active ? cs.primary : cs.onSurfaceVariant,
                 ),
               ),
             ],
