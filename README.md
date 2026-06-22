@@ -9,10 +9,12 @@
 </p>
 
 <p align="center">
+  <a href="README.en.md">English</a> •
   <a href="#概述">概述</a> •
   <a href="#主要功能">主要功能</a> •
   <a href="#项目结构">项目结构</a> •
   <a href="#快速开始">快速开始</a> •
+  <a href="#社区">社区</a> •
   <a href="#license">License</a>
 </p>
 
@@ -137,6 +139,11 @@ python main.py --serve
 | `--train` | 训练模型 |
 
 更多说明见 [huji-algorithm/README.md](huji-algorithm/README.md)。
+
+## 社区
+
+- **QQ 群**：112856301
+- **Discord**：[加入群组](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## License
 
