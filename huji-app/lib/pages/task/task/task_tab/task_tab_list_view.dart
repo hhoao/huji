@@ -17,6 +17,8 @@ typedef TaskTabItemBuilder = Widget Function(
 /// Bloc-driven task list with pagination, optional pull-to-refresh, and
 /// platform-specific item / empty / load-more builders.
 class TaskTabListView extends StatelessWidget {
+  static const _loadMoreKey = ValueKey<String>('task-tab-load-more');
+
   final TaskTabBloc bloc;
   final TaskTabItemBuilder itemBuilder;
   final WidgetBuilder emptyBuilder;
@@ -50,32 +52,13 @@ class TaskTabListView extends StatelessWidget {
     final itemCount =
         state.filteredTasks.length + (state.filter.hasMore ? 1 : 0);
 
-    Widget list;
-    if (itemSeparatorHeight != null) {
-      list = ListView.separated(
-        cacheExtent: 400,
-        itemCount: itemCount,
-        findItemIndexCallback: (Key key) {
-          if (key is ValueKey<String>) {
-            final index = state.filteredTasks.indexWhere(
-              (task) => task.id == key.value,
-            );
-            return index >= 0 ? index : null;
-          }
-          return null;
-        },
-        separatorBuilder: (_, __) => SizedBox(height: itemSeparatorHeight),
-        itemBuilder: (context, index) => _buildItem(context, state, index),
-      );
-    } else {
-      list = ListView.builder(
-        cacheExtent: 400,
-        addAutomaticKeepAlives: true,
-        addRepaintBoundaries: true,
-        itemCount: itemCount,
-        itemBuilder: (context, index) => _buildItem(context, state, index),
-      );
-    }
+    final list = ListView.builder(
+      cacheExtent: 400,
+      addAutomaticKeepAlives: true,
+      addRepaintBoundaries: true,
+      itemCount: itemCount,
+      itemBuilder: (context, index) => _buildItem(context, state, index),
+    );
 
     return NotificationListener<ScrollNotification>(
       onNotification: (scrollInfo) {
@@ -89,11 +72,25 @@ class TaskTabListView extends StatelessWidget {
   }
 
   Widget _buildItem(BuildContext context, TaskTabState state, int index) {
+    final Widget child;
     if (index == state.filteredTasks.length) {
-      return loadMoreBuilder(context, state);
+      child = KeyedSubtree(
+        key: _loadMoreKey,
+        child: loadMoreBuilder(context, state),
+      );
+    } else {
+      child = itemBuilder(context, state.filteredTasks[index], state);
     }
-    final task = state.filteredTasks[index];
-    return itemBuilder(context, task, state);
+
+    final separator = itemSeparatorHeight;
+    if (separator != null && index > 0) {
+      return Padding(
+        padding: EdgeInsets.only(top: separator),
+        child: child,
+      );
+    }
+
+    return child;
   }
 
   @override
