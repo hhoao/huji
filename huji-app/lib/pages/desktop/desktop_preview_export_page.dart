@@ -1,12 +1,14 @@
-import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:path/path.dart' as p;
+import 'package:huji_app/pages/desktop/bloc/preview_player_bloc.dart';
+import 'package:huji_app/pages/desktop/bloc/preview_player_event.dart';
+import 'package:huji_app/pages/desktop/bloc/preview_player_state.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart' hide AppIconButton;
 import 'package:huji_app/models/autoclip_models.dart';
@@ -28,6 +30,8 @@ class DesktopPreviewExportPage extends StatefulWidget {
 }
 
 class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
+  final PreviewPlayerBloc _playerBloc = PreviewPlayerBloc();
+
   LocalVideoRecord? _record;
   List<SegmentInfo> _segments = [];
   String _fileName = '集锦';
@@ -36,11 +40,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   bool _isExporting = false;
   double _exportProgress = 0;
   bool _isLoading = true;
-
-  media_kit.Player? _player;
-  media_kit_video.VideoController? _videoController;
-  int _currentSegmentIndex = 0;
-  StreamSubscription? _positionSub;
 
   @override
   void initState() {
@@ -51,8 +50,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   void dispose() {
-    _positionSub?.cancel();
-    _player?.dispose();
+    _playerBloc.close();
     super.dispose();
   }
 
@@ -76,7 +74,12 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           _isLoading = false;
         });
         if (segments.isNotEmpty && r.filePath != null) {
-          _initPlayer(r.filePath!);
+          _playerBloc.add(
+            PreviewPlayerOpenEvent(
+              videoPath: r.filePath!,
+              segments: segments,
+            ),
+          );
         }
       } else {
         setState(() => _isLoading = false);
@@ -84,52 +87,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
     }
-  }
-
-  Future<void> _initPlayer(String videoPath) async {
-    _player?.dispose();
-    _videoController = null;
-    _positionSub?.cancel();
-    try {
-      final player = media_kit.Player();
-      _videoController = media_kit_video.VideoController(
-        player,
-        configuration: const media_kit_video.VideoControllerConfiguration(
-          enableHardwareAcceleration: false,
-        ),
-      );
-      _player = player;
-      if (mounted) setState(() {});
-      await player.open(media_kit.Media(videoPath));
-      _positionSub = player.stream.position.listen((_) {
-        if (!mounted) return;
-        _updateActiveSegment(player.state.position.inMilliseconds / 1000.0);
-      });
-    } catch (e) {
-      debugPrint('[preview] Failed to init player: $e');
-    }
-  }
-
-  void _updateActiveSegment(double seconds) {
-    int newIndex = -1;
-    for (int i = 0; i < _segments.length; i++) {
-      final s = _segments[i];
-      if (seconds >= s.startSeconds && seconds <= s.endSeconds) {
-        newIndex = i;
-        break;
-      }
-    }
-    if (newIndex != _currentSegmentIndex && newIndex >= 0) {
-      setState(() => _currentSegmentIndex = newIndex);
-    }
-  }
-
-  void _seekToSegment(int index) {
-    if (index < 0 || index >= _segments.length || _player == null) return;
-    final seg = _segments[index];
-    _player!.seek(Duration(milliseconds: (seg.startSeconds * 1000).round()));
-    _player!.play();
-    setState(() => _currentSegmentIndex = index);
   }
 
   double get _totalDuration {
@@ -144,12 +101,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final minutes = (totalSeconds / 60).floor();
     final seconds = (totalSeconds % 60).floor();
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
   }
 
   Future<void> _startExport() async {
@@ -231,32 +182,35 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final cs = context.desktopColors;
     final videoName = _record?.filePath != null ? p.basename(_record!.filePath!) : '未知';
 
-    return DesktopPageShell(
-      currentRoute: '/clip/${widget.clipId}/preview',
-      title: '预览',
-      breadcrumbs: ['视频库', videoName, '预览'],
-      actions: [
-        OutlinedButton(onPressed: () => context.go('/'), child: const Text('取消')),
-        const SizedBox(width: 8),
-        OutlinedButton(
-          onPressed: () => context.go('/clip/${widget.clipId}/edit'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: cs.onPrimaryContainer,
-            side: BorderSide(color: cs.primary.withAlpha(89)),
-            backgroundColor: cs.primary.withAlpha(26),
+    return BlocProvider.value(
+      value: _playerBloc,
+      child: DesktopPageShell(
+        currentRoute: '/clip/${widget.clipId}/preview',
+        title: '预览',
+        breadcrumbs: ['视频库', videoName, '预览'],
+        actions: [
+          OutlinedButton(onPressed: () => context.go('/'), child: const Text('取消')),
+          const SizedBox(width: 8),
+          OutlinedButton(
+            onPressed: () => context.go('/clip/${widget.clipId}/edit'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: cs.onPrimaryContainer,
+              side: BorderSide(color: cs.primary.withAlpha(89)),
+              backgroundColor: cs.primary.withAlpha(26),
+            ),
+            child: const Text('✎ 精修编辑'),
           ),
-          child: const Text('✎ 精修编辑'),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton.icon(
-          onPressed: _isLoading || _record == null ? null : () => _showExportModal(context),
-          icon: const Icon(Icons.file_download, size: 16),
-          label: const Text('导出'),
-        ),
-      ],
-      child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Row(children: [_buildExportConfig(), Expanded(child: _buildPreviewArea())]),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: _isLoading || _record == null ? null : () => _showExportModal(context),
+            icon: const Icon(Icons.file_download, size: 16),
+            label: const Text('导出'),
+          ),
+        ],
+        child: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : Row(children: [_buildExportConfig(), Expanded(child: _buildPreviewArea())]),
+      ),
     );
   }
 
@@ -490,91 +444,52 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Widget _buildPlayer() {
     final cs = context.desktopColors;
-    if (_player == null) {
-      return AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Container(
-          decoration: BoxDecoration(
-            color: const Color(0xFF0A0A0C),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: context.desktopBorderLight),
-          ),
-          child: Center(
-            child: Text(
-              '🏓',
-              style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                    color: cs.outline,
-                  ),
+
+    return BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
+      buildWhen: (previous, current) => previous.isReady != current.isReady,
+      builder: (context, state) {
+        if (!state.isReady) {
+          return AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF0A0A0C),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: context.desktopBorderLight),
+              ),
+              child: Center(
+                child: Text(
+                  '🏓',
+                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                        color: cs.outline,
+                      ),
+                ),
+              ),
+            ),
+          );
+        }
+
+        final videoController = _playerBloc.videoController;
+        return Column(children: [
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: context.desktopBorderLight),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(9),
+                child: videoController != null
+                    ? media_kit_video.Video(controller: videoController)
+                    : const SizedBox.shrink(),
+              ),
             ),
           ),
-        ),
-      );
-    }
-
-    return Column(children: [
-      AspectRatio(
-        aspectRatio: 16 / 9,
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: context.desktopBorderLight),
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(9),
-            child: _videoController != null ? media_kit_video.Video(controller: _videoController!) : const SizedBox.shrink(),
-          ),
-        ),
-      ),
-      const SizedBox(height: 8),
-      _buildPlayerControls(),
-    ]);
-  }
-
-  Widget _buildPlayerControls() {
-    final styles = AppTextStyles.of(context);
-    final cs = context.desktopColors;
-    final pos = _player?.state.position ?? Duration.zero;
-    final dur = _player?.state.duration ?? const Duration(seconds: 1);
-    final playing = _player?.state.playing ?? false;
-    final posMs = pos.inMilliseconds;
-    final durMs = dur.inMilliseconds.clamp(1, double.maxFinite.toInt());
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(color: const Color(0xFF1A1A1D), borderRadius: BorderRadius.circular(8)),
-      child: Row(children: [
-        AppIconButton(
-          icon: playing ? Icons.pause : Icons.play_arrow,
-          onTap: () => playing ? _player?.pause() : _player?.play(),
-          size: 36,
-          iconSize: 20,
-          color: const Color(0xFF18181B),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          _formatDuration(pos),
-          style: styles.mono.copyWith(color: cs.onSurface),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: SliderTheme(
-            data: SliderThemeData(
-              trackHeight: 4, activeTrackColor: Colors.white, inactiveTrackColor: Colors.white.withAlpha(51),
-              thumbColor: Colors.white, overlayColor: Colors.white.withAlpha(26),
-            ),
-            child: Slider(
-              value: posMs.toDouble(),
-              min: 0, max: durMs.toDouble(),
-              onChanged: (v) => _player?.seek(Duration(milliseconds: v.round())),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          _formatDuration(dur),
-          style: styles.mono.copyWith(color: cs.onSurface),
-        ),
-      ]),
+          const SizedBox(height: 8),
+          const _PreviewPlayerControls(),
+        ]);
+      },
     );
   }
 
@@ -599,81 +514,124 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         ),
       ]),
       const SizedBox(height: 8),
-      SizedBox(
-        height: 90,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          itemCount: _segments.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 8),
-          itemBuilder: (context, i) {
-            final seg = _segments[i];
-            final active = i == _currentSegmentIndex;
-            final duration = seg.endSeconds - seg.startSeconds;
-            final durStr = '${duration.toStringAsFixed(0)}s';
-            final startStr = _formatSeconds(seg.startSeconds);
+      BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
+        buildWhen: (previous, current) =>
+            previous.currentSegmentIndex != current.currentSegmentIndex,
+        builder: (context, playerState) {
+          return SizedBox(
+            height: 90,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: _segments.length,
+              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              itemBuilder: (context, i) {
+                final seg = _segments[i];
+                final active = i == playerState.currentSegmentIndex;
+                final duration = seg.endSeconds - seg.startSeconds;
+                final durStr = '${duration.toStringAsFixed(0)}s';
+                final startStr = _formatSeconds(seg.startSeconds);
 
-            return GestureDetector(
-              onTap: () => _seekToSegment(i),
-              child: Container(
-                width: 120,
-                decoration: BoxDecoration(
-                  color: cs.surfaceContainer,
-                  border: Border.all(
-                    color: active
-                        ? cs.primary.withAlpha(179)
-                        : context.desktopBorderLight,
-                  ),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                  Expanded(
-                    child: Container(
-                      decoration: const BoxDecoration(
-                        borderRadius: BorderRadius.vertical(top: Radius.circular(5)),
-                        gradient: LinearGradient(colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                return GestureDetector(
+                  onTap: () => _playerBloc.add(PreviewPlayerSeekToSegmentEvent(i)),
+                  child: Container(
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: cs.surfaceContainer,
+                      border: Border.all(
+                        color: active
+                            ? cs.primary.withAlpha(179)
+                            : context.desktopBorderLight,
                       ),
-                      child: Stack(children: [
-                        Center(
-                          child: Text(
-                            '🏓',
-                            style: styles.sectionTitle,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(5),
+                              ),
+                              gradient: LinearGradient(
+                                colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)],
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                              ),
+                            ),
+                            child: Stack(children: [
+                              Center(
+                                child: Text(
+                                  '🏓',
+                                  style: styles.sectionTitle,
+                                ),
+                              ),
+                              Positioned(
+                                bottom: 4,
+                                right: 4,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 5,
+                                    vertical: 1,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.black.withAlpha(179),
+                                    borderRadius: BorderRadius.circular(2),
+                                  ),
+                                  child: Text(
+                                    '#${i + 1}',
+                                    style: styles.caption.copyWith(
+                                      color: cs.onSurface,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              if (active)
+                                Positioned(
+                                  top: 4,
+                                  left: 4,
+                                  child: Text(
+                                    '▶ 播放中',
+                                    style: styles.caption.copyWith(
+                                      color: cs.onSurface,
+                                    ),
+                                  ),
+                                ),
+                            ]),
                           ),
                         ),
-                        Positioned(bottom: 4, right: 4, child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                          decoration: BoxDecoration(color: Colors.black.withAlpha(179), borderRadius: BorderRadius.circular(2)),
-                          child: Text(
-                            '#${i + 1}',
-                            style: styles.caption.copyWith(
-                              color: cs.onSurface,
-                              fontWeight: FontWeight.w600,
-                            ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
                           ),
-                        )),
-                        if (active)
-                          Positioned(
-                            top: 4,
-                            left: 4,
-                            child: Text(
-                              '▶ 播放中',
-                              style: styles.caption.copyWith(color: cs.onSurface),
-                            ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                startStr,
+                                style: styles.caption.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                              Text(
+                                durStr,
+                                style: styles.caption.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ),
-                      ]),
+                        ),
+                      ],
                     ),
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                    child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-                      Text(startStr, style: styles.caption.copyWith(color: cs.onSurfaceVariant)),
-                      Text(durStr, style: styles.caption.copyWith(color: cs.onSurfaceVariant)),
-                    ]),
-                  ),
-                ]),
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          );
+        },
       ),
     ]);
   }
@@ -688,6 +646,114 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       const SizedBox(width: 24),
       _SummaryStat(num: _selectedQuality, label: '输出清晰度'),
     ]);
+  }
+}
+
+class _PreviewPlayerControls extends StatefulWidget {
+  const _PreviewPlayerControls();
+
+  @override
+  State<_PreviewPlayerControls> createState() => _PreviewPlayerControlsState();
+}
+
+class _PreviewPlayerControlsState extends State<_PreviewPlayerControls> {
+  bool _isDragging = false;
+  double _dragMs = 0;
+
+  String _formatDuration(Duration d) {
+    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
+    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
+    return '$m:$s';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final styles = AppTextStyles.of(context);
+    final cs = context.desktopColors;
+    final bloc = context.read<PreviewPlayerBloc>();
+
+    return BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
+      buildWhen: (previous, current) {
+        if (_isDragging) {
+          return previous.duration != current.duration ||
+              previous.isPlaying != current.isPlaying;
+        }
+        return previous.position != current.position ||
+            previous.duration != current.duration ||
+            previous.isPlaying != current.isPlaying;
+      },
+      builder: (context, state) {
+        final durMs = state.duration.inMilliseconds.clamp(
+          1,
+          double.maxFinite.toInt(),
+        );
+        final posMs = _isDragging
+            ? _dragMs
+            : state.position.inMilliseconds.toDouble();
+
+        return Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1A1D),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(children: [
+            AppIconButton(
+              icon: state.isPlaying ? Icons.pause : Icons.play_arrow,
+              onTap: () => state.isPlaying
+                  ? bloc.add(const PreviewPlayerPauseEvent())
+                  : bloc.add(const PreviewPlayerPlayEvent()),
+              size: 36,
+              iconSize: 20,
+              color: const Color(0xFF18181B),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              _formatDuration(Duration(milliseconds: posMs.round())),
+              style: styles.mono.copyWith(color: cs.onSurface),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: SliderTheme(
+                data: SliderThemeData(
+                  trackHeight: 4,
+                  activeTrackColor: Colors.white,
+                  inactiveTrackColor: Colors.white.withAlpha(51),
+                  thumbColor: Colors.white,
+                  overlayColor: Colors.white.withAlpha(26),
+                ),
+                child: Slider(
+                  value: posMs.clamp(0, durMs.toDouble()),
+                  min: 0,
+                  max: durMs.toDouble(),
+                  onChangeStart: (_) {
+                    bloc.add(const PreviewPlayerScrubStartEvent());
+                    setState(() {
+                      _isDragging = true;
+                      _dragMs = state.position.inMilliseconds.toDouble();
+                    });
+                  },
+                  onChanged: (v) => setState(() => _dragMs = v),
+                  onChangeEnd: (v) {
+                    bloc.add(
+                      PreviewPlayerScrubEndEvent(
+                        Duration(milliseconds: v.round()),
+                      ),
+                    );
+                    setState(() => _isDragging = false);
+                  },
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Text(
+              _formatDuration(state.duration),
+              style: styles.mono.copyWith(color: cs.onSurface),
+            ),
+          ]),
+        );
+      },
+    );
   }
 }
 
