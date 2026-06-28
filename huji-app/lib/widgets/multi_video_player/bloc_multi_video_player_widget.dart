@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 
+import '../../utils/debounce/throttles.dart';
 import '../../services/platform_capability.dart';
 import 'bloc/multi_video_player_bloc.dart';
 import 'bloc/multi_video_player_event.dart';
@@ -285,6 +286,7 @@ class _ScrubbingProgressSlider extends StatefulWidget {
 class _ScrubbingProgressSliderState extends State<_ScrubbingProgressSlider> {
   bool _scrubbing = false;
   double? _scrubValue;
+  int _pendingSeekMs = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -316,14 +318,26 @@ class _ScrubbingProgressSliderState extends State<_ScrubbingProgressSlider> {
                 value: displayMs.clamp(0, total.toDouble()),
                 min: 0,
                 max: total.toDouble(),
-                onChangeStart: (_) => setState(() => _scrubbing = true),
-                onChanged: (value) => setState(() => _scrubValue = value),
+                onChangeStart: (_) {
+                  setState(() => _scrubbing = true);
+                  widget.bloc.add(const ScrubStartEvent());
+                },
+                onChanged: (value) {
+                  setState(() => _scrubValue = value);
+                  _pendingSeekMs = value.round();
+                  Throttles.throttle(
+                    'mvp_scrub_seek',
+                    const Duration(milliseconds: 200),
+                    () => widget.bloc.add(SeekToEvent(_pendingSeekMs)),
+                  );
+                },
                 onChangeEnd: (value) {
+                  Throttles.cancel('mvp_scrub_seek');
                   setState(() {
                     _scrubbing = false;
                     _scrubValue = null;
                   });
-                  widget.bloc.add(SeekToEvent(value.round()));
+                  widget.bloc.add(ScrubEndEvent(value.round()));
                 },
               ),
             ),

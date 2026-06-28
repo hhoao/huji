@@ -28,6 +28,21 @@ class TrimmerSeekTo extends TrimmerEvent {
   List<Object> get props => [position];
 }
 
+/// 底部进度条开始拖动
+class TrimmerScrubStart extends TrimmerEvent {
+  const TrimmerScrubStart();
+}
+
+/// 底部进度条结束拖动
+class TrimmerScrubEnd extends TrimmerEvent {
+  final int timeMs;
+
+  const TrimmerScrubEnd(this.timeMs);
+
+  @override
+  List<Object> get props => [timeMs];
+}
+
 class TrimmerSetPlaybackSpeed extends TrimmerEvent {
   final double speed;
 

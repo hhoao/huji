@@ -34,6 +34,8 @@ class MultiVideoPlayerBloc
   final Lock _operationLock = Lock();
 
   bool _waitForGoNext = false;
+  bool _isScrubbing = false;
+  bool _resumeAfterScrub = false;
 
   /// Caps progress UI updates; segment boundary checks run on the same tick.
   Timer? _progressTimer;
@@ -50,6 +52,8 @@ class MultiVideoPlayerBloc
     on<PlayEvent>(_onPlay);
     on<PauseEvent>(_onPause);
     on<SeekToEvent>(_onSeekTo);
+    on<ScrubStartEvent>(_onScrubStart);
+    on<ScrubEndEvent>(_onScrubEnd);
     on<SetPlaybackSpeedEvent>(_onSetPlaybackSpeed);
     on<SetVolumeEvent>(_onSetVolume);
     on<SetLoopingEvent>(_onSetLooping);
@@ -153,6 +157,37 @@ class MultiVideoPlayerBloc
     });
   }
 
+  Future<void> _onScrubStart(
+    ScrubStartEvent event,
+    Emitter<MultiVideoPlayerState> emit,
+  ) async {
+    await _operationLock.synchronized(() async {
+      _isScrubbing = true;
+      _resumeAfterScrub = state.isPlaying;
+      _stopProgressTimer();
+      if (_resumeAfterScrub) {
+        await _pauseController(state.currentVideoController);
+        emit(state.copyWith(isPlaying: false));
+      }
+    });
+  }
+
+  Future<void> _onScrubEnd(
+    ScrubEndEvent event,
+    Emitter<MultiVideoPlayerState> emit,
+  ) async {
+    await _operationLock.synchronized(() async {
+      await _seekTo(emit, event.timeMs);
+      _isScrubbing = false;
+      if (_resumeAfterScrub) {
+        await _playController(state.currentVideoController);
+        emit(state.copyWith(isPlaying: true));
+        _startProgressTimer();
+      }
+      _resumeAfterScrub = false;
+    });
+  }
+
   /// 设置播放速度
   Future<void> _onSetPlaybackSpeed(
     SetPlaybackSpeedEvent event,
@@ -231,7 +266,7 @@ class MultiVideoPlayerBloc
       return;
     }
 
-    if (_waitForGoNext) return;
+    if (_waitForGoNext || _isScrubbing) return;
 
     final currentVideoPosition = state.currentVideoPositionMs;
     if (currentVideoPosition == null) return;

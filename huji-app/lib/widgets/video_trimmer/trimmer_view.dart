@@ -261,7 +261,8 @@ class TrimmerEditor extends StatelessWidget {
       child: BlocBuilder<TrimmerBloc, TrimmerState>(
         buildWhen: (previous, current) =>
             previous.currentMilliseconds != current.currentMilliseconds ||
-            previous.totalDuration != current.totalDuration,
+            previous.totalDuration != current.totalDuration ||
+            previous.isDragging != current.isDragging,
         builder: (context, state) => Column(
           children: [
             Row(
@@ -282,46 +283,10 @@ class TrimmerEditor extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 2),
-            SliderTheme(
-              data: SliderTheme.of(context).copyWith(
-                activeTrackColor: Colors.white,
-                inactiveTrackColor: Colors.grey[700],
-                thumbColor: Colors.white,
-                overlayColor: Colors.white.withValues(alpha: 0.2),
-                thumbShape: RoundSliderThumbShape(
-                  enabledThumbRadius: state.isDragging ? 8 : 6,
-                ),
-                trackHeight: 2,
-                overlayShape: RoundSliderOverlayShape(
-                  overlayRadius: state.isDragging ? 16 : 12,
-                ),
-                trackShape: const RoundedRectSliderTrackShape(),
-                valueIndicatorColor: Colors.white,
-                valueIndicatorTextStyle: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                ),
-                showValueIndicator: state.isDragging
-                    ? ShowValueIndicator.always
-                    : ShowValueIndicator.never,
-              ),
-              child: Slider(
-                value: state.totalDuration > 0
-                    ? (state.currentMilliseconds / state.totalDuration)
-                        .clamp(0.0, 1.0)
-                    : 0.0,
-                onChanged: (value) {
-                  final targetTime = (value * state.totalDuration).round();
-                  if ((targetTime - state.currentMilliseconds).abs() > 100) {
-                    if (context.mounted) {
-                      context.read<TrimmerBloc>().add(
-                        TrimmerSeekTo(Duration(milliseconds: targetTime)),
-                      );
-                    }
-                  }
-                },
-              ),
+            _TrimmerProgressSlider(
+              totalDurationMs: state.totalDuration.round(),
+              currentMs: state.currentMilliseconds,
+              isDragging: state.isDragging,
             ),
           ],
         ),
@@ -768,6 +733,98 @@ class TrimmerEditor extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TrimmerProgressSlider extends StatefulWidget {
+  final int totalDurationMs;
+  final int currentMs;
+  final bool isDragging;
+
+  const _TrimmerProgressSlider({
+    required this.totalDurationMs,
+    required this.currentMs,
+    required this.isDragging,
+  });
+
+  @override
+  State<_TrimmerProgressSlider> createState() => _TrimmerProgressSliderState();
+}
+
+class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
+  bool _scrubbing = false;
+  double? _scrubFraction;
+  int _pendingSeekMs = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.totalDurationMs;
+    final fraction = total > 0
+        ? (_scrubbing
+                ? (_scrubFraction ??
+                    (widget.currentMs / total).clamp(0.0, 1.0))
+                : (widget.currentMs / total).clamp(0.0, 1.0))
+        : 0.0;
+
+    return SliderTheme(
+      data: SliderTheme.of(context).copyWith(
+        activeTrackColor: Colors.white,
+        inactiveTrackColor: Colors.grey[700],
+        thumbColor: Colors.white,
+        overlayColor: Colors.white.withValues(alpha: 0.2),
+        thumbShape: RoundSliderThumbShape(
+          enabledThumbRadius: widget.isDragging || _scrubbing ? 8 : 6,
+        ),
+        trackHeight: 2,
+        overlayShape: RoundSliderOverlayShape(
+          overlayRadius: widget.isDragging || _scrubbing ? 16 : 12,
+        ),
+        trackShape: const RoundedRectSliderTrackShape(),
+        valueIndicatorColor: Colors.white,
+        valueIndicatorTextStyle: const TextStyle(
+          color: Colors.white,
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
+        showValueIndicator: widget.isDragging || _scrubbing
+            ? ShowValueIndicator.always
+            : ShowValueIndicator.never,
+      ),
+      child: Slider(
+        value: fraction,
+        onChangeStart: (_) {
+          setState(() => _scrubbing = true);
+          context.read<TrimmerBloc>().add(const TrimmerScrubStart());
+        },
+        onChanged: (value) {
+          setState(() => _scrubFraction = value);
+          _pendingSeekMs = (value * total).round();
+          Throttles.throttle(
+            'trimmer_scrub_seek',
+            const Duration(milliseconds: 200),
+            () {
+              if (context.mounted) {
+                context.read<TrimmerBloc>().add(
+                  TrimmerSeekTo(Duration(milliseconds: _pendingSeekMs)),
+                );
+              }
+            },
+          );
+        },
+        onChangeEnd: (value) {
+          Throttles.cancel('trimmer_scrub_seek');
+          setState(() {
+            _scrubbing = false;
+            _scrubFraction = null;
+          });
+          if (context.mounted) {
+            context.read<TrimmerBloc>().add(
+              TrimmerScrubEnd((value * total).round()),
+            );
+          }
+        },
       ),
     );
   }

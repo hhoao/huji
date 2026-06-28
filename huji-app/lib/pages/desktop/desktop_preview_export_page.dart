@@ -19,6 +19,7 @@ import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_even
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_state.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc_multi_video_player_widget.dart';
 import 'package:huji_app/widgets/multi_video_player/segment_playback_factory.dart';
+import 'package:huji_app/widgets/video_export_progress_dialog.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
@@ -38,8 +39,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   String _fileName = '集锦';
   String _savePath = '';
   String _selectedQuality = '1080p';
-  bool _isExporting = false;
-  double _exportProgress = 0;
   bool _isLoading = true;
 
   @override
@@ -110,15 +109,18 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Future<void> _startExport() async {
-    if (_record == null || _record!.filePath == null || _segments.isEmpty) return;
-    setState(() { _isExporting = true; _exportProgress = 0; });
+  Future<VideoExportResult> _runExport(VideoExportProgressCallback onProgress) async {
+    if (_record == null || _record!.filePath == null || _segments.isEmpty) {
+      throw Exception('没有可导出的片段');
+    }
+
+    onProgress(0, '准备导出...');
 
     final outputPath = '$_savePath/$_fileName.mp4';
     await Directory(_savePath).create(recursive: true);
 
-    // Build ffmpeg concat list with inpoint/outpoint per segment
-    final concatPath = '${Directory.systemTemp.path}/huji_concat_${DateTime.now().millisecondsSinceEpoch}.txt';
+    final concatPath =
+        '${Directory.systemTemp.path}/huji_concat_${DateTime.now().millisecondsSinceEpoch}.txt';
     final buf = StringBuffer();
     for (final s in _segments) {
       buf.writeln("file '${_record!.filePath!}'");
@@ -127,7 +129,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     }
     await File(concatPath).writeAsString(buf.toString());
 
-    // Quality → encoding parameters
     final (scale, crf) = switch (_selectedQuality) {
       '原画' => ('', '18'),
       '1080p' => ('scale=-2:1080', '20'),
@@ -137,6 +138,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final vfArg = scale.isNotEmpty ? ['-vf', scale] : <String>[];
 
     final totalDurationSec = _totalDuration;
+    onProgress(0.01, '正在编码...');
+
     try {
       final process = await Process.start('ffmpeg', [
         '-f', 'concat', '-safe', '0', '-i', concatPath,
@@ -148,13 +151,18 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         '-y', outputPath,
       ]);
 
-      final outLines = process.stdout.transform(utf8.decoder).transform(const LineSplitter());
+      final outLines = process.stdout
+          .transform(utf8.decoder)
+          .transform(const LineSplitter());
       await for (final line in outLines) {
         if (line.startsWith('out_time_ms=')) {
           final ms = int.tryParse(line.substring(12)) ?? 0;
           if (totalDurationSec > 0) {
             final p = ((ms / 1000) / totalDurationSec).clamp(0.0, 1.0);
-            if (mounted) setState(() => _exportProgress = p);
+            onProgress(
+              p,
+              '正在导出... ${(p * 100).toStringAsFixed(0)}%',
+            );
           }
         }
       }
@@ -162,25 +170,18 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       final exitCode = await process.exitCode;
       await File(concatPath).delete();
 
-      if (!mounted) return;
-      if (exitCode == 0) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导出完成: $outputPath')),
-        );
-      } else {
+      if (exitCode != 0) {
         final stderr = await process.stderr.transform(utf8.decoder).join();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('导出失败: $stderr')),
-        );
+        throw Exception(stderr.trim().isEmpty ? 'ffmpeg 退出码 $exitCode' : stderr);
       }
+
+      onProgress(1, '导出完成');
+      return VideoExportResult(outputPath: outputPath);
     } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('导出失败: $e')),
-      );
-      try { await File(concatPath).delete(); } catch (_) {}
-    } finally {
-      if (mounted) setState(() { _isExporting = false; _exportProgress = 0; });
+      try {
+        await File(concatPath).delete();
+      } catch (_) {}
+      rethrow;
     }
   }
 
@@ -229,53 +230,44 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
     showDialog(
       context: context,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => AlertDialog(
-          backgroundColor: cs.surfaceContainer,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          title: Text('确认导出', style: styles.dialogTitle.copyWith(color: cs.onSurface)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _exportInfoRow(ctx, '文件名', '$_fileName.mp4'),
-              const SizedBox(height: 8),
-              _exportInfoRow(ctx, '格式', 'MP4 (H.264)'),
-              const SizedBox(height: 8),
-              _exportInfoRow(ctx, '清晰度', _selectedQuality),
-              const SizedBox(height: 8),
-              _exportInfoRow(ctx, '保存到', _savePath),
-              const SizedBox(height: 8),
-              _exportInfoRow(ctx, '回合数', '$segCount 个 · 合计 $durationStr'),
-              const SizedBox(height: 12),
-              Divider(color: context.desktopBorderMedium),
-              if (_isExporting) ...[
-                const SizedBox(height: 16),
-                LinearProgressIndicator(
-                  value: _exportProgress,
-                  backgroundColor: context.desktopBorderMedium,
-                  valueColor: AlwaysStoppedAnimation(cs.primary),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '导出中... ${(_exportProgress * 100).toStringAsFixed(0)}%',
-                  style: styles.body.copyWith(color: cs.onSurfaceVariant),
-                ),
-              ],
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: _isExporting ? null : () => Navigator.of(ctx).pop(),
-              child: Text('取消', style: styles.body.copyWith(color: cs.onSurfaceVariant)),
-            ),
-            ElevatedButton.icon(
-              onPressed: _isExporting ? null : () async { Navigator.of(ctx).pop(); await _startExport(); },
-              icon: const Icon(Icons.play_arrow, size: 16),
-              label: const Text('开始导出'),
-            ),
+      builder: (ctx) => AlertDialog(
+        backgroundColor: cs.surfaceContainer,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        title: Text('确认导出', style: styles.dialogTitle.copyWith(color: cs.onSurface)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _exportInfoRow(ctx, '文件名', '$_fileName.mp4'),
+            const SizedBox(height: 8),
+            _exportInfoRow(ctx, '格式', 'MP4 (H.264)'),
+            const SizedBox(height: 8),
+            _exportInfoRow(ctx, '清晰度', _selectedQuality),
+            const SizedBox(height: 8),
+            _exportInfoRow(ctx, '保存到', _savePath),
+            const SizedBox(height: 8),
+            _exportInfoRow(ctx, '回合数', '$segCount 个 · 合计 $durationStr'),
           ],
         ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text('取消', style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+              VideoExportProgressDialog.show(
+                context,
+                title: '导出视频',
+                subtitle: '$_fileName.mp4 · $_selectedQuality',
+                exportTask: _runExport,
+              );
+            },
+            icon: const Icon(Icons.play_arrow, size: 16),
+            label: const Text('开始导出'),
+          ),
+        ],
       ),
     );
   }

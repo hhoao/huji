@@ -22,6 +22,12 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   bool _isVideoPlayScroll = false;
   bool _isUserScrolling = false; // 用户正在滑动标志
   Debouncer? _scrollDebouncer; // 滚动防抖器
+  Timer? _playbackTimer;
+  bool _isScrubbing = false;
+  bool _resumeAfterScrub = false;
+
+  /// 播放时统一 tick：同步进度 UI + 缩略图时间轴（保持二者一致）
+  static const _playbackTickInterval = Duration(milliseconds: 50);
 
   final File file;
 
@@ -33,6 +39,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     on<TrimmerLoadVideo>(_onLoadVideo);
     on<TrimmerTogglePlayPause>(_onTogglePlayPause);
     on<TrimmerSeekTo>(_onSeekTo);
+    on<TrimmerScrubStart>(_onScrubStart);
+    on<TrimmerScrubEnd>(_onScrubEnd);
     on<TrimmerSetPlaybackSpeed>(_onSetPlaybackSpeed);
     on<TrimmerToggleSlowMotion>(_onToggleSlowMotion);
     on<TrimmerTogglePlaySelectedSegmentOnly>(_onTogglePlaySelectedSegmentOnly);
@@ -58,6 +66,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         await controller.initialize(file);
 
         final duration = controller.duration;
+        final timeInterval = _thumbnailIntervalForDuration(duration.inMilliseconds);
 
         final scrollController = ScrollController();
 
@@ -79,7 +88,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         final thumbnailConfig = ThumbnailConfig(
           videoPath: file.path,
           dirPath: tempDir.path,
-          timeIntervalSeconds: state.timeIntervalSeconds,
+          timeIntervalSeconds: timeInterval,
           quality: 1, // 最高质量
           format: 'png', // PNG 无损压缩，更清晰
           width: 200, // 适合高DPI显示（44px × 4.5）
@@ -94,6 +103,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
             scrollController: scrollController,
             coverImage: coverImage,
             thumbnailConfig: thumbnailConfig,
+            timeIntervalSeconds: timeInterval,
           ),
         );
 
@@ -132,7 +142,19 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     _isVideoPlayScroll = false;
   }
 
+  double _thumbnailIntervalForDuration(int durationMs) {
+    if (!PlatformCapability.isDesktop) return 1;
+    final minutes = durationMs / 60000;
+    if (minutes > 60) return 5;
+    if (minutes > 30) return 3;
+    if (minutes > 15) return 2;
+    return 1;
+  }
+
   void _scrollTimelineControllerPositionFromTime(int time) {
+    final scrollController = state.scrollController;
+    if (scrollController == null || !scrollController.hasClients) return;
+
     // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
     final numberOfThumbnails =
         (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
@@ -142,11 +164,16 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     // 时间对应的像素位置（在缩略图区域中）
     final pixel = (time / state.totalDuration * thumbnailsWidth).clamp(
       0.0,
-      state.scrollController!.position.maxScrollExtent,
+      scrollController.position.maxScrollExtent,
     );
 
+    if (scrollController.positions.isNotEmpty) {
+      final current = scrollController.position.pixels;
+      if ((current - pixel).abs() < 0.5) return;
+    }
+
     _isVideoPlayScroll = true;
-    state.scrollController!.jumpTo(pixel);
+    scrollController.jumpTo(pixel);
   }
 
   void _scrollVideoPlayerPositionFromPixel(double pixel) {
@@ -234,72 +261,93 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   }
 
   void _onVideoPlayerControllerChanged() {
-    if (!isClosed && state.videoPlayerController != null) {
-      final currentTime =
-          state.videoPlayerController!.position.inMilliseconds;
+    if (!isClosed || state.videoPlayerController == null) return;
 
-      // 检查是否在"只播放片段"模式
-      if (state.playSelectedSegmentOnly) {
-        final activeSegments =
-            videoTrimmerBlocManager.clipSegmentBloc.state.activeSegments;
-
-        if (activeSegments.isNotEmpty) {
-          // 检查播放位置是否在任何片段范围内
-          final isInAnySegment = activeSegments.any(
-            (segment) =>
-                currentTime >= segment.startTime &&
-                currentTime <= segment.endTime,
-          );
-
-          if (!isInAnySegment) {
-            // 查找下一个片段的开始时间
-            final nextSegment = activeSegments
-                .where((segment) => segment.startTime > currentTime)
-                .fold<VideoClipSegment?>(
-                  null,
-                  (prev, segment) =>
-                      prev == null || segment.startTime < prev.startTime
-                      ? segment
-                      : prev,
-                );
-
-            if (nextSegment != null) {
-              // 跳转到下一个片段开始位置
-              state.videoPlayerController!.seekTo(
-                Duration(milliseconds: nextSegment.startTime),
-              );
-            } else {
-              // 如果播放位置超过最后一个片段，暂停播放并跳转到第一个片段开始
-              state.videoPlayerController!.pause();
-              state.videoPlayerController!.seekTo(
-                Duration(milliseconds: activeSegments.first.startTime),
-              );
-            }
-            return;
-          }
-        }
-      }
-
-      if (state.currentMilliseconds != currentTime) {
-        add(TrimmerUpdateCurrentMilliseconds(currentTime));
-        // 如果用户正在滑动，完全忽略视频位置变化（避免回溯）
-        if (!_isUserScrolling && !_isPositionChangeByTimelineScroll) {
-          _scrollTimelineControllerPositionFromTime(currentTime);
-        }
-        _isPositionChangeByTimelineScroll = false;
-      }
-
-      final bool isPlaying = state.videoPlayerController!.isPlaying;
-      if (state.isPlaying != isPlaying) {
-        add(TrimmerUpdatePlaybackState(isPlaying));
-      }
-
+    final isPlaying = state.videoPlayerController!.isPlaying;
+    if (state.isPlaying != isPlaying) {
+      add(TrimmerUpdatePlaybackState(isPlaying));
       if (isPlaying) {
-        if (state.currentMilliseconds > state.totalDuration) {
-          state.videoPlayerController!.pause();
-        }
+        _startPlaybackTimer();
+      } else {
+        _stopPlaybackTimer();
       }
     }
+  }
+
+  void _startPlaybackTimer() {
+    _playbackTimer?.cancel();
+    _playbackTimer = Timer.periodic(_playbackTickInterval, (_) {
+      if (!isClosed) _onPlaybackTick();
+    });
+  }
+
+  void _stopPlaybackTimer() {
+    _playbackTimer?.cancel();
+    _playbackTimer = null;
+  }
+
+  void _onPlaybackTick() {
+    if (_isScrubbing || _isUserScrolling) return;
+
+    final controller = state.videoPlayerController;
+    if (controller == null || !controller.isPlaying) return;
+
+    final currentTime = controller.position.inMilliseconds;
+
+    if (state.playSelectedSegmentOnly) {
+      if (_handlePlaySelectedSegmentOnlyBoundary(currentTime)) return;
+    }
+
+    if (state.currentMilliseconds != currentTime) {
+      if (!_isPositionChangeByTimelineScroll) {
+        _scrollTimelineControllerPositionFromTime(currentTime);
+      }
+      _isPositionChangeByTimelineScroll = false;
+      add(TrimmerUpdateCurrentMilliseconds(currentTime));
+    }
+
+    if (currentTime > state.totalDuration) {
+      controller.pause();
+    }
+  }
+
+  bool _handlePlaySelectedSegmentOnlyBoundary(int currentTime) {
+    final activeSegments =
+        videoTrimmerBlocManager.clipSegmentBloc.state.activeSegments;
+    if (activeSegments.isEmpty) return false;
+
+    final isInAnySegment = activeSegments.any(
+      (segment) =>
+          currentTime >= segment.startTime && currentTime <= segment.endTime,
+    );
+
+    if (isInAnySegment) return false;
+
+    final nextSegment = activeSegments
+        .where((segment) => segment.startTime > currentTime)
+        .fold<VideoClipSegment?>(
+          null,
+          (prev, segment) =>
+              prev == null || segment.startTime < prev.startTime
+              ? segment
+              : prev,
+        );
+
+    final controller = state.videoPlayerController!;
+    if (nextSegment != null) {
+      controller.seekTo(Duration(milliseconds: nextSegment.startTime));
+    } else {
+      controller.pause();
+      controller.seekTo(Duration(milliseconds: activeSegments.first.startTime));
+    }
+    return true;
+  }
+
+  void _syncPlaybackUiToTime(int timeMs) {
+    if (!_isUserScrolling) {
+      _scrollTimelineControllerPositionFromTime(timeMs);
+    }
+    add(TrimmerUpdateCurrentMilliseconds(timeMs));
   }
 
   Future<void> _onTogglePlayPause(
@@ -309,14 +357,46 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     try {
       if (state.isPlaying) {
         state.videoPlayerController?.pause();
+        _stopPlaybackTimer();
         emit(state.copyWith(isPlaying: false));
       } else {
         state.videoPlayerController?.play();
+        _startPlaybackTimer();
         emit(state.copyWith(isPlaying: true));
       }
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }
+  }
+
+  Future<void> _onScrubStart(
+    TrimmerScrubStart event,
+    Emitter<TrimmerState> emit,
+  ) async {
+    _isScrubbing = true;
+    _resumeAfterScrub = state.isPlaying;
+    _stopPlaybackTimer();
+    if (_resumeAfterScrub) {
+      await state.videoPlayerController?.pause();
+      emit(state.copyWith(isPlaying: false));
+    }
+  }
+
+  Future<void> _onScrubEnd(
+    TrimmerScrubEnd event,
+    Emitter<TrimmerState> emit,
+  ) async {
+    await state.videoPlayerController?.seekTo(
+      Duration(milliseconds: event.timeMs),
+    );
+    _syncPlaybackUiToTime(event.timeMs);
+    _isScrubbing = false;
+    if (_resumeAfterScrub) {
+      await state.videoPlayerController?.play();
+      _startPlaybackTimer();
+      emit(state.copyWith(isPlaying: true));
+    }
+    _resumeAfterScrub = false;
   }
 
   void _onSeekTo(TrimmerSeekTo event, Emitter<TrimmerState> emit) async {
@@ -353,6 +433,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     await state.videoPlayerController?.seekTo(
       Duration(milliseconds: targetTime),
     );
+    _syncPlaybackUiToTime(targetTime);
   }
 
   void _onSetPlaybackSpeed(
@@ -458,6 +539,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
   @override
   Future<void> close() {
+    _stopPlaybackTimer();
     _scrollDebouncer?.dispose(); // 释放防抖器
     state.videoPlayerController?.removeListener(
       _onVideoPlayerControllerChanged,
