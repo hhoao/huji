@@ -4,6 +4,7 @@ import '../../../models/video.dart';
 import '../../../models/autoclip_models.dart';
 import '../../../store/video.dart';
 import '../../../widgets/multi_video_player/models/video_playback_item.dart';
+import '../../../widgets/multi_video_player/segment_playback_factory.dart';
 import '../../../widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import '../../../widgets/multi_video_player/bloc/multi_video_player_event.dart';
 import 'round_clip_event.dart';
@@ -251,29 +252,12 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
   List<VideoPlaybackItem> _createVideoPlaybackItems(
     EdittingVideoRecord videoRecord,
   ) {
-    final playbackItems = <VideoPlaybackItem>[];
-
-    // 添加所有playBall片段的播放项
     final playBallSegments = _extractPlayBallSegments(videoRecord);
-    for (int i = 0; i < playBallSegments.length; i++) {
-      final segment = playBallSegments[i];
-      final startTimeMs = (segment.startSeconds * 1000).round();
-      final endTimeMs = (segment.endSeconds * 1000).round();
-
-      playbackItems.add(
-        VideoPlaybackItem(
-          id: '${videoRecord.id}_segment_$i',
-          name: '回合 ${i + 1}',
-          videoPath: videoRecord.filePath!,
-          startTimeMs: startTimeMs,
-          endTimeMs: endTimeMs,
-          totalDurationMs: endTimeMs,
-          enabled: true,
-        ),
-      );
-    }
-
-    return playbackItems;
+    return createPlaybackItemsFromSegments(
+      recordId: videoRecord.id,
+      videoPath: videoRecord.filePath!,
+      segments: playBallSegments,
+    );
   }
 
   /// 提取playBall动作片段

@@ -5,7 +5,7 @@ publish_to: "none"
 version: 2.4.0
 
 environment:
-  sdk: ^3.11.5
+  sdk: ^3.12.2
 
 dependencies:
   flutter:
@@ -42,6 +42,7 @@ dependencies:
   web_socket_channel: ^2.4.0
   sqflite_common_ffi: ^2.3.6
   sqlite3_flutter_libs: ^0.5.34
+  sqflite: ^2.4.2
   
   carousel_slider: ^5.1.1
   dotted_border: ^3.1.0
@@ -49,7 +50,6 @@ dependencies:
   flutter_native_video_trimmer: ^1.1.9
   gal: ^2.3.1
   gal_linux: ^0.1.2
-  sqflite: ^2.4.2
   workmanager: ^0.8.0
   open_file: ^3.5.10
   shared_ui:

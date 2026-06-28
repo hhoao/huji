@@ -4,11 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:path/path.dart' as p;
-import 'package:huji_app/pages/desktop/bloc/preview_player_bloc.dart';
-import 'package:huji_app/pages/desktop/bloc/preview_player_event.dart';
-import 'package:huji_app/pages/desktop/bloc/preview_player_state.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart' hide AppIconButton;
 import 'package:huji_app/models/autoclip_models.dart';
@@ -18,6 +14,11 @@ import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/app_icon_button.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_state.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc_multi_video_player_widget.dart';
+import 'package:huji_app/widgets/multi_video_player/segment_playback_factory.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
@@ -30,7 +31,7 @@ class DesktopPreviewExportPage extends StatefulWidget {
 }
 
 class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
-  final PreviewPlayerBloc _playerBloc = PreviewPlayerBloc();
+  final MultiVideoPlayerBloc _playerBloc = MultiVideoPlayerBloc();
 
   LocalVideoRecord? _record;
   List<SegmentInfo> _segments = [];
@@ -74,12 +75,18 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           _isLoading = false;
         });
         if (segments.isNotEmpty && r.filePath != null) {
-          _playerBloc.add(
-            PreviewPlayerOpenEvent(
-              videoPath: r.filePath!,
-              segments: segments,
-            ),
-          );
+          final videoFile = File(r.filePath!);
+          if (await videoFile.exists()) {
+            _playerBloc.add(
+              SetItemsEvent(
+                createPlaybackItemsFromSegments(
+                  recordId: r.id,
+                  videoPath: r.filePath!,
+                  segments: segments,
+                ),
+              ),
+            );
+          }
         }
       } else {
         setState(() => _isLoading = false);
@@ -443,53 +450,46 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildPlayer() {
-    final cs = context.desktopColors;
-
-    return BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
-      buildWhen: (previous, current) => previous.isReady != current.isReady,
-      builder: (context, state) {
-        if (!state.isReady) {
-          return AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Container(
-              decoration: BoxDecoration(
-                color: const Color(0xFF0A0A0C),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: context.desktopBorderLight),
-              ),
-              child: Center(
-                child: Text(
-                  '🏓',
-                  style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                        color: cs.outline,
-                      ),
-                ),
-              ),
-            ),
-          );
-        }
-
-        final videoController = _playerBloc.videoController;
-        return Column(children: [
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: context.desktopBorderLight),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(9),
-                child: videoController != null
-                    ? media_kit_video.Video(controller: videoController)
-                    : const SizedBox.shrink(),
-              ),
+    if (_segments.isEmpty) {
+      final cs = context.desktopColors;
+      return AspectRatio(
+        aspectRatio: 16 / 9,
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF0A0A0C),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: context.desktopBorderLight),
+          ),
+          child: Center(
+            child: Text(
+              '🏓',
+              style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                    color: cs.outline,
+                  ),
             ),
           ),
-          const SizedBox(height: 8),
-          const _PreviewPlayerControls(),
-        ]);
-      },
+        ),
+      );
+    }
+
+    return AspectRatio(
+      aspectRatio: 16 / 9,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: context.desktopBorderLight),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(9),
+          child: BlocMultiVideoPlayerWidget(
+            bloc: _playerBloc,
+            aspectRatio: 16 / 9,
+            backgroundColor: Colors.black,
+            showControls: true,
+            padding: EdgeInsets.zero,
+          ),
+        ),
+      ),
     );
   }
 
@@ -514,10 +514,11 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         ),
       ]),
       const SizedBox(height: 8),
-      BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
+      BlocBuilder<MultiVideoPlayerBloc, MultiVideoPlayerState>(
         buildWhen: (previous, current) =>
-            previous.currentSegmentIndex != current.currentSegmentIndex,
+            previous.currentItemIndex != current.currentItemIndex,
         builder: (context, playerState) {
+          final activeIndex = playerState.currentItemIndex ?? -1;
           return SizedBox(
             height: 90,
             child: ListView.separated(
@@ -526,13 +527,20 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               separatorBuilder: (_, __) => const SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final seg = _segments[i];
-                final active = i == playerState.currentSegmentIndex;
+                final active = i == activeIndex;
                 final duration = seg.endSeconds - seg.startSeconds;
                 final durStr = '${duration.toStringAsFixed(0)}s';
                 final startStr = _formatSeconds(seg.startSeconds);
 
                 return GestureDetector(
-                  onTap: () => _playerBloc.add(PreviewPlayerSeekToSegmentEvent(i)),
+                  onTap: () {
+                    final item = playerState.getItemByIndex(i);
+                    if (item == null) return;
+                    _playerBloc.add(
+                      SeekToEvent(playerState.getItemStartTime(item)),
+                    );
+                    _playerBloc.add(const PlayEvent());
+                  },
                   child: Container(
                     width: 120,
                     decoration: BoxDecoration(
@@ -646,114 +654,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       const SizedBox(width: 24),
       _SummaryStat(num: _selectedQuality, label: '输出清晰度'),
     ]);
-  }
-}
-
-class _PreviewPlayerControls extends StatefulWidget {
-  const _PreviewPlayerControls();
-
-  @override
-  State<_PreviewPlayerControls> createState() => _PreviewPlayerControlsState();
-}
-
-class _PreviewPlayerControlsState extends State<_PreviewPlayerControls> {
-  bool _isDragging = false;
-  double _dragMs = 0;
-
-  String _formatDuration(Duration d) {
-    final m = d.inMinutes.remainder(60).toString().padLeft(2, '0');
-    final s = d.inSeconds.remainder(60).toString().padLeft(2, '0');
-    return '$m:$s';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final styles = AppTextStyles.of(context);
-    final cs = context.desktopColors;
-    final bloc = context.read<PreviewPlayerBloc>();
-
-    return BlocBuilder<PreviewPlayerBloc, PreviewPlayerState>(
-      buildWhen: (previous, current) {
-        if (_isDragging) {
-          return previous.duration != current.duration ||
-              previous.isPlaying != current.isPlaying;
-        }
-        return previous.position != current.position ||
-            previous.duration != current.duration ||
-            previous.isPlaying != current.isPlaying;
-      },
-      builder: (context, state) {
-        final durMs = state.duration.inMilliseconds.clamp(
-          1,
-          double.maxFinite.toInt(),
-        );
-        final posMs = _isDragging
-            ? _dragMs
-            : state.position.inMilliseconds.toDouble();
-
-        return Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF1A1A1D),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Row(children: [
-            AppIconButton(
-              icon: state.isPlaying ? Icons.pause : Icons.play_arrow,
-              onTap: () => state.isPlaying
-                  ? bloc.add(const PreviewPlayerPauseEvent())
-                  : bloc.add(const PreviewPlayerPlayEvent()),
-              size: 36,
-              iconSize: 20,
-              color: const Color(0xFF18181B),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              _formatDuration(Duration(milliseconds: posMs.round())),
-              style: styles.mono.copyWith(color: cs.onSurface),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: SliderTheme(
-                data: SliderThemeData(
-                  trackHeight: 4,
-                  activeTrackColor: Colors.white,
-                  inactiveTrackColor: Colors.white.withAlpha(51),
-                  thumbColor: Colors.white,
-                  overlayColor: Colors.white.withAlpha(26),
-                ),
-                child: Slider(
-                  value: posMs.clamp(0, durMs.toDouble()),
-                  min: 0,
-                  max: durMs.toDouble(),
-                  onChangeStart: (_) {
-                    bloc.add(const PreviewPlayerScrubStartEvent());
-                    setState(() {
-                      _isDragging = true;
-                      _dragMs = state.position.inMilliseconds.toDouble();
-                    });
-                  },
-                  onChanged: (v) => setState(() => _dragMs = v),
-                  onChangeEnd: (v) {
-                    bloc.add(
-                      PreviewPlayerScrubEndEvent(
-                        Duration(milliseconds: v.round()),
-                      ),
-                    );
-                    setState(() => _isDragging = false);
-                  },
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Text(
-              _formatDuration(state.duration),
-              style: styles.mono.copyWith(color: cs.onSurface),
-            ),
-          ]),
-        );
-      },
-    );
   }
 }
 
