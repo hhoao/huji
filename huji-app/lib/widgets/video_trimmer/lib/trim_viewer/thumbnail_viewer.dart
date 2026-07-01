@@ -12,16 +12,14 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/clip_segment_overlay.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_area_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
 /// Widget for displaying the video trimmer.
 class ScrollableTrimViewer extends StatelessWidget {
   final TrimEditorProperties editorProperties;
 
   final TrimAreaProperties areaProperties;
-
-  static const double _thumbnailViewerH = 44.0;
-  static const double _timeRulerHeight = 40.0;
-  static const double leftWidgetWidth = 190;
 
   const ScrollableTrimViewer({
     super.key,
@@ -35,24 +33,28 @@ class ScrollableTrimViewer extends StatelessWidget {
   }
 
   Widget _buildThumbnailArea(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
+    final thumbnailTileSize = layout.thumbnailTileSize;
+    final timeRulerHeight = layout.timeRulerHeight;
+    final bottomSpanHeight = editorProperties.bottomSpanHeight;
     final numberOfThumbnails =
         ((context.read<TrimmerBloc>().state.totalDuration /
                     context.read<TrimmerBloc>().state.timeIntervalSeconds) /
                 1000.0)
             .ceil();
-    final thumbnailWidgetHeight = _thumbnailViewerH + _timeRulerHeight;
-    final totalWidgetHeight =
-        thumbnailWidgetHeight + editorProperties.bottomSpanHeight;
+    final thumbnailWidgetHeight = thumbnailTileSize + timeRulerHeight;
+    final totalWidgetHeight = thumbnailWidgetHeight + bottomSpanHeight;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         return ClipRRect(
           borderRadius: BorderRadius.circular(areaProperties.borderRadius),
           child: ColoredBox(
-            color: editorProperties.backgroundColor,
+            color: trimmerTheme.timelineBackground,
             child: SizedBox(
               width:
-                  numberOfThumbnails * _thumbnailViewerH +
+                  numberOfThumbnails * thumbnailTileSize +
                   constraints.maxWidth +
                   constraints.maxWidth,
               child: Stack(
@@ -60,22 +62,23 @@ class ScrollableTrimViewer extends StatelessWidget {
                 children: [
                   ScrollableThumbnailViewer(
                     fit: areaProperties.thumbnailFit,
-                    thumbnailHeight: _thumbnailViewerH,
+                    thumbnailHeight: thumbnailTileSize,
                     numberOfThumbnails: numberOfThumbnails,
-                    timeRulerHeight: _timeRulerHeight,
-                    bottomSpanHeight: editorProperties.bottomSpanHeight,
-                    leftWidgetWidth: leftWidgetWidth,
+                    timeRulerHeight: timeRulerHeight,
+                    bottomSpanHeight: bottomSpanHeight,
+                    leftWidgetWidth: layout.leftWidgetWidth,
                   ),
-                  // 时间指示器 - 可以指示到缩略图末尾
-                  // 位置从 leftWidgetWidth 开始，可以移动到缩略图末尾（leftWidgetWidth + numberOfThumbnails * _thumbnailViewerH）
                   Positioned(
-                    left: leftWidgetWidth,
+                    left: layout.leftWidgetWidth,
                     top: 0,
                     bottom: 0,
                     child: AbsorbPointer(
                       child: CustomPaint(
-                        size: Size(2, totalWidgetHeight),
-                        painter: TimeIndicatorPainter(),
+                        size: Size(layout.playheadWidth, totalWidgetHeight),
+                        painter: TimeIndicatorPainter(
+                          color: trimmerTheme.playheadColor,
+                          strokeWidth: layout.playheadWidth,
+                        ),
                       ),
                     ),
                   ),
@@ -136,7 +139,7 @@ class ScrollableThumbnailViewer extends StatelessWidget {
           builder: (context, thumbnailStream) {
             if (thumbnailStream == null) {
               return Container(
-                color: Colors.grey[900],
+                color: context.trimmerTheme.timelineBackground,
                 height: totalHeight,
                 width: double.maxFinite,
               );
@@ -175,6 +178,8 @@ class _TimeRulerSegmentPainter extends CustomPainter {
   final double shortInterval;
   final double longInterval;
   final int textInterval;
+  final Color tickColor;
+  final TextStyle textStyle;
 
   _TimeRulerSegmentPainter({
     required this.totalDuration,
@@ -186,6 +191,8 @@ class _TimeRulerSegmentPainter extends CustomPainter {
     required this.shortInterval,
     required this.longInterval,
     required this.textInterval,
+    required this.tickColor,
+    required this.textStyle,
   });
 
   @override
@@ -197,13 +204,11 @@ class _TimeRulerSegmentPainter extends CustomPainter {
 
     // 复用 Paint 对象，避免重复创建
     final paint = Paint()
-      ..color = Colors.white
+      ..color = tickColor
       ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke; // 明确指定样式
+      ..style = PaintingStyle.stroke;
 
-    // 复用 TextPainter 对象，避免重复创建
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
-    const textStyle = TextStyle(color: Colors.white, fontSize: 8);
 
     // 只绘制在当前 item 时间范围内的刻度线
     for (int i = startMark; i <= endMark; i++) {
@@ -246,12 +251,12 @@ class _TimeRulerSegmentPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _TimeRulerSegmentPainter oldDelegate) {
-    // 滚动位置或时间范围变化时重绘
-    // 不使用阈值判断，确保滚动连续平滑
     return oldDelegate.itemLeftInView != itemLeftInView ||
         oldDelegate.itemStartTime != itemStartTime ||
         oldDelegate.itemEndTime != itemEndTime ||
-        oldDelegate.totalDuration != totalDuration;
+        oldDelegate.totalDuration != totalDuration ||
+        oldDelegate.tickColor != tickColor ||
+        oldDelegate.textStyle != textStyle;
   }
 }
 
@@ -435,6 +440,8 @@ class _ThumbnailListBuilder extends StatelessWidget {
       return SizedBox(height: timeRulerHeight, width: thumbnailHeight);
     }
 
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     const shortInterval = 0.2;
     const longInterval = 5.0;
     const textInterval = 5;
@@ -468,6 +475,17 @@ class _ThumbnailListBuilder extends StatelessWidget {
               shortInterval: shortInterval,
               longInterval: longInterval,
               textInterval: textInterval,
+              tickColor: trimmerTheme.rulerTickColor,
+              textStyle: textTheme.labelSmall?.copyWith(
+                    color: trimmerTheme.rulerLabelColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ) ??
+                  TextStyle(
+                    color: trimmerTheme.rulerLabelColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                  ),
             ),
           );
         },
@@ -477,10 +495,10 @@ class _ThumbnailListBuilder extends StatelessWidget {
 
   /// 构建底部区域片段（灰色区域 + 滑动区域，每个 item 只显示自己对应位置的部分）
   Widget _buildBottomSpanSegment(BuildContext context, int index) {
-    // 灰色区域高度
-    final greyHeight = bottomSpanHeight > 0 ? bottomSpanHeight - 18 : 0.0;
-    // 滑动区域高度（灰色区域下面的额外空间）
-    const scrollHeight = 18.0;
+    final bottomSpanColor = context.trimmerTheme.timelineBottomSpan;
+    final scrollStripHeight = context.trimmerLayout.scrollStripHeight;
+    final greyHeight =
+        bottomSpanHeight > 0 ? bottomSpanHeight - scrollStripHeight : 0.0;
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -490,13 +508,10 @@ class _ThumbnailListBuilder extends StatelessWidget {
           Container(
             height: greyHeight,
             width: thumbnailHeight,
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: bottomSpanColor,
           ),
         // 滑动区域（颜色不同，用于滑动）
-        const SizedBox(
-          height: scrollHeight,
-          // color: Colors.transparent, // SizedBox 不需要 color
-        ),
+        SizedBox(height: scrollStripHeight),
       ],
     );
   }
@@ -565,12 +580,14 @@ class _ThumbnailListBuilder extends StatelessWidget {
 
   /// 构建封面图片组件
   Widget _buildCoverImage(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       width: thumbnailHeight,
       height: thumbnailHeight,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: Colors.white, width: 1),
+        border: Border.all(color: trimmerTheme.coverBorder, width: 1),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(4),
@@ -593,10 +610,10 @@ class _ThumbnailListBuilder extends StatelessWidget {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey[800],
-                          child: const Icon(
+                          color: trimmerTheme.placeholderBackground,
+                          child: Icon(
                             Icons.broken_image,
-                            color: Colors.grey,
+                            color: trimmerTheme.placeholderIcon,
                             size: 48,
                           ),
                         );
@@ -605,10 +622,10 @@ class _ThumbnailListBuilder extends StatelessWidget {
                   } else {
                     // 加载中或失败时显示占位符
                     return Container(
-                      color: Colors.grey[800],
-                      child: const Icon(
+                      color: trimmerTheme.placeholderBackground,
+                      child: Icon(
                         Icons.video_library,
-                        color: Colors.white,
+                        color: trimmerTheme.placeholderIcon,
                         size: 20,
                       ),
                     );
@@ -617,20 +634,18 @@ class _ThumbnailListBuilder extends StatelessWidget {
               ),
             ),
             // 半透明遮罩
-            Container(color: Colors.black.withValues(alpha: 0.3)),
-            // 居中文字
-            const Center(
+            Container(color: trimmerTheme.coverOverlay),
+            Center(
               child: Text(
                 '只播放片段',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 8,
+                style: textTheme.labelSmall?.copyWith(
+                  color: trimmerTheme.onToolbar,
                   fontWeight: FontWeight.bold,
                   shadows: [
                     Shadow(
-                      offset: Offset(1, 1),
+                      offset: const Offset(1, 1),
                       blurRadius: 2,
-                      color: Colors.black,
+                      color: trimmerTheme.coverOverlay,
                     ),
                   ],
                 ),
@@ -658,6 +673,8 @@ class _MuteButtonState extends State<_MuteButton> {
 
   @override
   Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return TextButton(
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
@@ -675,13 +692,16 @@ class _MuteButtonState extends State<_MuteButton> {
         children: [
           Icon(
             _isMuted ? Icons.volume_off : Icons.volume_up,
-            color: Colors.white,
+            color: trimmerTheme.onToolbar,
             size: 18,
           ),
           const SizedBox(height: 4),
           Text(
             _isMuted ? '开启声音' : '关闭声音',
-            style: const TextStyle(color: Colors.white, fontSize: 8),
+            style: textTheme.labelSmall?.copyWith(
+              color: trimmerTheme.onToolbar,
+              fontSize: 8,
+            ),
           ),
         ],
       ),
@@ -691,11 +711,19 @@ class _MuteButtonState extends State<_MuteButton> {
 
 /// 时间指示器绘制器 - 绘制一条固定的竖线
 class TimeIndicatorPainter extends CustomPainter {
+  const TimeIndicatorPainter({
+    required this.color,
+    this.strokeWidth = 3,
+  });
+
+  final Color color;
+  final double strokeWidth;
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white
-      ..strokeWidth = 2.0;
+      ..color = color
+      ..strokeWidth = strokeWidth;
 
     // 绘制一条从顶部到底部的固定竖线，位于容器中心
     canvas.drawLine(
@@ -706,7 +734,8 @@ class TimeIndicatorPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant TimeIndicatorPainter oldDelegate) =>
+      oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
 }
 
 /// 缩略图图片组件 - 按需生成和加载对应时间点的缩略图
@@ -1020,7 +1049,7 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
       errorBuilder: (context, error, stackTrace) {
         // 如果连第一帧也加载失败，显示灰色占位符
         return Container(
-          color: Colors.grey[800],
+          color: context.trimmerTheme.placeholderBackground,
           child: const Center(child: SizedBox(width: 16, height: 16)),
         );
       },

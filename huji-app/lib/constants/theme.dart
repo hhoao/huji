@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
 class AppTheme {
   // 定义应用的主色调
@@ -222,4 +223,8 @@ class AppTheme {
   static ThemeData getTheme(bool isDark) {
     return isDark ? darkTheme : lightTheme;
   }
+
+  static ThemeData get themedLightTheme => withTrimmerTheme(lightTheme);
+
+  static ThemeData get themedDarkTheme => withTrimmerTheme(darkTheme);
 }

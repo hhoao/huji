@@ -13,6 +13,7 @@ import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:window_manager/window_manager.dart';
@@ -112,8 +113,8 @@ class _DesktopAppState extends State<DesktopApp> {
                 title: '弧迹',
                 debugShowCheckedModeBanner: false,
                 routerConfig: _router,
-                theme: bundle.lightTheme,
-                darkTheme: bundle.darkTheme,
+                theme: withTrimmerTheme(bundle.lightTheme),
+                darkTheme: withTrimmerTheme(bundle.darkTheme),
                 themeMode: bundle.themeMode,
                 locale: bundle.locale,
                 localizationsDelegates: const [

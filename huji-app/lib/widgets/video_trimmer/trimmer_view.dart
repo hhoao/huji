@@ -1,7 +1,6 @@
-import 'dart:developer';
 import 'dart:io';
 
-import 'package:flutter/material.dart' hide Preview;
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
@@ -13,9 +12,10 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
-import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/thumbnail_viewer.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/video_viewer.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
 /// Full-screen video trimmer page (mobile).
 class TrimmerView extends StatefulWidget {
@@ -55,6 +55,7 @@ class _TrimmerViewState extends State<TrimmerView> {
 
   @override
   Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     return MultiBlocProvider(
       providers: [
         BlocProvider<ClipSegmentBloc>.value(
@@ -68,7 +69,7 @@ class _TrimmerViewState extends State<TrimmerView> {
         canPop: !Navigator.of(context).userGestureInProgress,
         child: SafeArea(
           child: Scaffold(
-            backgroundColor: Colors.black,
+            backgroundColor: trimmerTheme.scaffoldBackground,
             body: Column(
               children: [
                 _buildTopBar(context),
@@ -86,9 +87,10 @@ class _TrimmerViewState extends State<TrimmerView> {
   }
 
   Widget _buildTopBar(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     return Container(
       height: 80,
-      color: Colors.black,
+      color: trimmerTheme.scaffoldBackground,
       child: Column(
         children: [
           Container(
@@ -101,7 +103,7 @@ class _TrimmerViewState extends State<TrimmerView> {
                   children: [
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: Icon(Icons.close, color: trimmerTheme.onToolbar),
                     ),
                   ],
                 ),
@@ -129,7 +131,9 @@ class _TrimmerViewState extends State<TrimmerView> {
                               : null,
                           icon: Icon(
                             isFavorite ? Icons.star : Icons.star_border,
-                            color: isFavorite ? Colors.amber : Colors.white,
+                            color: isFavorite
+                                ? trimmerTheme.favorite
+                                : trimmerTheme.onToolbar,
                           ),
                           tooltip: '收藏片段',
                         );
@@ -175,8 +179,10 @@ class TrimmerEditor extends StatelessWidget {
             previous.isLoading != current.isLoading,
         builder: (context, state) {
           if (state.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: Colors.white),
+            return Center(
+              child: CircularProgressIndicator(
+                color: context.trimmerTheme.active,
+              ),
             );
           }
 
@@ -185,7 +191,15 @@ class TrimmerEditor extends StatelessWidget {
               Expanded(flex: 3, child: _buildVideoPreview(context)),
               _buildSegmentOverview(context),
               _buildControls(context),
-              _buildTrimViewer(),
+              Expanded(
+                flex: 2,
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: context.trimmerLayout.timelineContentHeight,
+                  ),
+                  child: _buildTrimViewer(context),
+                ),
+              ),
               _buildVideoProgressControl(context),
               _buildBottomToolbar(context),
             ],
@@ -196,9 +210,10 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildVideoPreview(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     return Container(
       width: double.infinity,
-      color: Colors.black,
+      color: trimmerTheme.previewBackground,
       child: Stack(
         children: [
           Center(
@@ -219,8 +234,8 @@ class TrimmerEditor extends StatelessWidget {
               child: Container(
                 width: 80,
                 height: 80,
-                decoration: const BoxDecoration(
-                  color: Colors.black54,
+                decoration: BoxDecoration(
+                  color: trimmerTheme.playOverlayBackground,
                   shape: BoxShape.circle,
                 ),
                 child: BlocBuilder<TrimmerBloc, TrimmerState>(
@@ -228,7 +243,7 @@ class TrimmerEditor extends StatelessWidget {
                       previous.isPlaying != current.isPlaying,
                   builder: (context, state) => Icon(
                     state.isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: Colors.white,
+                    color: trimmerTheme.onToolbar,
                     size: 40,
                   ),
                 ),
@@ -240,23 +255,20 @@ class TrimmerEditor extends StatelessWidget {
     );
   }
 
-  Widget _buildTrimViewer() {
-    return Container(
-      height: 160,
-      width: double.infinity,
-      color: Colors.grey[900],
-      child: ScrollableTrimViewer(
-        editorProperties: TrimEditorProperties(
-          backgroundColor: Colors.grey[900]!,
-        ),
-      ),
+  Widget _buildTrimViewer(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    return ColoredBox(
+      color: trimmerTheme.timelineBackground,
+      child: const ScrollableTrimViewer(),
     );
   }
 
   Widget _buildVideoProgressControl(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       height: 56,
-      color: Colors.grey[900],
+      color: trimmerTheme.toolbarBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: BlocBuilder<TrimmerBloc, TrimmerState>(
         buildWhen: (previous, current) =>
@@ -270,15 +282,16 @@ class TrimmerEditor extends StatelessWidget {
               children: [
                 Text(
                   formatTime(state.currentMilliseconds / 1000),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: trimmerTheme.onToolbar,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
                   formatTime(state.totalDuration / 1000),
-                  style: TextStyle(color: Colors.grey[400], fontSize: 12),
+                  style: textTheme.labelSmall?.copyWith(
+                    color: trimmerTheme.onToolbarMuted,
+                  ),
                 ),
               ],
             ),
@@ -295,9 +308,11 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildControls(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       height: 60,
-      color: Colors.grey[900],
+      color: trimmerTheme.toolbarBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -309,7 +324,9 @@ class TrimmerEditor extends StatelessWidget {
             builder: (context, state) {
               return Text(
                 '${formatTime(state.currentMilliseconds / 1000)} / ${formatTime(state.totalDuration / 1000)}',
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: textTheme.bodyMedium?.copyWith(
+                  color: trimmerTheme.onToolbar,
+                ),
               );
             },
           ),
@@ -332,18 +349,17 @@ class TrimmerEditor extends StatelessWidget {
                         Icon(
                           Icons.slow_motion_video,
                           color: state.isSlowMotion
-                              ? Colors.blue
-                              : Colors.white,
+                              ? trimmerTheme.active
+                              : trimmerTheme.onToolbar,
                           size: 16,
                         ),
                         const SizedBox(width: 4),
                         Text(
                           '慢放',
-                          style: TextStyle(
+                          style: textTheme.labelSmall?.copyWith(
                             color: state.isSlowMotion
-                                ? Colors.blue
-                                : Colors.white,
-                            fontSize: 12,
+                                ? trimmerTheme.active
+                                : trimmerTheme.onToolbar,
                           ),
                         ),
                       ],
@@ -374,7 +390,7 @@ class TrimmerEditor extends StatelessWidget {
                     },
                     icon: Icon(
                       state.isPlaying ? Icons.pause : Icons.play_arrow,
-                      color: Colors.white,
+                      color: trimmerTheme.onToolbar,
                     ),
                   );
                 },
@@ -387,9 +403,11 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildSegmentOverview(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       height: 60,
-      color: Colors.black,
+      color: trimmerTheme.scaffoldBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -413,7 +431,7 @@ class TrimmerEditor extends StatelessWidget {
                       width: 60,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey[600]!),
+                        border: Border.all(color: trimmerTheme.segmentBorder),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: IconButton(
@@ -429,7 +447,7 @@ class TrimmerEditor extends StatelessWidget {
                             );
                           }
                         },
-                        icon: const Icon(Icons.add, color: Colors.white),
+                        icon: Icon(Icons.add, color: trimmerTheme.onToolbar),
                       ),
                     );
                   }
@@ -458,8 +476,8 @@ class TrimmerEditor extends StatelessWidget {
                           decoration: BoxDecoration(
                             border: Border.all(
                               color: isSelected
-                                  ? Colors.blue
-                                  : Colors.grey[600]!,
+                                  ? trimmerTheme.segmentSelectedBorder
+                                  : trimmerTheme.segmentBorder,
                               width: isSelected ? 2 : 1,
                             ),
                             borderRadius: BorderRadius.circular(8),
@@ -479,9 +497,8 @@ class TrimmerEditor extends StatelessWidget {
                                         (segment.endTime - segment.startTime) /
                                             1000,
                                       ),
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: trimmerTheme.onToolbar,
                                       ),
                                     ),
                                   ),
@@ -494,8 +511,9 @@ class TrimmerEditor extends StatelessWidget {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                      ? Colors.blue
-                                      : Colors.grey[600],
+                                      ? trimmerTheme
+                                          .segmentChipSelectedBackground
+                                      : trimmerTheme.segmentChipBackground,
                                   borderRadius: const BorderRadius.vertical(
                                     bottom: Radius.circular(7),
                                   ),
@@ -503,9 +521,10 @@ class TrimmerEditor extends StatelessWidget {
                                 child: Center(
                                   child: Text(
                                     ' ${formatSegmentDuration(segment.startTime / 1000, precision: 0)} - ${formatSegmentDuration(segment.endTime / 1000, precision: 0)}',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
+                                    style: textTheme.labelSmall?.copyWith(
+                                      color: isSelected
+                                          ? trimmerTheme.onActive
+                                          : trimmerTheme.onToolbar,
                                     ),
                                   ),
                                 ),
@@ -526,9 +545,10 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildBottomToolbar(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     return Container(
       height: 80,
-      color: Colors.grey[900],
+      color: trimmerTheme.toolbarBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -539,6 +559,7 @@ class TrimmerEditor extends StatelessWidget {
                 current.activeSegments.isNotEmpty,
             builder: (context, state) {
               return _buildToolButton(
+                context: context,
                 icon: Icons.content_cut,
                 label: '分割',
                 onTap: () {
@@ -555,6 +576,7 @@ class TrimmerEditor extends StatelessWidget {
             },
           ),
           _buildToolButton(
+            context: context,
             icon: Icons.add,
             label: '添加片段',
             onTap: () {
@@ -583,6 +605,7 @@ class TrimmerEditor extends StatelessWidget {
                   final hasActiveSegments =
                       segmentState.activeSegments.isNotEmpty;
                   return _buildToolButton(
+                    context: context,
                     icon: Icons.play_arrow,
                     label: '只播放片段',
                     onTap: () {
@@ -593,8 +616,8 @@ class TrimmerEditor extends StatelessWidget {
                       }
                     },
                     color: trimmerState.playSelectedSegmentOnly
-                        ? Colors.blue
-                        : Colors.white,
+                        ? trimmerTheme.active
+                        : trimmerTheme.onToolbar,
                     isEnabled: hasActiveSegments,
                   );
                 },
@@ -606,6 +629,7 @@ class TrimmerEditor extends StatelessWidget {
                 previous.selectedSegment != current.selectedSegment,
             builder: (context, state) {
               return _buildToolButton(
+                context: context,
                 icon: Icons.delete,
                 label: '删除',
                 onTap: () {
@@ -631,13 +655,14 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildSpeedMenu(BuildContext context, TrimmerState state) {
+    final trimmerTheme = context.trimmerTheme;
     return StatefulBuilder(
       builder: (context, setState) {
         return PopupMenuButton<bool>(
-          icon: const Icon(Icons.speed, color: Colors.white, size: 20),
+          icon: Icon(Icons.speed, color: trimmerTheme.onToolbar, size: 20),
           offset: const Offset(0, 40),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          color: Colors.black.withValues(alpha: 0.9),
+          color: trimmerTheme.popupSurface,
           elevation: 8,
           onSelected: (value) {},
           menuPadding: EdgeInsets.zero,
@@ -668,6 +693,8 @@ class TrimmerEditor extends StatelessWidget {
     String label,
     double speed,
   ) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     final isSelected = state.playbackSpeed == speed;
     return GestureDetector(
       onTap: () {
@@ -683,20 +710,21 @@ class TrimmerEditor extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.black.withValues(alpha: 0.8),
+          color: isSelected
+              ? trimmerTheme.active
+              : trimmerTheme.popupSurface.withValues(alpha: 0.9),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: isSelected
-                ? Colors.blue
-                : Colors.white.withValues(alpha: 0.3),
+                ? trimmerTheme.active
+                : trimmerTheme.segmentBorder,
             width: 1,
           ),
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 12,
+          style: textTheme.labelSmall?.copyWith(
+            color: isSelected ? trimmerTheme.onActive : trimmerTheme.onToolbar,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),
         ),
@@ -705,12 +733,15 @@ class TrimmerEditor extends StatelessWidget {
   }
 
   Widget _buildToolButton({
+    required BuildContext context,
     required IconData icon,
     required String label,
     required VoidCallback onTap,
     bool isEnabled = true,
     Color? color,
   }) {
+    final trimmerTheme = context.trimmerTheme;
+    final textTheme = Theme.of(context).textTheme;
     return GestureDetector(
       onTap: isEnabled ? onTap : null,
       child: Container(
@@ -720,15 +751,14 @@ class TrimmerEditor extends StatelessWidget {
           children: [
             Icon(
               icon,
-              color: isEnabled ? (color ?? Colors.white) : Colors.grey[600],
+              color: isEnabled ? (color ?? trimmerTheme.onToolbar) : trimmerTheme.disabled,
               size: 24,
             ),
             const SizedBox(height: 4),
             Text(
               label,
-              style: TextStyle(
-                color: isEnabled ? Colors.white : Colors.grey[600],
-                fontSize: 12,
+              style: textTheme.labelSmall?.copyWith(
+                color: isEnabled ? trimmerTheme.onToolbar : trimmerTheme.disabled,
               ),
             ),
           ],
@@ -760,6 +790,7 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     final total = widget.totalDurationMs;
     final fraction = total > 0
         ? (_scrubbing
@@ -770,10 +801,10 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
 
     return SliderTheme(
       data: SliderTheme.of(context).copyWith(
-        activeTrackColor: Colors.white,
-        inactiveTrackColor: Colors.grey[700],
-        thumbColor: Colors.white,
-        overlayColor: Colors.white.withValues(alpha: 0.2),
+        activeTrackColor: trimmerTheme.sliderActiveTrack,
+        inactiveTrackColor: trimmerTheme.sliderInactiveTrack,
+        thumbColor: trimmerTheme.sliderThumb,
+        overlayColor: trimmerTheme.sliderOverlay,
         thumbShape: RoundSliderThumbShape(
           enabledThumbRadius: widget.isDragging || _scrubbing ? 8 : 6,
         ),
@@ -782,10 +813,9 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
           overlayRadius: widget.isDragging || _scrubbing ? 16 : 12,
         ),
         trackShape: const RoundedRectSliderTrackShape(),
-        valueIndicatorColor: Colors.white,
-        valueIndicatorTextStyle: const TextStyle(
-          color: Colors.white,
-          fontSize: 12,
+        valueIndicatorColor: trimmerTheme.active,
+        valueIndicatorTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: trimmerTheme.onActive,
           fontWeight: FontWeight.w500,
         ),
         showValueIndicator: widget.isDragging || _scrubbing

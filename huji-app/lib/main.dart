@@ -80,8 +80,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
       child: MaterialApp.router(
         title: '弧迹',
         routerConfig: appRouter,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+        theme: AppTheme.themedLightTheme,
+        darkTheme: AppTheme.themedDarkTheme,
       ),
     );
   }

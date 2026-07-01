@@ -8,6 +8,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
@@ -91,7 +92,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
           timeIntervalSeconds: timeInterval,
           quality: 1, // 最高质量
           format: 'png', // PNG 无损压缩，更清晰
-          width: 200, // 适合高DPI显示（44px × 4.5）
+          width: TrimmerLayoutMetrics.standard.thumbnailGenerateWidth,
         );
 
         // 初始化状态，不再一次性生成所有缩略图
@@ -158,8 +159,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
     final numberOfThumbnails =
         (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    const thumbnailHeight = 44.0;
-    final thumbnailsWidth = numberOfThumbnails * thumbnailHeight;
+    final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+    final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
     // 时间对应的像素位置（在缩略图区域中）
     final pixel = (time / state.totalDuration * thumbnailsWidth).clamp(
@@ -188,8 +189,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
     final numberOfThumbnails =
         (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    const thumbnailHeight = 44.0;
-    final thumbnailsWidth = numberOfThumbnails * thumbnailHeight;
+    final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+    final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
     // 根据滚动位置在缩略图区域中的比例计算时间
     int timeChange =
@@ -242,8 +243,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
         final numberOfThumbnails =
             (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-        const thumbnailHeight = 44.0;
-        final thumbnailsWidth = numberOfThumbnails * thumbnailHeight;
+        final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+        final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
         final latestTimeChange =
             ((currentPixel / thumbnailsWidth * state.totalDuration).clamp(

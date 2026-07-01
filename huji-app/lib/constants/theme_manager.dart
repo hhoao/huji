@@ -29,7 +29,7 @@ class ThemeManager extends GetxController {
 
     // 更新应用主题
     Get.changeTheme(
-      _isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme,
+      _isDarkMode.value ? AppTheme.themedDarkTheme : AppTheme.themedLightTheme,
     );
   }
 
@@ -40,7 +40,7 @@ class ThemeManager extends GetxController {
 
     // 更新应用主题
     Get.changeTheme(
-      _isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme,
+      _isDarkMode.value ? AppTheme.themedDarkTheme : AppTheme.themedLightTheme,
     );
   }
 
@@ -51,8 +51,9 @@ class ThemeManager extends GetxController {
   }
 
   // 获取当前主题
-  ThemeData get currentTheme =>
-      _isDarkMode.value ? AppTheme.darkTheme : AppTheme.lightTheme;
+  ThemeData get currentTheme => _isDarkMode.value
+      ? AppTheme.themedDarkTheme
+      : AppTheme.themedLightTheme;
 
   // 获取主题色
   Color get primaryColor => AppTheme.primaryColor;
