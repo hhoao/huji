@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/profile.dart';
@@ -71,10 +72,10 @@ class _TaskRecordPageState extends State<TaskRecordPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
-        title: '任务记录',
-        tabs: const [
-          Tab(text: '本地任务'),
-          Tab(text: '剪辑记录'),
+        title: context.hujiL10n.taskRecords,
+        tabs: [
+          Tab(text: context.hujiL10n.localTasks),
+          Tab(text: context.hujiL10n.clipRecords),
         ],
         controller: _tabController,
         leftWidget: _buildMenuButton(),

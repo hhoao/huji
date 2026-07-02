@@ -9,7 +9,9 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/models/video_display_item.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/utils/time_utils.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoListTabContent extends StatefulWidget {
   final TabController? tabController;
@@ -155,7 +157,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
     } catch (e) {
       if (mounted) {
         setState(() {
-          _errorMessage = '加载失败: $e';
+          _errorMessage = context.hujiL10n.loadFailed('$e');
           _isLoading = false;
         });
       }
@@ -199,9 +201,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '筛选条件',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(context.hujiL10n.filterConditions, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               TextButton(
                 onPressed: () {
@@ -217,21 +217,21 @@ class VideoListTabContentState extends State<VideoListTabContent>
                   context.pop();
                   _loadVideos(refresh: true);
                 },
-                child: const Text('重置'),
+                child: Text(context.hujiL10n.actionReset),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // 视频处理类型
-          const Text('视频处理类型', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(context.hujiL10n.videoProcessType, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: VideoProcessType.values.map((type) {
               final isSelected = _selectedProcessType == type;
               return FilterChip(
-                label: Text(_getProcessTypeText(type)),
+                label: Text(context.hujiL10n.videoProcessTypeLabel(type)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setModalState(() {
@@ -242,17 +242,17 @@ class VideoListTabContentState extends State<VideoListTabContent>
             }).toList(),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 运动类型
-          const Text('运动类型', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(context.hujiL10n.filterSportType, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: SportType.values.map((type) {
               final isSelected = _selectedSportType == type;
               return FilterChip(
-                label: Text(_getSportTypeText(type)),
+                label: Text(context.hujiL10n.sportTypeLabel(type)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setModalState(() {
@@ -263,17 +263,17 @@ class VideoListTabContentState extends State<VideoListTabContent>
             }).toList(),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 比赛类型
-          const Text('比赛类型', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(context.hujiL10n.matchType, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: MatchType.values.map((type) {
               final isSelected = _selectedMatchType == type;
               return FilterChip(
-                label: Text(_getMatchTypeText(type)),
+                label: Text(context.hujiL10n.matchTypeLabel(type)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setModalState(() {
@@ -284,7 +284,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
             }).toList(),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           SizedBox(
             width: double.infinity,
@@ -299,46 +299,15 @@ class VideoListTabContentState extends State<VideoListTabContent>
                 backgroundColor: Colors.deepPurple,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: const Text(
-                '应用筛选',
-                style: TextStyle(color: Colors.white, fontSize: 16),
+              child: Text(context.hujiL10n.applyFilter, style: TextStyle(color: Colors.white, fontSize: 16),
               ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ],
       ),
     );
-  }
-
-  String _getProcessTypeText(VideoProcessType type) {
-    switch (type) {
-      case VideoProcessType.raw:
-        return '原视频';
-      case VideoProcessType.greatMatch:
-        return '精彩回合';
-      case VideoProcessType.allMatchMerged:
-        return '全部回合';
-    }
-  }
-
-  String _getSportTypeText(SportType type) {
-    switch (type) {
-      case SportType.pingpong:
-        return '乒乓球';
-      case SportType.badminton:
-        return '羽毛球';
-    }
-  }
-
-  String _getMatchTypeText(MatchType type) {
-    switch (type) {
-      case MatchType.doublesMatch:
-        return '双打比赛';
-      case MatchType.singlesMatch:
-        return '单打比赛';
-    }
   }
 
   String _formatFileSize(int bytes) {
@@ -369,6 +338,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Column(
       children: [
         // 统计信息和布局切换按钮
@@ -384,14 +354,14 @@ class VideoListTabContentState extends State<VideoListTabContent>
                   child: Row(
                     children: [
                       _buildStatButton(
-                        '全部',
+                        l10n.filterAll,
                         _total.toString(),
                         Icons.video_library,
                         Colors.blue,
                         'all',
                       ),
                       _buildStatButton(
-                        '全部回合',
+                        l10n.videoProcessTypeAllMatchMerged,
                         _remoteVideos
                             .where(
                               (v) =>
@@ -405,7 +375,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                         'allMatchMerged',
                       ),
                       _buildStatButton(
-                        '精彩回合',
+                        l10n.videoProcessTypeGreatMatch,
                         _remoteVideos
                             .where(
                               (v) =>
@@ -419,7 +389,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                         'greatMatch',
                       ),
                       _buildStatButton(
-                        '本地',
+                        l10n.filterLocal,
                         _localVideos.length.toString(),
                         Icons.phone_android,
                         Colors.teal,
@@ -437,8 +407,8 @@ class VideoListTabContentState extends State<VideoListTabContent>
                       : Icons.grid_view,
                 ),
                 tooltip: _layoutMode == VideoLayoutMode.feed
-                    ? '切换为列表模式'
-                    : '切换为宫格模式',
+                    ? l10n.switchToListMode
+                    : l10n.switchToGridMode,
                 onPressed: () {
                   setState(() {
                     _layoutMode = _layoutMode == VideoLayoutMode.feed
@@ -462,10 +432,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
                         style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () => _loadVideos(refresh: true),
-                        child: const Text('重试'),
+                        child: Text(context.hujiL10n.actionRetry),
                       ),
                     ],
                   ),
@@ -473,9 +443,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
               : RefreshIndicator(
                   onRefresh: () => _loadVideos(refresh: true),
                   child: _isLoading && _displayList.isEmpty
-                      ? const Center(child: CircularProgressIndicator())
+                      ? Center(child: CircularProgressIndicator())
                       : _displayList.isEmpty
-                      ? const Center(
+                      ? Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -485,9 +455,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                                 color: Colors.grey,
                               ),
                               SizedBox(height: 16),
-                              Text(
-                                '暂无视频',
-                                style: TextStyle(color: Colors.grey),
+                              Text(context.hujiL10n.desktopLibraryEmptyTitle, style: TextStyle(color: Colors.grey),
                               ),
                             ],
                           ),
@@ -579,9 +547,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                 children: [
                   SizedBox(height: 4),
                   Icon(Icons.timer_off, color: Colors.grey),
-                  Text(
-                    '已过期',
-                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                  Text(context.hujiL10n.expired, style: TextStyle(fontSize: 10, color: Colors.grey),
                   ),
                 ],
               ),
@@ -602,16 +568,16 @@ class VideoListTabContentState extends State<VideoListTabContent>
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除这个本地视频吗？'),
+        title: Text(context.hujiL10n.confirmDelete),
+        content: Text(context.hujiL10n.confirmDeleteLocalVideoMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
+            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -639,6 +605,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
   }
 
   Widget _buildVideoCard(VideoDisplayItem item) {
+    final l10n = context.hujiL10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: InkWell(
@@ -660,7 +627,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                     ),
                     child: _buildImageWidget(item),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
 
                   // 视频信息
                   Expanded(
@@ -676,15 +643,18 @@ class VideoListTabContentState extends State<VideoListTabContent>
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Text(
-                          '时长: ${_formatDuration(item.duration)} | 大小: ${_formatFileSize(item.size)}',
+                          l10n.videoDurationAndSize(
+                            _formatDuration(item.duration),
+                            _formatFileSize(item.size),
+                          ),
                           style: TextStyle(
                             fontSize: 12,
                             color: Colors.grey[600],
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
@@ -698,9 +668,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                                   color: Colors.teal,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: const Text(
-                                  '本地',
-                                  style: TextStyle(
+                                child: Text(context.hujiL10n.filterLocal, style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w500,
@@ -720,7 +688,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  _getProcessTypeText(item.videoProcessType!),
+                                  l10n.videoProcessTypeLabel(
+                                    item.videoProcessType!,
+                                  ),
                                   style: const TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
@@ -732,7 +702,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
                             Text(
                               item.isLocal
                                   ? timeStampToDateString(item.createTime)
-                                  : '${timeStampToDateString(item.createTime)} | ${timeStampToTimeAgo(item.expireTime!)}过期',
+                                  : l10n.videoExpiresAt(
+                                      timeStampToDateString(item.createTime),
+                                      timeStampToTimeAgo(item.expireTime!),
+                                    ),
                               style: TextStyle(
                                 fontSize: 9,
                                 color: Colors.grey[600],
@@ -760,24 +733,27 @@ class VideoListTabContentState extends State<VideoListTabContent>
                       }
                     },
                     itemBuilder: (context) => [
-                      const PopupMenuItem(
+                      PopupMenuItem(
                         value: 'play',
                         child: Row(
                           children: [
-                            Icon(Icons.play_arrow),
-                            SizedBox(width: 8),
-                            Text('播放'),
+                            const Icon(Icons.play_arrow),
+                            const SizedBox(width: 8),
+                            Text(context.hujiL10n.actionPlay),
                           ],
                         ),
                       ),
                       if (item.isLocal)
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'delete',
                           child: Row(
                             children: [
-                              Icon(Icons.delete, color: Colors.red),
-                              SizedBox(width: 8),
-                              Text('删除', style: TextStyle(color: Colors.red)),
+                              const Icon(Icons.delete, color: Colors.red),
+                              const SizedBox(width: 8),
+                              Text(
+                                context.hujiL10n.actionDelete,
+                                style: const TextStyle(color: Colors.red),
+                              ),
                             ],
                           ),
                         ),
@@ -827,9 +803,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                         color: Colors.teal,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: const Text(
-                        '本地',
-                        style: TextStyle(fontSize: 9, color: Colors.white),
+                      child: Text(context.hujiL10n.filterLocal, style: TextStyle(fontSize: 9, color: Colors.white),
                       ),
                     ),
                   ),
@@ -898,7 +872,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                     ],
                   ),
 
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Row(
                     children: [
                       SizedBox(width: 2),
@@ -945,7 +919,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   Widget _buildLoadMoreIndicator() {
     if (_isLoadingMore) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -955,10 +929,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
       return const SizedBox.shrink(); // 不显示任何内容，静默加载
     }
 
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.all(16),
       child: Center(
-        child: Text('没有更多数据了', style: TextStyle(color: Colors.grey)),
+        child: Text(context.hujiL10n.noMoreData, style: TextStyle(color: Colors.grey)),
       ),
     );
   }
@@ -1012,7 +986,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
         child: Row(
           children: [
             Icon(icon, color: isSelected ? Colors.white : color, size: 16),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
@@ -1021,7 +995,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(

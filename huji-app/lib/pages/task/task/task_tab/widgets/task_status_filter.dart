@@ -9,6 +9,7 @@ import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_tab.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Desktop status filter tabs (全部 / 进行中 / 已完成 / 失败).
 class TaskStatusFilterDesktop extends StatelessWidget {
@@ -25,6 +26,7 @@ class TaskStatusFilterDesktop extends StatelessWidget {
           prev.taskCounts != curr.taskCounts ||
           prev.allTasks.length != curr.allTasks.length,
       builder: (context, state) {
+        final l10n = context.hujiL10n;
         final counts = TaskTabListUtils.computeStatusCounts(state);
         final activeIdx = TaskTabListUtils.resolveDesktopStatusTabIndex(
           state.filter.selectedStatuses,
@@ -37,7 +39,12 @@ class TaskStatusFilterDesktop extends StatelessWidget {
         if (counts.failed > 0) badges[3] = '${counts.failed}';
 
         return AppTab(
-          tabs: const ['全部', '进行中', '已完成', '失败'],
+          tabs: [
+            l10n.filterAll,
+            l10n.taskStatusInProgress,
+            l10n.taskStatusCompleted,
+            l10n.taskStatusFailed,
+          ],
           activeIndex: activeIdx,
           onChanged: (index) {
             final selected =
@@ -65,10 +72,10 @@ class TaskStatusFilterMobile extends StatelessWidget {
   const TaskStatusFilterMobile({super.key, required this.bloc});
 
   static const _buttons = [
-    ('全部', 3),
-    ('已完成', 0),
-    ('处理中', 1),
-    ('失败', 2),
+    (0, 3),
+    (1, 0),
+    (2, 1),
+    (3, 2),
   ];
 
   @override
@@ -97,15 +104,27 @@ class TaskStatusFilterMobile extends StatelessWidget {
           return previous.allTasks.length != current.allTasks.length;
         },
         builder: (context, state) {
+          final l10n = context.hujiL10n;
           final counts = TaskTabListUtils.computeStatusCounts(state);
-          final countForButton = [counts.all, counts.completed, counts.processing, counts.failed];
+          final countForButton = [
+            counts.all,
+            counts.completed,
+            counts.processing,
+            counts.failed,
+          ];
+          final labels = [
+            l10n.filterAll,
+            l10n.taskStatusCompleted,
+            l10n.taskStatusProcessing,
+            l10n.taskStatusFailed,
+          ];
 
           return Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: List.generate(_buttons.length, (i) {
-              final (label, statusValue) = _buttons[i];
+              final (labelIndex, statusValue) = _buttons[i];
               return _StatusButton(
-                label: label,
+                label: labels[labelIndex],
                 statusValue: statusValue,
                 count: countForButton[i],
                 state: state,
@@ -174,7 +193,7 @@ class _StatusButton extends StatelessWidget {
                 fontWeight: selected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -213,19 +232,17 @@ class DesktopLoginPlaceholder extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.person_outline, size: 64, color: cs.outline),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
-            '需要登录才能查看剪辑记录',
+            context.hujiL10n.loginRequiredForClipHistory,
             style: styles.body.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '请先登录您的账户以继续使用',
-            style: styles.mutedBodySmall,
+          SizedBox(height: 8),
+          Text(context.hujiL10n.loginNeedLoginSubtitle, style: styles.mutedBodySmall,
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           AppButton(
-            label: '立即登录',
+            label: context.hujiL10n.loginLoginNow,
             onTap: onLogin,
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
           ),

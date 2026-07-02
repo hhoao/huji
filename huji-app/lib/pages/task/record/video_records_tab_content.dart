@@ -7,6 +7,7 @@ import 'package:huji_app/pages/task/record/bloc/video_records_tab_event.dart';
 import 'package:huji_app/pages/task/record/bloc/video_records_tab_state.dart';
 import 'package:huji_app/pages/task/record/video_record_detail_dialog.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoRecordsTabContent extends StatefulWidget {
   final VideoRecordsTabBloc? bloc;
@@ -69,28 +70,6 @@ class _VideoRecordsTabContentState extends State<VideoRecordsTabContent> {
 class _VideoRecordsTabContent extends StatelessWidget {
   const _VideoRecordsTabContent();
 
-  String _getStatusText(ProcessStatus status) {
-    switch (status) {
-      case ProcessStatus.preparing:
-        return '准备中';
-      case ProcessStatus.processing:
-        return '处理中';
-      case ProcessStatus.completed:
-        return '已完成';
-      case ProcessStatus.failed:
-        return '失败';
-    }
-  }
-
-  String _getSportTypeText(SportType type) {
-    switch (type) {
-      case SportType.pingpong:
-        return '乒乓球';
-      case SportType.badminton:
-        return '羽毛球';
-    }
-  }
-
   Color _getStatusColor(ProcessStatus status) {
     switch (status) {
       case ProcessStatus.preparing:
@@ -117,6 +96,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Column(
       children: [
         // 统计信息和筛选按钮 - 只在相关状态变化时重建
@@ -143,7 +123,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                         children: [
                           _buildStatButton(
                             context,
-                            '全部',
+                            l10n.filterAll,
                             state.total.toString(),
                             Icons.list_alt,
                             Colors.blue,
@@ -152,7 +132,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                           ),
                           _buildStatButton(
                             context,
-                            '处理中',
+                            l10n.taskStatusProcessing,
                             state.recordList
                                 .where(
                                   (r) => r.status == ProcessStatus.processing,
@@ -166,7 +146,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                           ),
                           _buildStatButton(
                             context,
-                            '已完成',
+                            l10n.taskStatusCompleted,
                             state.recordList
                                 .where(
                                   (r) => r.status == ProcessStatus.completed,
@@ -180,7 +160,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                           ),
                           _buildStatButton(
                             context,
-                            '失败',
+                            l10n.taskStatusFailed,
                             state.recordList
                                 .where((r) => r.status == ProcessStatus.failed)
                                 .length
@@ -220,7 +200,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                         style: const TextStyle(color: Colors.red),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       ElevatedButton(
                         onPressed: () =>
                             context.read<VideoRecordsTabBloc>().add(
@@ -228,7 +208,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                                 refresh: true,
                               ),
                             ),
-                        child: const Text('重试'),
+                        child: Text(context.hujiL10n.actionRetry),
                       ),
                     ],
                   ),
@@ -243,16 +223,16 @@ class _VideoRecordsTabContent extends StatelessWidget {
                   return Future.value();
                 },
                 child: state.isLoading && state.recordList.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
+                    ? Center(child: CircularProgressIndicator())
                     : state.recordList.isEmpty
-                    ? const Center(
+                    ? Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.history, size: 64, color: Colors.grey),
                             SizedBox(height: 16),
                             Text(
-                              '暂无处理记录',
+                              l10n.noProcessingRecords,
                               style: TextStyle(color: Colors.grey),
                             ),
                           ],
@@ -276,7 +256,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                               state.recordList.length + (state.hasMore ? 1 : 0),
                           itemBuilder: (context, index) {
                             if (index == state.recordList.length) {
-                              return _buildLoadMoreIndicator(state);
+                              return _buildLoadMoreIndicator(context, state);
                             }
                             return _buildRecordCard(
                               context,
@@ -324,7 +304,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
         child: Row(
           children: [
             Icon(icon, color: isSelected ? Colors.white : color, size: 16),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Text(
               label,
               style: styles.bodySmall.copyWith(
@@ -332,7 +312,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
@@ -354,6 +334,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
   }
 
   Widget _buildRecordCard(BuildContext context, VideoProcessRecordVO record) {
+    final l10n = context.hujiL10n;
     final styles = AppTextStyles.of(context);
     final cs = Theme.of(context).colorScheme;
     return Card(
@@ -379,7 +360,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: 4),
                         Row(
                           children: [
                             Container(
@@ -392,14 +373,14 @@ class _VideoRecordsTabContent extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                _getStatusText(record.status),
+                                l10n.processStatusLabel(record.status),
                                 style: styles.caption.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 6,
@@ -410,7 +391,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
-                                _getSportTypeText(record.sportType),
+                                l10n.sportTypeLabel(record.sportType),
                                 style: styles.caption.copyWith(
                                   color: cs.onSurfaceVariant,
                                   fontWeight: FontWeight.w500,
@@ -434,7 +415,9 @@ class _VideoRecordsTabContent extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        '时长: ${_formatDuration(record.videoDuration)}',
+                        l10n.durationLabel(
+                          _formatDuration(record.videoDuration),
+                        ),
                         style: styles.mutedBodySmall,
                       ),
                     ],
@@ -442,7 +425,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 ],
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
 
               // 进度条
               LinearProgressIndicator(
@@ -453,14 +436,14 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
 
               // 详细信息
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '创建时间: ${_formatDate(record.createTime)}',
+                    l10n.createdAt(_formatDate(record.createTime)),
                     style: styles.mutedBodySmall,
                   ),
                   if (record.extraInfo != null && record.extraInfo!.isNotEmpty)
@@ -471,7 +454,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                       ),
                       constraints: const BoxConstraints(maxWidth: 100),
                       child: Text(
-                        '备注: ${record.extraInfo}',
+                        l10n.remark(record.extraInfo!),
                         style: styles.mutedBodySmall,
 
                         maxLines: 1,
@@ -487,9 +470,9 @@ class _VideoRecordsTabContent extends StatelessWidget {
     );
   }
 
-  Widget _buildLoadMoreIndicator(VideoRecordsTabState state) {
+  Widget _buildLoadMoreIndicator(BuildContext context, VideoRecordsTabState state) {
     if (state.isLoadingMore) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -499,10 +482,13 @@ class _VideoRecordsTabContent extends StatelessWidget {
       return const SizedBox.shrink(); // 不显示任何内容，静默加载
     }
 
-    return const Padding(
-      padding: EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text('没有更多数据了', style: TextStyle(color: Colors.grey)),
+        child: Text(
+          context.hujiL10n.noMoreData,
+          style: const TextStyle(color: Colors.grey),
+        ),
       ),
     );
   }
@@ -544,6 +530,7 @@ class _FilterDialogState extends State<_FilterDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
@@ -554,9 +541,7 @@ class _FilterDialogState extends State<_FilterDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '筛选条件',
-                style: styles.dialogTitle,
+              Text(context.hujiL10n.filterConditions, style: styles.dialogTitle,
               ),
               TextButton(
                 onPressed: () {
@@ -565,21 +550,21 @@ class _FilterDialogState extends State<_FilterDialog> {
                   );
                   context.pop();
                 },
-                child: const Text('重置'),
+                child: Text(context.hujiL10n.actionReset),
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           // 处理状态
-          const Text('处理状态', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(l10n.filterProcessStatus, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: ProcessStatus.values.map((status) {
               final isSelected = _tempStatus == status;
               return FilterChip(
-                label: Text(_getStatusText(status)),
+                label: Text(l10n.processStatusLabel(status)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setState(() {
@@ -590,17 +575,17 @@ class _FilterDialogState extends State<_FilterDialog> {
             }).toList(),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 运动类型
-          const Text('运动类型', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(l10n.filterSportType, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Wrap(
             spacing: 8,
             children: SportType.values.map((type) {
               final isSelected = _tempSportType == type;
               return FilterChip(
-                label: Text(_getSportTypeText(type)),
+                label: Text(l10n.sportTypeLabel(type)),
                 selected: isSelected,
                 onSelected: (selected) {
                   setState(() {
@@ -611,11 +596,11 @@ class _FilterDialogState extends State<_FilterDialog> {
             }).toList(),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 时间范围
-          const Text('创建时间范围', style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
+          Text(l10n.createdTimeRange, style: TextStyle(fontWeight: FontWeight.w500)),
+          SizedBox(height: 8),
           Row(
             children: [
               Expanded(
@@ -635,11 +620,12 @@ class _FilterDialogState extends State<_FilterDialog> {
                   },
                   icon: const Icon(Icons.calendar_today),
                   label: Text(
-                    _tempStartDate?.toString().split(' ')[0] ?? '开始日期',
+                    _tempStartDate?.toString().split(' ')[0] ??
+                        l10n.startDateLabel,
                   ),
                 ),
               ),
-              const Text('至'),
+              Text(l10n.dateRangeTo),
               Expanded(
                 child: TextButton.icon(
                   onPressed: () async {
@@ -656,13 +642,15 @@ class _FilterDialogState extends State<_FilterDialog> {
                     }
                   },
                   icon: const Icon(Icons.calendar_today),
-                  label: Text(_tempEndDate?.toString().split(' ')[0] ?? '结束日期'),
+                  label: Text(
+                    _tempEndDate?.toString().split(' ')[0] ?? l10n.endDateLabel,
+                  ),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
 
           SizedBox(
             width: double.infinity,
@@ -682,38 +670,14 @@ class _FilterDialogState extends State<_FilterDialog> {
                 backgroundColor: Colors.deepPurple,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(
-                '应用筛选',
-                style: styles.subtitle.copyWith(color: Colors.white),
+              child: Text(context.hujiL10n.applyFilter, style: styles.subtitle.copyWith(color: Colors.white),
               ),
             ),
           ),
 
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
         ],
       ),
     );
-  }
-
-  String _getStatusText(ProcessStatus status) {
-    switch (status) {
-      case ProcessStatus.preparing:
-        return '准备中';
-      case ProcessStatus.processing:
-        return '处理中';
-      case ProcessStatus.completed:
-        return '已完成';
-      case ProcessStatus.failed:
-        return '失败';
-    }
-  }
-
-  String _getSportTypeText(SportType type) {
-    switch (type) {
-      case SportType.pingpong:
-        return '乒乓球';
-      case SportType.badminton:
-        return '羽毛球';
-    }
   }
 }

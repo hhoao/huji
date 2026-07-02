@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
@@ -39,17 +40,18 @@ class TaskRowDesktop extends StatelessWidget {
   });
 
   List<Widget> _buildActions(BuildContext context, Task currentTask) {
+    final l10n = context.hujiL10n;
     return TaskTabListUtils.resolveTaskActions(currentTask).map((action) {
-      final (label, callback) = switch (action) {
-        TaskRowAction.viewProgress => ('查看进度', onTap),
-        TaskRowAction.pause => ('暂停', onPauseResume),
-        TaskRowAction.resume => ('恢复', onPauseResume),
-        TaskRowAction.cancel => ('取消', onCancel),
-        TaskRowAction.retry => ('重试', onRetry),
-        TaskRowAction.view => ('查看', onTap),
-        TaskRowAction.delete => ('删除', onDelete),
+      final callback = switch (action) {
+        TaskRowAction.viewProgress => onTap,
+        TaskRowAction.pause => onPauseResume,
+        TaskRowAction.resume => onPauseResume,
+        TaskRowAction.cancel => onCancel,
+        TaskRowAction.retry => onRetry,
+        TaskRowAction.view => onTap,
+        TaskRowAction.delete => onDelete,
       };
-      return _actionButton(context, label, callback);
+      return _actionButton(context, l10n.taskRowActionLabel(action), callback);
     }).toList();
   }
 
@@ -64,15 +66,8 @@ class TaskRowDesktop extends StatelessWidget {
     };
   }
 
-  static String _statusLabel(TaskStatusEnum status) {
-    return switch (status) {
-      TaskStatusEnum.pending => '等待中',
-      TaskStatusEnum.processing => '处理中',
-      TaskStatusEnum.completed => '已完成',
-      TaskStatusEnum.failed => '失败',
-      TaskStatusEnum.paused => '暂停',
-      TaskStatusEnum.cancelled => '已取消',
-    };
+  static String _statusLabel(HujiLocalizations l10n, TaskStatusEnum status) {
+    return l10n.taskStatusLabel(status);
   }
 
   static Color _iconBgColor(TaskStatusEnum status, Color primary) {
@@ -233,7 +228,10 @@ class TaskRowDesktop extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          TaskTabListUtils.buildTaskExtraInfo(currentTask),
+                          TaskTabListUtils.buildTaskExtraInfo(
+                            context.hujiL10n,
+                            currentTask,
+                          ),
                           style: styles.mutedCaption,
                         ),
                         if (showProgress)
@@ -255,7 +253,7 @@ class TaskRowDesktop extends StatelessWidget {
                       borderRadius: BorderRadius.circular(3),
                     ),
                     child: Text(
-                      _statusLabel(status),
+                      _statusLabel(context.hujiL10n, status),
                       style: styles.bodySmall.copyWith(
                         fontWeight: FontWeight.w500,
                         color: statusColor,

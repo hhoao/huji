@@ -24,6 +24,7 @@ import 'package:huji_app/widgets/camerax/camera_widget.dart';
 import 'package:uuid/uuid.dart';
 
 import 'round_selection_dialog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 边拍边剪辑页面
 class RecordAndClipPage extends StatefulWidget {
@@ -124,7 +125,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
     _currentTask = VideoSegmentDetectTask(
       id: taskId,
       edittingRecordId: edittingRecord.id,
-      name: '边拍边剪辑实时检测',
+      name: context.hujiL10n.recordAndClipRealtimeDetection,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       videoPath: videoPath!,
       image: null, // 录制中暂时没有缩略图
@@ -242,7 +243,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
     showDialog(
       context: context,
       builder: (context) => SimpleSegmentsDialog(
-        title: '检测到的片段',
+        title: context.hujiL10n.detectedSegments,
         titleIcon: Icons.content_cut,
         titleColor: Colors.blue,
         edittingRecord: _edittingRecord,
@@ -253,8 +254,8 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
   @override
   Widget build(BuildContext context) {
     if (!PlatformCapability.supportsRecording) {
-      return const Scaffold(
-        body: Center(child: Text('此功能在桌面端暂不支持')),
+      return Scaffold(
+        body: Center(child: Text(context.hujiL10n.featureNotSupportedOnDesktop)),
       );
     }
     return BlocListener<CameraXBloc, CameraXState>(
@@ -270,7 +271,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: const Text('边拍边剪辑'),
+          title: Text(context.hujiL10n.recordAndClip),
           backgroundColor: Colors.white,
           elevation: 0,
           leading: IconButton(
@@ -301,9 +302,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
                   },
                 );
               },
-              child: const Text(
-                '完成',
-                style: TextStyle(color: Colors.blue, fontSize: 16),
+              child: Text(context.hujiL10n.actionDone, style: TextStyle(color: Colors.blue, fontSize: 16),
               ),
             ),
           ],
@@ -344,7 +343,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
                                     size: 16,
                                     color: Colors.blue,
                                   ),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 4),
                                   Text(
                                     '${segments.length}',
                                     style: const TextStyle(
@@ -397,10 +396,8 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
                                               ),
                                         ),
                                       ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '实时检测中',
-                                        style: TextStyle(
+                                      SizedBox(width: 6),
+                                      Text(context.hujiL10n.realtimeDetecting, style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.blue[700],
                                           fontWeight: FontWeight.w500,

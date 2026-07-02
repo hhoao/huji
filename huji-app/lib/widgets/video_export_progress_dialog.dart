@@ -1,11 +1,13 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 typedef VideoExportProgressCallback = void Function(
   double progress,
@@ -59,7 +61,15 @@ class VideoExportProgressDialog extends StatefulWidget {
 
 class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
   double _progress = 0;
-  String _status = '准备导出...';
+  String _status = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_status.isEmpty) {
+      _status = context.hujiL10n.exportPreparing;
+    }
+  }
   bool _isCompleted = false;
   bool _isRunning = true;
   String? _errorMessage;
@@ -73,6 +83,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
   }
 
   Future<void> _runExport() async {
+    final l10n = resolveHujiL10n();
     try {
       final result = await widget.exportTask((progress, status) {
         if (!mounted) return;
@@ -84,14 +95,14 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
 
       final file = File(result.outputPath);
       if (!await file.exists()) {
-        throw Exception('导出文件未生成');
+        throw Exception(l10n.exportFileNotGenerated);
       }
 
       final fileSize = await file.length();
       if (!mounted) return;
       setState(() {
         _progress = 1;
-        _status = '导出完成';
+        _status = context.hujiL10n.exportComplete;
         _isCompleted = true;
         _isRunning = false;
         _outputPath = result.outputPath;
@@ -99,9 +110,10 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
       });
     } catch (e) {
       if (!mounted) return;
+      final errorL10n = context.hujiL10n;
       setState(() {
         _errorMessage = e.toString();
-        _status = '导出失败';
+        _status = errorL10n.exportFailedTitle;
         _isRunning = false;
       });
     }
@@ -128,7 +140,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('打开文件夹失败: $e')),
+        SnackBar(content: Text(context.hujiL10n.openFolderFailed('$e'))),
       );
     }
   }
@@ -163,10 +175,12 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                     : cs.primary,
             size: 22,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
-              _errorMessage != null ? '导出失败' : widget.title,
+              _errorMessage != null
+                  ? context.hujiL10n.exportFailedTitle
+                  : widget.title,
               style: (isDesktop ? styles.dialogTitle : const TextStyle())
                   .copyWith(color: onSurface),
             ),
@@ -187,7 +201,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
           ],
           if (_errorMessage != null) ...[
             Container(
@@ -200,7 +214,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.error_outline, color: cs.error, size: 18),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
@@ -218,7 +232,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                   : Colors.grey[700],
               valueColor: AlwaysStoppedAnimation(cs.primary),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -239,7 +253,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               ],
             ),
             if (_isCompleted && _outputPath != null) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
@@ -259,7 +273,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          '文件大小',
+                          context.hujiL10n.labelSize,
                           style: styles.bodySmall
                               .copyWith(color: onSurfaceVariant),
                         ),
@@ -270,9 +284,9 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    SizedBox(height: 6),
                     Text(
-                      '保存位置',
+                      context.hujiL10n.saveLocationLabel,
                       style:
                           styles.bodySmall.copyWith(color: onSurfaceVariant),
                     ),
@@ -293,15 +307,17 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
         if (_isCompleted && _outputPath != null)
           TextButton(
             onPressed: _openFolder,
-            child: Text(
-              '打开文件夹',
-              style: TextStyle(color: cs.primary),
+            child: Text(context.hujiL10n.openFolder, style: TextStyle(color: cs.primary),
             ),
           ),
         TextButton(
           onPressed: _isRunning ? null : () => Navigator.of(context).pop(),
           child: Text(
-            _errorMessage != null ? '确定' : (_isCompleted ? '完成' : '关闭'),
+            _errorMessage != null
+                ? context.hujiL10n.actionConfirm
+                : (_isCompleted
+                    ? context.hujiL10n.actionDone
+                    : context.hujiL10n.actionClose),
             style: TextStyle(color: onSurfaceVariant),
           ),
         ),

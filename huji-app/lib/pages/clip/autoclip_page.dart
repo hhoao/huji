@@ -24,6 +24,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoEditConfigPage extends StatefulWidget {
   final RawVideoRecord rawVideoRecord;
@@ -107,12 +108,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
     }
   }
 
-  String _getSportTypeTitle() {
+  String _getSportTypeTitle(BuildContext context) {
     switch (rawRecord.sportType) {
       case SportType.pingpong:
-        return '乒乓球视频自动剪辑';
+        return context.hujiL10n.pingPongVideoAutoClip;
       case SportType.badminton:
-        return '羽毛球视频自动剪辑';
+        return context.hujiL10n.badmintonVideoAutoClip;
     }
   }
 
@@ -160,8 +161,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       if (!hasPermission) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法使用云端剪辑功能'),
+            SnackBar(content: Text(context.hujiL10n.cloudClipUnavailable),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 3),
             ),
@@ -173,7 +173,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('打开云端剪辑功能失败: $e'),
+            content: Text(context.hujiL10n.openCloudClipFailed(e.toString())),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -191,12 +191,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
     // 已有视频剪辑的云端处理
     setState(() {
       isProcessing = true;
-      processStatus = '正在创建任务...';
+      processStatus = context.hujiL10n.creatingTask;
     });
 
     try {
       if (rawRecord.filePath == null) {
-        _showSnackBar('视频文件路径为空');
+        _showSnackBar(context.hujiL10n.videoPathEmpty);
         return;
       }
       final file = File(rawRecord.filePath!);
@@ -226,7 +226,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
 
       await _convertRawToProcessRecord(clipTask.id);
 
-      _showSnackBar('视频剪辑任务已创建，正在跳转到任务页面...');
+      _showSnackBar(context.hujiL10n.clipTaskCreatedRedirecting);
 
       if (mounted) {
         appRouter.go('${MainRoute.mainTask}?clipTaskId=${clipTask.id}');
@@ -234,10 +234,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
     } catch (e, stackTrace) {
       setState(() {
         isProcessing = false;
-        processStatus = '创建任务失败';
+        processStatus = context.hujiL10n.createTaskFailed;
       });
       AppLogger().e('创建任务失败: $e', stackTrace);
-      _showSnackBar('创建任务失败: $e');
+      _showSnackBar(context.hujiL10n.createTaskFailedWithError(e.toString()));
     }
   }
 
@@ -295,7 +295,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       _currentLocalTask = await _startLocalClipTask();
 
       // 显示成功提示
-      _showSnackBar('本地视频剪辑任务已创建，正在跳转到任务页面...');
+      _showSnackBar(context.hujiL10n.localClipTaskCreatedRedirecting);
 
       // 直接跳转到任务页面，并传递任务ID
       if (mounted) {
@@ -308,7 +308,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         isLocalProcessing = false;
       });
       AppLogger().e('本地视频剪辑失败: $e', stackTrace);
-      _showSnackBar('本地视频剪辑失败: $e');
+      _showSnackBar(context.hujiL10n.localClipFailed(e.toString()));
     }
   }
 
@@ -335,7 +335,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       id: taskId,
       total: (videoBaseInfo.duration * 1000).toInt(),
       edittingRecordId: edittingRecord.id,
-      name: '本地视频剪辑',
+      name: context.hujiL10n.localVideoClip,
       image: rawRecord.thumbnailPath,
       createdAt: DateTime.now().millisecondsSinceEpoch,
       videoPath: rawRecord.filePath!,
@@ -371,7 +371,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              _getSportTypeTitle(),
+              _getSportTypeTitle(context),
               style: const TextStyle(
                 color: Colors.black87,
                 fontWeight: FontWeight.bold,
@@ -417,12 +417,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   if (_currentPath != null)
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        '当前文件: $_currentPath',
+                        context.hujiL10n.currentFile(_currentPath!),
                         style: const TextStyle(fontSize: 12),
                       ),
                     ),
@@ -462,7 +462,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 固定在底部的裁剪按钮
           Container(
             padding: const EdgeInsets.all(16.0),
@@ -495,7 +495,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                         Row(
                           children: [
                             const CircularProgressIndicator(),
-                            const SizedBox(width: 16),
+                            SizedBox(width: 16),
                             Expanded(
                               child: Text(
                                 isUploading
@@ -522,7 +522,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                   ),
                 // 按钮区域
                 if (_isLoadingSettings)
-                  const Center(
+                  Center(
                     child: Padding(
                       padding: EdgeInsets.all(16.0),
                       child: CircularProgressIndicator(),
@@ -558,13 +558,13 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                     Center(
                                       child: Text(
                                         isUploading
-                                            ? '上传中...'
+                                            ? context.hujiL10n.uploading
                                             : isProcessing
-                                            ? '处理中...'
+                                            ? context.hujiL10n.processingNow
                                             : rawRecord.clipMode ==
                                                   ClipMode.recordAndClip
-                                            ? '边拍边剪(云端)'
-                                            : '云端剪辑',
+                                            ? context.hujiL10n.recordAndClipCloud
+                                            : context.hujiL10n.cloudClip,
                                         style: const TextStyle(
                                           fontSize: 16,
                                           color: Colors.white,
@@ -595,9 +595,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                             ),
                                           ],
                                         ),
-                                        child: const Text(
-                                          '更快更准',
-                                          style: TextStyle(
+                                        child: Text(context.hujiL10n.fasterAndMoreAccurate, style: TextStyle(
                                             fontSize: 10,
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold,
@@ -611,7 +609,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                             ),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                       ],
                       // 本地剪辑按钮
                       Expanded(
@@ -633,10 +631,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                   },
                             child: Text(
                               isLocalProcessing
-                                  ? '处理中...'
+                                  ? context.hujiL10n.processingNow
                                   : rawRecord.clipMode == ClipMode.recordAndClip
-                                  ? '边拍边剪(本地)'
-                                  : '本地剪辑',
+                                  ? context.hujiL10n.recordAndClipLocal
+                                  : context.hujiL10n.localClip,
                               style: const TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
@@ -664,9 +662,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.video_library, size: 48, color: Colors.grey),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            _isInitialized ? '视频加载中...' : '暂无视频',
+            _isInitialized
+                ? context.hujiL10n.videoLoading
+                : context.hujiL10n.noVideo,
             style: TextStyle(color: Colors.grey[600], fontSize: 14),
           ),
         ],

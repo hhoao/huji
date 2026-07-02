@@ -1,7 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/demo_videos.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 typedef DemoVideoTap = Future<void> Function(DemoVideo demo);
+
+String demoVideoTitle(HujiLocalizations l10n, DemoVideo demo) =>
+    switch (demo.id) {
+      'ping_pong_demo' => l10n.demoPingPongTitle,
+      'badminton_demo' => l10n.demoBadmintonTitle,
+      _ => demo.title,
+    };
+
+String demoVideoSubtitle(HujiLocalizations l10n, DemoVideo demo) =>
+    switch (demo.id) {
+      'ping_pong_demo' => l10n.demoPingPongSubtitle,
+      'badminton_demo' => l10n.demoBadmintonSubtitle,
+      _ => demo.subtitle,
+    };
 
 /// Compact list of bundled demo videos.
 class DemoVideoPicker extends StatelessWidget {
@@ -9,20 +24,20 @@ class DemoVideoPicker extends StatelessWidget {
     super.key,
     required this.onDemoSelected,
     this.loading = false,
-    this.filterSportLabel,
+    this.filterSportTypeKey,
     this.dense = false,
   });
 
   final DemoVideoTap onDemoSelected;
   final bool loading;
-  final String? filterSportLabel;
+  final String? filterSportTypeKey;
   final bool dense;
 
   @override
   Widget build(BuildContext context) {
-    final items = filterSportLabel == null
+    final items = filterSportTypeKey == null
         ? demoVideos
-        : demoVideosForSportLabel(filterSportLabel!);
+        : demoVideosForSportKey(filterSportTypeKey!);
     if (items.isEmpty) {
       return const SizedBox.shrink();
     }
@@ -32,7 +47,7 @@ class DemoVideoPicker extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '或使用演示视频',
+          context.hujiL10n.useDemoVideo,
           style: TextStyle(
             fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
             color: dense ? Colors.white70 : Colors.grey,
@@ -102,13 +117,13 @@ class _DemoChip extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                demo.title,
+                demoVideoTitle(context.hujiL10n, demo),
                 style: TextStyle(
                   fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
                 ),
               ),
               Text(
-                demo.subtitle,
+                demoVideoSubtitle(context.hujiL10n, demo),
                 style: TextStyle(
                   fontSize: dense ? 10 : 11,
                   color: Theme.of(

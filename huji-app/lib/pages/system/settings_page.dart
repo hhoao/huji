@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/modules/profile.dart';
 import 'package:huji_app/services/app_update_service.dart';
 import 'package:huji_app/services/storage_manager.dart';
 import 'package:huji_app/settings/settings_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/app_update_dialog.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -26,12 +29,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final sharedL10n = context.sharedL10n;
+
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: const Text(
-          '设置',
-          style: TextStyle(
+        title: Text(
+          l10n.settingsTitle,
+          style: const TextStyle(
             fontWeight: FontWeight.w500,
             fontSize: 20,
             color: Colors.black,
@@ -49,13 +55,13 @@ class _SettingsPageState extends State<SettingsPage> {
           _buildCard([
             _buildSettingRow(
               Icons.notifications,
-              '推送通知',
+              l10n.settingsPushNotifications,
               trailing: Obx(
                 () => Switch(
                   value: SettingsManager.to.notifications,
                   onChanged: (v) async {
                     await SettingsManager.to.setNotifications(v);
-                    _showSnackBar('通知设置已更新');
+                    _showSnackBar(l10n.settingsNotificationsUpdated);
                   },
                 ),
               ),
@@ -63,48 +69,53 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildDivider(),
             _buildSettingRow(
               Icons.dark_mode,
-              '深色模式',
+              l10n.settingsDarkMode,
               trailing: Obx(
                 () => Switch(
                   value: ThemeManager.to.isDarkMode,
                   onChanged: (v) async {
                     await ThemeManager.to.setThemeMode(v);
-                    _showSnackBar('主题切换成功');
+                    _showSnackBar(l10n.settingsThemeChanged);
                   },
                 ),
               ),
             ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 语言设置分组
           _buildCard([
             _buildSettingRow(
               Icons.language,
-              '语言',
-              trailing: Obx(
-                () => Text(
-                  SettingsManager.to.language,
-                  style: TextStyle(color: Colors.grey),
-                ),
+              l10n.settingsLanguage,
+              trailing: BlocBuilder<AppearanceCubit, AppearancePreferences>(
+                builder: (context, prefs) {
+                  final label = prefs.locale == 'en'
+                      ? sharedL10n.languageEnglish
+                      : sharedL10n.languageChinese;
+                  return Text(label, style: const TextStyle(color: Colors.grey));
+                },
               ),
               onTap: () => _showLanguageDialog(context),
             ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 存储管理分组
           _buildCard([
             _buildSettingRow(
               Icons.cleaning_services,
-              '清理缓存',
+              l10n.settingsClearCache,
               onTap: () => _showClearCacheDialog(context),
             ),
             _buildDivider(),
             _buildSettingRow(
               Icons.storage,
-              '存储空间',
+              l10n.settingsStorage,
               trailing: Obx(
                 () => Text(
-                  StorageManager.to.storageSize,
+                  _formatStorageSizeDisplay(
+                    l10n,
+                    StorageManager.to.storageSize,
+                  ),
                   style: TextStyle(color: Colors.grey),
                 ),
               ),
@@ -113,16 +124,16 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildDivider(),
             _buildSettingRow(
               Icons.security,
-              '权限管理',
+              l10n.settingsPermissions,
               onTap: () => context.push(ProfileRoute.permissionManagement),
             ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 关于分组
           _buildCard([
             _buildSettingRow(
               Icons.info_outline,
-              '版本信息',
+              l10n.settingsVersionInfo,
               trailing: FutureBuilder(
                 future: PackageInfo.fromPlatform(),
                 builder: (context, snapshot) {
@@ -137,13 +148,16 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildDivider(),
             _buildSettingRow(
               Icons.system_update,
-              '应用更新',
+              l10n.settingsCheckUpdate,
               trailing: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.new_releases, color: Colors.orange, size: 16),
+                  const Icon(Icons.new_releases, color: Colors.orange, size: 16),
                   SizedBox(width: 4),
-                  Text('检查更新', style: TextStyle(color: Colors.orange)),
+                  Text(
+                    l10n.settingsCheckUpdate,
+                    style: const TextStyle(color: Colors.orange),
+                  ),
                 ],
               ),
               onTap: () => checkUpdate(context),
@@ -151,17 +165,17 @@ class _SettingsPageState extends State<SettingsPage> {
             _buildDivider(),
             _buildSettingRow(
               Icons.privacy_tip_outlined,
-              '隐私政策',
+              l10n.settingsPrivacyPolicy,
               onTap: _showPrivacyPolicy,
             ),
             _buildDivider(),
             _buildSettingRow(
               Icons.description_outlined,
-              '用户协议',
+              l10n.settingsUserAgreement,
               onTap: _showUserAgreement,
             ),
           ]),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
         ],
       ),
     );
@@ -194,7 +208,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Row(
           children: [
             Icon(icon, color: Colors.grey[700], size: 22),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Expanded(
               child: Text(
                 title,
@@ -217,33 +231,38 @@ class _SettingsPageState extends State<SettingsPage> {
       Container(height: 1, color: const Color(0xFFF2F2F2));
 
   void _showLanguageDialog(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final sharedL10n = context.sharedL10n;
+    final cubit = context.read<AppearanceCubit>();
+    final selected = cubit.state.locale.startsWith('en') ? 'en' : 'zh';
+
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('选择语言'),
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.settingsChooseLanguage),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: const Text('简体中文'),
-              value: '简体中文',
-              groupValue: SettingsManager.to.language,
+              title: Text(sharedL10n.languageChinese),
+              value: 'zh',
+              groupValue: selected,
               onChanged: (value) async {
-                await SettingsManager.to.setLanguage(value!);
-                if (!context.mounted) return;
-                Navigator.pop(context);
-                _showSnackBar('语言设置已更新');
+                await cubit.setLocale(value!);
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                _showSnackBar(l10n.settingsLanguageUpdated);
               },
             ),
             RadioListTile<String>(
-              title: const Text('English'),
-              value: 'English',
-              groupValue: SettingsManager.to.language,
+              title: Text(sharedL10n.languageEnglish),
+              value: 'en',
+              groupValue: selected,
               onChanged: (value) async {
-                await SettingsManager.to.setLanguage(value!);
-                if (!context.mounted) return;
-                Navigator.pop(context);
-                _showSnackBar('语言设置已更新');
+                await cubit.setLocale(value!);
+                if (!dialogContext.mounted) return;
+                Navigator.pop(dialogContext);
+                _showSnackBar(l10n.settingsLanguageUpdated);
               },
             ),
           ],
@@ -262,36 +281,36 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清理缓存'),
+        title: Text(context.hujiL10n.settingsClearCache),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('选择要清理的内容：'),
+            Text(context.hujiL10n.settingsChooseCleanupContent),
             const SizedBox(height: 16),
             _buildClearOption(
               context,
-              '缓存文件',
-              storageInfo['缓存文件'] ?? 0,
+              context.hujiL10n.settingsCacheFiles,
+              storageInfo[StorageManager.storageKeyCache] ?? 0,
               () => _clearCacheFiles(),
             ),
             const SizedBox(height: 8),
             _buildClearOption(
               context,
-              '下载文件',
-              storageInfo['下载文件'] ?? 0,
+              context.hujiL10n.settingsDownloadFiles,
+              storageInfo[StorageManager.storageKeyDownloads] ?? 0,
               () => _clearDownloadFiles(),
             ),
             const SizedBox(height: 4),
             _buildViewOption(
               context,
-              '查看下载文件',
+              context.hujiL10n.settingsViewDownloadFiles,
               () => _showDownloadFilesList(context),
             ),
             const SizedBox(height: 8),
             _buildClearOption(
               context,
-              '全部清理',
+              context.hujiL10n.settingsCleanupAll,
               storageInfo.values.reduce((a, b) => a + b),
               () => _clearAllFiles(),
             ),
@@ -306,7 +325,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 () => Navigator.pop(context),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
         ],
       ),
@@ -337,7 +356,7 @@ class _SettingsPageState extends State<SettingsPage> {
               StorageManager.to.formatFileSize(size),
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             const Icon(Icons.delete_outline, color: Colors.red, size: 20),
           ],
         ),
@@ -353,8 +372,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('确认清理'),
-        content: Text('确定要清理$title吗？此操作不可撤销。'),
+        title: Text(context.hujiL10n.settingsConfirmCleanup),
+        content: Text(context.hujiL10n.settingsConfirmCleanupMessage(title)),
         actions: [
           TextButton(
             onPressed: () {
@@ -364,7 +383,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 () => Navigator.pop(context, false),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
@@ -375,7 +394,7 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('确定清理'),
+            child: Text(context.hujiL10n.settingsConfirmCleanupAction),
           ),
         ],
       ),
@@ -394,8 +413,8 @@ class _SettingsPageState extends State<SettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: Text('确定要删除文件 "$fileName" 吗？此操作不可撤销。'),
+        title: Text(context.hujiL10n.confirmDelete),
+        content: Text(context.hujiL10n.settingsConfirmDeleteFileMessage(fileName)),
         actions: [
           TextButton(
             onPressed: () {
@@ -405,7 +424,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 () => Navigator.pop(context, false),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
@@ -416,7 +435,7 @@ class _SettingsPageState extends State<SettingsPage> {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('确定删除'),
+            child: Text(context.hujiL10n.settingsConfirmDeleteAction),
           ),
         ],
       ),
@@ -453,7 +472,7 @@ class _SettingsPageState extends State<SettingsPage> {
         child: Row(
           children: [
             Expanded(child: Text(title, style: const TextStyle(fontSize: 14))),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             const Icon(Icons.visibility, color: Colors.blue, size: 18),
           ],
         ),
@@ -464,18 +483,18 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _clearCacheFiles() async {
     try {
       await StorageManager.to.clearCacheFiles();
-      _showSnackBar('缓存文件清理完成');
+      _showSnackBar(context.hujiL10n.settingsCacheCleanupDone);
     } catch (e) {
-      _showSnackBar('缓存文件清理失败: $e');
+      _showSnackBar(context.hujiL10n.settingsCacheCleanupFailed(e.toString()));
     }
   }
 
   Future<void> _clearDownloadFiles() async {
     try {
       await StorageManager.to.clearDownloadFiles();
-      _showSnackBar('下载文件清理完成');
+      _showSnackBar(context.hujiL10n.settingsDownloadCleanupDone);
     } catch (e) {
-      _showSnackBar('下载文件清理失败: $e');
+      _showSnackBar(context.hujiL10n.settingsDownloadCleanupFailed(e.toString()));
     }
   }
 
@@ -489,15 +508,15 @@ class _SettingsPageState extends State<SettingsPage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('下载文件列表'),
+            title: Text(context.hujiL10n.settingsDownloadFileList),
             content: SizedBox(
               width: double.maxFinite,
               height: 400,
               child: files.isEmpty
-                  ? const Center(
+                  ? Center(
                       child: Text(
-                        '暂无下载文件',
-                        style: TextStyle(color: Colors.grey),
+                        context.hujiL10n.settingsNoDownloadFiles,
+                        style: const TextStyle(color: Colors.grey),
                       ),
                     )
                   : ListView.builder(
@@ -552,49 +571,62 @@ class _SettingsPageState extends State<SettingsPage> {
                     () => Navigator.pop(context),
                   );
                 },
-                child: const Text('关闭'),
+                child: Text(context.hujiL10n.actionClose),
               ),
               TextButton(
                 onPressed: () async {
                   Navigator.pop(context);
                   await _showClearConfirmation(
                     context,
-                    '所有下载文件',
+                    context.hujiL10n.settingsAllDownloadFiles,
                     _clearDownloadFiles,
                   );
                 },
-                child: const Text('清空全部', style: TextStyle(color: Colors.red)),
+                child: Text(
+                  context.hujiL10n.settingsClearAll,
+                  style: const TextStyle(color: Colors.red),
+                ),
               ),
             ],
           ),
         );
       }
     } catch (e) {
-      _showSnackBar('获取下载文件列表失败: $e');
+      _showSnackBar(context.hujiL10n.settingsDownloadListFailed(e.toString()));
     }
   }
 
   Future<void> _deleteSingleFile(BuildContext context, String filePath) async {
     try {
       await StorageManager.to.deleteSingleFile(filePath);
-      _showSnackBar('文件删除成功');
+      _showSnackBar(context.hujiL10n.settingsFileDeleteSuccess);
       // 刷新文件列表
       if (context.mounted) {
         Navigator.pop(context);
         await _showDownloadFilesList(context);
       }
     } catch (e) {
-      _showSnackBar('文件删除失败: $e');
+      _showSnackBar(context.hujiL10n.settingsFileDeleteFailed(e.toString()));
     }
   }
 
   Future<void> _clearAllFiles() async {
     try {
       await StorageManager.to.clearAllFiles();
-      _showSnackBar('全部文件清理完成');
+      _showSnackBar(context.hujiL10n.settingsAllFilesCleanupDone);
     } catch (e) {
-      _showSnackBar('全部文件清理失败: $e');
+      _showSnackBar(context.hujiL10n.settingsAllFilesCleanupFailed(e.toString()));
     }
+  }
+
+  String _formatStorageSizeDisplay(HujiLocalizations l10n, String value) {
+    if (value == StorageManager.storageSizeCalculating) {
+      return l10n.calculating;
+    }
+    if (value == StorageManager.storageSizeUnknown) {
+      return l10n.unknownLabel;
+    }
+    return value;
   }
 
   void _showStorageInfo(BuildContext context) async {
@@ -604,12 +636,12 @@ class _SettingsPageState extends State<SettingsPage> {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => const AlertDialog(
+      builder: (context) => AlertDialog(
         content: Row(
           children: [
             CircularProgressIndicator(),
             SizedBox(width: 16),
-            Text('正在计算存储信息...'),
+            Text(context.hujiL10n.storageInfoCalculating),
           ],
         ),
       ),
@@ -624,26 +656,41 @@ class _SettingsPageState extends State<SettingsPage> {
 
         showDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('存储空间'),
+          builder: (context) {
+            final l10n = context.hujiL10n;
+            final format = StorageManager.to.formatFileSize;
+            return AlertDialog(
+            title: Text(l10n.settingsStorage),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '缓存文件: ${StorageManager.to.formatFileSize(storageInfo['缓存文件']!)}',
+                  l10n.storageCategoryWithSize(
+                    l10n.settingsCacheFiles,
+                    format(storageInfo[StorageManager.storageKeyCache]!),
+                  ),
                 ),
                 Text(
-                  '应用数据: ${StorageManager.to.formatFileSize(storageInfo['应用数据']!)}',
+                  l10n.storageCategoryWithSize(
+                    l10n.settingsAppData,
+                    format(storageInfo[StorageManager.storageKeyAppData]!),
+                  ),
                 ),
                 Text(
-                  '下载文件: ${StorageManager.to.formatFileSize(storageInfo['下载文件']!)}',
+                  l10n.storageCategoryWithSize(
+                    l10n.settingsDownloadFiles,
+                    format(storageInfo[StorageManager.storageKeyDownloads]!),
+                  ),
                 ),
                 Text(
-                  '外部存储: ${StorageManager.to.formatFileSize(storageInfo['外部存储']!)}',
+                  l10n.storageCategoryWithSize(
+                    l10n.settingsExternalStorage,
+                    format(storageInfo[StorageManager.storageKeyExternal]!),
+                  ),
                 ),
-                const SizedBox(height: 16),
-                Text('总使用空间: ${StorageManager.to.formatFileSize(totalSize)}'),
+                SizedBox(height: 16),
+                Text(l10n.settingsTotalUsedSpace(format(totalSize))),
               ],
             ),
             actions: [
@@ -655,10 +702,11 @@ class _SettingsPageState extends State<SettingsPage> {
                     () => Navigator.pop(context),
                   );
                 },
-                child: const Text('确定'),
+                child: Text(l10n.actionConfirm),
               ),
             ],
-          ),
+          );
+          },
         );
       }
     } catch (e) {
@@ -668,8 +716,10 @@ class _SettingsPageState extends State<SettingsPage> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('错误'),
-            content: Text('无法获取存储信息: $e'),
+            title: Text(context.hujiL10n.labelError),
+            content: Text(
+              context.hujiL10n.storageInfoFetchFailedWithError(e.toString()),
+            ),
             actions: [
               TextButton(
                 onPressed: () {
@@ -679,7 +729,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     () => Navigator.pop(context),
                   );
                 },
-                child: const Text('确定'),
+                child: Text(context.hujiL10n.actionConfirm),
               ),
             ],
           ),
@@ -689,17 +739,17 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showPrivacyPolicy() {
-    _showSnackBar('隐私政策页面开发中');
+    _showSnackBar(context.hujiL10n.featureInDevelopment);
   }
 
   void _showUserAgreement() {
-    _showSnackBar('用户协议页面开发中');
+    _showSnackBar(context.hujiL10n.featureInDevelopment);
   }
 
   void checkUpdate(context) async {
     final updateInfo = await AppUpdateService.instance.checkForUpdate();
     if (updateInfo == null || !updateInfo.hasUpdate) {
-      _showSnackBar('当前已是最新版本');
+      _showSnackBar(context.hujiL10n.settingsAlreadyLatestVersion);
       return;
     }
     showDialog(

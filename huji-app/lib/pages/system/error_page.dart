@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:huji_app/l10n/huji_localizations_setup.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
@@ -165,6 +167,8 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
       title: 'RestCut: Error',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(primarySwatch: Colors.blue, useMaterial3: true),
+      localizationsDelegates: HujiLocalizationsSetup.localizationsDelegates,
+      supportedLocales: HujiLocalizationsSetup.supportedLocales,
       navigatorKey: navigatorKey,
       home: Scaffold(
         backgroundColor: Colors.grey[50],
@@ -546,9 +550,12 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                 debugPrint('Navigator state is null');
                                 if (mounted) {
                                   ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text('无法打开日志查看器: Navigator未初始化'),
-                                      duration: Duration(seconds: 3),
+                                    SnackBar(
+                                      content: Text(
+                                        context.hujiL10n
+                                            .cannotOpenLogViewerNavigatorNotInitialized,
+                                      ),
+                                      duration: const Duration(seconds: 3),
                                     ),
                                   );
                                 }
@@ -567,7 +574,11 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                               if (mounted && context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   SnackBar(
-                                    content: Text('无法打开日志查看器: $e'),
+                                    content: Text(
+                                      context.hujiL10n.cannotOpenLogViewer(
+                                        '$e',
+                                      ),
+                                    ),
                                     duration: const Duration(seconds: 3),
                                   ),
                                 );
@@ -575,7 +586,7 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                             }
                           },
                           icon: const Icon(Icons.description),
-                          label: const Text('查看日志'),
+                          label: Text(context.hujiL10n.viewLogsButton),
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(

@@ -11,6 +11,7 @@ import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Right-side actions on the 本地任务 / 剪辑记录 tab bar.
 class TaskLocalTasksTabActions extends StatelessWidget {
@@ -56,25 +57,26 @@ class TaskLocalTasksTabActions extends StatelessWidget {
   }
 
   Widget _buildFilterControls(BuildContext context, TaskTabState state) {
+    final l10n = context.hujiL10n;
     final hasActiveFilters = state.filter.hasActiveFilters;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         TaskStatusFilterMenu(bloc: bloc),
-        const SizedBox(width: 6),
+        SizedBox(width: 6),
         TaskTypeFilterMenu(bloc: bloc),
-        const SizedBox(width: 6),
+        SizedBox(width: 6),
         TaskDateRangeFilterMenu(bloc: bloc),
         if (hasActiveFilters) ...[
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           AppHoverBox(
             onTap: _clearFilters,
             borderRadius: 6,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
               child: Text(
-                '清除筛选',
+                l10n.clearFilters,
                 style: AppTextStyles.of(context)
                     .caption
                     .copyWith(color: Colors.redAccent),
@@ -82,9 +84,9 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         AppButton.outlined(
-          label: '选择',
+          label: l10n.batchSelect,
           onTap: onEnterBatchMode,
         ),
       ],
@@ -92,6 +94,7 @@ class TaskLocalTasksTabActions extends StatelessWidget {
   }
 
   Widget _buildBatchControls(BuildContext context, TaskTabState state) {
+    final l10n = context.hujiL10n;
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
     final allSelected =
@@ -109,22 +112,22 @@ class TaskLocalTasksTabActions extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            '已选 ${state.selectedTaskIds.length}',
+            l10n.batchSelectedCount(state.selectedTaskIds.length),
             style: styles.caption.copyWith(color: cs.primary),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           AppHoverBox(
             onTap: allSelected ? onDeselectAll : onSelectAll,
             borderRadius: 4,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               child: Text(
-                allSelected ? '取消全选' : '全选',
+                allSelected ? l10n.deselectAll : l10n.selectAll,
                 style: styles.caption,
               ),
             ),
           ),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
           AppHoverBox(
             onTap: state.selectedTaskIds.isEmpty
                 ? null
@@ -132,13 +135,11 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             borderRadius: 4,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              child: Text(
-                '删除',
-                style: styles.caption.copyWith(color: Colors.redAccent),
+              child: Text(context.hujiL10n.actionDelete, style: styles.caption.copyWith(color: Colors.redAccent),
               ),
             ),
           ),
-          const SizedBox(width: 4),
+          SizedBox(width: 4),
           AppHoverBox(
             onTap: onExitBatchMode,
             borderRadius: 4,

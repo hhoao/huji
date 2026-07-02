@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
@@ -135,7 +136,7 @@ class _TrimmerViewState extends State<TrimmerView> {
                                 ? trimmerTheme.favorite
                                 : trimmerTheme.onToolbar,
                           ),
-                          tooltip: '收藏片段',
+                          tooltip: context.hujiL10n.favoriteSegment,
                         );
                       },
                     ),
@@ -295,7 +296,7 @@ class TrimmerEditor extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 2),
+            SizedBox(height: 2),
             _TrimmerProgressSlider(
               totalDurationMs: state.totalDuration.round(),
               currentMs: state.currentMilliseconds,
@@ -353,7 +354,7 @@ class TrimmerEditor extends StatelessWidget {
                               : trimmerTheme.onToolbar,
                           size: 16,
                         ),
-                        const SizedBox(width: 4),
+                        SizedBox(width: 4),
                         Text(
                           '慢放',
                           style: textTheme.labelSmall?.copyWith(
@@ -367,7 +368,7 @@ class TrimmerEditor extends StatelessWidget {
                   );
                 },
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               BlocBuilder<TrimmerBloc, TrimmerState>(
                 buildWhen: (previous, current) =>
                     previous.playbackSpeed != current.playbackSpeed,
@@ -375,7 +376,7 @@ class TrimmerEditor extends StatelessWidget {
                   return _buildSpeedMenu(context, state);
                 },
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               BlocBuilder<TrimmerBloc, TrimmerState>(
                 buildWhen: (previous, current) =>
                     previous.isPlaying != current.isPlaying,
@@ -561,7 +562,7 @@ class TrimmerEditor extends StatelessWidget {
               return _buildToolButton(
                 context: context,
                 icon: Icons.content_cut,
-                label: '分割',
+                label: context.hujiL10n.trimSplitLabel,
                 onTap: () {
                   if (context.mounted) {
                     context.read<ClipSegmentBloc>().add(
@@ -578,7 +579,7 @@ class TrimmerEditor extends StatelessWidget {
           _buildToolButton(
             context: context,
             icon: Icons.add,
-            label: '添加片段',
+            label: context.hujiL10n.addClipSegmentLabel,
             onTap: () {
               if (context.mounted) {
                 context.read<ClipSegmentBloc>().add(
@@ -607,7 +608,7 @@ class TrimmerEditor extends StatelessWidget {
                   return _buildToolButton(
                     context: context,
                     icon: Icons.play_arrow,
-                    label: '只播放片段',
+                    label: context.hujiL10n.playSelectedSegmentOnly,
                     onTap: () {
                       if (context.mounted && hasActiveSegments) {
                         context.read<TrimmerBloc>().add(
@@ -631,7 +632,7 @@ class TrimmerEditor extends StatelessWidget {
               return _buildToolButton(
                 context: context,
                 icon: Icons.delete,
-                label: '删除',
+                label: context.hujiL10n.actionDelete,
                 onTap: () {
                   Throttles.throttle(
                     'trimmer_delete_segment',
@@ -754,7 +755,7 @@ class TrimmerEditor extends StatelessWidget {
               color: isEnabled ? (color ?? trimmerTheme.onToolbar) : trimmerTheme.disabled,
               size: 24,
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               label,
               style: textTheme.labelSmall?.copyWith(

@@ -25,6 +25,7 @@ import '../../widgets/video_save_progress_dialog.dart';
 import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 回合编辑页面
 class RoundClipPage extends StatefulWidget {
@@ -40,6 +41,7 @@ class _RoundClipPageState extends State<RoundClipPage>
     with SingleTickerProviderStateMixin {
   late MultiVideoPlayerBloc _multiVideoPlayerBloc;
   late RoundClipBloc _roundClipBloc;
+  bool _blocsInitialized = false;
 
   // 跟踪拖动状态
   SegmentInfo? _draggingSegment;
@@ -50,10 +52,19 @@ class _RoundClipPageState extends State<RoundClipPage>
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
-    _roundClipBloc = RoundClipBloc(multiVideoPlayerBloc: _multiVideoPlayerBloc);
+  }
 
-    // 初始化RoundClipBloc
-    _roundClipBloc.add(RoundClipInitializeEvent(widget.videoRecord));
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_blocsInitialized) {
+      _blocsInitialized = true;
+      _roundClipBloc = RoundClipBloc(
+        l10n: context.hujiL10n,
+        multiVideoPlayerBloc: _multiVideoPlayerBloc,
+      );
+      _roundClipBloc.add(RoundClipInitializeEvent(widget.videoRecord));
+    }
   }
 
   @override
@@ -123,7 +134,7 @@ class _RoundClipPageState extends State<RoundClipPage>
         ],
         child: Scaffold(
           appBar: CommonAppBar(
-            title: '回合剪辑',
+            title: context.hujiL10n.roundClip,
             leftWidget: Row(
               children: [
                 IconButton(
@@ -152,7 +163,9 @@ class _RoundClipPageState extends State<RoundClipPage>
                       child: Row(
                         children: [
                           Text(
-                            state.isSaving ? '导出中...' : '导出',
+                            state.isSaving
+                                ? context.hujiL10n.exporting
+                                : context.hujiL10n.actionExport,
                             style: const TextStyle(fontSize: 14),
                           ),
                         ],
@@ -172,7 +185,7 @@ class _RoundClipPageState extends State<RoundClipPage>
             },
             builder: (context, state) {
               if (state.isLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return Center(child: CircularProgressIndicator());
               }
 
               return SingleChildScrollView(
@@ -235,10 +248,8 @@ class _RoundClipPageState extends State<RoundClipPage>
                           size: 48,
                           color: Colors.grey[600],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          '暂无视频数据',
-                          style: TextStyle(
+                        SizedBox(height: 8),
+                        Text(context.hujiL10n.noVideoData, style: TextStyle(
                             color: Colors.grey[600],
                             fontSize: 16,
                           ),
@@ -270,7 +281,7 @@ class _RoundClipPageState extends State<RoundClipPage>
               // 全部回合区域
               _buildAllRoundsSection(state),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 收藏回合区域
               _buildFavoriteRoundsSection(state),
@@ -294,7 +305,7 @@ class _RoundClipPageState extends State<RoundClipPage>
     }
 
     return _buildRoundsSection(
-      title: '全部回合',
+      title: context.hujiL10n.videoProcessTypeAllMatchMerged,
       segments: playBallSegments,
       themeColor: Colors.blue,
       showStarIcon: false,
@@ -303,6 +314,7 @@ class _RoundClipPageState extends State<RoundClipPage>
       emptyView: null,
       actionButton: BlocBuilder<RoundClipBloc, RoundClipState>(
         builder: (context, state) {
+          final l10n = context.hujiL10n;
           final hasCurrentSegment = state.currentPlayingSegment != null;
           final isCurrentFavorite =
               hasCurrentSegment &&
@@ -313,17 +325,17 @@ class _RoundClipPageState extends State<RoundClipPage>
             children: [
               // 拖动提示
               Tooltip(
-                message: '长按拖动可调整顺序',
+                message: l10n.dragToReorderHint,
                 child: Icon(
                   Icons.drag_handle,
                   size: 18,
                   color: Colors.grey[600],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // 删除按钮（禁用时保持布局稳定）
               Tooltip(
-                message: hasCurrentSegment ? '删除当前回合' : '',
+                message: hasCurrentSegment ? l10n.deleteCurrentRound : '',
                 child: IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   color: Colors.red,
@@ -336,10 +348,12 @@ class _RoundClipPageState extends State<RoundClipPage>
                       : null,
                 ),
               ),
-              const SizedBox(width: 4),
+              SizedBox(width: 4),
               // 收藏按钮
               Tooltip(
-                message: isCurrentFavorite ? '取消收藏' : '收藏当前回合',
+                message: isCurrentFavorite
+                    ? l10n.unfavorite
+                    : l10n.favoriteCurrentRound,
                 child: IconButton(
                   icon: Icon(
                     isCurrentFavorite ? Icons.star : Icons.star_border,
@@ -637,7 +651,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 children: [
                   if (showStarIcon)
                     const Icon(Icons.star, size: 8, color: Colors.orange),
-                  if (showStarIcon) const SizedBox(width: 2),
+                  if (showStarIcon) SizedBox(width: 2),
                   Text(
                     '${index + 1}',
                     style: TextStyle(
@@ -740,7 +754,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                               size: 8,
                               color: Colors.orange,
                             ),
-                          if (showStarIcon) const SizedBox(width: 2),
+                          if (showStarIcon) SizedBox(width: 2),
                           Text(
                             '${index + 1}',
                             style: TextStyle(
@@ -778,7 +792,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                                   : effectiveThemeColor.withValues(alpha: 0.7),
                             ),
                           ),
-                          const SizedBox(height: 1),
+                          SizedBox(height: 1),
                           Text(
                             '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                             style: TextStyle(
@@ -808,7 +822,7 @@ class _RoundClipPageState extends State<RoundClipPage>
     final favoriteSegments = state.favoriteSegments;
 
     return _buildRoundsSection(
-      title: '收藏回合',
+      title: context.hujiL10n.favoriteRounds,
       segments: favoriteSegments,
       themeColor: Colors.orange,
       showStarIcon: true,
@@ -817,6 +831,7 @@ class _RoundClipPageState extends State<RoundClipPage>
       emptyView: _buildEmptyFavoritesView(),
       actionButton: BlocBuilder<RoundClipBloc, RoundClipState>(
         builder: (context, state) {
+          final l10n = context.hujiL10n;
           final hasCurrentSegment = state.currentPlayingSegment != null;
           final isCurrentFavorite =
               hasCurrentSegment &&
@@ -827,17 +842,17 @@ class _RoundClipPageState extends State<RoundClipPage>
             children: [
               // 拖动提示
               Tooltip(
-                message: '长按拖动可调整顺序',
+                message: l10n.dragToReorderHint,
                 child: Icon(
                   Icons.drag_handle,
                   size: 18,
                   color: Colors.grey[600],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // 删除按钮（禁用时保持布局稳定）
               Tooltip(
-                message: isCurrentFavorite ? '从收藏中移除' : '',
+                message: isCurrentFavorite ? l10n.removeFromFavorites : '',
                 child: IconButton(
                   icon: const Icon(Icons.delete_outline, size: 20),
                   color: Colors.red,
@@ -888,7 +903,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                           fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -912,7 +927,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 ),
               ),
               if (actionButton != null) actionButton,
-              if (actionButton != null) const SizedBox(width: 8),
+              if (actionButton != null) SizedBox(width: 8),
               GestureDetector(
                 onTap: onTapTitle,
                 child: Icon(
@@ -959,15 +974,13 @@ class _RoundClipPageState extends State<RoundClipPage>
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: Colors.grey[300]!),
         ),
-        child: const Center(
+        child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(Icons.star_border, size: 24, color: Colors.grey),
               SizedBox(height: 4),
-              Text(
-                '暂无收藏回合',
-                style: TextStyle(color: Colors.grey, fontSize: 12),
+              Text(context.hujiL10n.noFavoriteRounds, style: TextStyle(color: Colors.grey, fontSize: 12),
               ),
             ],
           ),
@@ -982,18 +995,18 @@ class _RoundClipPageState extends State<RoundClipPage>
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          const SizedBox(width: 16),
+          SizedBox(width: 16),
           Expanded(
             child: ElevatedButton.icon(
               onPressed: _startEditing,
               icon: const Icon(Icons.content_cut),
-              label: const Text('编辑回合'),
-              style: ElevatedButton.styleFrom(
+              label: Text(context.hujiL10n.editRound),
+            style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 backgroundColor: Colors.blue,
                 foregroundColor: Colors.white,
               ),
-            ),
+          ),
           ),
         ],
       ),
@@ -1055,8 +1068,7 @@ class _RoundClipPageState extends State<RoundClipPage>
       if (!hasPermission) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('无法使用编辑功能'),
+            SnackBar(content: Text(context.hujiL10n.editFeatureUnavailable),
               backgroundColor: Colors.orange,
               duration: Duration(seconds: 3),
             ),
@@ -1068,7 +1080,7 @@ class _RoundClipPageState extends State<RoundClipPage>
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('打开编辑功能失败'),
+            content: Text(context.hujiL10n.openEditFeatureFailed),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),
@@ -1079,13 +1091,17 @@ class _RoundClipPageState extends State<RoundClipPage>
 
     final state = _roundClipBloc.state;
     if (state.videoRecord == null) {
-      _roundClipBloc.add(const ShowErrorMessageEvent('没有可用的视频数据'));
+      _roundClipBloc.add(
+        ShowErrorMessageEvent(context.hujiL10n.noVideoDataAvailable),
+      );
       return;
     }
 
     final videoFile = File(state.videoRecord!.filePath!);
     if (!videoFile.existsSync()) {
-      _roundClipBloc.add(const ShowErrorMessageEvent('视频文件不存在'));
+      _roundClipBloc.add(
+        ShowErrorMessageEvent(context.hujiL10n.videoFileNotExist),
+      );
       return;
     }
 
@@ -1158,16 +1174,17 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   /// 保存视频到本地
   Future<void> _saveVideoLocally() async {
+    final l10n = context.hujiL10n;
     final state = _roundClipBloc.state;
     if (state.videoRecord == null) {
-      _showErrorSnackBar('没有可用的视频数据');
+      _showErrorSnackBar(l10n.noVideoDataAvailable);
       return;
     }
 
     // 获取要保存的片段
     final segmentsToSave = _getSegmentsToSave(state);
     if (segmentsToSave.isEmpty) {
-      _showErrorSnackBar('没有可保存的片段');
+      _showErrorSnackBar(l10n.noSegmentsToSave);
       return;
     }
 

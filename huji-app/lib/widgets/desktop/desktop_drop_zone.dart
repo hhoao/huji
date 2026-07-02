@@ -7,6 +7,7 @@ import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopDropZone extends StatefulWidget {
   final List<File> files;
@@ -14,7 +15,7 @@ class DesktopDropZone extends StatefulWidget {
   final ValueChanged<int> onRemoveFile;
   final DemoVideoTap? onDemoVideoSelected;
   final bool demoLoading;
-  final String? demoSportLabel;
+  final String? demoSportTypeKey;
 
   const DesktopDropZone({
     super.key,
@@ -23,7 +24,7 @@ class DesktopDropZone extends StatefulWidget {
     required this.onRemoveFile,
     this.onDemoVideoSelected,
     this.demoLoading = false,
-    this.demoSportLabel,
+    this.demoSportTypeKey,
   });
 
   @override
@@ -87,11 +88,14 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           ),
           const SizedBox(height: 14),
           Text(
-            '拖拽视频到这里',
+            context.hujiL10n.dragVideoHere,
             style: styles.sectionTitle.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
-          Text('或者', style: styles.mutedBodySmall.copyWith(color: cs.outline)),
+          Text(
+            context.hujiL10n.orLabel,
+            style: styles.mutedBodySmall.copyWith(color: cs.outline),
+          ),
           const SizedBox(height: 8),
           ElevatedButton(
             onPressed: () async {
@@ -109,11 +113,11 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
               foregroundColor: cs.onPrimaryContainer,
               side: BorderSide(color: cs.primary.withAlpha(77)),
             ),
-            child: const Text('选择文件'),
+            child: Text(context.hujiL10n.selectFiles),
           ),
           const SizedBox(height: 8),
           Text(
-            '支持常见视频格式',
+            context.hujiL10n.supportedVideoFormats,
             style: styles.caption.copyWith(color: cs.outline),
           ),
           if (widget.onDemoVideoSelected != null) ...[
@@ -121,7 +125,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             DemoVideoPicker(
               dense: true,
               loading: widget.demoLoading,
-              filterSportLabel: widget.demoSportLabel,
+              filterSportTypeKey: widget.demoSportTypeKey,
               onDemoSelected: widget.onDemoVideoSelected!,
             ),
           ],
@@ -143,7 +147,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '已选择 ${widget.files.length} 个文件',
+                context.hujiL10n.filesSelectedCount(widget.files.length),
                 style: styles.bodyStrong.copyWith(color: cs.onSurface),
               ),
               TextButton(
@@ -157,7 +161,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
                     widget.onFilesAdded(result.whereType<File>().toList());
                   }
                 },
-                child: const Text('+ 添加更多'),
+                child: Text(context.hujiL10n.addMoreFiles),
               ),
             ],
           ),

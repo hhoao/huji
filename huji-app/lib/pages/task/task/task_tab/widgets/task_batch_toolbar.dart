@@ -6,6 +6,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 enum TaskBatchToolbarVariant { mobile, desktop }
 
@@ -45,7 +46,7 @@ class TaskBatchToolbar extends StatelessWidget {
             return Align(
               alignment: Alignment.centerRight,
               child: AppButton.outlined(
-                label: '选择',
+                label: context.hujiL10n.batchSelect,
                 onTap: onEnterBatchMode,
               ),
             );
@@ -82,30 +83,32 @@ class TaskBatchToolbar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '已选择 ${state.selectedTaskIds.length} 项',
+            context.hujiL10n.selectedItemsCount(state.selectedTaskIds.length),
             style: styles.body.copyWith(color: cs.primary),
           ),
           const Spacer(),
           TextButton(
             onPressed: allSelected ? onDeselectAll : onSelectAll,
             child: Text(
-              allSelected ? '取消全选' : '全选',
+              allSelected
+                  ? context.hujiL10n.deselectAll
+                  : context.hujiL10n.selectAll,
               style: styles.bodySmall,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           ElevatedButton.icon(
             onPressed: state.selectedTaskIds.isEmpty
                 ? null
                 : () => onBatchDelete(state.selectedTaskIds),
             icon: const Icon(Icons.delete, size: 14),
-            label: Text('删除', style: styles.bodySmall),
+            label: Text(context.hujiL10n.actionDelete, style: styles.bodySmall),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           IconButton(
             onPressed: onExitBatchMode,
             icon: const Icon(Icons.close, size: 18),
@@ -134,15 +137,19 @@ class TaskBatchToolbar extends StatelessWidget {
       child: Row(
         children: [
           Text(
-            '已选择 ${state.selectedTaskIds.length} 项',
+            context.hujiL10n.selectedItemsCount(state.selectedTaskIds.length),
             style: TextStyle(color: primary, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
           TextButton(
             onPressed: allSelected ? onDeselectAll : onSelectAll,
-            child: Text(allSelected ? '取消全选' : '全选'),
+            child: Text(
+              allSelected
+                  ? context.hujiL10n.deselectAll
+                  : context.hujiL10n.selectAll,
+            ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           ElevatedButton.icon(
             onPressed: state.selectedTaskIds.isEmpty
                 ? null
@@ -154,13 +161,13 @@ class TaskBatchToolbar extends StatelessWidget {
                     );
                   },
             icon: const Icon(Icons.delete, size: 16),
-            label: const Text('删除'),
+            label: Text(context.hujiL10n.actionDelete),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           IconButton(onPressed: onExitBatchMode, icon: const Icon(Icons.close)),
         ],
       ),

@@ -8,6 +8,7 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/utils/clip_config_codec.dart';
 import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:uuid/uuid.dart';
 
 enum ConfigItemType { select, toggle, slider }
@@ -17,16 +18,17 @@ Future<RawVideoRecord> createRawVideoRecord(
   SportType sportType,
   VideoClipConfigReqVo configValues, {
   ClipMode clipMode = ClipMode.existingVideo,
+  required HujiLocalizations l10n,
 }) async {
   String? thumbnailPath;
 
   // 只有在已有视频模式下才生成缩略图
   if (clipMode == ClipMode.existingVideo) {
     if (videoPath == null || videoPath.isEmpty) {
-      throw Exception('请先选择视频文件');
+      throw Exception(l10n.selectVideoFileFirst);
     }
     if (!await File(videoPath).exists()) {
-      throw Exception('视频文件不存在: $videoPath');
+      throw Exception(l10n.videoFileNotFound(videoPath));
     }
     final appCacheDir = storage.getApplicationDocumentsDirectory();
     try {
@@ -38,7 +40,7 @@ Future<RawVideoRecord> createRawVideoRecord(
         ),
       );
     } catch (e) {
-      throw Exception('生成缩略图失败: $videoPath: $e');
+      throw Exception(l10n.generateThumbnailFailed(videoPath, e.toString()));
     }
   }
 
@@ -140,34 +142,38 @@ class ConfigItems {
   List<ConfigItem> getConfigItems(
     SportType sportType,
     VideoClipConfigReqVo configValues,
+    HujiLocalizations l10n,
   ) {
     final normalizedConfig = ClipConfigCodec.normalize(configValues, sportType);
     switch (sportType) {
       case SportType.pingpong:
         return _getPingPongConfigItems(
           normalizedConfig as PingPongVideoClipConfigReqVo,
+          l10n,
         );
       case SportType.badminton:
         return _getBadmintonConfigItems(
           normalizedConfig as BadmintonVideoClipConfigReqVo,
+          l10n,
         );
     }
   }
 
   List<ConfigItem> _getPingPongConfigItems(
     PingPongVideoClipConfigReqVo configValues,
+    HujiLocalizations l10n,
   ) {
     return [
       // 比赛类型
       ConfigItem(
         key: 'matchType',
-        label: '比赛类型',
+        label: l10n.matchType,
         type: ConfigItemType.select,
         value: configValues.matchType ?? MatchType.singlesMatch,
         selectOptions: [
-          ConfigOption(label: '单打比赛', value: MatchType.singlesMatch),
+          ConfigOption(label: l10n.matchTypeSingles, value: MatchType.singlesMatch),
           ConfigOption(
-            label: '双打比赛',
+            label: l10n.matchTypeDoubles,
             value: MatchType.doublesMatch,
             disabled: true,
           ),
@@ -177,13 +183,13 @@ class ConfigItems {
       // 剪辑模式
       ConfigItem(
         key: 'mode',
-        label: '剪辑模式',
+        label: l10n.clipMode,
         type: ConfigItemType.select,
         value: configValues.mode ?? ModeEnum.backendClip,
         selectOptions: [
-          ConfigOption(label: '后台剪辑', value: ModeEnum.backendClip),
+          ConfigOption(label: l10n.backendClip, value: ModeEnum.backendClip),
           ConfigOption(
-            label: '自定义剪辑',
+            label: l10n.customClip,
             value: ModeEnum.customClip,
             disabled: true,
           ),
@@ -193,8 +199,8 @@ class ConfigItems {
       // 精彩球剪辑
       ConfigItem(
         key: 'greatBallEditing',
-        label: '精彩球剪辑',
-        tooltip: '自动剪辑单局时间长的精彩球',
+        label: l10n.highlightClip,
+        tooltip: l10n.highlightClipTooltip,
         type: ConfigItemType.toggle,
         value: configValues.greatBallEditing ?? true,
       ),
@@ -202,8 +208,8 @@ class ConfigItems {
       // 精彩球最小时长
       ConfigItem(
         key: 'minimumDurationGreatBall',
-        label: '精彩球最小时长(秒)',
-        tooltip: '精彩球最小时长（秒）',
+        label: l10n.minHighlightDurationSeconds,
+        tooltip: l10n.minHighlightDurationTooltip,
         type: ConfigItemType.slider,
         value: configValues.minimumDurationGreatBall ?? 10.0,
         sliderConfig: SliderConfig(
@@ -218,8 +224,8 @@ class ConfigItems {
       // 移除回放
       ConfigItem(
         key: 'removeReplay',
-        label: '移除回放',
-        tooltip: '一般专业比赛才有，例如wtt中的回放',
+        label: l10n.removeReplay,
+        tooltip: l10n.removeReplayTooltipPro,
         type: ConfigItemType.toggle,
         value: configValues.removeReplay ?? true,
       ),
@@ -227,7 +233,7 @@ class ConfigItems {
       // 获取比赛片段
       ConfigItem(
         key: 'getMatchSegments',
-        label: '获取比赛片段',
+        label: l10n.getMatchSegments,
         type: ConfigItemType.toggle,
         value: configValues.getMatchSegments ?? true,
       ),
@@ -235,8 +241,8 @@ class ConfigItems {
       // 合并发球和击球
       ConfigItem(
         key: 'mergeFireBallAndPlayBall',
-        label: '合并发球和击球',
-        tooltip: '勾选后，只有发球的回合（发球下网和失误）以及练球片段也会被剪辑进去',
+        label: l10n.mergeServeAndHit,
+        tooltip: l10n.mergeServeAndHitTooltip,
         type: ConfigItemType.toggle,
         value: configValues.mergeFireBallAndPlayBall ?? true,
       ),
@@ -244,8 +250,8 @@ class ConfigItems {
       // 最大发球时长
       ConfigItem(
         key: 'maxFireBallTime',
-        label: '最大发球时长',
-        tooltip: '限制发球时长(秒)',
+        label: l10n.maxServeDuration,
+        tooltip: l10n.maxServeDurationTooltip,
         type: ConfigItemType.slider,
         value: configValues.maxFireBallTime ?? 3.0,
         sliderConfig: SliderConfig(min: 1, max: 10, step: 0.1, divisions: 9),
@@ -255,8 +261,8 @@ class ConfigItems {
       // 单回合前保留时间
       ConfigItem(
         key: 'reserveTimeBeforeSingleRound',
-        label: '单回合前保留时间',
-        tooltip: '单回合比赛开始前预留的时间（秒）',
+        label: l10n.reserveBeforeRound,
+        tooltip: l10n.reserveBeforeRoundTooltip,
         type: ConfigItemType.slider,
         value: configValues.reserveTimeBeforeSingleRound ?? 0.0,
         sliderConfig: SliderConfig(min: 0, max: 5, step: 0.1, divisions: 10),
@@ -265,8 +271,8 @@ class ConfigItems {
       // 单回合后保留时长
       ConfigItem(
         key: 'reserveTimeAfterSingleRound',
-        label: '单回合后保留时长(秒)',
-        tooltip: '单回合比赛结束后预留的时间（秒）',
+        label: l10n.reserveAfterRound,
+        tooltip: l10n.reserveAfterRoundTooltip,
         type: ConfigItemType.slider,
         value: configValues.reserveTimeAfterSingleRound ?? 1.0,
         sliderConfig: SliderConfig(min: 0, max: 5, step: 0.1, divisions: 10),
@@ -275,8 +281,8 @@ class ConfigItems {
       // 单回合最小时长
       ConfigItem(
         key: 'minimumDurationSingleRound',
-        label: '单回合最小时长(秒)',
-        tooltip: '单回合最小时长（秒）',
+        label: l10n.minRoundDuration,
+        tooltip: l10n.minRoundDurationTooltip,
         type: ConfigItemType.slider,
         value: configValues.minimumDurationSingleRound ?? 3.0,
         sliderConfig: SliderConfig(
@@ -291,18 +297,19 @@ class ConfigItems {
 
   List<ConfigItem> _getBadmintonConfigItems(
     BadmintonVideoClipConfigReqVo configValues,
+    HujiLocalizations l10n,
   ) {
     return [
       // 比赛类型
       ConfigItem(
         key: 'matchType',
-        label: '比赛类型',
+        label: l10n.matchType,
         type: ConfigItemType.select,
         value: configValues.matchType ?? MatchType.singlesMatch,
         selectOptions: [
-          ConfigOption(label: '单打比赛', value: MatchType.singlesMatch),
+          ConfigOption(label: l10n.matchTypeSingles, value: MatchType.singlesMatch),
           ConfigOption(
-            label: '双打比赛',
+            label: l10n.matchTypeDoubles,
             value: MatchType.doublesMatch,
             disabled: true,
           ),
@@ -312,19 +319,19 @@ class ConfigItems {
       // 剪辑模式
       ConfigItem(
         key: 'mode',
-        label: '剪辑模式',
+        label: l10n.clipMode,
         type: ConfigItemType.select,
         value: configValues.mode ?? ModeEnum.backendClip,
         selectOptions: [
-          ConfigOption(label: '后台剪辑', value: ModeEnum.backendClip),
-          ConfigOption(label: '自定义剪辑', value: ModeEnum.customClip),
+          ConfigOption(label: l10n.backendClip, value: ModeEnum.backendClip),
+          ConfigOption(label: l10n.customClip, value: ModeEnum.customClip),
         ],
       ),
 
       // 精彩球剪辑
       ConfigItem(
         key: 'greatBallEditing',
-        label: '精彩球剪辑',
+        label: l10n.highlightClip,
         type: ConfigItemType.toggle,
         value: configValues.greatBallEditing ?? true,
       ),
@@ -332,8 +339,8 @@ class ConfigItems {
       // 移除回放
       ConfigItem(
         key: 'removeReplay',
-        label: '移除回放',
-        tooltip: '一般专业比赛才有',
+        label: l10n.removeReplay,
+        tooltip: l10n.removeReplayTooltipShort,
         type: ConfigItemType.toggle,
         value: configValues.removeReplay ?? true,
       ),
@@ -341,7 +348,7 @@ class ConfigItems {
       // 获取比赛片段
       ConfigItem(
         key: 'getMatchSegments',
-        label: '获取比赛片段',
+        label: l10n.getMatchSegments,
         type: ConfigItemType.toggle,
         value: configValues.getMatchSegments ?? true,
       ),
@@ -349,8 +356,8 @@ class ConfigItems {
       // 单回合前保留时间
       ConfigItem(
         key: 'reserveTimeBeforeSingleRound',
-        label: '单回合前保留时间',
-        tooltip: '单回合比赛开始前预留的时间（秒）',
+        label: l10n.reserveBeforeRound,
+        tooltip: l10n.reserveBeforeRoundTooltip,
         type: ConfigItemType.slider,
         value: configValues.reserveTimeBeforeSingleRound ?? 1.0,
         sliderConfig: SliderConfig(min: 0, max: 5, step: 0.1, divisions: 10),
@@ -359,8 +366,8 @@ class ConfigItems {
       // 单回合后保留时长
       ConfigItem(
         key: 'reserveTimeAfterSingleRound',
-        label: '单回合后保留时长(秒)',
-        tooltip: '单回合比赛结束后预留的时间（秒）',
+        label: l10n.reserveAfterRound,
+        tooltip: l10n.reserveAfterRoundTooltip,
         type: ConfigItemType.slider,
         value: configValues.reserveTimeAfterSingleRound ?? 1.0,
         sliderConfig: SliderConfig(min: 0, max: 5, step: 0.1, divisions: 10),
@@ -369,8 +376,8 @@ class ConfigItems {
       // 单回合最小时长
       ConfigItem(
         key: 'minimumDurationSingleRound',
-        label: '单回合最小时长(秒)',
-        tooltip: '单回合最小时长（秒）',
+        label: l10n.minRoundDuration,
+        tooltip: l10n.minRoundDurationTooltip,
         type: ConfigItemType.slider,
         value: configValues.minimumDurationSingleRound ?? 5.0,
         sliderConfig: SliderConfig(
@@ -384,8 +391,8 @@ class ConfigItems {
       // 精彩球最小时长
       ConfigItem(
         key: 'minimumDurationGreatBall',
-        label: '精彩球最小时长(秒)',
-        tooltip: '精彩球最小时长（秒）',
+        label: l10n.minHighlightDurationSeconds,
+        tooltip: l10n.minHighlightDurationTooltip,
         type: ConfigItemType.slider,
         value: configValues.minimumDurationGreatBall ?? 10.0,
         sliderConfig: SliderConfig(

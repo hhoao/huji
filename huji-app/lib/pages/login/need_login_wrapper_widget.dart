@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/pages/login/login_dialog.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class NeedLoginWrapperWidget extends StatelessWidget {
   final Widget? child;
@@ -40,26 +41,22 @@ class NeedLoginWrapperWidget extends StatelessWidget {
                       color: Colors.grey[400],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // 提示文字
-                  const Text(
-                    '需要登录才能访问此功能',
-                    style: TextStyle(
+                  Text(context.hujiL10n.loginNeedLoginTitle, style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.w500,
                       color: Colors.black87,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
 
-                  const Text(
-                    '请先登录您的账户以继续使用',
-                    style: TextStyle(fontSize: 14, color: Colors.grey),
+                  Text(context.hujiL10n.loginNeedLoginSubtitle, style: TextStyle(fontSize: 14, color: Colors.grey),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
 
                   // 登录按钮
                   SizedBox(
@@ -77,9 +74,7 @@ class NeedLoginWrapperWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
-                        '立即登录',
-                        style: TextStyle(
+                      child: Text(context.hujiL10n.loginLoginNow, style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
                         ),

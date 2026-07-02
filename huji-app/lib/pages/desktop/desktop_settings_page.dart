@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
@@ -20,7 +21,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   _SettingsSection _section = _SettingsSection.general;
   bool _checkUpdateOnStart = true;
   bool _sendUsageStats = false;
-  String _apiServer = '默认';
+  String _apiServerKey = 'default';
   int _downloadConcurrency = 3;
 
   @override
@@ -79,14 +80,15 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   }
 
   Widget _buildGeneralBody() {
+    final l10n = context.hujiL10n;
     return SingleChildScrollView(
       child: SettingsSurfaceCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SettingsLabeledRow(
-              title: '默认保存路径',
-              subtitle: '~/Videos/弧迹',
+              title: l10n.settingsDefaultSavePath,
+              subtitle: l10n.settingsDefaultSavePathValue,
               trailing: Icon(
                 Icons.folder_outlined,
                 size: 18,
@@ -94,8 +96,8 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
               ),
             ),
             SettingsLabeledRow(
-              title: '启动时检查更新',
-              subtitle: '应用启动时自动检查新版本',
+              title: l10n.settingsCheckUpdateOnStart,
+              subtitle: l10n.settingsCheckUpdateOnStartDesc,
               trailing: AppSwitch(
                 active: _checkUpdateOnStart,
                 onTap: () =>
@@ -103,8 +105,8 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
               ),
             ),
             SettingsLabeledRow(
-              title: '发送使用统计',
-              subtitle: '匿名发送使用数据以帮助我们改进应用',
+              title: l10n.settingsSendUsageStats,
+              subtitle: l10n.settingsSendUsageStatsDesc,
               trailing: AppSwitch(
                 active: _sendUsageStats,
                 onTap: () => setState(() => _sendUsageStats = !_sendUsageStats),
@@ -118,9 +120,10 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   }
 
   Widget _buildAccountBody() {
+    final l10n = context.hujiL10n;
     final userState = UserBlocInstance.instance.state;
     final isLoggedIn = userState.isLoggedIn;
-    final userName = userState.user?.nickname ?? '未登录';
+    final userName = userState.user?.nickname ?? l10n.accountNotLoggedIn;
 
     return SingleChildScrollView(
       child: SettingsSurfaceCard(
@@ -128,7 +131,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SettingsLabeledRow(
-              title: '用户名',
+              title: l10n.settingsUsername,
               subtitle: userName,
               trailing: Icon(
                 isLoggedIn ? Icons.person : Icons.person_outline,
@@ -138,7 +141,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
               showDividerBelow: false,
             ),
             if (isLoggedIn) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: SizedBox(
@@ -148,7 +151,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                       UserBlocInstance.instance.add(const UserLogoutEvent());
                       setState(() {});
                     },
-                    child: const Text('退出登录'),
+                    child: Text(l10n.accountLogout),
                   ),
                 ),
               ),
@@ -160,23 +163,30 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   }
 
   Widget _buildNetworkBody() {
+    final l10n = context.hujiL10n;
+    final apiServers = <String, String>{
+      'default': l10n.settingsApiServerDefault,
+      'sandbox': l10n.settingsApiServerSandbox,
+    };
+
     return SingleChildScrollView(
       child: SettingsSurfaceCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SettingsLabeledRow(
-              title: 'API 服务器',
-              subtitle: '选择连接的 API 环境',
+              title: l10n.settingsApiServer,
+              subtitle: l10n.settingsApiServerDesc,
               trailing: AppDropdown<String>(
-                value: _apiServer,
-                items: const ['默认', 'Sandbox'],
-                onChanged: (v) => setState(() => _apiServer = v),
+                value: _apiServerKey,
+                items: apiServers.keys.toList(),
+                labelBuilder: (key) => apiServers[key]!,
+                onChanged: (v) => setState(() => _apiServerKey = v),
               ),
             ),
             SettingsLabeledRow(
-              title: '下载并发数',
-              subtitle: '同时下载的视频数量',
+              title: l10n.settingsDownloadConcurrency,
+              subtitle: l10n.settingsDownloadConcurrencyDesc,
               trailing: AppDropdown<int>(
                 value: _downloadConcurrency,
                 items: const [1, 2, 3, 5],

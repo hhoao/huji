@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/changelog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class ChangelogPage extends StatefulWidget {
   const ChangelogPage({super.key});
@@ -34,10 +35,12 @@ class _ChangelogPageState extends State<ChangelogPage> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _errorMessage = '加载更新日志失败: $e';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = context.hujiL10n.loadChangelogFailed('$e');
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -45,7 +48,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('更新日志'),
+        title: Text(context.hujiL10n.changelog),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
         elevation: 0,
         actions: [
@@ -53,7 +56,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
             IconButton(
               icon: const Icon(Icons.refresh),
               onPressed: _loadChangelog,
-              tooltip: '刷新',
+              tooltip: context.hujiL10n.actionRefresh,
             ),
         ],
       ),
@@ -63,13 +66,13 @@ class _ChangelogPageState extends State<ChangelogPage> {
 
   Widget _buildBody() {
     if (_isLoading) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text('正在加载更新日志...'),
+            Text(context.hujiL10n.loadingChangelog),
           ],
         ),
       );
@@ -85,7 +88,7 @@ class _ChangelogPageState extends State<ChangelogPage> {
               size: 64,
               color: context.theme.colorScheme.error,
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
               _errorMessage!,
               style: context.textTheme.bodyMedium?.copyWith(
@@ -93,8 +96,8 @@ class _ChangelogPageState extends State<ChangelogPage> {
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadChangelog, child: const Text('重试')),
+            SizedBox(height: 16),
+            ElevatedButton(onPressed: _loadChangelog, child: Text(context.hujiL10n.actionRetry)),
           ],
         ),
       );
@@ -110,9 +113,9 @@ class _ChangelogPageState extends State<ChangelogPage> {
               size: 64,
               color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
-              '暂无更新日志',
+              context.hujiL10n.noChangelogEntries,
               style: context.textTheme.titleMedium?.copyWith(
                 color: context.theme.colorScheme.onSurface.withValues(
                   alpha: 0.5,
@@ -144,18 +147,18 @@ class _ChangelogPageState extends State<ChangelogPage> {
                         color: context.theme.primaryColor,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
-                        '关于更新日志',
+                        context.hujiL10n.aboutChangelogTitle,
                         style: context.textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
-                    '我们致力于为用户提供最好的视频剪辑体验。每次更新都会带来新的功能和改进，感谢您的支持！',
+                    context.hujiL10n.aboutChangelogDescription,
                     style: context.textTheme.bodySmall?.copyWith(
                       color: context.theme.colorScheme.onSurface.withValues(
                         alpha: 0.7,
@@ -166,13 +169,13 @@ class _ChangelogPageState extends State<ChangelogPage> {
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 更新日志列表
           ..._entries.map(
             (entry) => Column(
               children: [
                 ChangelogData.buildChangelogItem(context, entry),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
               ],
             ),
           ),

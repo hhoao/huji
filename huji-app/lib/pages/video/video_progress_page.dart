@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoProgressPage extends StatefulWidget {
   final int? highlightProcessRecordId;
@@ -60,10 +63,12 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
       // 自动滚动到高亮卡片
       WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToHighlight());
     } catch (e) {
-      setState(() {
-        errorMessage = '加载失败: $e';
-        isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          errorMessage = context.hujiL10n.loadFailed('$e');
+          isLoading = false;
+        });
+      }
     }
   }
 
@@ -84,17 +89,8 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
     }
   }
 
-  String _getStatusText(ProcessStatus status) {
-    switch (status) {
-      case ProcessStatus.preparing:
-        return '准备中';
-      case ProcessStatus.processing:
-        return '处理中';
-      case ProcessStatus.completed:
-        return '已完成';
-      case ProcessStatus.failed:
-        return '失败';
-    }
+  String _getStatusText(ProcessStatus status, HujiLocalizations l10n) {
+    return l10n.processStatusLabel(status);
   }
 
   Color _getStatusColor(ProcessStatus status) {
@@ -118,6 +114,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -127,9 +124,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black87),
           onPressed: () => context.pop(),
         ),
-        title: const Text(
-          '视频处理进度',
-          style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        title: Text(context.hujiL10n.videoProcessingProgress, style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         actions: [
           IconButton(
@@ -141,7 +136,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
       body: RefreshIndicator(
         onRefresh: _loadData,
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : errorMessage != null
             ? Center(
                 child: Column(
@@ -151,10 +146,10 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                       errorMessage!,
                       style: const TextStyle(color: Colors.red),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     ElevatedButton(
                       onPressed: _loadData,
-                      child: const Text('重试'),
+                      child: Text(context.hujiL10n.actionRetry),
                     ),
                   ],
                 ),
@@ -169,34 +164,30 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                     children: [
                       // 正在处理的视频
                       if (progressList.isNotEmpty) ...[
-                        const Text(
-                          '正在处理',
-                          style: TextStyle(
+                        Text(context.hujiL10n.processingNow, style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
                         ListView(
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           children: progressList
-                              .map((progress) => _buildProgressCard(progress))
+                              .map((progress) => _buildProgressCard(l10n, progress))
                               .toList(),
                         ),
-                        const SizedBox(height: 32),
+                        SizedBox(height: 32),
                       ],
 
                       // 处理记录
-                      const Text(
-                        '处理记录',
-                        style: TextStyle(
+                      Text(context.hujiL10n.processingHistory, style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 16),
-                      ...recordList.map((record) => _buildRecordCard(record)),
+                      SizedBox(height: 16),
+                      ...recordList.map((record) => _buildRecordCard(l10n, record)),
                     ],
                   ),
                 ),
@@ -205,7 +196,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
     );
   }
 
-  Widget _buildProgressCard(VideoProcessProgressVO progress) {
+  Widget _buildProgressCard(HujiLocalizations l10n, VideoProcessProgressVO progress) {
     final isHighlight =
         (widget.highlightProcessRecordId != null &&
             progress.videoProcessRecordId == widget.highlightProcessRecordId) ||
@@ -242,13 +233,13 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    _getStatusText(progress.status),
+                    _getStatusText(progress.status, l10n),
                     style: TextStyle(color: _getStatusColor(progress.status)),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 进度条
             LinearProgressIndicator(
@@ -258,7 +249,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                 _getStatusColor(progress.status),
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -268,32 +259,36 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                   style: const TextStyle(fontSize: 14),
                 ),
                 Text(
-                  '队列位置: ${progress.position}',
+                  l10n.queuePosition('${progress.position}'),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '视频时长: ${_formatDuration(progress.videoDuration)}',
+                  l10n.videoDuration(_formatDuration(progress.videoDuration)),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 Text(
-                  '处理速度: ${progress.processSpeed.toStringAsFixed(1)} 秒/分钟',
+                  l10n.processingSpeed(
+                    progress.processSpeed.toStringAsFixed(1),
+                  ),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
 
             if (progress.estimatedRemainingTime > 0) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
-                '预计剩余时间: ${_formatDuration(progress.estimatedRemainingTime)}',
+                l10n.estimatedRemainingTime(
+                  _formatDuration(progress.estimatedRemainingTime),
+                ),
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
             ],
@@ -303,7 +298,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
     );
   }
 
-  Widget _buildRecordCard(VideoProcessRecordVO record) {
+  Widget _buildRecordCard(HujiLocalizations l10n, VideoProcessRecordVO record) {
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
@@ -334,7 +329,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    _getStatusText(record.status),
+                    _getStatusText(record.status, l10n),
                     style: TextStyle(
                       color: _getStatusColor(record.status),
                       fontSize: 12,
@@ -344,26 +339,26 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '视频时长: ${_formatDuration(record.videoDuration)}',
+                  l10n.videoDuration(_formatDuration(record.videoDuration)),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
                 Text(
-                  '创建时间: ${record.createTime}',
+                  l10n.createdAt('${record.createTime}'),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
               ],
             ),
 
             if (record.extraInfo != null && record.extraInfo!.isNotEmpty) ...[
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
               Text(
-                '备注: ${record.extraInfo}',
+                l10n.remark(record.extraInfo!),
                 style: TextStyle(fontSize: 14, color: Colors.grey[600]),
               ),
             ],

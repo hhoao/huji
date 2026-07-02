@@ -15,6 +15,7 @@ import 'package:huji_app/pages/task/record/video_records_tab_content.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopTasksPage extends StatefulWidget {
   final String? clipTaskId;
@@ -97,11 +98,14 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
   @override
   Widget build(BuildContext context) {
     return WorkspaceIdentityPane(
-      header: const WorkspaceIdentityTitle(
-        title: '任务',
+      header: WorkspaceIdentityTitle(
+        title: context.hujiL10n.desktopNavTasks,
         icon: Icons.assignment_outlined,
       ),
-      tabs: const ['本地任务', '剪辑记录'],
+      tabs: [
+        context.hujiL10n.localTasks,
+        context.hujiL10n.clipRecords,
+      ],
       selectedTabIndex: _pageTabIndex,
       onSelectTab: (i) => setState(() => _pageTabIndex = i),
       tabBarTrailing: _pageTabIndex == 0
@@ -185,10 +189,8 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.inbox_outlined, size: 64, color: cs.outline),
-          const SizedBox(height: 16),
-          Text(
-            '暂无任务',
-            style: AppTextStyles.of(context)
+          SizedBox(height: 16),
+          Text(context.hujiL10n.noTasks, style: AppTextStyles.of(context)
                 .body
                 .copyWith(color: cs.onSurfaceVariant),
           ),

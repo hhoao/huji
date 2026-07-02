@@ -6,6 +6,71 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:intl/intl.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
+import 'package:huji_app/l10n/l10n_extensions.dart';
+
+abstract final class _DeviceInfoKeys {
+  static const brand = 'brand';
+  static const model = 'model';
+  static const androidVersion = 'android_version';
+  static const sdkVersion = 'sdk_version';
+  static const deviceId = 'device_id';
+  static const manufacturer = 'manufacturer';
+  static const productName = 'product_name';
+  static const hardware = 'hardware';
+  static const deviceName = 'device_name';
+  static const systemName = 'system_name';
+  static const systemVersion = 'system_version';
+  static const deviceIdentifier = 'device_identifier';
+  static const deviceType = 'device_type';
+  static const localizedModel = 'localized_model';
+  static const buildVersion = 'build_version';
+  static const computerName = 'computer_name';
+  static const userName = 'user_name';
+  static const registryOwner = 'registry_owner';
+  static const hostName = 'host_name';
+  static const architecture = 'architecture';
+  static const activeCpuCount = 'active_cpu_count';
+  static const memorySize = 'memory_size';
+  static const distroName = 'distro_name';
+  static const distroVersion = 'distro_version';
+  static const versionId = 'version_id';
+  static const versionCodename = 'version_codename';
+  static const platform = 'platform';
+  static const error = 'error';
+}
+
+String _deviceInfoFieldLabel(HujiLocalizations l10n, String key) =>
+    switch (key) {
+      _DeviceInfoKeys.brand => l10n.deviceBrandLabel,
+      _DeviceInfoKeys.model => l10n.deviceModelLabel,
+      _DeviceInfoKeys.androidVersion => l10n.androidVersionLabel,
+      _DeviceInfoKeys.sdkVersion => l10n.sdkVersionLabel,
+      _DeviceInfoKeys.deviceId => l10n.deviceIdLabel,
+      _DeviceInfoKeys.manufacturer => l10n.manufacturerLabel,
+      _DeviceInfoKeys.productName => l10n.productNameLabel,
+      _DeviceInfoKeys.hardware => l10n.hardwareLabel,
+      _DeviceInfoKeys.deviceName => l10n.deviceNameLabel,
+      _DeviceInfoKeys.systemName => l10n.systemNameLabel,
+      _DeviceInfoKeys.systemVersion => l10n.systemVersionLabel,
+      _DeviceInfoKeys.deviceIdentifier => l10n.deviceIdentifierLabel,
+      _DeviceInfoKeys.deviceType => l10n.deviceTypeLabel,
+      _DeviceInfoKeys.localizedModel => l10n.localizedModelLabel,
+      _DeviceInfoKeys.buildVersion => l10n.buildVersionLabel,
+      _DeviceInfoKeys.computerName => l10n.computerNameLabel,
+      _DeviceInfoKeys.userName => l10n.userNameLabel,
+      _DeviceInfoKeys.registryOwner => l10n.registryOwnerLabel,
+      _DeviceInfoKeys.hostName => l10n.hostNameLabel,
+      _DeviceInfoKeys.architecture => l10n.architectureLabel,
+      _DeviceInfoKeys.activeCpuCount => l10n.activeCpuCountLabel,
+      _DeviceInfoKeys.memorySize => l10n.memorySizeLabel,
+      _DeviceInfoKeys.distroName => l10n.distroNameLabel,
+      _DeviceInfoKeys.distroVersion => l10n.distroVersionLabel,
+      _DeviceInfoKeys.versionId => l10n.versionIdLabel,
+      _DeviceInfoKeys.versionCodename => l10n.versionCodenameLabel,
+      _DeviceInfoKeys.platform => l10n.platformLabel,
+      _DeviceInfoKeys.error => l10n.labelError,
+      _ => key,
+    };
 
 class VersionInfoPage extends StatefulWidget {
   const VersionInfoPage({super.key});
@@ -20,7 +85,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   int _versionTapCount = 0;
   bool _isDeveloperMode = false;
   DateTime? _lastTapTime;
-  String _deviceInfo = '获取中...';
+  String? _deviceInfo;
 
   @override
   void initState() {
@@ -44,6 +109,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   Future<void> _loadDeviceInfo() async {
+    final l10n = context.hujiL10n;
     try {
       final deviceInfo = DeviceInfoPlugin();
       String deviceInfoText = '';
@@ -65,7 +131,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         final linuxInfo = await deviceInfo.linuxInfo;
         deviceInfoText = '${linuxInfo.name} ${linuxInfo.version}';
       } else {
-        deviceInfoText = '未知设备';
+        deviceInfoText = l10n.unknownDevice;
       }
 
       setState(() {
@@ -73,73 +139,81 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       });
     } catch (e) {
       setState(() {
-        _deviceInfo = '获取失败';
+        _deviceInfo = l10n.deviceInfoFetchFailed;
       });
     }
   }
 
-  Future<Map<String, String>> _getDetailedDeviceInfo() async {
+  Future<Map<String, String>> _getDetailedDeviceInfo(HujiLocalizations l10n) async {
     try {
       final deviceInfo = DeviceInfoPlugin();
       final Map<String, String> info = {};
 
       if (Platform.isAndroid) {
         final androidInfo = await deviceInfo.androidInfo;
-        info['设备品牌'] = androidInfo.brand;
-        info['设备型号'] = androidInfo.model;
-        info['Android版本'] = androidInfo.version.release;
-        info['SDK版本'] = androidInfo.version.sdkInt.toString();
-        info['设备ID'] = androidInfo.id;
-        info['制造商'] = androidInfo.manufacturer;
-        info['产品名称'] = androidInfo.product;
-        info['硬件'] = androidInfo.hardware;
+        info[_DeviceInfoKeys.brand] = androidInfo.brand;
+        info[_DeviceInfoKeys.model] = androidInfo.model;
+        info[_DeviceInfoKeys.androidVersion] = androidInfo.version.release;
+        info[_DeviceInfoKeys.sdkVersion] = androidInfo.version.sdkInt.toString();
+        info[_DeviceInfoKeys.deviceId] = androidInfo.id;
+        info[_DeviceInfoKeys.manufacturer] = androidInfo.manufacturer;
+        info[_DeviceInfoKeys.productName] = androidInfo.product;
+        info[_DeviceInfoKeys.hardware] = androidInfo.hardware;
       } else if (Platform.isIOS) {
         final iosInfo = await deviceInfo.iosInfo;
-        info['设备名称'] = iosInfo.name;
-        info['设备型号'] = iosInfo.model;
-        info['系统名称'] = iosInfo.systemName;
-        info['系统版本'] = iosInfo.systemVersion;
-        info['设备标识符'] = iosInfo.identifierForVendor ?? '未知';
-        info['设备类型'] = iosInfo.model;
-        info['本地化型号'] = iosInfo.localizedModel;
+        info[_DeviceInfoKeys.deviceName] = iosInfo.name;
+        info[_DeviceInfoKeys.model] = iosInfo.model;
+        info[_DeviceInfoKeys.systemName] = iosInfo.systemName;
+        info[_DeviceInfoKeys.systemVersion] = iosInfo.systemVersion;
+        info[_DeviceInfoKeys.deviceIdentifier] =
+            iosInfo.identifierForVendor ?? l10n.unknownLabel;
+        info[_DeviceInfoKeys.deviceType] = iosInfo.model;
+        info[_DeviceInfoKeys.localizedModel] = iosInfo.localizedModel;
       } else if (Platform.isWindows) {
         final windowsInfo = await deviceInfo.windowsInfo;
-        info['系统版本'] =
+        info[_DeviceInfoKeys.systemVersion] =
             'Windows ${windowsInfo.majorVersion}.${windowsInfo.minorVersion}';
-        info['构建版本'] = windowsInfo.buildNumber.toString();
-        info['计算机名称'] = windowsInfo.computerName;
-        info['用户名'] = windowsInfo.userName;
-        info['产品名称'] = windowsInfo.productName;
-        info['注册表所有者'] = windowsInfo.registeredOwner;
+        info[_DeviceInfoKeys.buildVersion] =
+            windowsInfo.buildNumber.toString();
+        info[_DeviceInfoKeys.computerName] = windowsInfo.computerName;
+        info[_DeviceInfoKeys.userName] = windowsInfo.userName;
+        info[_DeviceInfoKeys.productName] = windowsInfo.productName;
+        info[_DeviceInfoKeys.registryOwner] = windowsInfo.registeredOwner;
       } else if (Platform.isMacOS) {
         final macOsInfo = await deviceInfo.macOsInfo;
-        info['系统版本'] = 'macOS ${macOsInfo.osRelease}';
-        info['计算机名称'] = macOsInfo.computerName;
-        info['主机名'] = macOsInfo.hostName;
-        info['架构'] = macOsInfo.arch;
-        info['活动CPU数'] = macOsInfo.activeCPUs.toString();
-        info['内存大小'] = '${macOsInfo.memorySize} GB';
+        info[_DeviceInfoKeys.systemVersion] = 'macOS ${macOsInfo.osRelease}';
+        info[_DeviceInfoKeys.computerName] = macOsInfo.computerName;
+        info[_DeviceInfoKeys.hostName] = macOsInfo.hostName;
+        info[_DeviceInfoKeys.architecture] = macOsInfo.arch;
+        info[_DeviceInfoKeys.activeCpuCount] =
+            macOsInfo.activeCPUs.toString();
+        info[_DeviceInfoKeys.memorySize] = '${macOsInfo.memorySize} GB';
       } else if (Platform.isLinux) {
         final linuxInfo = await deviceInfo.linuxInfo;
-        info['发行版名称'] = linuxInfo.name;
-        info['发行版版本'] = linuxInfo.version ?? '未知';
-        info['版本ID'] = linuxInfo.versionId ?? '未知';
-        info['版本代号'] = linuxInfo.versionCodename ?? '未知';
+        info[_DeviceInfoKeys.distroName] = linuxInfo.name;
+        info[_DeviceInfoKeys.distroVersion] =
+            linuxInfo.version ?? l10n.unknownLabel;
+        info[_DeviceInfoKeys.versionId] =
+            linuxInfo.versionId ?? l10n.unknownLabel;
+        info[_DeviceInfoKeys.versionCodename] =
+            linuxInfo.versionCodename ?? l10n.unknownLabel;
       } else {
-        info['平台'] = '未知平台';
+        info[_DeviceInfoKeys.platform] = l10n.unknownPlatform;
       }
 
       return info;
     } catch (e) {
-      return {'错误': '获取设备信息失败: $e'};
+      return {
+        _DeviceInfoKeys.error: l10n.deviceInfoFetchFailedWithError(e.toString()),
+      };
     }
   }
 
   void _onVersionTap() {
     if (_isDeveloperMode) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('开发模式已启用')));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(context.hujiL10n.developerModeAlreadyEnabled)),
+      );
       return;
     }
 
@@ -165,20 +239,22 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('输入开发者密码'),
+      builder: (context) {
+        final l10n = context.hujiL10n;
+        return AlertDialog(
+        title: Text(l10n.enterDeveloperPasswordTitle),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('请输入开发者密码以启用开发模式'),
-            const SizedBox(height: 16),
+            Text(l10n.enterDeveloperPasswordHint),
+            SizedBox(height: 16),
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(
-                labelText: '密码',
-                border: OutlineInputBorder(),
-                hintText: '请输入密码',
+              decoration: InputDecoration(
+                labelText: l10n.loginPasswordLabel,
+                border: const OutlineInputBorder(),
+                hintText: l10n.loginValidationPasswordRequired,
               ),
               onSubmitted: (value) => _verifyPassword(value),
             ),
@@ -192,14 +268,15 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
               _versionTapCount = 0;
               _lastTapTime = null;
             },
-            child: const Text('取消'),
+            child: Text(l10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () => _verifyPassword(passwordController.text),
-            child: const Text('确认'),
+            child: Text(l10n.actionConfirm),
           ),
         ],
-      ),
+      );
+      },
     );
   }
 
@@ -212,10 +289,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       _enableDeveloperMode();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请输入正确的开发者密码'),
+        SnackBar(
+          content: Text(context.hujiL10n.developerPasswordIncorrect),
           backgroundColor: Colors.red,
-          duration: Duration(seconds: 2),
+          duration: const Duration(seconds: 2),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -228,10 +305,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
     });
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('开发模式已启用，您现在可以访问开发功能'),
+      SnackBar(
+        content: Text(context.hujiL10n.developerModeEnabledMessage),
         backgroundColor: Colors.green,
-        duration: Duration(seconds: 3),
+        duration: const Duration(seconds: 3),
         behavior: SnackBarBehavior.floating,
       ),
     );
@@ -242,7 +319,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   void _showDeviceInfoDialog() async {
-    final deviceInfo = await _getDetailedDeviceInfo();
+    final l10n = context.hujiL10n;
+    final deviceInfo = await _getDetailedDeviceInfo(l10n);
 
     if (!mounted) return;
 
@@ -252,8 +330,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         title: Row(
           children: [
             Icon(Icons.phone_android, color: context.theme.primaryColor),
-            const SizedBox(width: 8),
-            const Text('设备信息'),
+            SizedBox(width: 8),
+            Text(l10n.deviceInfoLabel),
           ],
         ),
         content: SizedBox(
@@ -272,7 +350,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                           SizedBox(
                             width: 100,
                             child: Text(
-                              entry.key,
+                              _deviceInfoFieldLabel(l10n, entry.key),
                               style: context.textTheme.bodyMedium?.copyWith(
                                 fontWeight: FontWeight.w500,
                                 color: context.theme.colorScheme.onSurface
@@ -280,7 +358,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 16),
+                          SizedBox(width: 16),
                           Expanded(
                             child: Text(
                               entry.value,
@@ -300,7 +378,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('关闭'),
+            child: Text(context.hujiL10n.actionClose),
           ),
         ],
       ),
@@ -319,12 +397,12 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('版本信息'),
+        title: Text(context.hujiL10n.settingsVersionInfo),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
         elevation: 0,
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
@@ -333,17 +411,17 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                   // 应用图标和基本信息
                   _buildAppInfoCard(),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // 版本详细信息
-                  _buildVersionDetailsCard(),
+                  _buildVersionDetailsCard(context),
 
-                  const SizedBox(height: 24),
+                  SizedBox(height: 24),
 
                   // 开发者选项入口（仅在开发模式下显示）
                   if (_isDeveloperMode) _buildDeveloperOptionsCard(),
 
-                  const SizedBox(height: 32),
+                  SizedBox(height: 32),
                 ],
               ),
             ),
@@ -363,13 +441,13 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
               Image.asset('assets/icons/logo_no_bg.png', width: 80, height: 80),
 
               Text(
-                _packageInfo?.appName ?? '弧迹',
+                _packageInfo?.appName ?? context.hujiL10n.videosFolderName,
                 style: context.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 8),
+              SizedBox(height: 8),
             ],
           ),
         ),
@@ -377,7 +455,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
     );
   }
 
-  Widget _buildVersionDetailsCard() {
+  Widget _buildVersionDetailsCard(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Card(
       elevation: 2,
       child: ClipRRect(
@@ -386,26 +465,34 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow(
-              '应用名称',
-              _packageInfo?.appName ?? '弧迹',
+              l10n.appNameLabel,
+              _packageInfo?.appName ?? l10n.videosFolderName,
               onTap: _onVersionTap,
             ),
-            _buildInfoRow('版本号', _packageInfo?.version ?? '1.0.0'),
-            _buildInfoRow('构建号', _packageInfo?.buildNumber ?? '1'),
+            _buildInfoRow(l10n.versionNumber, _packageInfo?.version ?? '1.0.0'),
+            _buildInfoRow(l10n.buildNumber, _packageInfo?.buildNumber ?? '1'),
             _buildInfoRow(
-              '安装时间',
+              l10n.installTime,
               DateFormat(
                 'yyyy-MM-dd',
               ).format(_packageInfo?.installTime ?? DateTime.now()),
             ),
             _buildInfoRow(
-              '更新时间',
+              l10n.updateTime,
               DateFormat(
                 'yyyy-MM-dd',
               ).format(_packageInfo?.updateTime ?? DateTime.now()),
             ),
-            _buildInfoRow('设备信息', _deviceInfo, onTap: _showDeviceInfoDialog),
-            _buildInfoRow('更新日志', '查看历史版本', onTap: _showChangelogPage),
+            _buildInfoRow(
+              l10n.deviceInfoLabel,
+              _deviceInfo ?? l10n.deviceInfoFetching,
+              onTap: _showDeviceInfoDialog,
+            ),
+            _buildInfoRow(
+              l10n.changelog,
+              l10n.viewChangelogHistory,
+              onTap: _showChangelogPage,
+            ),
           ],
         ),
       ),
@@ -471,22 +558,18 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                     size: 24,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '开发者选项',
-                        style: context.textTheme.titleMedium?.copyWith(
+                      Text(context.hujiL10n.developerOptions, style: context.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.orange,
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '访问开发工具和调试功能',
-                        style: context.textTheme.bodySmall?.copyWith(
+                      SizedBox(height: 4),
+                      Text(context.hujiL10n.developerOptionsDescription, style: context.textTheme.bodySmall?.copyWith(
                           color: context.theme.colorScheme.onSurface.withValues(
                             alpha: 0.6,
                           ),

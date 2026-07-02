@@ -7,6 +7,7 @@ import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/login.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -44,7 +45,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         ? IdentifierType.mail
         : IdentifierType.mobile;
 
-    final error = validateEmailOrPhone(_identifierController.text);
+    final error = validateEmailOrPhone(context.hujiL10n, _identifierController.text);
 
     if (error != null) {
       _showSnackBar(error);
@@ -58,7 +59,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
 
     if (_isSendingCode || _countdown > 0) return;
     if (userIdentifier != inputIdentifier) {
-      _showSnackBar('输入的账号与当前账号不一致');
+      _showSnackBar(context.hujiL10n.accountMismatch);
       return;
     }
 
@@ -74,9 +75,9 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         _countdown = 60;
       });
       _startCountdown();
-      _showSnackBar('验证码已发送');
+      _showSnackBar(context.hujiL10n.loginAuthCodeSent);
     } catch (e) {
-      _showSnackBar('发送验证码失败: $e');
+      _showSnackBar(context.hujiL10n.loginSendAuthCodeFailed(e.toString()));
     } finally {
       setState(() {
         _isSendingCode = false;
@@ -98,13 +99,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _changePassword(IdentifierType identifierType) async {
-    final error = validatePassword(_newPasswordController.text);
+    final error = validatePassword(context.hujiL10n, _newPasswordController.text);
     if (error != null) {
       _showSnackBar(error);
       return;
     }
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      _showSnackBar('两次输入的密码不一致');
+      _showSnackBar(context.hujiL10n.loginPasswordMismatch);
       return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -119,13 +120,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           code: _codeController.text,
         ),
       );
-      _showSnackBar('密码修改成功');
+      _showSnackBar(context.hujiL10n.passwordChangedSuccessfully);
       _reset();
       if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
-      _showSnackBar('密码修改失败: $e');
+      _showSnackBar(context.hujiL10n.passwordChangeFailed(e.toString()));
     } finally {
       setState(() {
         _isLoading = false;
@@ -144,16 +145,16 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('退出登录'),
-        content: const Text('确定要退出登录吗？'),
+        title: Text(context.hujiL10n.accountLogout),
+        content: Text(context.hujiL10n.confirmLogoutMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('确定'),
+            child: Text(context.hujiL10n.actionConfirm),
           ),
         ],
       ),
@@ -166,7 +167,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           appRouter.go(LoginRoute.login);
         }
       } catch (e) {
-        _showSnackBar('退出登录失败: $e');
+        _showSnackBar(context.hujiL10n.logoutFailed(e.toString()));
       }
     }
   }
@@ -182,7 +183,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text('账号与安全', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(context.hujiL10n.accountAndSecurity, style: Theme.of(context).textTheme.headlineMedium),
         backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
@@ -210,40 +211,39 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
               child: Column(
                 children: [
                   _buildEditRow(
-                    '用户名',
+                    context.hujiL10n.usernameLabel,
                     '',
                     child: _buildTextFormField(
-                      '请输入手机/邮箱',
+                      context.hujiL10n.loginIdentifierHint,
                       obscureText: false,
                       controller: _identifierController,
-                      validator: validateEmailOrPhone,
+                      validator: (value) =>
+                          validateEmailOrPhone(context.hujiL10n, value),
                     ),
                   ),
                   _buildDivider(),
                   _buildEditRow(
-                    '验证码',
+                    context.hujiL10n.loginAuthCodeLabel,
                     '',
                     child: Row(
                       children: [
                         Expanded(
                           child: _buildTextFormField(
-                            '请输入验证码',
+                            context.hujiL10n.loginAuthCodeHint,
                             controller: _codeController,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return '请输入验证码';
-                              }
-                              return null;
-                            },
+                            validator: (value) =>
+                                validateAuthCode(context.hujiL10n, value),
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         TextButton(
                           onPressed: _countdown > 0
                               ? null
                               : _sendVerificationCode,
                           child: Text(
-                            _countdown > 0 ? '${_countdown}s' : '发送验证码',
+                            _countdown > 0
+                                ? context.hujiL10n.countdownSeconds(_countdown)
+                                : context.hujiL10n.actionSendVerificationCode,
                           ),
                         ),
                       ],
@@ -252,7 +252,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // 密码修改分组卡片
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -270,18 +270,18 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
               child: Column(
                 children: [
                   _buildEditRow(
-                    '新密码',
+                    context.hujiL10n.loginNewPassword,
                     '',
                     child: _buildTextFormField(
-                      '请输入新密码',
+                      context.hujiL10n.loginNewPasswordHint,
                       controller: _newPasswordController,
                       obscureText: _isObscure,
                       validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return '请输入新密码';
-                        }
-                        if (value.length < 6) {
-                          return '密码长度不能少于6位';
+                        final error =
+                            validatePassword(context.hujiL10n, value);
+                        if (error != null) return error;
+                        if (value != null && value.length < 6) {
+                          return context.hujiL10n.passwordMinLength;
                         }
                         return null;
                       },
@@ -300,18 +300,18 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                   ),
                   _buildDivider(),
                   _buildEditRow(
-                    '确认密码',
+                    context.hujiL10n.confirmPassword,
                     '',
                     child: _buildTextFormField(
-                      '请确认密码',
+                      context.hujiL10n.enterConfirmPassword,
                       controller: _confirmPasswordController,
                       obscureText: _isObscure,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '请输入确认密码';
+                          return context.hujiL10n.enterConfirmPasswordRequired;
                         }
                         if (value != _newPasswordController.text) {
-                          return '两次输入的密码不一致';
+                          return context.hujiL10n.loginPasswordMismatch;
                         }
                         return null;
                       },
@@ -331,7 +331,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // 修改密码按钮
             SizedBox(
               width: double.infinity,
@@ -359,16 +359,14 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        '修改密码',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    : Text(context.hujiL10n.changePassword, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: Colors.white,
                         ),
                       ),
               ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             // 退出登录按钮
             SizedBox(
               width: double.infinity,
@@ -388,9 +386,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                   ),
                   elevation: 0,
                 ),
-                child: Text(
-                  '退出登录',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                child: Text(context.hujiL10n.accountLogout, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     fontWeight: FontWeight.w500,
                     color: Colors.white,
                   ),

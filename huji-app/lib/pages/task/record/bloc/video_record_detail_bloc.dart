@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/api_manager.dart';
 
 import 'video_record_detail_event.dart';
@@ -53,7 +54,12 @@ class VideoRecordDetailBloc
         ),
       );
     } catch (e) {
-      emit(state.copyWith(errorMessage: '加载视频详情失败: $e', isLoading: false));
+      emit(
+        state.copyWith(
+          errorMessage: resolveHujiL10n().loadVideoDetailFailed('$e'),
+          isLoading: false,
+        ),
+      );
     }
   }
 

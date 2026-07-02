@@ -11,6 +11,7 @@ import 'package:huji_app/utils/time_utils.dart';
 import 'bloc/camerax_bloc.dart';
 import 'bloc/camerax_event.dart';
 import 'bloc/camerax_state.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 边拍边剪辑组件
 class CameraXWidget extends StatefulWidget {
@@ -73,7 +74,7 @@ class _CameraXWidgetState extends State<CameraXWidget> {
   @override
   Widget build(BuildContext context) {
     if (!PlatformCapability.supportsRecording) {
-      return const Center(child: Text('此功能在桌面端暂不支持'));
+      return Center(child: Text(context.hujiL10n.featureNotSupportedOnDesktop));
     }
     return BlocProvider.value(
       value: widget.recordClipBloc,
@@ -148,12 +149,12 @@ class _CameraXWidgetState extends State<CameraXWidget> {
       right:
           customRight ??
           (state is VideoRecordingCameraState
-              ? const SizedBox(width: 48)
+              ? SizedBox(width: 48)
               : StreamBuilder<MediaCapture?>(
                   stream: state.captureState$,
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return const SizedBox(width: 60, height: 60);
+                      return SizedBox(width: 60, height: 60);
                     }
                     return SizedBox(
                       width: 60,
@@ -195,7 +196,7 @@ class _CameraXWidgetState extends State<CameraXWidget> {
                             shape: BoxShape.circle,
                           ),
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
                           formatDurationToHHMMSSS(
                             recordClipState.actualDuration,

@@ -7,6 +7,7 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 typedef TaskTabItemBuilder = Widget Function(
   BuildContext context,
@@ -136,7 +137,7 @@ class TaskTabLoadMoreIndicator {
 
   static Widget mobile(BuildContext context, TaskTabState state) {
     if (state.filter.isLoadingMore) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16),
         child: Center(child: CircularProgressIndicator()),
       );
@@ -144,17 +145,17 @@ class TaskTabLoadMoreIndicator {
     if (state.filter.hasMore) {
       return const SizedBox.shrink();
     }
-    return const Padding(
+    return Padding(
       padding: EdgeInsets.all(16),
       child: Center(
-        child: Text('没有更多数据了', style: TextStyle(color: Colors.grey)),
+        child: Text(context.hujiL10n.noMoreData, style: TextStyle(color: Colors.grey)),
       ),
     );
   }
 
   static Widget desktop(BuildContext context, TaskTabState state) {
     if (state.filter.isLoadingMore) {
-      return const Padding(
+      return Padding(
         padding: EdgeInsets.all(16),
         child: Center(
           child: SizedBox(
@@ -172,9 +173,7 @@ class TaskTabLoadMoreIndicator {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text(
-          '没有更多数据了',
-          style: AppTextStyles.of(context).mutedBodySmall.copyWith(
+        child: Text(context.hujiL10n.noMoreData, style: AppTextStyles.of(context).mutedBodySmall.copyWith(
                 color: cs.outline,
               ),
         ),

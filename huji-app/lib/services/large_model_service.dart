@@ -8,6 +8,7 @@ import 'package:huji_app/models/large_model.dart';
 import 'package:huji_app/services/inference/desktop_inference_spec.dart';
 import 'package:huji_app/services/inference/onnx_model_predictor.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:ultralytics_yolo/yolo.dart';
 
@@ -195,7 +196,7 @@ class LargeModelService {
 
   String getModelPath(String modelName) {
     if (!_modelNamePathMapping.containsKey(modelName)) {
-      throw Exception('模型不存在: $modelName');
+      throw Exception(resolveHujiL10n().modelNotFound(modelName));
     }
     return _modelNamePathMapping[modelName]!;
   }

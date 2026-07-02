@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/services/desktop_shortcuts.dart';
@@ -15,8 +16,10 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:shared_ui/preferences/appearance_preferences_store.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopApp extends StatefulWidget {
   const DesktopApp({super.key});
@@ -53,6 +56,12 @@ class _DesktopAppState extends State<DesktopApp> {
     await windowManager.ensureInitialized();
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
 
+    final appearance = await AppearancePreferencesStore().load();
+    final locale = appearance.locale == 'en'
+        ? const Locale('en')
+        : const Locale('zh');
+    final windowTitle = lookupHujiLocalizations(locale).appTitle;
+
     final prefs = await SharedPreferences.getInstance();
     final savedX = prefs.getDouble('window_x');
     final savedY = prefs.getDouble('window_y');
@@ -64,14 +73,14 @@ class _DesktopAppState extends State<DesktopApp> {
       options = WindowOptions(
         size: Size(savedW, savedH),
         center: false,
-        title: '弧迹',
+        title: windowTitle,
       );
       await windowManager.setPosition(Offset(savedX, savedY));
     } else {
-      options = const WindowOptions(
-        size: Size(1280, 800),
-        minimumSize: Size(900, 600),
-        title: '弧迹',
+      options = WindowOptions(
+        size: const Size(1280, 800),
+        minimumSize: const Size(900, 600),
+        title: windowTitle,
       );
     }
 
@@ -109,21 +118,19 @@ class _DesktopAppState extends State<DesktopApp> {
                   : MediaQueryData.fromView(systemView);
               final bundle = resolveAppearanceTheme(prefs, systemMq);
 
+              final l10n = lookupHujiLocalizations(bundle.locale);
+
               return MaterialApp.router(
-                title: '弧迹',
+                title: l10n.appTitle,
                 debugShowCheckedModeBanner: false,
                 routerConfig: _router,
                 theme: withTrimmerTheme(bundle.lightTheme),
                 darkTheme: withTrimmerTheme(bundle.darkTheme),
                 themeMode: bundle.themeMode,
                 locale: bundle.locale,
-                localizationsDelegates: const [
-                  ...SharedUiLocalizations.localizationsDelegates,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                supportedLocales: SharedUiLocalizations.supportedLocales,
+                localizationsDelegates:
+                    HujiLocalizationsSetup.localizationsDelegates,
+                supportedLocales: HujiLocalizationsSetup.supportedLocales,
                 builder: (context, child) {
                   Widget content = AppTextScaleBoundary(
                     child: child ?? const SizedBox.shrink(),

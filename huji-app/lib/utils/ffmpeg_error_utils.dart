@@ -1,3 +1,6 @@
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
+
 class FFmpegCommandException implements Exception {
   final String operation;
   /// Raw return code: 0 = success, -1 = cancelled, other = error.
@@ -15,7 +18,7 @@ class FFmpegCommandException implements Exception {
   @override
   String toString() {
     final details = <String>[
-      'FFmpegCommandException: $operation失败',
+      'FFmpegCommandException: $operation',
       if (returnCode != null) 'returnCode=$returnCode',
       if (command != null && command!.isNotEmpty) 'command=$command',
       if (logs != null && logs!.isNotEmpty) 'logs=$logs',
@@ -25,7 +28,15 @@ class FFmpegCommandException implements Exception {
 }
 
 class FFmpegErrorUtils {
-  static const String cancelledMessage = 'FFmpeg操作已取消';
+  /// Internal sentinel for cancellation detection across locales.
+  static const String cancelledSentinel = '__ffmpeg_cancelled__';
+
+  /// Legacy Chinese message kept for backward-compatible cancellation checks.
+  static const String legacyCancelledMessage = 'FFmpeg操作已取消';
+
+  static String cancelledUserMessage([HujiLocalizations? l10n]) {
+    return resolveHujiL10n(l10n).ffmpegOperationCancelled;
+  }
 
   /// Returns true if [returnCode] represents a cancellation (-1).
   static bool isCancelledReturnCode(int? returnCode) {
@@ -33,7 +44,15 @@ class FFmpegErrorUtils {
   }
 
   static bool isCancelledMessage(String? message) {
-    return message == cancelledMessage;
+    if (message == null || message.isEmpty) return false;
+    return message == cancelledSentinel || message == legacyCancelledMessage;
+  }
+
+  static String displayMessage(String? message, [HujiLocalizations? l10n]) {
+    if (isCancelledMessage(message)) {
+      return cancelledUserMessage(l10n);
+    }
+    return message ?? '';
   }
 
   static FFmpegCommandException buildCommandException({

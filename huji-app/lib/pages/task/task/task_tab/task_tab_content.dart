@@ -10,6 +10,7 @@ import 'package:huji_app/pages/task/task/task_tab/widgets/task_batch_toolbar.dar
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_callbacks.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_mobile.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/main.dart';
 
@@ -205,8 +206,8 @@ class _TaskTabContentState extends State<TaskTabContent> {
         children: [
           Icon(Icons.folder_open, size: 80, color: Colors.amber[200]),
           const SizedBox(height: 16),
-          const Text(
-            '没有已完成的任务',
+          Text(
+            context.hujiL10n.noCompletedTasks,
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey),
           ),
@@ -222,7 +223,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('前往功能'),
+            child: Text(context.hujiL10n.goToFeature),
           ),
         ],
       ),

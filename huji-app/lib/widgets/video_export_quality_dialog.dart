@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/ffmpeg.dart';
 import '../api/api_manager.dart';
 import '../api/models/autoclip/permission_models.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 视频导出质量选择对话框
 class VideoExportQualityDialog extends StatefulWidget {
@@ -74,9 +75,9 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('选择导出质量'),
+      title: Text(context.hujiL10n.selectExportQualityTitle),
       content: _isCheckingPermissions
-          ? const SizedBox(
+          ? SizedBox(
               height: 100,
               child: Center(child: CircularProgressIndicator()),
             )
@@ -92,7 +93,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                   (quality) => setState(() => selectedQuality = quality),
                   enabled: true,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _buildQualityOption(
                   context,
                   VideoCompressQuality.low,
@@ -102,7 +103,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                   (quality) => setState(() => selectedQuality = quality),
                   enabled: true,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _buildQualityOption(
                   context,
                   VideoCompressQuality.medium,
@@ -112,7 +113,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                   (quality) => setState(() => selectedQuality = quality),
                   enabled: true,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _buildQualityOption(
                   context,
                   VideoCompressQuality.high,
@@ -122,7 +123,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                   (quality) => setState(() => selectedQuality = quality),
                   enabled: true,
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 _buildQualityOption(
                   context,
                   VideoCompressQuality.ultraHigh,
@@ -137,11 +138,11 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('取消'),
+          child: Text(context.hujiL10n.taskStatusCancelledShort),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(context).pop(selectedQuality),
-          child: const Text('确定'),
+          child: Text(context.hujiL10n.actionConfirm),
         ),
       ],
     );
@@ -184,7 +185,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                 groupValue: selectedQuality,
                 onChanged: enabled ? (value) => onTap(value!) : null,
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -202,7 +203,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                           ),
                         ),
                         if (!enabled) ...[
-                          const SizedBox(width: 4),
+                          SizedBox(width: 4),
                           Icon(
                             Icons.lock_outline,
                             size: 14,
@@ -211,7 +212,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 2),
+                    SizedBox(height: 2),
                     Text(
                       enabled ? description : '$description（专业版）',
                       style: TextStyle(

@@ -7,6 +7,7 @@ import '../../utils/debounce/throttles.dart';
 import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 通用回合选择弹窗
 class RoundsSelectionDialog extends StatelessWidget {
@@ -27,6 +28,7 @@ class RoundsSelectionDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<RoundClipBloc, RoundClipState>(
       builder: (context, state) {
+        final l10n = context.hujiL10n;
         return Dialog(
           backgroundColor: Colors.transparent,
           child: Container(
@@ -47,7 +49,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(titleIcon, color: titleColor, size: 20),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         title,
                         style: const TextStyle(
@@ -55,7 +57,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -85,7 +87,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                           );
                         },
                         child: Tooltip(
-                          message: '删除当前回合',
+                          message: l10n.deleteCurrentRound,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: const Icon(
@@ -107,8 +109,8 @@ class RoundsSelectionDialog extends StatelessWidget {
                         },
                         child: Tooltip(
                           message: _isCurrentFavorite(state)
-                              ? '取消收藏当前回合'
-                              : '收藏当前回合',
+                              ? l10n.unfavoriteCurrentRound
+                              : l10n.favoriteCurrentRound,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: Icon(
@@ -128,7 +130,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                       GestureDetector(
                         onTap: () => Navigator.of(context).pop(),
                         child: Tooltip(
-                          message: '关闭',
+                          message: context.hujiL10n.actionClose,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: const Icon(Icons.close, size: 20),
@@ -228,7 +230,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                                                 color: titleColor,
                                               ),
                                             if (titleIcon == Icons.star)
-                                              const SizedBox(width: 4),
+                                              SizedBox(width: 4),
                                             Text(
                                               '${index + 1}',
                                               style: TextStyle(
@@ -289,7 +291,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                                                   ),
                                           ),
                                         ),
-                                        const SizedBox(height: 1),
+                                        SizedBox(height: 1),
                                         Text(
                                           '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                                           style: TextStyle(
@@ -335,7 +337,7 @@ class RoundsSelectionDialog extends StatelessWidget {
   void _deleteCurrentRound(BuildContext context, RoundClipState state) {
     final roundClipBloc = context.read<RoundClipBloc>();
     if (state.currentPlayingSegment == null) {
-      roundClipBloc.add(const ShowErrorMessageEvent('没有正在播放的回合'));
+      roundClipBloc.add(ShowErrorMessageEvent(context.hujiL10n.noPlayingRound));
       return;
     }
 
@@ -344,8 +346,8 @@ class RoundsSelectionDialog extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('确认删除'),
-        content: const Text('确定要删除当前正在播放的回合吗？此操作不可撤销。'),
+        title: Text(context.hujiL10n.confirmDelete),
+        content: Text(context.hujiL10n.confirmDeleteCurrentPlayingRound),
         actions: [
           TextButton(
             onPressed: () {
@@ -355,7 +357,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                 () => Navigator.of(context).pop(),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
@@ -371,7 +373,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                 },
               );
             },
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
+            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -420,7 +422,7 @@ class AllRoundsDialog extends StatelessWidget {
     return BlocBuilder<RoundClipBloc, RoundClipState>(
       builder: (context, state) {
         return RoundsSelectionDialog(
-          title: '全部回合',
+          title: context.hujiL10n.videoProcessTypeAllMatchMerged,
           titleIcon: Icons.list,
           titleColor: Colors.blue,
           segments: state.playBallSegments,
@@ -439,7 +441,7 @@ class FavoriteRoundsDialog extends StatelessWidget {
     return BlocBuilder<RoundClipBloc, RoundClipState>(
       builder: (context, state) {
         return RoundsSelectionDialog(
-          title: '收藏回合',
+          title: context.hujiL10n.favoriteRounds,
           titleIcon: Icons.star,
           titleColor: Colors.orange,
           segments: state.favoriteSegments,
@@ -491,7 +493,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                   child: Row(
                     children: [
                       Icon(titleIcon, color: titleColor, size: 20),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         title,
                         style: const TextStyle(
@@ -499,7 +501,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 8,
@@ -523,7 +525,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                       GestureDetector(
                         onTap: () => Navigator.of(context).pop(),
                         child: Tooltip(
-                          message: '关闭',
+                          message: context.hujiL10n.actionClose,
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: const Icon(Icons.close, size: 20),
@@ -543,7 +545,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                     child: segments.isEmpty
                         ? Center(
                             child: Text(
-                              '暂无片段',
+                              context.hujiL10n.noSegmentsYet,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 14,
@@ -608,7 +610,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                                                 color: titleColor,
                                               ),
                                             if (titleIcon == Icons.star)
-                                              const SizedBox(width: 4),
+                                              SizedBox(width: 4),
                                             Text(
                                               '${index + 1}',
                                               style: TextStyle(
@@ -641,7 +643,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(height: 1),
+                                            SizedBox(height: 1),
                                             Text(
                                               '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                                               style: TextStyle(

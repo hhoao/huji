@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/clip/types.dart';
 
 // 视频配置组件
@@ -67,11 +68,13 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
       configItems = ConfigItems().getConfigItems(
         widget.sportType,
         PingPongVideoClipConfigReqVo.fromJson(_configValues),
+        context.hujiL10n,
       );
     } else {
       configItems = ConfigItems().getConfigItems(
         widget.sportType,
         BadmintonVideoClipConfigReqVo.fromJson(_configValues),
+        context.hujiL10n,
       );
     }
 
@@ -79,11 +82,11 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 选项标题
-        const Padding(
-          padding: EdgeInsets.only(left: 16.0, top: 16.0),
+        Padding(
+          padding: const EdgeInsets.only(left: 16.0, top: 16.0),
           child: Text(
-            '选项',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            context.hujiL10n.clipOptionsTitle,
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
         ),
         // 可滚动的选项内容

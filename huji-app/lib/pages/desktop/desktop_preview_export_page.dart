@@ -20,6 +20,7 @@ import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_stat
 import 'package:huji_app/widgets/multi_video_player/bloc_multi_video_player_widget.dart';
 import 'package:huji_app/widgets/multi_video_player/segment_playback_factory.dart';
 import 'package:huji_app/widgets/video_export_progress_dialog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
@@ -32,31 +33,44 @@ class DesktopPreviewExportPage extends StatefulWidget {
 }
 
 class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
+  static const _qualityOriginal = 'original';
+  static const _quality1080 = '1080p';
+  static const _quality720 = '720p';
+  static const _quality480 = '480p';
+
   final MultiVideoPlayerBloc _playerBloc = MultiVideoPlayerBloc();
 
   LocalVideoRecord? _record;
   List<SegmentInfo> _segments = [];
-  String _fileName = '集锦';
+  String _fileName = '';
   String _savePath = '';
-  String _selectedQuality = '1080p';
+  String _selectedQuality = _quality1080;
   bool _isLoading = true;
+
+  String _qualityLabel(HujiLocalizations l10n) => switch (_selectedQuality) {
+    _qualityOriginal => l10n.exportQualityOriginal,
+    _ => _selectedQuality,
+  };
 
   @override
   void initState() {
     super.initState();
-    _initSavePath();
     _loadRecord();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_savePath.isEmpty) {
+      final home = Platform.environment['HOME'] ?? '/tmp';
+      _savePath = '$home/Videos/${context.hujiL10n.videosFolderName}';
+    }
   }
 
   @override
   void dispose() {
     _playerBloc.close();
     super.dispose();
-  }
-
-  Future<void> _initSavePath() async {
-    final home = Platform.environment['HOME'] ?? '/tmp';
-    setState(() => _savePath = '$home/Videos/弧迹');
   }
 
   Future<void> _loadRecord() async {
@@ -70,7 +84,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         setState(() {
           _record = r;
           _segments = segments;
-          _fileName = r.filePath?.split('/').last.split('.').first ?? '集锦';
+          _fileName = r.filePath?.split('/').last.split('.').first ??
+              context.hujiL10n.defaultHighlightName;
           _isLoading = false;
         });
         if (segments.isNotEmpty && r.filePath != null) {
@@ -109,12 +124,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  Future<VideoExportResult> _runExport(VideoExportProgressCallback onProgress) async {
+  Future<VideoExportResult> _runExport(
+    VideoExportProgressCallback onProgress,
+    HujiLocalizations l10n,
+  ) async {
     if (_record == null || _record!.filePath == null || _segments.isEmpty) {
-      throw Exception('没有可导出的片段');
+      throw Exception(l10n.noSegmentsToExport);
     }
 
-    onProgress(0, '准备导出...');
+    onProgress(0, l10n.exportPreparing);
 
     final outputPath = '$_savePath/$_fileName.mp4';
     await Directory(_savePath).create(recursive: true);
@@ -130,15 +148,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     await File(concatPath).writeAsString(buf.toString());
 
     final (scale, crf) = switch (_selectedQuality) {
-      '原画' => ('', '18'),
-      '1080p' => ('scale=-2:1080', '20'),
-      '720p' => ('scale=-2:720', '23'),
+      _qualityOriginal => ('', '18'),
+      _quality1080 => ('scale=-2:1080', '20'),
+      _quality720 => ('scale=-2:720', '23'),
       _ => ('scale=-2:480', '26'),
     };
     final vfArg = scale.isNotEmpty ? ['-vf', scale] : <String>[];
 
     final totalDurationSec = _totalDuration;
-    onProgress(0.01, '正在编码...');
+    onProgress(0.01, l10n.exportEncoding);
 
     try {
       final process = await Process.start('ffmpeg', [
@@ -161,7 +179,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             final p = ((ms / 1000) / totalDurationSec).clamp(0.0, 1.0);
             onProgress(
               p,
-              '正在导出... ${(p * 100).toStringAsFixed(0)}%',
+              l10n.exportProgressPercent((p * 100).toStringAsFixed(0)),
             );
           }
         }
@@ -172,10 +190,14 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
       if (exitCode != 0) {
         final stderr = await process.stderr.transform(utf8.decoder).join();
-        throw Exception(stderr.trim().isEmpty ? 'ffmpeg 退出码 $exitCode' : stderr);
+        throw Exception(
+          stderr.trim().isEmpty
+              ? l10n.ffmpegExitCode(exitCode.toString())
+              : stderr,
+        );
       }
 
-      onProgress(1, '导出完成');
+      onProgress(1, l10n.exportComplete);
       return VideoExportResult(outputPath: outputPath);
     } catch (e) {
       try {
@@ -188,17 +210,20 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final videoName = _record?.filePath != null ? p.basename(_record!.filePath!) : '未知';
+    final l10n = context.hujiL10n;
+    final videoName = _record?.filePath != null
+        ? p.basename(_record!.filePath!)
+        : l10n.unknownLabel;
 
     return BlocProvider.value(
       value: _playerBloc,
       child: DesktopPageShell(
         currentRoute: '/clip/${widget.clipId}/preview',
-        title: '预览',
-        breadcrumbs: ['视频库', videoName, '预览'],
+        title: l10n.previewTitle,
+        breadcrumbs: [l10n.desktopNavLibrary, videoName, l10n.previewTitle],
         actions: [
-          OutlinedButton(onPressed: () => context.go('/'), child: const Text('取消')),
-          const SizedBox(width: 8),
+          OutlinedButton(onPressed: () => context.go('/'), child: Text(context.hujiL10n.taskStatusCancelledShort)),
+          SizedBox(width: 8),
           OutlinedButton(
             onPressed: () => context.go('/clip/${widget.clipId}/edit'),
             style: OutlinedButton.styleFrom(
@@ -206,17 +231,17 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               side: BorderSide(color: cs.primary.withAlpha(89)),
               backgroundColor: cs.primary.withAlpha(26),
             ),
-            child: const Text('✎ 精修编辑'),
+            child: Text(l10n.precisionEditButton),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           ElevatedButton.icon(
             onPressed: _isLoading || _record == null ? null : () => _showExportModal(context),
             icon: const Icon(Icons.file_download, size: 16),
-            label: const Text('导出'),
+            label: Text(context.hujiL10n.actionExport),
           ),
         ],
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? Center(child: CircularProgressIndicator())
             : Row(children: [_buildExportConfig(), Expanded(child: _buildPreviewArea())]),
       ),
     );
@@ -225,47 +250,59 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   void _showExportModal(BuildContext context) {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
+    final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
+    final qualityLabel = _qualityLabel(l10n);
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: cs.surfaceContainer,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        title: Text('确认导出', style: styles.dialogTitle.copyWith(color: cs.onSurface)),
+        title: Text(
+          l10n.confirmExportTitle,
+          style: styles.dialogTitle.copyWith(color: cs.onSurface),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _exportInfoRow(ctx, '文件名', '$_fileName.mp4'),
-            const SizedBox(height: 8),
-            _exportInfoRow(ctx, '格式', 'MP4 (H.264)'),
-            const SizedBox(height: 8),
-            _exportInfoRow(ctx, '清晰度', _selectedQuality),
-            const SizedBox(height: 8),
-            _exportInfoRow(ctx, '保存到', _savePath),
-            const SizedBox(height: 8),
-            _exportInfoRow(ctx, '回合数', '$segCount 个 · 合计 $durationStr'),
+            _exportInfoRow(ctx, l10n.fileName, '$_fileName.mp4'),
+            SizedBox(height: 8),
+            _exportInfoRow(ctx, l10n.formatLabel, l10n.exportFormatMp4H264),
+            SizedBox(height: 8),
+            _exportInfoRow(ctx, l10n.qualityLabel, qualityLabel),
+            SizedBox(height: 8),
+            _exportInfoRow(ctx, l10n.saveToLabel, _savePath),
+            SizedBox(height: 8),
+            _exportInfoRow(
+              ctx,
+              l10n.roundCountLabel,
+              l10n.roundCountDurationSummary(segCount, durationStr),
+            ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text('取消', style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+            child: Text(
+              l10n.taskStatusCancelledShort,
+              style: styles.body.copyWith(color: cs.onSurfaceVariant),
+            ),
           ),
           ElevatedButton.icon(
             onPressed: () {
               Navigator.of(ctx).pop();
               VideoExportProgressDialog.show(
                 context,
-                title: '导出视频',
-                subtitle: '$_fileName.mp4 · $_selectedQuality',
-                exportTask: _runExport,
+                title: l10n.exportVideoTitle,
+                subtitle: '$_fileName.mp4 · $qualityLabel',
+                exportTask: (onProgress) => _runExport(onProgress, l10n),
               );
             },
             icon: const Icon(Icons.play_arrow, size: 16),
-            label: const Text('开始导出'),
+            label: Text(l10n.startExport),
           ),
         ],
       ),
@@ -299,11 +336,12 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         child: Column(children: [
           Expanded(
             child: ListView(padding: const EdgeInsets.all(22), children: [
-              const _ConfigTitle('📤 导出配置'), const SizedBox(height: 18),
-              _buildFileName(), const SizedBox(height: 22),
-              _buildFormat(), const SizedBox(height: 22),
-              _buildQuality(), const SizedBox(height: 22),
-              _buildTransition(), const SizedBox(height: 22),
+              _ConfigTitle(context.hujiL10n.exportConfigTitle),
+              SizedBox(height: 18),
+              _buildFileName(), SizedBox(height: 22),
+              _buildFormat(), SizedBox(height: 22),
+              _buildQuality(), SizedBox(height: 22),
+              _buildTransition(), SizedBox(height: 22),
               _buildSavePath(),
             ]),
           ),
@@ -317,7 +355,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
     return _ExSection(
-      label: '文件名',
+      label: context.hujiL10n.fileName,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
@@ -333,23 +371,66 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     );
   }
 
-  Widget _buildFormat() => _ExSection(label: '格式', child: const AppDropdown<String>(value: 'MP4 (H.264)', items: ['MP4 (H.264)', 'MOV']));
-  Widget _buildTransition() => _ExSection(label: '回合间转场', child: const AppDropdown<String>(value: '无（直接拼接）', items: ['无（直接拼接）', '交叉淡化', '滑动']));
+  Widget _buildFormat() {
+    final l10n = context.hujiL10n;
+    return _ExSection(
+      label: l10n.formatLabel,
+      child: AppDropdown<String>(
+        value: l10n.exportFormatMp4H264,
+        items: [l10n.exportFormatMp4H264, 'MOV'],
+      ),
+    );
+  }
+
+  Widget _buildTransition() {
+    final l10n = context.hujiL10n;
+    return _ExSection(
+      label: l10n.roundTransitionLabel,
+      child: AppDropdown<String>(
+        value: l10n.transitionNone,
+        items: [l10n.transitionNone, l10n.transitionCrossfade, l10n.transitionSlide],
+      ),
+    );
+  }
 
   Widget _buildQuality() {
-    return _ExSection(label: '清晰度', child: Column(children: [
-      _RadioOption(label: '原画', meta: '原始分辨率', active: _selectedQuality == '原画', onTap: () => setState(() => _selectedQuality = '原画')),
-      _RadioOption(label: '1080p', meta: '推荐', active: _selectedQuality == '1080p', onTap: () => setState(() => _selectedQuality = '1080p')),
-      _RadioOption(label: '720p', meta: '体积较小', active: _selectedQuality == '720p', onTap: () => setState(() => _selectedQuality = '720p')),
-      _RadioOption(label: '480p', meta: '移动分享', active: _selectedQuality == '480p', onTap: () => setState(() => _selectedQuality = '480p')),
-    ]));
+    final l10n = context.hujiL10n;
+    return _ExSection(
+      label: l10n.qualityLabel,
+      child: Column(children: [
+        _RadioOption(
+          label: l10n.exportQualityOriginal,
+          meta: l10n.exportQualityOriginalMeta,
+          active: _selectedQuality == _qualityOriginal,
+          onTap: () => setState(() => _selectedQuality = _qualityOriginal),
+        ),
+        _RadioOption(
+          label: _quality1080,
+          meta: l10n.exportQualityRecommended,
+          active: _selectedQuality == _quality1080,
+          onTap: () => setState(() => _selectedQuality = _quality1080),
+        ),
+        _RadioOption(
+          label: _quality720,
+          meta: l10n.exportQualitySmallerSize,
+          active: _selectedQuality == _quality720,
+          onTap: () => setState(() => _selectedQuality = _quality720),
+        ),
+        _RadioOption(
+          label: _quality480,
+          meta: l10n.exportQualityMobileShare,
+          active: _selectedQuality == _quality480,
+          onTap: () => setState(() => _selectedQuality = _quality480),
+        ),
+      ]),
+    );
   }
 
   Widget _buildSavePath() {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
     return _ExSection(
-      label: '保存到',
+      label: context.hujiL10n.saveToLabel,
       child: Row(
         children: [
           Expanded(
@@ -366,7 +447,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               ),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           AppIconButton(
             icon: Icons.folder_open,
             size: 32,
@@ -381,6 +462,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   Widget _buildConfigFooter() {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
+    final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
     return Container(
@@ -395,9 +477,12 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('回合数', style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant)),
               Text(
-                '$segCount 个 · 合计 $durationStr',
+                l10n.roundCountLabel,
+                style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant),
+              ),
+              Text(
+                l10n.roundCountDurationSummary(segCount, durationStr),
                 style: styles.bodySmall.copyWith(
                   color: cs.primary,
                   fontWeight: FontWeight.w600,
@@ -405,13 +490,16 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('输出清晰度', style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant)),
               Text(
-                _selectedQuality,
+                l10n.outputQualityLabel,
+                style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant),
+              ),
+              Text(
+                _qualityLabel(l10n),
                 style: styles.bodySmall.copyWith(
                   color: cs.primary,
                   fontWeight: FontWeight.w600,
@@ -432,9 +520,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       child: SingleChildScrollView(
         child: Column(children: [
           _buildPlayer(),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           _buildRoundStrip(),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           _buildSummary(),
         ]),
       ),
@@ -491,21 +579,22 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
 
+    final l10n = context.hujiL10n;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(
-          '回合顺序',
+          l10n.roundOrder,
           style: styles.body.copyWith(
             color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),
         Text(
-          '${_segments.length}个回合',
+          l10n.roundCountShort(_segments.length),
           style: styles.caption.copyWith(color: cs.outline),
         ),
       ]),
-      const SizedBox(height: 8),
+      SizedBox(height: 8),
       BlocBuilder<MultiVideoPlayerBloc, MultiVideoPlayerState>(
         buildWhen: (previous, current) =>
             previous.currentItemIndex != current.currentItemIndex,
@@ -516,7 +605,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: _segments.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 8),
+              separatorBuilder: (_, __) => SizedBox(width: 8),
               itemBuilder: (context, i) {
                 final seg = _segments[i];
                 final active = i == activeIndex;
@@ -592,7 +681,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                                   top: 4,
                                   left: 4,
                                   child: Text(
-                                    '▶ 播放中',
+                                    l10n.playingNow,
                                     style: styles.caption.copyWith(
                                       color: cs.onSurface,
                                     ),
@@ -637,14 +726,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildSummary() {
+    final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
     return Row(children: [
-      _SummaryStat(num: '$segCount', label: '个回合'),
-      const SizedBox(width: 24),
-      _SummaryStat(num: durationStr, label: '合计时长'),
-      const SizedBox(width: 24),
-      _SummaryStat(num: _selectedQuality, label: '输出清晰度'),
+      _SummaryStat(num: '$segCount', label: l10n.roundCountUnit),
+      SizedBox(width: 24),
+      _SummaryStat(num: durationStr, label: l10n.totalDurationLabel),
+      SizedBox(width: 24),
+      _SummaryStat(num: _qualityLabel(l10n), label: l10n.outputQualityLabel),
     ]);
   }
 }
@@ -691,7 +781,7 @@ class _ExSection extends StatelessWidget {
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         child,
       ],
     );
@@ -746,7 +836,7 @@ class _RadioOption extends StatelessWidget {
                     )
                   : null,
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Text(label, style: styles.body.copyWith(color: cs.onSurface)),
             const Spacer(),
             if (meta != null)
@@ -777,7 +867,7 @@ class _SummaryStat extends StatelessWidget {
             fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(width: 4),
+        SizedBox(width: 4),
         Text(label, style: styles.caption.copyWith(color: cs.outline)),
       ],
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
@@ -9,18 +10,19 @@ import 'package:shared_ui/shell/workspace_surface_layers.dart';
 import 'package:shared_ui/theme/app_text_styles.dart';
 
 enum DesktopNav {
-  library(label: '视频库', icon: Icons.video_library_outlined, route: '/'),
-  tasks(label: '任务', icon: Icons.assignment_outlined, route: '/tasks'),
-  settings(label: '设置', icon: Icons.settings_outlined, route: '/settings');
+  library(icon: Icons.video_library_outlined, route: '/'),
+  tasks(icon: Icons.assignment_outlined, route: '/tasks'),
+  settings(icon: Icons.settings_outlined, route: '/settings');
 
-  final String label;
   final IconData icon;
   final String route;
-  const DesktopNav({
-    required this.label,
-    required this.icon,
-    required this.route,
-  });
+  const DesktopNav({required this.icon, required this.route});
+
+  String label(HujiLocalizations l10n) => switch (this) {
+    DesktopNav.library => l10n.desktopNavLibrary,
+    DesktopNav.tasks => l10n.desktopNavTasks,
+    DesktopNav.settings => l10n.desktopNavSettings,
+  };
 }
 
 /// Wide left rail styled like Teampilot [HomeSidebar], with huji navigation.
@@ -67,6 +69,7 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = AppTextStyles.of(context);
     return SizedBox(
@@ -89,7 +92,7 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
                 child: Text(
-                  '工作区',
+                  l10n.desktopWorkspaceSection,
                   style: styles.caption.copyWith(
                     color: cs.onSurfaceVariant,
                     letterSpacing: 0.6,
@@ -97,13 +100,13 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
                 ),
               ),
             _NavTile(
-              label: DesktopNav.library.label,
+              label: DesktopNav.library.label(l10n),
               icon: DesktopNav.library.icon,
               active: _isActive('/'),
               onTap: () => context.go('/'),
             ),
             _NavTile(
-              label: DesktopNav.tasks.label,
+              label: DesktopNav.tasks.label(l10n),
               icon: DesktopNav.tasks.icon,
               active: _isActive('/tasks'),
               badge: _processingCount > 0 ? '$_processingCount' : null,
@@ -116,15 +119,15 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
               indent: 16,
               endIndent: 16,
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _NavTile(
-              label: DesktopNav.settings.label,
+              label: DesktopNav.settings.label(l10n),
               icon: DesktopNav.settings.icon,
               active: _isActive('/settings'),
               muted: true,
               onTap: () => context.go('/settings'),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             ],
           ),
         ),
@@ -174,7 +177,7 @@ class _NavTile extends StatelessWidget {
             child: Row(
               children: [
                 Icon(icon, size: 18, color: fg),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Text(
                     label,
@@ -218,13 +221,13 @@ class _AccountAreaState extends State<_AccountArea> {
 
   bool get _isLoggedIn => UserStore.isLoggedIn;
 
-  String get _displayName {
+  String _displayName(HujiLocalizations l10n) {
     final user = UserStore.currentUser;
     if (user?.nickname != null && user!.nickname!.isNotEmpty) {
       return user.nickname!;
     }
     if (user?.mobile != null && user!.mobile!.isNotEmpty) return user.mobile!;
-    return '未登录';
+    return l10n.accountNotLoggedIn;
   }
 
   void _handleTap() {
@@ -242,6 +245,7 @@ class _AccountAreaState extends State<_AccountArea> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = AppTextStyles.of(context);
     final account = Padding(
@@ -269,18 +273,18 @@ class _AccountAreaState extends State<_AccountArea> {
                   style: styles.bodyStrong.copyWith(color: cs.onPrimary),
                 ),
               ),
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      _displayName,
+                      _displayName(l10n),
                       style: styles.bodyStrong,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
-                      _isLoggedIn ? '已登录' : '点击登录',
+                      _isLoggedIn ? l10n.accountLoggedIn : l10n.accountTapToLogin,
                       style: styles.caption.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
@@ -300,7 +304,7 @@ class _AccountAreaState extends State<_AccountArea> {
       menuChildren: [
         MenuItemButton(
           onPressed: _handleLogout,
-          child: const Text('退出登录'),
+          child: Text(l10n.accountLogout),
         ),
       ],
       child: account,

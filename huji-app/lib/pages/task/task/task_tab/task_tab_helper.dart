@@ -13,6 +13,7 @@ import '../../../../models/task.dart';
 import 'bloc/task_tab_bloc.dart';
 import 'bloc/task_tab_state.dart';
 import '../video_records_tab/video_clip_progress_dialog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Opens the shared video clip progress dialog for a task.
 void showVideoClipProgressDialog(BuildContext context, Task task) {
@@ -107,10 +108,12 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
             child: Row(
               children: [
                 const Icon(Icons.image, color: Colors.blue),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    '压缩结果 (${task.outputList.length}张)',
+                    context.hujiL10n.imageCompressResultsTitle(
+                      task.outputList.length,
+                    ),
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -186,7 +189,7 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Row(
                                 children: [
                                   Text(
@@ -231,10 +234,10 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                       );
                     },
                     icon: const Icon(Icons.save_alt),
-                    label: const Text('保存全部'),
+                    label: Text(context.hujiL10n.saveAll),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: () {
@@ -245,12 +248,12 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                       );
                     },
                     icon: const Icon(Icons.folder_open),
-                    label: const Text('打开文件夹'),
-                    style: ElevatedButton.styleFrom(
+                    label: Text(context.hujiL10n.openFolder),
+            style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                  ),
+          ),
                 ),
               ],
             ),
@@ -272,7 +275,7 @@ void _showImageDetail(
   showDialog(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('图片详情'),
+      title: Text(context.hujiL10n.imageDetails),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -290,18 +293,21 @@ void _showImageDetail(
               },
             ),
           ),
-          const SizedBox(height: 16),
-          _buildDetailRow('文件名', originalFile.path.split('/').last),
+          SizedBox(height: 16),
           _buildDetailRow(
-            '原始大小',
+            context.hujiL10n.fileName,
+            originalFile.path.split('/').last,
+          ),
+          _buildDetailRow(
+            context.hujiL10n.originalSize,
             '${(originalFile.lengthSync() / 1024).toStringAsFixed(1)} KB',
           ),
           _buildDetailRow(
-            '压缩后大小',
+            context.hujiL10n.compressedSize,
             '${(compressedFile.lengthSync() / 1024).toStringAsFixed(1)} KB',
           ),
           _buildDetailRow(
-            '压缩率',
+            context.hujiL10n.compressionRatio,
             '${((1 - compressedFile.lengthSync() / originalFile.lengthSync()) * 100).toStringAsFixed(1)}%',
           ),
         ],
@@ -309,14 +315,14 @@ void _showImageDetail(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('关闭'),
+          child: Text(context.hujiL10n.actionClose),
         ),
         ElevatedButton(
           onPressed: () {
             _saveImageToGallery(context, compressedPath);
             Navigator.of(context).pop();
           },
-          child: const Text('保存到相册'),
+          child: Text(context.hujiL10n.saveToGallery),
         ),
       ],
     ),
@@ -327,8 +333,7 @@ Future<void> _saveImageToGallery(BuildContext context, String imagePath) async {
   if (!PlatformCapability.supportsGalleryAccess) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('相册功能在桌面端暂不支持'),
+        SnackBar(content: Text(context.hujiL10n.galleryNotSupportedOnDesktop),
           backgroundColor: Colors.orange,
         ),
       );
@@ -342,13 +347,16 @@ Future<void> _saveImageToGallery(BuildContext context, String imagePath) async {
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已保存到相册'), backgroundColor: Colors.green),
+        SnackBar(content: Text(context.hujiL10n.savedToGallery), backgroundColor: Colors.green),
       );
     }
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存失败: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(context.hujiL10n.saveFailed('$e')),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -361,8 +369,7 @@ Future<void> _saveAllImagesToGallery(
   if (!PlatformCapability.supportsGalleryAccess) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('相册功能在桌面端暂不支持'),
+        SnackBar(content: Text(context.hujiL10n.galleryNotSupportedOnDesktop),
           backgroundColor: Colors.orange,
         ),
       );
@@ -381,7 +388,7 @@ Future<void> _saveAllImagesToGallery(
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('成功保存 $savedCount 张图片到相册'),
+          content: Text(context.hujiL10n.savedImagesCount(savedCount)),
           backgroundColor: Colors.green,
         ),
       );
@@ -389,7 +396,10 @@ Future<void> _saveAllImagesToGallery(
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('保存失败: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(context.hujiL10n.saveFailed('$e')),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }
@@ -399,7 +409,7 @@ void _openImageFolder(BuildContext context, String imagePath) {
   // 这里可以添加打开文件夹的逻辑
   // 由于平台限制，可能需要使用第三方插件
   ScaffoldMessenger.of(context).showSnackBar(
-    const SnackBar(content: Text('功能开发中...'), backgroundColor: Colors.orange),
+    SnackBar(content: Text(context.hujiL10n.featureInDevelopment), backgroundColor: Colors.orange),
   );
 }
 

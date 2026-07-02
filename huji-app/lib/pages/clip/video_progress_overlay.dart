@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 
 class VideoProgressOverlay extends StatefulWidget {
@@ -87,24 +89,25 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
     _estimatedRemainingTime = 0;
   }
 
-  String _getProcessedTimeInfo(ProcessStatus status) {
+  String _getProcessedTimeInfo(HujiLocalizations l10n, ProcessStatus status) {
+    final seconds = _processedTime.round();
     switch (status) {
       case ProcessStatus.preparing:
-        return '等待处理时间: ${_processedTime.toStringAsFixed(0)} s';
+        return l10n.waitingProcessTime(seconds);
       default:
-        return '已处理时间：${_processedTime.toStringAsFixed(0)} s';
+        return l10n.processedTimeLabel(seconds);
     }
   }
 
-  String _getStatusText() {
+  String _getStatusText(HujiLocalizations l10n) {
     if (widget.progressInfo?.status == ProcessStatus.preparing) {
       final position = widget.progressInfo?.position ?? 0;
       if (position > 0) {
-        return '视频等待处理中...前方有 $position 个视频在排队';
+        return l10n.videoWaitingWithQueue(position);
       }
-      return '视频等待处理中...';
+      return l10n.videoWaitingProcessing;
     }
-    return '视频处理中...';
+    return l10n.videoProcessingInProgress;
   }
 
   @override
@@ -119,6 +122,7 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
   Widget build(BuildContext context) {
     if (!widget.isProcessing) return const SizedBox.shrink();
 
+    final l10n = context.hujiL10n;
     return Container(
       color: Colors.white.withValues(alpha: 0.5),
       child: BackdropFilter(
@@ -178,7 +182,7 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                     return Opacity(
                       opacity: 0.7 + (_pulseController.value * 0.3),
                       child: Text(
-                        _getStatusText(),
+                        _getStatusText(l10n),
                         style: const TextStyle(
                           fontSize: 16,
                           color: Colors.grey,
@@ -197,9 +201,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                     builder: (context, child) {
                       return Opacity(
                         opacity: 0.6 + (_pulseController.value * 0.2),
-                        child: const Text(
-                          '你可以离开页面，视频处理完后将会通过消息通知您。',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                        child: Text(
+                          l10n.leavePageProcessingNotification,
+                          style: const TextStyle(fontSize: 12, color: Colors.grey),
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -241,7 +245,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  '视频时长：${widget.progressInfo!.videoDuration.toStringAsFixed(1)} s',
+                                  l10n.videoDuration(
+                                    '${widget.progressInfo!.videoDuration.toStringAsFixed(1)} s',
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,
@@ -249,7 +255,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                 ),
                                 const SizedBox(height: 4),
                                 Text(
-                                  '预计剩余时间：${_estimatedRemainingTime.toStringAsFixed(0)} s',
+                                  l10n.estimatedRemainingTimeSeconds(
+                                    _estimatedRemainingTime.round(),
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,
@@ -263,7 +271,10 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '处理速度：${widget.progressInfo!.processSpeed.toStringAsFixed(2)} s/s',
+                                  l10n.processingSpeedPerSecond(
+                                    widget.progressInfo!.processSpeed
+                                        .toStringAsFixed(2),
+                                  ),
                                   style: const TextStyle(
                                     fontSize: 12,
                                     color: Colors.grey,
@@ -272,6 +283,7 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                 const SizedBox(height: 4),
                                 Text(
                                   _getProcessedTimeInfo(
+                                    l10n,
                                     widget.progressInfo!.status,
                                   ),
                                   style: const TextStyle(

@@ -10,6 +10,8 @@ import '../../../../models/task.dart';
 import 'bloc/video_clip_progress_dialog_bloc.dart';
 import 'bloc/video_clip_progress_dialog_event.dart';
 import 'bloc/video_clip_progress_dialog_state.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoClipProgressDialog extends StatefulWidget {
   final Task task;
@@ -38,21 +40,8 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
     super.dispose();
   }
 
-  String _getStatusText(TaskStatusEnum status) {
-    switch (status) {
-      case TaskStatusEnum.pending:
-        return '等待中';
-      case TaskStatusEnum.processing:
-        return '处理中';
-      case TaskStatusEnum.completed:
-        return '已完成';
-      case TaskStatusEnum.failed:
-        return '失败';
-      case TaskStatusEnum.paused:
-        return '暂停';
-      case TaskStatusEnum.cancelled:
-        return '已取消';
-    }
+  String _getStatusText(HujiLocalizations l10n, TaskStatusEnum status) {
+    return l10n.taskStatusLabel(status);
   }
 
   Color _getStatusColor(TaskStatusEnum status) {
@@ -72,25 +61,29 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
     }
   }
 
-  String _getProgressDescription(TaskStatusEnum status, double progress) {
+  String _getProgressDescription(
+    HujiLocalizations l10n,
+    TaskStatusEnum status,
+    double progress,
+  ) {
     if (status == TaskStatusEnum.pending) {
-      return '任务已提交，等待处理...';
+      return l10n.taskSubmittedWaiting;
     } else if (status == TaskStatusEnum.processing) {
       if (progress < 0.1) {
-        return '正在上传视频...';
+        return l10n.uploadingVideo;
       } else if (progress < 0.3) {
-        return '正在分析视频内容...';
+        return l10n.analyzingVideoContent;
       } else if (progress < 0.7) {
-        return '正在剪辑视频...';
+        return l10n.clippingVideo;
       } else if (progress < 0.9) {
-        return '正在生成最终视频...';
+        return l10n.generatingFinalVideo;
       } else {
-        return '正在下载结果...';
+        return l10n.downloadingResult;
       }
     } else if (status == TaskStatusEnum.completed) {
-      return '剪辑完成！';
+      return l10n.clipCompleted;
     } else {
-      return '处理失败，请重试';
+      return l10n.processFailedRetry;
     }
   }
 
@@ -138,6 +131,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
           },
           builder: (context, state) {
             final currentTask = state.task ?? widget.task;
+            final l10n = context.hujiL10n;
 
             return Dialog(
               shape: RoundedRectangleBorder(
@@ -157,10 +151,10 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                           color: _getStatusColor(currentTask.status),
                           size: 24,
                         ),
-                        const SizedBox(width: 12),
-                        const Expanded(
+                        SizedBox(width: 12),
+                        Expanded(
                           child: Text(
-                            '视频剪辑进度',
+                            l10n.videoClipProgressTitle,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
@@ -185,7 +179,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // 视频缩略图
                     Container(
@@ -196,13 +190,13 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                         color: Colors.grey[100],
                       ),
                       child: state.isGeneratingThumbnail
-                          ? const Center(
+                          ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   CircularProgressIndicator(),
                                   SizedBox(height: 8),
-                                  Text('生成缩略图中...'),
+                                  Text(l10n.generatingThumbnail),
                                 ],
                               ),
                             )
@@ -221,7 +215,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                 borderRadius: BorderRadius.circular(12),
                                 color: Colors.grey[300],
                               ),
-                              child: const Center(
+                              child: Center(
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
@@ -232,7 +226,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                     ),
                                     SizedBox(height: 8),
                                     Text(
-                                      '无法生成缩略图',
+                                      l10n.cannotGenerateThumbnail,
                                       style: TextStyle(color: Colors.grey),
                                     ),
                                   ],
@@ -240,7 +234,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                               ),
                             ),
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // 文件名
                     Text(
@@ -253,7 +247,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
 
                     // 进度条
                     Column(
@@ -263,7 +257,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              _getStatusText(currentTask.status),
+                              _getStatusText(l10n, currentTask.status),
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w500,
@@ -279,7 +273,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         LinearProgressIndicator(
                           value: currentTask.progress,
                           minHeight: 8,
@@ -288,9 +282,10 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                             _getStatusColor(currentTask.status),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
                           _getProgressDescription(
+                            l10n,
                             currentTask.status,
                             currentTask.progress,
                           ),
@@ -302,7 +297,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: 20),
 
                     // 操作按钮
                     if (currentTask.status == TaskStatusEnum.completed)
@@ -350,8 +345,8 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                           ),
                           child: Text(
                             currentTask is VideoSegmentDetectTask
-                                ? '编辑视频'
-                                : '播放',
+                                ? l10n.editVideo
+                                : l10n.actionPlay,
                             style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -378,9 +373,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: const Text(
-                            '重试',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                          child: Text(context.hujiL10n.actionRetry, style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       )
@@ -399,9 +392,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                               borderRadius: BorderRadius.circular(8),
                             ),
                           ),
-                          child: Text(
-                            '关闭',
-                            style: TextStyle(
+                          child: Text(context.hujiL10n.actionClose, style: TextStyle(
                               fontWeight: FontWeight.bold,
                               color: Colors.grey[700],
                             ),

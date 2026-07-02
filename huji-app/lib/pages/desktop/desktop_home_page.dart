@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -58,7 +59,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = '加载失败：$e';
+          _error = e.toString();
         });
       }
     }
@@ -71,6 +72,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
 
     return ColoredBox(
@@ -79,14 +81,14 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text(
-            '视频库',
+            l10n.desktopLibraryTitle,
             style: Theme.of(
               context,
             ).textTheme.titleLarge?.copyWith(color: cs.onSurface),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Expanded(child: _buildBody(context)),
         ],
       ),
@@ -95,7 +97,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
 
   Widget _buildBody(BuildContext context) {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
     if (_error != null) {
       return _buildErrorState(context);
@@ -110,7 +112,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
           onNewClip: () => context.go('/clip/new'),
           itemCount: _records.isEmpty ? null : _records.length,
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         Expanded(
           child: _records.isEmpty
               ? _buildEmptyState(context)
@@ -123,6 +125,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   }
 
   Widget _buildEmptyState(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = AppTextStyles.of(context);
     return Center(
@@ -134,10 +137,13 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
             size: context.appIconSizes.md,
             color: cs.onSurfaceVariant.withValues(alpha: 0.5),
           ),
-          const SizedBox(height: 14),
-          Text('暂无视频', style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+          SizedBox(height: 14),
           Text(
-            '点击「新建剪辑」上传比赛视频',
+            l10n.desktopLibraryEmptyTitle,
+            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+          ),
+          Text(
+            l10n.desktopLibraryEmptyHint,
             style: styles.bodySmall.copyWith(
               color: cs.onSurfaceVariant.withValues(alpha: 0.75),
             ),
@@ -148,6 +154,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   }
 
   Widget _buildErrorState(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = AppTextStyles.of(context);
     return Center(
@@ -159,16 +166,16 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
             size: context.appIconSizes.md,
             color: cs.outline,
           ),
-          const SizedBox(height: 14),
+          SizedBox(height: 14),
           Text(
-            _error!,
+            l10n.desktopLibraryLoadFailed(_error!),
             style: styles.body.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           FilledButton.icon(
             onPressed: _loadRecords,
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('重试'),
+            label: Text(l10n.actionRetry),
           ),
         ],
       ),
@@ -191,7 +198,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   Widget _buildList(BuildContext context) {
     return ListView.separated(
       itemCount: _records.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 10),
+      separatorBuilder: (_, __) => SizedBox(height: 10),
       itemBuilder: (context, i) => _VideoListTile(record: _records[i]),
     );
   }
@@ -248,12 +255,12 @@ class _VideoCard extends StatelessWidget {
                     Text(
                       record.filePath != null
                           ? p.basename(record.filePath!)
-                          : '未命名',
+                          : context.hujiL10n.untitledName,
                       style: styles.bodyStrong.copyWith(color: cs.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       record.sportType.title,
                       style: styles.caption.copyWith(
@@ -309,7 +316,7 @@ class _VideoListTile extends StatelessWidget {
                   child: _VideoThumbnail(record: record),
                 ),
               ),
-              const SizedBox(width: 14),
+              SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,12 +324,12 @@ class _VideoListTile extends StatelessWidget {
                     Text(
                       record.filePath != null
                           ? p.basename(record.filePath!)
-                          : '未命名',
+                          : context.hujiL10n.untitledName,
                       style: styles.bodyStrong.copyWith(color: cs.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       record.sportType.title,
                       style: styles.caption.copyWith(
@@ -332,7 +339,7 @@ class _VideoListTile extends StatelessWidget {
                   ],
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               _StatusBadge(status: record.processStatus),
             ],
           ),
@@ -376,11 +383,21 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final (label, color) = switch (status) {
-      LocalVideoProcessStatusEnum.pending => ('待检测', const Color(0xFFEAB308)),
-      LocalVideoProcessStatusEnum.processing => ('检测中', cs.primary),
-      LocalVideoProcessStatusEnum.completed => ('已完成', const Color(0xFF22C55E)),
+      LocalVideoProcessStatusEnum.pending => (
+        l10n.localVideoStatusPending,
+        const Color(0xFFEAB308),
+      ),
+      LocalVideoProcessStatusEnum.processing => (
+        l10n.localVideoStatusProcessing,
+        cs.primary,
+      ),
+      LocalVideoProcessStatusEnum.completed => (
+        l10n.taskStatusCompleted,
+        const Color(0xFF22C55E),
+      ),
     };
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),

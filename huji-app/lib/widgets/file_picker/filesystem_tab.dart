@@ -10,6 +10,7 @@ import 'package:huji_app/services/permission_service.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/utils/file_utils.dart' as file_utils;
 import 'file_selection_page.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class FilesystemTab extends StatefulWidget {
   final bool allowMultiple;
@@ -54,7 +55,13 @@ class _FilesystemTabState extends State<FilesystemTab>
   bool _sortAscending = true;
   bool _hasStoragePermission = false;
 
-  final List<String> _topTabs = ['手机存储', '应用文件夹', '全盘搜索'];
+  static const _topTabCount = 3;
+
+  List<String> _topTabLabels(HujiLocalizations l10n) => [
+    l10n.phoneStorageTab,
+    l10n.appFoldersTab,
+    l10n.fullDiskSearchTab,
+  ];
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -72,15 +79,18 @@ class _FilesystemTabState extends State<FilesystemTab>
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Colors.grey[900],
-            title: const Text('文件不存在', style: TextStyle(color: Colors.white)),
+            title: Text(
+              context.hujiL10n.videoPlayerFileNotFound,
+              style: const TextStyle(color: Colors.white),
+            ),
             content: Text(
-              '文件已被移动或删除：\n${file.path}',
+              context.hujiL10n.videoPlayerFileMovedOrDeleted(file.path),
               style: const TextStyle(color: Colors.white),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('确定', style: TextStyle(color: Colors.white)),
+                child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -88,7 +98,7 @@ class _FilesystemTabState extends State<FilesystemTab>
         Navigator.of(context).pop();
       }
     }
-    _topTabController = TabController(length: _topTabs.length, vsync: this);
+    _topTabController = TabController(length: _topTabCount, vsync: this);
     _topTabController.addListener(() {
       if (_selectedTopTabIndex != _topTabController.index) {
         setState(() {
@@ -179,7 +189,9 @@ class _FilesystemTabState extends State<FilesystemTab>
         _entities = [];
         _isLoading = false;
       });
-      _showErrorSnackBar('无法访问此目录: ${e.toString()}');
+      _showErrorSnackBar(
+        context.hujiL10n.cannotAccessDirectory(e.toString()),
+      );
     }
   }
 
@@ -266,7 +278,9 @@ class _FilesystemTabState extends State<FilesystemTab>
           }
 
           widget.onSelectionChanged(currentSelection);
-          _showInfoSnackBar('已添加 ${files.length} 个搜索结果到选择列表');
+          _showInfoSnackBar(
+            context.hujiL10n.searchResultsAdded(files.length),
+          );
         },
       ),
     );
@@ -349,22 +363,21 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   void _showMaxSelectionReachedSnackBar() {
-    String itemType = '文件';
-    switch (widget.selectionMode) {
-      case SelectionMode.files:
-        itemType = '文件';
-        break;
-      case SelectionMode.directories:
-        itemType = '目录';
-        break;
-      case SelectionMode.both:
-        itemType = '项目';
-        break;
-    }
+    final l10n = context.hujiL10n;
+    final itemType = switch (widget.selectionMode) {
+      SelectionMode.files => l10n.itemTypeFile,
+      SelectionMode.directories => l10n.itemTypeDirectory,
+      SelectionMode.both => l10n.itemTypeItem,
+    };
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('最多只能选择 ${widget.maxSelectionCount} 个$itemType'),
+        content: Text(
+          l10n.maxSelectionCountReachedFor(
+            widget.maxSelectionCount!,
+            itemType,
+          ),
+        ),
         backgroundColor: Colors.orange,
         duration: const Duration(seconds: 2),
       ),
@@ -419,7 +432,9 @@ class _FilesystemTabState extends State<FilesystemTab>
           .take(widget.maxSelectionCount!)
           .toList();
       widget.onSelectionChanged(limitedItems);
-      _showInfoSnackBar('已选择前 ${widget.maxSelectionCount} 个项目');
+      _showInfoSnackBar(
+        context.hujiL10n.selectedFirstNItems(widget.maxSelectionCount!),
+      );
     } else {
       widget.onSelectionChanged(selectableItems);
     }
@@ -508,7 +523,7 @@ class _FilesystemTabState extends State<FilesystemTab>
       child: SingleChildScrollView(
         scrollDirection: Axis.horizontal,
         child: Row(
-          children: _topTabs.asMap().entries.map((entry) {
+          children: _topTabLabels(context.hujiL10n).asMap().entries.map((entry) {
             final index = entry.key;
             final tab = entry.value;
             final isSelected = index == _selectedTopTabIndex;
@@ -557,9 +572,12 @@ class _FilesystemTabState extends State<FilesystemTab>
       child: Row(
         children: [
           Icon(Icons.warning, color: Colors.orange[700], size: 20),
-          const SizedBox(width: 8),
-          const Expanded(
-            child: Text('需要存储权限才能访问文件', style: TextStyle(fontSize: 14)),
+          SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              context.hujiL10n.storagePermissionRequired,
+              style: const TextStyle(fontSize: 14),
+            ),
           ),
           TextButton(
             onPressed: _checkPermissionAndLoadDirectory,
@@ -567,9 +585,9 @@ class _FilesystemTabState extends State<FilesystemTab>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               minimumSize: Size.zero,
             ),
-            child: const Text(
-              '授权',
-              style: TextStyle(color: Colors.blue, fontSize: 14),
+            child: Text(
+              context.hujiL10n.authorize,
+              style: const TextStyle(color: Colors.blue, fontSize: 14),
             ),
           ),
         ],
@@ -590,7 +608,7 @@ class _FilesystemTabState extends State<FilesystemTab>
               child: Row(children: _buildBreadcrumbNavigation(pathSegments)),
             ),
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           IconButton(
             icon: const Icon(Icons.search, size: 20),
             onPressed: _showSearchDialog,
@@ -603,11 +621,12 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   List<Map<String, String>> _getPathSegments() {
+    final l10n = context.hujiL10n;
     final currentPath = _currentDirectory.path;
     final segments = <Map<String, String>>[];
 
     // 添加根目录
-    segments.add({'name': '手机存储', 'path': '/storage/emulated/0'});
+    segments.add({'name': l10n.phoneStorageTab, 'path': '/storage/emulated/0'});
 
     if (currentPath != '/storage/emulated/0') {
       // 获取相对路径
@@ -654,7 +673,7 @@ class _FilesystemTabState extends State<FilesystemTab>
               children: [
                 if (isFirst) ...[
                   Icon(Icons.home, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
+                  SizedBox(width: 4),
                 ],
                 Text(
                   segment['name']!,
@@ -688,13 +707,15 @@ class _FilesystemTabState extends State<FilesystemTab>
       HapticFeedback.lightImpact();
       _navigateToDirectory(directory);
     } else {
-      _showErrorSnackBar('路径不存在: $path');
+      _showErrorSnackBar(context.hujiL10n.pathNotFound(path));
     }
   }
 
   void _showPathOptions(Map<String, String> segment) {
+    final l10n = context.hujiL10n;
     final pathName = segment['name']!;
     final pathDir = segment['path']!;
+    final isRoot = pathDir == '/storage/emulated/0';
 
     showModalBottomSheet(
       context: context,
@@ -707,11 +728,11 @@ class _FilesystemTabState extends State<FilesystemTab>
             Row(
               children: [
                 Icon(
-                  pathName == '手机存储' ? Icons.home : Icons.folder,
+                  isRoot ? Icons.home : Icons.folder,
                   color: Colors.blue,
                   size: 24,
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -723,7 +744,7 @@ class _FilesystemTabState extends State<FilesystemTab>
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         pathDir,
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
@@ -733,12 +754,12 @@ class _FilesystemTabState extends State<FilesystemTab>
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 20),
 
             // 操作选项
             ListTile(
               leading: const Icon(Icons.folder_open),
-              title: const Text('打开此文件夹'),
+              title: Text(l10n.openThisFolder),
               onTap: () {
                 Navigator.pop(context);
                 _navigateToPath(pathDir);
@@ -747,7 +768,7 @@ class _FilesystemTabState extends State<FilesystemTab>
 
             ListTile(
               leading: const Icon(Icons.info_outline),
-              title: const Text('文件夹信息'),
+              title: Text(l10n.folderInfo),
               onTap: () {
                 Navigator.pop(context);
                 _showFolderInfo(context, pathDir);
@@ -756,19 +777,19 @@ class _FilesystemTabState extends State<FilesystemTab>
 
             ListTile(
               leading: const Icon(Icons.copy),
-              title: const Text('复制路径'),
+              title: Text(l10n.copyPath),
               onTap: () {
                 Navigator.pop(context);
                 Clipboard.setData(ClipboardData(text: pathDir));
-                _showInfoSnackBar('路径已复制到剪贴板');
+                _showInfoSnackBar(l10n.pathCopiedToClipboard);
               },
             ),
 
-            if (pathName != '手机存储') ...[
+            if (!isRoot) ...[
               const Divider(),
               ListTile(
                 leading: const Icon(Icons.create_new_folder),
-                title: const Text('在此处新建文件夹'),
+                title: Text(l10n.createFolderHere),
                 onTap: () {
                   Navigator.pop(context);
                   _showCreateFolderDialog(pathDir);
@@ -782,6 +803,7 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   void _showFolderInfo(BuildContext context, String path) async {
+    final l10n = context.hujiL10n;
     try {
       final directory = Directory(path);
       final stat = await directory.stat();
@@ -793,30 +815,33 @@ class _FilesystemTabState extends State<FilesystemTab>
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('文件夹信息'),
+            title: Text(l10n.folderInfo),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildInfoRow('路径', path),
-                _buildInfoRow('创建时间', _formatDate(stat.changed)),
-                _buildInfoRow('修改时间', _formatDate(stat.modified)),
-                _buildInfoRow('文件数量', '$fileCount 个'),
-                _buildInfoRow('文件夹数量', '$folderCount 个'),
-                _buildInfoRow('总项目', '${contents.length} 个'),
+                _buildInfoRow(l10n.infoPath, path),
+                _buildInfoRow(l10n.infoCreatedAt, _formatDate(stat.changed)),
+                _buildInfoRow(l10n.infoModifiedAt, _formatDate(stat.modified)),
+                _buildInfoRow(l10n.infoFileCount, l10n.itemCountUnit(fileCount)),
+                _buildInfoRow(l10n.infoFolderCount, l10n.itemCountUnit(folderCount)),
+                _buildInfoRow(
+                  l10n.infoTotalItems,
+                  l10n.itemCountUnit(contents.length),
+                ),
               ],
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text('确定'),
+                child: Text(context.hujiL10n.actionConfirm),
               ),
             ],
           ),
         );
       }
     } catch (e) {
-      _showErrorSnackBar('获取文件夹信息失败: ${e.toString()}');
+      _showErrorSnackBar(l10n.getFolderInfoFailed(e.toString()));
     }
   }
 
@@ -843,23 +868,24 @@ class _FilesystemTabState extends State<FilesystemTab>
 
   void _showCreateFolderDialog(String parentPath) {
     final controller = TextEditingController();
+    final l10n = context.hujiL10n;
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('新建文件夹'),
+        title: Text(l10n.newFolder),
         content: TextField(
           controller: controller,
-          decoration: const InputDecoration(
-            hintText: '输入文件夹名称',
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
+            hintText: l10n.folderNameHint,
+            border: const OutlineInputBorder(),
           ),
           autofocus: true,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(l10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
@@ -869,7 +895,7 @@ class _FilesystemTabState extends State<FilesystemTab>
                 _createFolder(parentPath, folderName);
               }
             },
-            child: const Text('创建'),
+            child: Text(l10n.actionCreate),
           ),
         ],
       ),
@@ -877,37 +903,40 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   void _createFolder(String parentPath, String folderName) async {
+    final l10n = context.hujiL10n;
     try {
       final newFolderPath = '$parentPath/$folderName';
       final newFolder = Directory(newFolderPath);
 
       if (await newFolder.exists()) {
-        _showErrorSnackBar('文件夹已存在');
+        _showErrorSnackBar(l10n.folderAlreadyExists);
         return;
       }
 
       await newFolder.create();
-      _showInfoSnackBar('文件夹创建成功');
+      _showInfoSnackBar(l10n.folderCreatedSuccess);
 
       // 如果当前在父目录，刷新列表
       if (_currentDirectory.path == parentPath) {
         _loadDirectory();
       }
     } catch (e) {
-      _showErrorSnackBar('创建文件夹失败: ${e.toString()}');
+      _showErrorSnackBar(l10n.createFolderFailedWithError(e.toString()));
     }
   }
 
   void _showSearchDialog() {
+    final l10n = context.hujiL10n;
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('搜索文件'),
+        title: Text(l10n.searchFilesTitle),
         content: TextField(
           controller: _searchController,
-          decoration: const InputDecoration(
-            hintText: '输入文件名...',
-            prefixIcon: Icon(Icons.search),
+          decoration: InputDecoration(
+            hintText: l10n.inputFileNameHint,
+            prefixIcon: const Icon(Icons.search),
           ),
           onChanged: _onSearchChanged,
           autofocus: true,
@@ -919,11 +948,11 @@ class _FilesystemTabState extends State<FilesystemTab>
               _onSearchChanged('');
               Navigator.pop(context);
             },
-            child: const Text('清除'),
+            child: Text(l10n.actionClear),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
+            child: Text(l10n.actionConfirm),
           ),
         ],
       ),
@@ -931,34 +960,35 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   Widget _buildQuickAccess() {
+    final l10n = context.hujiL10n;
     final quickAccessItems = [
       {
         'icon': Icons.download,
-        'label': '下载',
+        'label': l10n.quickAccessDownload,
         'path': '/storage/emulated/0/Download',
         'color': Colors.blue,
       },
       {
         'icon': Icons.description,
-        'label': '文档',
+        'label': l10n.quickAccessDocuments,
         'path': '/storage/emulated/0/Documents',
         'color': Colors.orange,
       },
       {
         'icon': Icons.photo_library,
-        'label': '图片',
+        'label': l10n.quickAccessPictures,
         'path': '/storage/emulated/0/Pictures',
         'color': Colors.green,
       },
       {
         'icon': Icons.videocam,
-        'label': '视频',
+        'label': l10n.quickAccessVideos,
         'path': '/storage/emulated/0/Movies',
         'color': Colors.red,
       },
       {
         'icon': Icons.camera_alt,
-        'label': '相机',
+        'label': l10n.quickAccessCamera,
         'path': '/storage/emulated/0/DCIM',
         'color': Colors.teal,
       },
@@ -1008,13 +1038,13 @@ class _FilesystemTabState extends State<FilesystemTab>
             decoration: BoxDecoration(color: color, shape: BoxShape.circle),
             child: Icon(icon, color: Colors.white, size: 24),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             label,
             style: const TextStyle(fontSize: 12),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(count, style: const TextStyle(fontSize: 12, color: Colors.grey)),
         ],
       ),
@@ -1035,8 +1065,10 @@ class _FilesystemTabState extends State<FilesystemTab>
   }
 
   Widget _buildFolderList() {
+    final l10n = context.hujiL10n;
+
     if (!_hasStoragePermission) {
-      return const Expanded(
+      return Expanded(
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -1044,7 +1076,7 @@ class _FilesystemTabState extends State<FilesystemTab>
               Icon(Icons.folder_off, size: 64, color: Colors.grey),
               SizedBox(height: 16),
               Text(
-                '需要存储权限',
+                l10n.storagePermissionRequired,
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ],
@@ -1055,7 +1087,7 @@ class _FilesystemTabState extends State<FilesystemTab>
 
     return Expanded(
       child: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : _filteredEntities.isEmpty
           ? Center(
               child: Column(
@@ -1068,19 +1100,21 @@ class _FilesystemTabState extends State<FilesystemTab>
                     size: 64,
                     color: Colors.grey,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
-                    _searchQuery.isNotEmpty ? '没有找到匹配的文件' : '此文件夹为空',
+                    _searchQuery.isNotEmpty
+                        ? l10n.noMatchingFiles
+                        : l10n.folderEmpty,
                     style: const TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                   if (_searchQuery.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     TextButton(
                       onPressed: () {
                         _searchController.clear();
                         _onSearchChanged('');
                       },
-                      child: const Text('清除搜索'),
+                      child: Text(l10n.clearSearch),
                     ),
                   ],
                 ],
@@ -1130,7 +1164,7 @@ class _FilesystemTabState extends State<FilesystemTab>
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       if (isSelectable && isAllowed)
                         Checkbox(
                           value: isSelected,
@@ -1145,11 +1179,11 @@ class _FilesystemTabState extends State<FilesystemTab>
                               MaterialTapTargetSize.shrinkWrap,
                         )
                       else
-                        const SizedBox(width: 40),
+                        SizedBox(width: 40),
                     ],
                   ),
                   subtitle: FutureBuilder<String>(
-                    future: _getEntityInfo(entity),
+                    future: _getEntityInfo(entity, l10n),
                     builder: (context, snapshot) {
                       if (snapshot.hasData) {
                         return Text(
@@ -1191,7 +1225,10 @@ class _FilesystemTabState extends State<FilesystemTab>
     );
   }
 
-  Future<String> _getEntityInfo(FileSystemEntity entity) async {
+  Future<String> _getEntityInfo(
+    FileSystemEntity entity,
+    HujiLocalizations l10n,
+  ) async {
     try {
       final stat = await entity.stat();
       final date = _formatDate(stat.modified);
@@ -1199,9 +1236,9 @@ class _FilesystemTabState extends State<FilesystemTab>
       if (entity is Directory) {
         try {
           final contents = await entity.list().toList();
-          return '$date ${contents.length}项';
+          return l10n.entityInfoDateAndItemCount(date, contents.length);
         } catch (e) {
-          return '$date 0项';
+          return l10n.entityInfoDateAndItemCount(date, 0);
         }
       } else {
         return '$date ${_formatFileSize(stat.size)}';
@@ -1237,7 +1274,7 @@ class _FilesystemTabState extends State<FilesystemTab>
         _buildNavigationBar(),
         // 快捷入口
         _buildQuickAccess(),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         // 文件夹列表
         _buildFolderList(),
       ],
@@ -1267,14 +1304,14 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   String _searchQuery = '';
 
   // 搜索范围选项
-  final List<Map<String, String>> _searchPaths = [
-    {'name': '整个存储', 'path': '/storage/emulated/0'},
-    {'name': 'DCIM相机', 'path': '/storage/emulated/0/DCIM'},
-    {'name': '图片文件夹', 'path': '/storage/emulated/0/Pictures'},
-    {'name': '下载文件夹', 'path': '/storage/emulated/0/Download'},
-    {'name': '文档文件夹', 'path': '/storage/emulated/0/Documents'},
-    {'name': '音乐文件夹', 'path': '/storage/emulated/0/Music'},
-    {'name': '视频文件夹', 'path': '/storage/emulated/0/Movies'},
+  List<Map<String, String>> _searchPaths(HujiLocalizations l10n) => [
+    {'name': l10n.searchPathEntireStorage, 'path': '/storage/emulated/0'},
+    {'name': l10n.searchPathDcim, 'path': '/storage/emulated/0/DCIM'},
+    {'name': l10n.searchPathPictures, 'path': '/storage/emulated/0/Pictures'},
+    {'name': l10n.searchPathDownload, 'path': '/storage/emulated/0/Download'},
+    {'name': l10n.searchPathDocuments, 'path': '/storage/emulated/0/Documents'},
+    {'name': l10n.searchPathMusic, 'path': '/storage/emulated/0/Music'},
+    {'name': l10n.searchPathMovies, 'path': '/storage/emulated/0/Movies'},
   ];
 
   String _selectedSearchPath = '/storage/emulated/0';
@@ -1296,10 +1333,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
   }
 
   Future<void> _performSearch(BuildContext context) async {
+    final l10n = context.hujiL10n;
     if (_searchQuery.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('请输入搜索关键词'),
+        SnackBar(
+          content: Text(l10n.enterSearchKeyword),
           backgroundColor: Colors.orange,
         ),
       );
@@ -1328,7 +1366,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('搜索失败: ${e.toString()}'),
+            content: Text(l10n.searchFailedWithError(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -1401,6 +1439,9 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final searchPaths = _searchPaths(l10n);
+
     return Dialog(
       child: Container(
         width: MediaQuery.of(context).size.width * 0.9,
@@ -1412,10 +1453,10 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
             Row(
               children: [
                 const Icon(Icons.search, color: Colors.blue),
-                const SizedBox(width: 8),
-                const Text(
-                  '全盘搜索',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                SizedBox(width: 8),
+                Text(
+                  l10n.fullDiskSearchTab,
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 const Spacer(),
                 IconButton(
@@ -1424,20 +1465,20 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 搜索范围选择
             DropdownButtonFormField<String>(
               value: _selectedSearchPath,
-              decoration: const InputDecoration(
-                labelText: '搜索范围',
-                border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(
+              decoration: InputDecoration(
+                labelText: l10n.searchScope,
+                border: const OutlineInputBorder(),
+                contentPadding: const EdgeInsets.symmetric(
                   horizontal: 12,
                   vertical: 8,
                 ),
               ),
-              items: _searchPaths.map((pathInfo) {
+              items: searchPaths.map((pathInfo) {
                 return DropdownMenuItem<String>(
                   value: pathInfo['path'],
                   child: Text(pathInfo['name']!),
@@ -1449,7 +1490,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 });
               },
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 搜索输入框
             Row(
@@ -1457,11 +1498,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                 Expanded(
                   child: TextField(
                     controller: _searchController,
-                    decoration: const InputDecoration(
-                      hintText: '输入文件名关键词...',
-                      border: OutlineInputBorder(),
-                      prefixIcon: Icon(Icons.search),
-                      contentPadding: EdgeInsets.symmetric(
+                    decoration: InputDecoration(
+                      hintText: l10n.inputFileNameKeywordHint,
+                      border: const OutlineInputBorder(),
+                      prefixIcon: const Icon(Icons.search),
+                      contentPadding: const EdgeInsets.symmetric(
                         horizontal: 12,
                         vertical: 8,
                       ),
@@ -1472,7 +1513,7 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                     onSubmitted: (value) => _performSearch(context),
                   ),
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 ElevatedButton(
                   onPressed: _isSearching
                       ? null
@@ -1483,11 +1524,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                           height: 16,
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : const Text('搜索'),
+                      : Text(l10n.actionSearch),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 搜索结果状态栏
             if (_searchResults.isNotEmpty || _isSearching)
@@ -1504,8 +1545,8 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                   children: [
                     Text(
                       _isSearching
-                          ? '搜索中...'
-                          : '找到 ${_searchResults.length} 个文件',
+                          ? l10n.searching
+                          : l10n.foundFileCount(_searchResults.length),
                       style: const TextStyle(fontWeight: FontWeight.w500),
                     ),
                     const Spacer(),
@@ -1517,27 +1558,27 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                             : _selectAllResults,
                         child: Text(
                           _selectedFiles.length == _searchResults.length
-                              ? '取消全选'
-                              : '全选',
+                              ? l10n.deselectAll
+                              : l10n.selectAll,
                         ),
                       ),
-                      Text('已选: ${_selectedFiles.length}'),
+                      Text(l10n.selectedCountShort(_selectedFiles.length)),
                     ],
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             // 搜索结果列表
             Expanded(
               child: _isSearching
-                  ? const Center(
+                  ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           CircularProgressIndicator(),
                           SizedBox(height: 16),
-                          Text('正在搜索文件...'),
+                          Text(l10n.searchingFiles),
                         ],
                       ),
                     )
@@ -1551,9 +1592,11 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
                             size: 64,
                             color: Colors.grey[400],
                           ),
-                          const SizedBox(height: 16),
+                          SizedBox(height: 16),
                           Text(
-                            _searchQuery.isEmpty ? '输入关键词开始搜索' : '没有找到匹配的文件',
+                            _searchQuery.isEmpty
+                                ? l10n.enterKeywordToStartSearch
+                                : l10n.noMatchingFiles,
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.grey[600],
@@ -1633,23 +1676,23 @@ class _GlobalSearchDialogState extends State<GlobalSearchDialog> {
 
             // 底部按钮
             if (_selectedFiles.isNotEmpty) ...[
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('取消'),
+                      child: Text(context.hujiL10n.taskStatusCancelledShort),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () {
                         widget.onFilesSelected(_selectedFiles);
                         Navigator.pop(context);
                       },
-                      child: Text('添加 ${_selectedFiles.length} 个文件'),
+                      child: Text(l10n.addSelectedFiles(_selectedFiles.length)),
                     ),
                   ),
                 ],

@@ -4,6 +4,8 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Optional dialog styling for platform-specific themes.
 class TaskDialogStyle {
@@ -38,15 +40,15 @@ class TaskTabActions {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text('确认删除', style: style?.titleStyle),
+        title: Text(context.hujiL10n.confirmDelete, style: style?.titleStyle),
         content: Text(
-          '确定要删除任务"${task.name}"吗？此操作不可撤销。',
+          context.hujiL10n.confirmDeleteTaskMessage(task.name),
           style: style?.contentStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('取消', style: style?.cancelStyle),
+            child: Text(context.hujiL10n.taskStatusCancelledShort, style: style?.cancelStyle),
           ),
           TextButton(
             onPressed: () {
@@ -59,7 +61,7 @@ class TaskTabActions {
                   if (showSuccessSnackBar && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('已删除任务"${task.name}"'),
+                        content: Text(context.hujiL10n.taskDeleted(task.name)),
                         backgroundColor: Colors.green,
                         duration: const Duration(seconds: 2),
                       ),
@@ -69,7 +71,7 @@ class TaskTabActions {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('删除'),
+            child: Text(context.hujiL10n.actionDelete),
           ),
         ],
       ),
@@ -87,15 +89,15 @@ class TaskTabActions {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text('确认取消', style: style?.titleStyle),
+        title: Text(context.hujiL10n.confirmCancel, style: style?.titleStyle),
         content: Text(
-          '确定要取消任务"${task.name}"吗？此操作不可撤销。',
+          context.hujiL10n.confirmCancelTaskMessage(task.name),
           style: style?.contentStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('继续', style: style?.cancelStyle),
+            child: Text(context.hujiL10n.actionContinue, style: style?.cancelStyle),
           ),
           TextButton(
             onPressed: () {
@@ -108,7 +110,7 @@ class TaskTabActions {
                   if (showSuccessSnackBar && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('已取消任务"${task.name}"'),
+                        content: Text(context.hujiL10n.taskCancelled(task.name)),
                         backgroundColor: Colors.orange,
                         duration: const Duration(seconds: 2),
                       ),
@@ -118,7 +120,7 @@ class TaskTabActions {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('取消任务'),
+            child: Text(context.hujiL10n.cancelTask),
           ),
         ],
       ),
@@ -138,15 +140,15 @@ class TaskTabActions {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text('确认删除', style: style?.titleStyle),
+        title: Text(context.hujiL10n.confirmDelete, style: style?.titleStyle),
         content: Text(
-          '确定要删除选中的 ${taskIds.length} 个任务吗？此操作不可撤销。',
+          context.hujiL10n.confirmBatchDeleteMessage(taskIds.length),
           style: style?.contentStyle,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('取消', style: style?.cancelStyle),
+            child: Text(context.hujiL10n.taskStatusCancelledShort, style: style?.cancelStyle),
           ),
           TextButton(
             onPressed: () {
@@ -160,7 +162,9 @@ class TaskTabActions {
                   if (showSuccessSnackBar && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('已删除 $deletedCount 个任务'),
+                        content: Text(
+                          context.hujiL10n.batchTasksDeleted(deletedCount),
+                        ),
                         backgroundColor: Colors.green,
                         duration: const Duration(seconds: 2),
                       ),
@@ -170,7 +174,7 @@ class TaskTabActions {
               );
             },
             style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('删除'),
+            child: Text(context.hujiL10n.actionDelete),
           ),
         ],
       ),
@@ -183,7 +187,7 @@ class TaskTabActions {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('重试失败: $e')),
+          SnackBar(content: Text(context.hujiL10n.retryFailed('$e'))),
         );
       }
     }
@@ -197,6 +201,9 @@ class TaskTabActions {
   }) {
     final supportsPause = TaskStorage().supportsPause(task);
 
+    final l10n = context.hujiL10n;
+    final taskTypeLabel = task.type.localizedName(l10n);
+
     if (supportsPause) {
       if (task.status == TaskStatusEnum.processing ||
           task.status == TaskStatusEnum.pending) {
@@ -204,7 +211,7 @@ class TaskTabActions {
         if (showSnackBars && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('已暂停任务"${task.name}"'),
+              content: Text(l10n.taskPaused(task.name)),
               backgroundColor: Colors.orange,
               duration: const Duration(seconds: 2),
             ),
@@ -215,7 +222,7 @@ class TaskTabActions {
         if (showSnackBars && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('已恢复任务"${task.name}"'),
+              content: Text(l10n.taskResumed(task.name)),
               backgroundColor: Colors.green,
               duration: const Duration(seconds: 2),
             ),
@@ -227,8 +234,8 @@ class TaskTabActions {
         SnackBar(
           content: Text(
             showSnackBars
-                ? '${task.type.name}任务不支持暂停，请使用取消按钮'
-                : '${task.type.name}任务不支持暂停',
+                ? l10n.taskPauseNotSupportedWithCancel(taskTypeLabel)
+                : l10n.taskPauseNotSupported(taskTypeLabel),
           ),
           backgroundColor: Colors.blue,
           duration: Duration(seconds: showSnackBars ? 3 : 2),

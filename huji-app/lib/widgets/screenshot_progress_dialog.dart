@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:gal/gal.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -9,6 +10,7 @@ import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/file_utils.dart' as path_utils;
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class ScreenshotProgressDialog extends StatefulWidget {
   final String videoPath;
@@ -31,7 +33,15 @@ class ScreenshotProgressDialog extends StatefulWidget {
 
 class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
   double _progress = 0.0;
-  String _status = '准备截图...';
+  String _status = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_status.isEmpty) {
+      _status = context.hujiL10n.screenshotPrepare;
+    }
+  }
   bool _isCompleted = false;
   String? _errorMessage;
   String? _screenshotPath;
@@ -55,9 +65,10 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
   }
 
   Future<void> _captureScreenshot() async {
+    final l10n = resolveHujiL10n();
     try {
       setState(() {
-        _status = '正在截图...';
+        _status = l10n.screenshotCapturing;
         _progress = 0.3;
       });
 
@@ -74,7 +85,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
 
       setState(() {
         _progress = 0.6;
-        _status = '正在生成图片...';
+        _status = l10n.screenshotGeneratingImage;
       });
 
       // 使用FFmpeg截取当前帧
@@ -95,7 +106,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
 
           setState(() {
             _progress = 0.8;
-            _status = '正在保存到相册...';
+            _status = l10n.screenshotSavingToGallery;
             _screenshotPath = targetPath;
           });
 
@@ -115,20 +126,21 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
 
           setState(() {
             _progress = 1.0;
-            _status = '截图完成';
+            _status = l10n.screenshotCompleted;
             _isCompleted = true;
           });
         } else {
-          throw Exception('截图文件未生成');
+          throw Exception(l10n.screenshotFileNotGenerated);
         }
       } else {
         final logs = result.output ?? '';
-        throw Exception('截图失败: $logs');
+        throw Exception(l10n.screenshotCaptureFailedWithLogs(logs));
       }
     } catch (e) {
+      final errorL10n = mounted ? context.hujiL10n : resolveHujiL10n();
       setState(() {
         _errorMessage = e.toString();
-        _status = '截图失败';
+        _status = errorL10n.screenshotFailedTitle;
       });
     }
   }
@@ -154,8 +166,8 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('文件不存在'),
+              SnackBar(
+                content: Text(context.hujiL10n.fileDoesNotExist),
                 backgroundColor: Colors.red,
               ),
             );
@@ -165,7 +177,10 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件夹失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFolderFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -180,8 +195,8 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('文件不存在'),
+              SnackBar(
+                content: Text(context.hujiL10n.fileDoesNotExist),
                 backgroundColor: Colors.red,
               ),
             );
@@ -191,16 +206,21 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFileFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
   }
 
   Future<void> _shareImage(BuildContext context) async {
-    // 这里可以实现分享功能
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('分享功能开发中...'), backgroundColor: Colors.blue),
+      SnackBar(
+        content: Text(context.hujiL10n.shareFeatureInDevelopment),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
 
@@ -215,10 +235,12 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
             color: _isCompleted ? Colors.green : Colors.blue,
             size: 24,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
-              _errorMessage != null ? '截图失败' : '截图进度',
+              _errorMessage != null
+                  ? context.hujiL10n.screenshotFailedTitle
+                  : context.hujiL10n.screenshotProgressTitle,
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -231,16 +253,14 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
             itemBuilder: (context) => [
               PopupMenuItem(
                 value: 'open_file',
-                child: const Text(
-                  '打开文件',
-                  style: TextStyle(color: Colors.green),
+                child: Text(
+                  context.hujiL10n.openFile,
+                  style: const TextStyle(color: Colors.green),
                 ),
               ),
               PopupMenuItem(
                 value: 'open_folder',
-                child: const Text(
-                  '打开文件夹',
-                  style: TextStyle(color: Colors.blue),
+                child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
                 ),
               ),
             ],
@@ -272,7 +292,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           if (_errorMessage != null) ...[
             Container(
@@ -284,7 +304,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
               child: Row(
                 children: [
                   const Icon(Icons.error, color: Colors.red, size: 20),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
@@ -301,7 +321,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
               backgroundColor: Colors.grey[700],
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 进度信息
             Row(
@@ -321,7 +341,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 截图预览
             if (_isCompleted && _screenshotPath != null) ...[
@@ -339,7 +359,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                     File(_screenshotPath!),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return const Center(
+                      return Center(
                         child: Icon(
                           Icons.image_not_supported,
                           color: Colors.grey,
@@ -350,7 +370,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
+              SizedBox(height: 12),
 
               // 文件信息
               Container(
@@ -365,9 +385,9 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '文件信息:',
-                          style: TextStyle(color: Colors.grey, fontSize: 10),
+                        Text(
+                          context.hujiL10n.fileInfoLabel,
+                          style: const TextStyle(color: Colors.grey, fontSize: 10),
                         ),
                         Text(
                           _formattedFileSize,
@@ -378,9 +398,9 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      '保存位置:',
+                      context.hujiL10n.saveLocationLabel,
                       style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                     Text(
@@ -390,7 +410,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_savedToGallery) ...[
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(
@@ -398,10 +418,8 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                             color: Colors.green,
                             size: 12,
                           ),
-                          const SizedBox(width: 4),
-                          const Text(
-                            '已保存到相册',
-                            style: TextStyle(color: Colors.green, fontSize: 10),
+                          SizedBox(width: 4),
+                          Text(context.hujiL10n.savedToGallery, style: TextStyle(color: Colors.green, fontSize: 10),
                           ),
                         ],
                       ),
@@ -427,7 +445,10 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                     () => _shareImage(context),
                   );
                 },
-                child: const Text('分享', style: TextStyle(color: Colors.purple)),
+                child: Text(
+                  context.hujiL10n.actionShare,
+                  style: const TextStyle(color: Colors.purple),
+                ),
               ),
             ],
             TextButton(
@@ -439,7 +460,11 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                 );
               },
               child: Text(
-                _errorMessage != null ? '确定' : (_isCompleted ? '完成' : '关闭'),
+                _errorMessage != null
+                    ? context.hujiL10n.actionConfirm
+                    : (_isCompleted
+                        ? context.hujiL10n.actionDone
+                        : context.hujiL10n.actionClose),
                 style: const TextStyle(color: Colors.white),
               ),
             ),

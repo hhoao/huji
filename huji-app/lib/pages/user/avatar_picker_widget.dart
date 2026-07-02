@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/services/user_service.dart';
 
@@ -43,7 +44,9 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
       }
     } catch (e, stackTrace) {
       AppLogger().e('选择图片失败: $e', stackTrace);
-      _showErrorSnackBar('选择图片失败: $e');
+      if (mounted) {
+        _showErrorSnackBar(context.hujiL10n.pickImageFailed('$e'));
+      }
     }
   }
 
@@ -71,12 +74,12 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
 
       if (mounted) {
         widget.onAvatarChanged(avatarUrl ?? '');
-        _showSuccessSnackBar('头像上传成功');
+        _showSuccessSnackBar(context.hujiL10n.avatarUploadSuccess);
       }
     } catch (e, stackTrace) {
       AppLogger().e('上传头像失败: $e', stackTrace);
       if (mounted) {
-        _showErrorSnackBar('上传头像失败: $e');
+        _showErrorSnackBar(context.hujiL10n.avatarUploadFailed('$e'));
       }
     } finally {
       if (mounted) {
@@ -99,7 +102,7 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
             children: <Widget>[
               ListTile(
                 leading: const Icon(Icons.photo_library),
-                title: const Text('从相册选择'),
+                title: Text(context.hujiL10n.pickFromGallery),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.gallery);
@@ -107,7 +110,7 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
               ),
               ListTile(
                 leading: const Icon(Icons.camera_alt),
-                title: const Text('拍照'),
+                title: Text(context.hujiL10n.takePhoto),
                 onTap: () {
                   Navigator.pop(context);
                   _pickImage(ImageSource.camera);

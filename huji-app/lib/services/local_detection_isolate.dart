@@ -70,7 +70,7 @@ class LocalDetectionIsolateRunner {
           receivePort.close();
           if (!completer.isCompleted) {
             completer.completeError(
-              Exception(message['message'] as String? ?? '本地检测失败'),
+              Exception(message['message'] as String? ?? 'Local detection failed'),
             );
           }
       }

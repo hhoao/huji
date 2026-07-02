@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 // import 'package:share_plus/share_plus.dart';
@@ -44,14 +46,14 @@ class FilterOptionsSheet extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '过滤选项',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          Text(
+            context.hujiL10n.filterOptionsTitle,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('日志级别:'),
+              Text(context.hujiL10n.logLevelLabel),
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButton<String>(
@@ -72,7 +74,7 @@ class FilterOptionsSheet extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Text('类名:'),
+              Text(context.hujiL10n.classNameLabel),
               const SizedBox(width: 8),
               Expanded(
                 child: DropdownButton<String>(
@@ -97,7 +99,7 @@ class FilterOptionsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('换行显示'),
+              Text(context.hujiL10n.wrapLinesLabel),
               Switch(value: wrapLines, onChanged: onWrapLinesChanged),
             ],
           ),
@@ -105,7 +107,7 @@ class FilterOptionsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('显示系统日志'),
+              Text(context.hujiL10n.showSystemLogsLabel),
               Switch(value: showSystemLogs, onChanged: onShowSystemLogsChanged),
             ],
           ),
@@ -113,7 +115,7 @@ class FilterOptionsSheet extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('从尾部查看'),
+              Text(context.hujiL10n.viewFromEndLabel),
               Switch(value: reverseOrder, onChanged: onReverseOrderChanged),
             ],
           ),
@@ -176,9 +178,10 @@ class _LogViewerPageState extends State<LogViewerPage> {
         await _loadLogContent(files.first);
       }
     } catch (e) {
+      final l10n = resolveHujiL10n();
       setState(() {
         _loading = false;
-        _allLines = ['加载日志文件失败: $e'];
+        _allLines = [l10n.loadLogFilesFailed('$e')];
         _displayedLines = _allLines;
       });
     }
@@ -217,9 +220,10 @@ class _LogViewerPageState extends State<LogViewerPage> {
 
       _applyFilters();
     } catch (e) {
+      final l10n = resolveHujiL10n();
       setState(() {
         _loading = false;
-        _allLines = ['读取日志内容失败: $e'];
+        _allLines = [l10n.readLogContentFailed('$e')];
         _displayedLines = _allLines;
       });
     }
@@ -307,7 +311,9 @@ class _LogViewerPageState extends State<LogViewerPage> {
       }
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('分享日志失败: $e')));
+      ).showSnackBar(
+        SnackBar(content: Text(context.hujiL10n.shareLogsFailed('$e'))),
+      );
     }
   }
 
@@ -318,13 +324,17 @@ class _LogViewerPageState extends State<LogViewerPage> {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('已清理7天前的日志')));
+        ).showSnackBar(
+          SnackBar(content: Text(context.hujiL10n.clearedLogsOlderThan7Days)),
+        );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('清理日志失败: $e')));
+        ).showSnackBar(
+          SnackBar(content: Text(context.hujiL10n.clearLogsFailed('$e'))),
+        );
       }
     }
   }
@@ -332,7 +342,7 @@ class _LogViewerPageState extends State<LogViewerPage> {
   Widget buildPendingLogs() {
     return Column(
       children: [
-        Text('待处理日志'),
+        Text(context.hujiL10n.pendingLogsTitle),
         ListView.builder(
           itemCount: AppLogger.instance.getFormattedPendingLogs().length,
           itemBuilder: (context, index) {
@@ -353,7 +363,7 @@ class _LogViewerPageState extends State<LogViewerPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('日志查看器'),
+        title: Text(context.hujiL10n.logViewerTitle),
         actions: [
           IconButton(icon: const Icon(Icons.refresh), onPressed: _loadLogFiles),
           IconButton(
@@ -388,7 +398,9 @@ class _LogViewerPageState extends State<LogViewerPage> {
                                     final pendingCount = AppLogger.instance
                                         .getPendingLogs()
                                         .length;
-                                    name = '待处理日志 ($pendingCount 条)';
+                                    name = context.hujiL10n.pendingLogsWithCount(
+                                      pendingCount,
+                                    );
                                   } else {
                                     name = file.split('/').last;
                                   }
@@ -418,11 +430,11 @@ class _LogViewerPageState extends State<LogViewerPage> {
                             Expanded(
                               child: TextField(
                                 controller: _searchController,
-                                decoration: const InputDecoration(
-                                  hintText: '搜索日志...',
+                                decoration: InputDecoration(
+                                  hintText: context.hujiL10n.searchLogsHint,
                                   isDense: true,
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.search),
+                                  border: const OutlineInputBorder(),
+                                  prefixIcon: const Icon(Icons.search),
                                 ),
                                 onChanged: (value) {
                                   setState(() {
@@ -569,7 +581,7 @@ class _LogViewerPageState extends State<LogViewerPage> {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            '没有找到日志文件',
+                            context.hujiL10n.noLogFilesFound,
                             style: Theme.of(context).textTheme.titleMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface
@@ -578,7 +590,7 @@ class _LogViewerPageState extends State<LogViewerPage> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '日志文件将在应用运行时生成',
+                            context.hujiL10n.logFilesGeneratedAtRuntime,
                             style: Theme.of(context).textTheme.bodyMedium
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.onSurface

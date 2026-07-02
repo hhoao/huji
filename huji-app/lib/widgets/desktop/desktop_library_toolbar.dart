@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:shared_ui/theme/app_icon_sizes.dart';
 import 'package:shared_ui/theme/app_text_styles.dart';
 
@@ -19,6 +20,7 @@ class DesktopLibraryToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = AppTextStyles.of(context);
 
@@ -26,16 +28,16 @@ class DesktopLibraryToolbar extends StatelessWidget {
       children: [
         _ViewToggle(gridView: gridView, onToggleView: onToggleView),
         if (itemCount != null) ...[
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Text(
-            '共 $itemCount 个',
+            l10n.desktopLibraryItemCount(itemCount!),
             style: styles.caption.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
         const Spacer(),
         _PrimaryAction(
           icon: Icons.add_rounded,
-          label: '新建剪辑',
+          label: l10n.desktopNewClip,
           onTap: onNewClip,
         ),
       ],
@@ -142,7 +144,7 @@ class _PrimaryAction extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: context.appIconSizes.md, color: cs.onPrimary),
-            const SizedBox(width: 7),
+            SizedBox(width: 7),
             Text(label, style: styles.body.copyWith(color: cs.onPrimary)),
           ],
         ),

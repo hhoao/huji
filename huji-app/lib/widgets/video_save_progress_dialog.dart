@@ -19,6 +19,7 @@ import 'package:uuid/uuid.dart';
 
 import '../models/autoclip_models.dart';
 import '../models/ffmpeg.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoSaveProgressDialog extends StatefulWidget {
   final String videoPath;
@@ -45,7 +46,7 @@ class VideoSaveProgressDialog extends StatefulWidget {
 
 class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
   double _progress = 0.0;
-  String _status = '准备保存...';
+  String _status = '';
   bool _isCompleted = false;
   String? _errorMessage;
   String? _savedVideoPath;
@@ -55,14 +56,15 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
   @override
   void initState() {
     super.initState();
-    _saveVideo();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _saveVideo());
   }
 
   Future<void> _saveVideo() async {
+    final l10n = context.hujiL10n;
     try {
       if (!mounted) return;
       setState(() {
-        _status = '正在准备保存...';
+        _status = l10n.savePreparingInProgress;
         _progress = 0.1;
       });
 
@@ -83,7 +85,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       if (!mounted) return;
       setState(() {
         _progress = 0.2;
-        _status = '开始处理视频片段...';
+        _status = l10n.saveProcessingSegmentsStart;
       });
 
       // 准备压缩参数（如果指定了质量）
@@ -131,7 +133,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         if (!mounted) return;
         setState(() {
           _progress = 0.92;
-          _status = '正在保存元数据...';
+          _status = l10n.saveSavingMetadata;
         });
 
         // 持久化视频元数据到本地数据库
@@ -161,7 +163,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         if (!mounted) return;
         setState(() {
           _progress = 0.95;
-          _status = '正在保存到相册...';
+          _status = l10n.saveSavingToGallery;
         });
 
         // 保存到相册
@@ -176,32 +178,33 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         if (!mounted) return;
         setState(() {
           _progress = 1.0;
-          _status = '保存完成！';
+          _status = l10n.saveComplete;
           _isCompleted = true;
           _savedVideoPath = targetPath;
         });
       } else {
-        throw Exception('视频文件未生成');
+        throw Exception(l10n.videoFileNotGenerated);
       }
     } catch (e, stackTrace) {
       AppLogger().e('保存视频失败', stackTrace, e);
       if (!mounted) return;
       setState(() {
-        _errorMessage = "视频保存失败";
-        _status = '保存失败';
+        _errorMessage = l10n.videoSaveFailed;
+        _status = l10n.saveFailedShort;
       });
     }
   }
 
   /// 保存单个片段
   Future<void> _saveSingleSegment(SegmentInfo segment, String savePath) async {
+    final l10n = context.hujiL10n;
     final startTime = segment.startSeconds;
     final duration = segment.endSeconds - segment.startSeconds;
 
     if (!mounted) return;
     setState(() {
       _progress = 0.2;
-      _status = '正在裁剪视频片段...';
+      _status = l10n.saveTrimmingSegments;
     });
 
     await VideoUtils.clipVideoByTimes(
@@ -215,7 +218,9 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         if (mounted) {
           setState(() {
             _progress = 0.2 + progress * 0.7; // 0.2 到 0.9
-            _status = '正在裁剪视频片段... ${(progress * 100).toStringAsFixed(1)}%';
+            _status = l10n.saveTrimmingSegmentsProgress(
+              (progress * 100).toStringAsFixed(1),
+            );
           });
         }
       },
@@ -224,7 +229,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
     if (!mounted) return;
     setState(() {
       _progress = 0.9;
-      _status = '视频处理完成';
+      _status = l10n.videoProcessingComplete;
     });
   }
 
@@ -237,6 +242,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
     int? audioBitrate,
     String? preset,
   }) async {
+    final l10n = context.hujiL10n;
     final tempDir = await Directory.systemTemp.createTemp('video_clip_');
     final tempFiles = <String>[];
 
@@ -244,7 +250,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       // 第一步：裁剪所有片段到临时文件
       if (!mounted) return;
       setState(() {
-        _status = '正在裁剪视频片段...';
+        _status = l10n.saveTrimmingSegments;
       });
 
       for (int i = 0; i < segments.length; i++) {
@@ -261,7 +267,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
 
         if (!mounted) return;
         setState(() {
-          _status = '正在裁剪片段';
+          _status = l10n.saveTrimmingSegment;
           _progress = segmentStartProgress;
         });
 
@@ -289,7 +295,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       if (!mounted) return;
       setState(() {
         _progress = 0.4;
-        _status = '正在合并视频片段...';
+        _status = l10n.saveMergingSegments;
       });
 
       await VideoUtils.mergeVideosByFFmpeg(
@@ -315,13 +321,13 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       if (!mounted) return;
       setState(() {
         _progress = 0.9;
-        _status = '视频处理完成';
+        _status = l10n.videoProcessingComplete;
       });
     } finally {
       // 清理临时文件
       if (mounted) {
         setState(() {
-          _status = '正在清理临时文件...';
+          _status = l10n.saveCleaningTempFiles;
         });
       }
 
@@ -361,8 +367,8 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('文件不存在'),
+              SnackBar(
+                content: Text(context.hujiL10n.videoPlayerFileNotFound),
                 backgroundColor: Colors.red,
               ),
             );
@@ -372,7 +378,10 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件夹失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFolderFailed(e.toString())),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -391,8 +400,8 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         } else {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('文件不存在'),
+              SnackBar(
+                content: Text(context.hujiL10n.videoPlayerFileNotFound),
                 backgroundColor: Colors.red,
               ),
             );
@@ -402,7 +411,10 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFileFailed(e.toString())),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -410,6 +422,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return AlertDialog(
       backgroundColor: Colors.grey[900],
       title: Row(
@@ -419,10 +432,10 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
             color: _isCompleted ? Colors.green : Colors.blue,
             size: 24,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
-              _errorMessage != null ? '保存失败' : '保存进度',
+              _errorMessage != null ? l10n.saveFailedShort : l10n.saveProgressTitle,
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -436,16 +449,14 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
               itemBuilder: (context) => [
                 PopupMenuItem(
                   value: 'open_file',
-                  child: const Text(
-                    '播放视频',
-                    style: TextStyle(color: Colors.green),
+                  child: Text(
+                    l10n.playVideo,
+                    style: const TextStyle(color: Colors.green),
                   ),
                 ),
                 PopupMenuItem(
                   value: 'open_folder',
-                  child: const Text(
-                    '打开文件夹',
-                    style: TextStyle(color: Colors.blue),
+                  child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
                   ),
                 ),
               ],
@@ -468,7 +479,10 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
         children: [
           // 视频信息
           Text(
-            '${widget.fileName} (${widget.segments.length}个片段)',
+            l10n.fileNameWithSegmentCount(
+              widget.fileName,
+              widget.segments.length,
+            ),
             style: const TextStyle(
               color: Colors.white,
               fontSize: 14,
@@ -477,7 +491,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           if (_errorMessage != null) ...[
             Container(
@@ -489,7 +503,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
               child: Row(
                 children: [
                   const Icon(Icons.error, color: Colors.red, size: 20),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
@@ -506,7 +520,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
               backgroundColor: Colors.grey[700],
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 进度信息
             Row(
@@ -526,7 +540,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 文件信息
             if (_isCompleted && _savedVideoPath != null) ...[
@@ -542,9 +556,9 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const Text(
-                          '文件信息:',
-                          style: TextStyle(color: Colors.grey, fontSize: 10),
+                        Text(
+                          l10n.fileInfoLabel,
+                          style: const TextStyle(color: Colors.grey, fontSize: 10),
                         ),
                         Text(
                           _formattedFileSize,
@@ -555,9 +569,9 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
-                      '保存位置:',
+                      l10n.saveLocationLabel,
                       style: const TextStyle(color: Colors.grey, fontSize: 10),
                     ),
                     Text(
@@ -587,9 +601,9 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                     () => _openFile(context),
                   );
                 },
-                child: const Text(
-                  '播放视频',
-                  style: TextStyle(color: Colors.green),
+                child: Text(
+                  l10n.playVideo,
+                  style: const TextStyle(color: Colors.green),
                 ),
               ),
             ],
@@ -602,7 +616,9 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                 );
               },
               child: Text(
-                _errorMessage != null ? '确定' : (_isCompleted ? '完成' : '关闭'),
+                _errorMessage != null
+                    ? l10n.actionConfirm
+                    : (_isCompleted ? l10n.actionDone : l10n.actionClose),
                 style: const TextStyle(color: Colors.white),
               ),
             ),

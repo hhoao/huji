@@ -105,6 +105,7 @@ dev_dependencies:
   go_router_builder: ^3.3.1
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:

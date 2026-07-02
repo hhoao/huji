@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/permission_service.dart';
 
 class PermissionTestTab extends StatefulWidget {
@@ -48,7 +49,9 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
   }
 
   Future<void> _runDiagnostic() async {
-    final diagnosis = await _permissionService.diagnosePermissionIssues();
+    final diagnosis = await _permissionService.diagnosePermissionIssues(
+      context.hujiL10n,
+    );
     debugPrint('Permission diagnosis: $diagnosis');
 
     if (mounted) {
@@ -101,6 +104,7 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
           ..._permissionStatuses.entries.map((entry) {
             final permission = entry.key;
             final status = entry.value;
+            final l10n = context.hujiL10n;
 
             return Card(
               margin: const EdgeInsets.only(bottom: 12),
@@ -118,6 +122,7 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
                               Text(
                                 _permissionService.getPermissionName(
                                   permission,
+                                  l10n,
                                 ),
                                 style: const TextStyle(
                                   fontSize: 16,
@@ -128,6 +133,7 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
                               Text(
                                 _permissionService.getPermissionDetail(
                                   permission,
+                                  l10n,
                                 ),
                                 style: const TextStyle(
                                   fontSize: 12,

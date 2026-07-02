@@ -11,6 +11,7 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class SportSelectionPage extends StatefulWidget {
   final String? videoPath;
@@ -71,6 +72,7 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
         sportType,
         config,
         clipMode: clipMode ?? ClipMode.existingVideo, // 使用传递的clipMode或默认值
+        l10n: context.hujiL10n,
       );
       if (clipMode == ClipMode.existingVideo) {
         await LocalVideoStorage().add(rawRecord);
@@ -81,7 +83,9 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('准备视频失败：$e')),
+          SnackBar(
+            content: Text(context.hujiL10n.prepareVideoFailed(e.toString())),
+          ),
         );
       }
     }
@@ -103,6 +107,7 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
         sportType,
         config,
         clipMode: clipMode ?? ClipMode.existingVideo,
+        l10n: context.hujiL10n,
       );
       await LocalVideoStorage().add(rawRecord);
       if (mounted) {
@@ -111,7 +116,9 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('加载演示视频失败：$e')),
+          SnackBar(
+            content: Text(context.hujiL10n.loadDemoVideoFailed(e.toString())),
+          ),
         );
       }
     } finally {
@@ -136,9 +143,7 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
             );
           },
         ),
-        title: const Text(
-          '选择运动类型',
-          style: TextStyle(
+        title: Text(context.hujiL10n.selectSportType, style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -178,11 +183,11 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                             : Colors.blue,
                         size: 20,
                       ),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         clipMode == ClipMode.recordAndClip
-                            ? '边拍边剪辑模式'
-                            : '已有视频剪辑模式',
+                            ? context.hujiL10n.recordAndClipMode
+                            : context.hujiL10n.existingVideoClipMode,
                         style: TextStyle(
                           fontWeight: FontWeight.w500,
                           color: clipMode == ClipMode.recordAndClip
@@ -193,65 +198,57 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
               ],
 
               // 运动类型选择
-              const Text(
-                '选择运动类型',
-                style: TextStyle(
+              Text(context.hujiL10n.selectSportType, style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                '请选择您要剪辑的视频运动类型',
-                style: TextStyle(fontSize: 14, color: Colors.grey),
+              SizedBox(height: 8),
+              Text(context.hujiL10n.selectSportTypeHint, style: TextStyle(fontSize: 14, color: Colors.grey),
               ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 乒乓球选项
               _buildSportCard(
                 sportType: SportType.pingpong,
-                title: '乒乓球',
-                subtitle: '乒乓球比赛视频自动剪辑',
+                title: context.hujiL10n.sportTypePingpong,
+                subtitle: context.hujiL10n.pingPongAutoClipSubtitle,
                 icon: Icons.sports_tennis,
                 color: Colors.orange,
-                description: '支持单打、双打比赛，自动识别精彩球片段',
+                description: context.hujiL10n.sportClipDescription,
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 羽毛球选项
               _buildSportCard(
                 sportType: SportType.badminton,
-                title: '羽毛球',
-                subtitle: '羽毛球比赛视频自动剪辑',
+                title: context.hujiL10n.sportTypeBadminton,
+                subtitle: context.hujiL10n.badmintonAutoClipSubtitle,
                 icon: Icons.sports_tennis,
                 color: Colors.green,
-                description: '支持单打、双打比赛，自动识别精彩球片段',
+                description: context.hujiL10n.sportClipDescription,
               ),
 
               if (clipMode != ClipMode.recordAndClip) ...[
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
                 const Divider(),
-                const SizedBox(height: 24),
-                const Text(
-                  '快速体验',
-                  style: TextStyle(
+                SizedBox(height: 24),
+                Text(context.hujiL10n.quickTry, style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.black87,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  '无需自备视频，使用内置样例立即体验剪辑流程',
-                  style: TextStyle(fontSize: 14, color: Colors.grey),
+                SizedBox(height: 8),
+                Text(context.hujiL10n.quickTryHint, style: TextStyle(fontSize: 14, color: Colors.grey),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
                 DemoVideoPicker(
                   loading: _demoLoading,
                   onDemoSelected: _startDemoClip,
@@ -304,7 +301,7 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
               padding: const EdgeInsets.all(12),
               child: Icon(icon, color: color, size: 24),
             ),
-            const SizedBox(width: 16),
+            SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -317,12 +314,12 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                       color: Colors.black87,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: 8),
                   Text(
                     description,
                     style: TextStyle(fontSize: 12, color: Colors.grey[500]),

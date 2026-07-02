@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
 
@@ -392,7 +393,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       progressHandler?.complete(videoOutputInfo);
     } catch (e, stackTrace) {
       _logger.e('处理视频失败', error: e, stackTrace: stackTrace);
-      progressHandler?.reportError('处理视频失败', details: e.toString());
+      progressHandler?.reportError(resolveHujiL10n().processVideoFailed, details: e.toString());
       rethrow;
     }
   }

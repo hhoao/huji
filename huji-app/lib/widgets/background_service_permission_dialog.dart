@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class BackgroundServicePermissionDialog extends StatelessWidget {
@@ -8,61 +9,64 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return AlertDialog(
-      title: const Row(
+      title: Row(
         children: [
-          Icon(Icons.info_outline, color: Colors.orange),
-          SizedBox(width: 8),
-          Text('需要后台服务权限'),
+          const Icon(Icons.info_outline, color: Colors.orange),
+          const SizedBox(width: 8),
+          Expanded(child: Text(l10n.backgroundServicePermissionTitle)),
         ],
       ),
-      content: const Column(
+      content: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('为了让视频压缩任务能在后台继续执行，需要您授予以下权限：', style: TextStyle(fontSize: 16)),
-          SizedBox(height: 16),
+          Text(
+            l10n.backgroundServicePermissionIntro,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
           Row(
             children: [
-              Icon(Icons.video_settings, color: Colors.blue, size: 20),
-              SizedBox(width: 8),
+              const Icon(Icons.video_settings, color: Colors.blue, size: 20),
+              const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '后台媒体处理权限',
-                  style: TextStyle(fontWeight: FontWeight.w500),
+                  l10n.backgroundMediaProcessingPermission,
+                  style: const TextStyle(fontWeight: FontWeight.w500),
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           Padding(
-            padding: EdgeInsets.only(left: 28),
+            padding: const EdgeInsets.only(left: 28),
             child: Text(
-              '允许应用在后台处理视频压缩任务，即使您切换到其他应用或锁屏，压缩任务也会继续执行。',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+              l10n.backgroundMediaProcessingDescription,
+              style: const TextStyle(fontSize: 14, color: Colors.grey),
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
-            '如果拒绝授权，视频压缩将在前台进行，可能会影响您使用其他应用。',
-            style: TextStyle(fontSize: 14, color: Colors.orange),
+            l10n.backgroundServicePermissionDeniedHint,
+            style: const TextStyle(fontSize: 14, color: Colors.orange),
           ),
         ],
       ),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(false),
-          child: const Text('稍后设置'),
+          child: Text(l10n.setupLater),
         ),
         ElevatedButton(
           onPressed: () async {
             Navigator.of(context).pop(true);
-            // 打开应用设置页面
             if (Platform.isAndroid || Platform.isIOS) {
               await openAppSettings();
             }
           },
-          child: const Text('前往设置'),
+          child: Text(l10n.goToSettings),
         ),
       ],
     );

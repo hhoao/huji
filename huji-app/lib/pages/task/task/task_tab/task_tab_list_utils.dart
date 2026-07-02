@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_content_filter_dialog.dart';
@@ -115,36 +116,36 @@ class TaskTabListUtils {
   }
 
   /// Phase description shown while progress is unavailable or zero.
-  static String buildTaskPhaseDescription(Task task) {
+  static String buildTaskPhaseDescription(HujiLocalizations l10n, Task task) {
     if (task.extraInfo != null && task.extraInfo!.isNotEmpty) {
       return task.extraInfo!;
     }
 
     final progress = normalizedProgress(task);
     return switch (task.status) {
-      TaskStatusEnum.pending => '任务已提交，等待处理…',
-      TaskStatusEnum.processing when progress <= 0 => '正在处理…',
-      TaskStatusEnum.processing when progress < 0.1 => '正在上传视频…',
-      TaskStatusEnum.processing when progress < 0.3 => '正在分析视频内容…',
-      TaskStatusEnum.processing when progress < 0.7 => '正在剪辑视频…',
-      TaskStatusEnum.processing when progress < 0.9 => '正在生成最终视频…',
-      TaskStatusEnum.processing => '正在下载结果…',
-      TaskStatusEnum.paused => '已暂停',
-      TaskStatusEnum.completed => '已完成',
-      TaskStatusEnum.failed => '处理失败',
-      TaskStatusEnum.cancelled => '已取消',
+      TaskStatusEnum.pending => l10n.taskPhasePending,
+      TaskStatusEnum.processing when progress <= 0 => l10n.taskPhaseProcessing,
+      TaskStatusEnum.processing when progress < 0.1 => l10n.taskPhaseUploading,
+      TaskStatusEnum.processing when progress < 0.3 => l10n.taskPhaseAnalyzing,
+      TaskStatusEnum.processing when progress < 0.7 => l10n.taskPhaseClipping,
+      TaskStatusEnum.processing when progress < 0.9 => l10n.taskPhaseGenerating,
+      TaskStatusEnum.processing => l10n.taskPhaseDownloading,
+      TaskStatusEnum.paused => l10n.taskPhasePaused,
+      TaskStatusEnum.completed => l10n.taskStatusCompleted,
+      TaskStatusEnum.failed => l10n.taskPhaseFailed,
+      TaskStatusEnum.cancelled => l10n.taskStatusCancelled,
     };
   }
 
-  static String buildProgressStatusText(Task task) {
-    return buildTaskPhaseDescription(task);
+  static String buildProgressStatusText(HujiLocalizations l10n, Task task) {
+    return buildTaskPhaseDescription(l10n, task);
   }
 
-  static String buildProgressPercentLabel(Task task) {
+  static String buildProgressPercentLabel(HujiLocalizations l10n, Task task) {
     final percent = progressPercent(task);
     if (task.status == TaskStatusEnum.pending ||
         (task.status == TaskStatusEnum.processing && percent <= 0)) {
-      return '处理中';
+      return l10n.statusProcessing;
     }
     return '$percent%';
   }
@@ -180,15 +181,8 @@ class TaskTabListUtils {
     };
   }
 
-  static String taskTypeLabel(TaskTypeEnum type) {
-    return switch (type) {
-      TaskTypeEnum.videoClip => '视频剪辑',
-      TaskTypeEnum.videoCompress => '视频压缩',
-      TaskTypeEnum.imageCompress => '图片压缩',
-      TaskTypeEnum.videoUpload => '视频上传',
-      TaskTypeEnum.download => '文件下载',
-      TaskTypeEnum.videoSegmentDetect => '实时检测',
-    };
+  static String taskTypeLabel(HujiLocalizations l10n, TaskTypeEnum type) {
+    return l10n.taskTypeLabel(type);
   }
 
   static IconData taskTypeIcon(TaskTypeEnum type) {
@@ -202,16 +196,16 @@ class TaskTabListUtils {
     };
   }
 
-  static String buildTaskExtraInfo(Task task) {
+  static String buildTaskExtraInfo(HujiLocalizations l10n, Task task) {
     if (task.extraInfo != null && task.extraInfo!.isNotEmpty) {
       final info = task.extraInfo!;
       return info.length > 80 ? '${info.substring(0, 80)}…' : info;
     }
     if (task.status == TaskStatusEnum.processing && task.progress > 0) {
       final pct = progressPercent(task);
-      return '${taskTypeLabel(task.type)} · $pct%';
+      return '${taskTypeLabel(l10n, task.type)} · $pct%';
     }
-    return taskTypeLabel(task.type);
+    return taskTypeLabel(l10n, task.type);
   }
 
   static bool canShowClipProgress(Task task) {
@@ -260,4 +254,16 @@ class TaskTabListUtils {
 
     return actions;
   }
+}
+
+extension TaskRowActionL10n on HujiLocalizations {
+  String taskRowActionLabel(TaskRowAction action) => switch (action) {
+    TaskRowAction.viewProgress => viewProgress,
+    TaskRowAction.pause => actionPause,
+    TaskRowAction.resume => actionResume,
+    TaskRowAction.cancel => actionCancel,
+    TaskRowAction.retry => actionRetry,
+    TaskRowAction.view => actionView,
+    TaskRowAction.delete => actionDelete,
+  };
 }

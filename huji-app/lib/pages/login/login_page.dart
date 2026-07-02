@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -52,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _sendAuthCode() async {
     if (_identifierController.text.isEmpty) {
-      _showSnackBar('请输入手机号或邮箱');
+      _showSnackBar(context.hujiL10n.loginValidationIdentifierRequired);
       return;
     }
 
@@ -71,9 +72,9 @@ class _LoginPageState extends State<LoginPage> {
       });
       _startCountdown();
 
-      _showSnackBar('验证码已发送');
+      _showSnackBar(context.hujiL10n.loginAuthCodeSent);
     } catch (e) {
-      _showSnackBar('发送验证码失败: $e');
+      _showSnackBar(context.hujiL10n.loginSendAuthCodeFailed('$e'));
     } finally {
       setState(() {
         _isSendingCode = false;
@@ -119,7 +120,7 @@ class _LoginPageState extends State<LoginPage> {
         context.go('/');
       }
     } catch (e) {
-      _showSnackBar('登录失败: $e');
+      _showSnackBar(context.hujiL10n.loginFailed('$e'));
     } finally {
       setState(() {
         _isLoading = false;
@@ -145,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const SizedBox(height: 60),
+                SizedBox(height: 60),
 
                 // Logo 和标题
                 Column(
@@ -163,24 +164,20 @@ class _LoginPageState extends State<LoginPage> {
                         color: Colors.white,
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    const Text(
-                      '欢迎使用',
-                      style: TextStyle(
+                    SizedBox(height: 24),
+                    Text(context.hujiL10n.loginWelcome, style: TextStyle(
                         fontSize: 28,
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '请登录您的账户',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    SizedBox(height: 8),
+                    Text(context.hujiL10n.loginSubtitle, style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                     ),
                   ],
                 ),
 
-                const SizedBox(height: 48),
+                SizedBox(height: 48),
 
                 // 登录方式切换
                 Container(
@@ -201,9 +198,7 @@ class _LoginPageState extends State<LoginPage> {
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              '密码登录',
-                              textAlign: TextAlign.center,
+                            child: Text(context.hujiL10n.loginPasswordMode, textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: _isPasswordLogin
                                     ? Colors.white
@@ -225,9 +220,7 @@ class _LoginPageState extends State<LoginPage> {
                                   : Colors.transparent,
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Text(
-                              '验证码登录',
-                              textAlign: TextAlign.center,
+                            child: Text(context.hujiL10n.loginAuthCodeMode, textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: !_isPasswordLogin
                                     ? Colors.white
@@ -242,14 +235,14 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // 手机号/邮箱输入
                 TextFormField(
                   controller: _identifierController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: InputDecoration(
-                    labelText: '手机号或邮箱',
+                    labelText: context.hujiL10n.loginIdentifierLabelOr,
                     prefixIcon: const Icon(Icons.person_outline),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -265,13 +258,13 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
-                      return '请输入手机号或邮箱';
+                      return context.hujiL10n.loginValidationIdentifierRequired;
                     }
                     return null;
                   },
                 ),
 
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // 密码输入（密码登录时显示）
                 if (_isPasswordLogin)
@@ -279,7 +272,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     decoration: InputDecoration(
-                      labelText: '密码',
+                      labelText: context.hujiL10n.loginPasswordLabel,
                       prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         onPressed: () => setState(
@@ -305,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return '请输入密码';
+                        return context.hujiL10n.loginValidationPasswordRequired;
                       }
                       return null;
                     },
@@ -320,7 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                           controller: _codeController,
                           keyboardType: TextInputType.number,
                           decoration: InputDecoration(
-                            labelText: '验证码',
+                            labelText: context.hujiL10n.loginAuthCodeLabel,
                             prefixIcon: const Icon(Icons.security),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
@@ -338,13 +331,13 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return '请输入验证码';
+                              return context.hujiL10n.loginValidationAuthCodeRequired;
                             }
                             return null;
                           },
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       SizedBox(
                         width: 120,
                         child: ElevatedButton(
@@ -358,7 +351,11 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           ),
                           child: Text(
-                            _countdown > 0 ? '${_countdown}s' : '发送验证码',
+                            _countdown > 0
+                                ? context.hujiL10n.actionResendCodeCountdown(
+                                    _countdown,
+                                  )
+                                : context.hujiL10n.actionSendVerificationCode,
                             style: const TextStyle(color: Colors.white),
                           ),
                         ),
@@ -367,7 +364,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ],
 
-                const SizedBox(height: 32),
+                SizedBox(height: 32),
 
                 // 登录按钮
                 SizedBox(
@@ -381,7 +378,7 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     child: _isLoading
-                        ? const SizedBox(
+                        ? SizedBox(
                             width: 24,
                             height: 24,
                             child: CircularProgressIndicator(
@@ -389,9 +386,7 @@ class _LoginPageState extends State<LoginPage> {
                               strokeWidth: 2,
                             ),
                           )
-                        : const Text(
-                            '登录',
-                            style: TextStyle(
+                        : Text(context.hujiL10n.loginTitle, style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
@@ -400,7 +395,7 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                SizedBox(height: 24),
 
                 // 其他选项
                 Row(
@@ -410,18 +405,14 @@ class _LoginPageState extends State<LoginPage> {
                       onPressed: () {
                         // 跳转到注册页面
                       },
-                      child: Text(
-                        '注册账户',
-                        style: TextStyle(color: Colors.grey[600]),
+                      child: Text(context.hujiL10n.loginRegisterAccount, style: TextStyle(color: Colors.grey[600]),
                       ),
                     ),
                     TextButton(
                       onPressed: () {
                         // 跳转到忘记密码页面
                       },
-                      child: Text(
-                        '忘记密码？',
-                        style: TextStyle(color: Colors.grey[600]),
+                      child: Text(context.hujiL10n.loginForgotPassword, style: TextStyle(color: Colors.grey[600]),
                       ),
                     ),
                   ],

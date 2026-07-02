@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:huji_app/services/permission_service.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class PermissionManagementPage extends StatefulWidget {
   const PermissionManagementPage({super.key});
@@ -54,55 +55,67 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
       });
 
       // 根据权限状态显示不同的反馈
-      final permissionName = _permissionService.getPermissionName(permission);
+      final l10n = context.hujiL10n;
+      final permissionName = _permissionService.getPermissionName(
+        permission,
+        l10n,
+      );
 
       if (status.isGranted) {
-        _showSuccessSnackBar('$permissionName 已成功授权');
+        _showSuccessSnackBar(l10n.permissionGrantedSuccess(permissionName));
       } else if (status.isPermanentlyDenied) {
         _showPermissionSettingsDialog(permission);
       } else if (status.isDenied) {
-        _showWarningSnackBar('$permissionName 被拒绝，请重试');
+        _showWarningSnackBar(l10n.permissionDeniedRetry(permissionName));
       } else {
         _showInfoSnackBar(
-          '$permissionName 状态: ${_permissionService.getPermissionStatusText(status)}',
+          l10n.permissionStatusMessage(
+            permissionName,
+            _permissionService.getPermissionStatusText(status, l10n),
+          ),
         );
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      _showErrorSnackBar('请求权限时发生错误: $e');
+      _showErrorSnackBar(context.hujiL10n.requestPermissionError('$e'));
     }
   }
 
   Future<bool> _showPermissionExplanationDialog(Permission permission) async {
-    final permissionName = _permissionService.getPermissionName(permission);
-    final permissionDetail = _permissionService.getPermissionDetail(permission);
+    final l10n = context.hujiL10n;
+    final permissionName = _permissionService.getPermissionName(
+      permission,
+      l10n,
+    );
+    final permissionDetail = _permissionService.getPermissionDetail(
+      permission,
+      l10n,
+    );
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('请求 $permissionName'),
+        title: Text(l10n.requestPermissionTitle(permissionName)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(permissionDetail),
-            const SizedBox(height: 16),
-            const Text(
-              '此权限对于应用正常运行是必要的。请在接下来的系统对话框中点击"允许"。',
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            SizedBox(height: 16),
+            Text(context.hujiL10n.permissionExplanation, style: TextStyle(fontSize: 12, color: Colors.grey),
             ),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('请求权限'),
+            child: Text(context.hujiL10n.requestPermission),
           ),
         ],
       ),
@@ -112,24 +125,28 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
   }
 
   void _showPermissionSettingsDialog(Permission permission) {
-    final permissionName = _permissionService.getPermissionName(permission);
+    final l10n = context.hujiL10n;
+    final permissionName = _permissionService.getPermissionName(
+      permission,
+      l10n,
+    );
 
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('权限被拒绝'),
-        content: Text('$permissionName 被永久拒绝，请在设置中手动开启。'),
+        title: Text(l10n.permissionDenied),
+        content: Text(l10n.permissionPermanentlyDenied(permissionName)),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               _permissionService.openAppSettingsPage();
             },
-            child: const Text('去设置'),
+            child: Text(context.hujiL10n.goToSettings),
           ),
         ],
       ),
@@ -187,29 +204,38 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
 
   void _showDiagnosticInfo() async {
     try {
-      final diagnosis = await _permissionService.diagnosePermissionIssues();
+      final l10n = context.hujiL10n;
+      final diagnosis = await _permissionService.diagnosePermissionIssues(l10n);
 
       if (!mounted) return;
 
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: const Text('权限诊断信息'),
+          title: Text(l10n.permissionDiagnosticTitle),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text('诊断时间: ${diagnosis['timestamp']}'),
-                const SizedBox(height: 16),
-                Text('权限统计:'),
-                Text('  总数: ${diagnosis['summary']['total']}'),
-                Text('  已授权: ${diagnosis['summary']['granted']}'),
-                Text('  已拒绝: ${diagnosis['summary']['denied']}'),
-                Text('  永久拒绝: ${diagnosis['summary']['permanentlyDenied']}'),
-                Text('  授权率: ${diagnosis['summary']['grantedPercentage']}%'),
-                const SizedBox(height: 16),
-                const Text('详细状态:'),
+                Text(l10n.permissionDiagnosticTime(diagnosis['timestamp'])),
+                SizedBox(height: 16),
+                Text(l10n.permissionDiagnosticStats),
+                Text(l10n.permissionDiagnosticTotal(diagnosis['summary']['total'])),
+                Text(l10n.permissionDiagnosticGranted(diagnosis['summary']['granted'])),
+                Text(l10n.permissionDiagnosticDenied(diagnosis['summary']['denied'])),
+                Text(
+                  l10n.permissionDiagnosticPermanentlyDenied(
+                    diagnosis['summary']['permanentlyDenied'],
+                  ),
+                ),
+                Text(
+                  l10n.permissionDiagnosticGrantedRate(
+                    diagnosis['summary']['grantedPercentage'],
+                  ),
+                ),
+                SizedBox(height: 16),
+                Text(l10n.permissionDiagnosticDetailStatus),
                 ...diagnosis['permissions'].entries.map((entry) {
                   final permissionName = entry.key;
                   final permissionData = entry.value as Map<String, dynamic>;
@@ -224,13 +250,13 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('关闭'),
+              child: Text(context.hujiL10n.actionClose),
             ),
           ],
         ),
       );
     } catch (e) {
-      _showErrorSnackBar('获取诊断信息失败: $e');
+      _showErrorSnackBar(context.hujiL10n.permissionDiagnosticFetchFailed('$e'));
     }
   }
 
@@ -238,7 +264,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('权限管理'),
+        title: Text(context.hujiL10n.settingsPermissions),
         actions: [
           IconButton(
             onPressed: _loadPermissionStatuses,
@@ -251,7 +277,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : RefreshIndicator(
               onRefresh: _loadPermissionStatuses,
               child: SingleChildScrollView(
@@ -273,14 +299,12 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                             Icons.info_outline,
                             color: context.theme.colorScheme.onPrimaryContainer,
                           ),
-                          const SizedBox(width: 12),
+                          SizedBox(width: 12),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  '权限说明',
-                                  style: TextStyle(
+                                Text(context.hujiL10n.permissionDescriptionTitle, style: TextStyle(
                                     color: context
                                         .theme
                                         .colorScheme
@@ -288,10 +312,8 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  '应用需要以下权限才能正常运行。如果权限被拒绝，相关功能可能无法使用。',
-                                  style: TextStyle(
+                                SizedBox(height: 4),
+                                Text(context.hujiL10n.permissionDescriptionBody, style: TextStyle(
                                     color: context
                                         .theme
                                         .colorScheme
@@ -306,16 +328,17 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                       ),
                     ),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // 权限列表
                     ..._permissionStatuses.entries.map((entry) {
                       final permission = entry.key;
                       final status = entry.value;
+                      final l10n = context.hujiL10n;
                       final permissionName = _permissionService
-                          .getPermissionName(permission);
+                          .getPermissionName(permission, l10n);
                       final statusText = _permissionService
-                          .getPermissionStatusText(status);
+                          .getPermissionStatusText(status, l10n);
                       final statusColor = _permissionService
                           .getPermissionStatusColor(status);
 
@@ -343,7 +366,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                     ),
                                   ),
 
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: 16),
 
                                   // 权限信息
                                   Expanded(
@@ -358,10 +381,13 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                                 fontWeight: FontWeight.w600,
                                               ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: 4),
                                         Text(
                                           _permissionService
-                                              .getPermissionDetail(permission),
+                                              .getPermissionDetail(
+                                                permission,
+                                                l10n,
+                                              ),
                                           style: context.textTheme.bodySmall
                                               ?.copyWith(
                                                 color: context
@@ -372,12 +398,13 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                               ),
                                         ),
                                         if (!status.isGranted) ...[
-                                          const SizedBox(height: 4),
+                                          SizedBox(height: 4),
                                           Text(
                                             _permissionService
                                                 .getPermissionSuggestion(
                                                   permission,
                                                   status,
+                                                  l10n,
                                                 ),
                                             style: context.textTheme.bodySmall
                                                 ?.copyWith(
@@ -412,7 +439,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                 ],
                               ),
 
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
 
                               // 操作按钮
                               if (!status.isGranted)
@@ -426,7 +453,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                                 permission,
                                               ),
                                         child: _isLoading
-                                            ? const SizedBox(
+                                            ? SizedBox(
                                                 width: 16,
                                                 height: 16,
                                                 child:
@@ -434,16 +461,16 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                                       strokeWidth: 2,
                                                     ),
                                               )
-                                            : const Text('请求权限'),
+                                            : Text(context.hujiL10n.requestPermission),
                                       ),
                                     ),
                                     if (status.isPermanentlyDenied) ...[
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: 8),
                                       Expanded(
                                         child: ElevatedButton(
                                           onPressed: () => _permissionService
                                               .openAppSettingsPage(),
-                                          child: const Text('去设置'),
+                                          child: Text(context.hujiL10n.goToSettings),
                                         ),
                                       ),
                                     ],
@@ -455,7 +482,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                       );
                     }),
 
-                    const SizedBox(height: 24),
+                    SizedBox(height: 24),
 
                     // 批量操作
                     Row(
@@ -464,10 +491,10 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                           child: OutlinedButton.icon(
                             onPressed: _loadPermissionStatuses,
                             icon: const Icon(Icons.refresh),
-                            label: const Text('刷新状态'),
+                            label: Text(context.hujiL10n.refreshStatus),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () async {
@@ -480,7 +507,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                               }
                             },
                             icon: const Icon(Icons.security),
-                            label: const Text('请求所有权限'),
+                            label: Text(context.hujiL10n.requestAllPermissions),
                           ),
                         ),
                       ],

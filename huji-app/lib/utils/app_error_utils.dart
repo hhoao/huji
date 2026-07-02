@@ -1,9 +1,11 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huji_app/exceptions/notify_exception.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/utils/ffmpeg_error_utils.dart';
 
@@ -27,7 +29,20 @@ class AppErrorUtils {
   static DateTime? _lastShownAt;
   static String? _lastShownMessage;
 
+  static HujiLocalizations _resolveL10n() {
+    final context = appRouter.routerDelegate.navigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      return HujiLocalizations.of(context);
+    }
+
+    final locale = PlatformDispatcher.instance.locale;
+    return lookupHujiLocalizations(
+      locale.languageCode == 'en' ? const Locale('en') : const Locale('zh'),
+    );
+  }
+
   static AppErrorDecision classify(Object error) {
+    final l10n = _resolveL10n();
     if (_isCancelledFfmpegError(error)) {
       return const AppErrorDecision(
         kind: AppErrorKind.unexpected,
@@ -47,26 +62,26 @@ class AppErrorUtils {
       }
 
       if (_isNetworkDioError(error)) {
-        return const AppErrorDecision(
+        return AppErrorDecision(
           kind: AppErrorKind.network,
           shouldReport: false,
-          userMessage: '网络异常，请检查网络后重试',
+          userMessage: l10n.errorNetworkRetry,
         );
       }
 
       if (error.response?.statusCode == 404) {
-        return const AppErrorDecision(
+        return AppErrorDecision(
           kind: AppErrorKind.unexpected,
           shouldReport: false,
-          userMessage: '资源不存在或已失效',
+          userMessage: l10n.errorResourceNotFound,
         );
       }
 
       if (error.response?.statusCode == 401) {
-        return const AppErrorDecision(
+        return AppErrorDecision(
           kind: AppErrorKind.auth,
           shouldReport: false,
-          userMessage: '登录已失效，请重新登录',
+          userMessage: l10n.errorLoginExpired,
         );
       }
     }
@@ -79,42 +94,42 @@ class AppErrorUtils {
     }
 
     if (_isGalleryCursorError(error)) {
-      return const AppErrorDecision(
+      return AppErrorDecision(
         kind: AppErrorKind.unexpected,
         shouldReport: false,
-        userMessage: '读取相册失败，请重试或检查系统相册权限',
+        userMessage: l10n.errorGalleryReadFailed,
       );
     }
 
     if (_isVideoCapabilityError(error)) {
-      return const AppErrorDecision(
+      return AppErrorDecision(
         kind: AppErrorKind.unexpected,
         shouldReport: false,
-        userMessage: '当前设备暂不支持播放该视频，请尝试转码或压缩后再试',
+        userMessage: l10n.errorVideoNotSupported,
       );
     }
 
     if (_isImageDecodingError(error)) {
-      return const AppErrorDecision(
+      return AppErrorDecision(
         kind: AppErrorKind.unexpected,
         shouldReport: false,
-        userMessage: '图片加载失败，可能是图片损坏或当前设备暂不支持该格式',
+        userMessage: l10n.errorImageLoadFailed,
       );
     }
 
     if (_isAuthError(error)) {
-      return const AppErrorDecision(
+      return AppErrorDecision(
         kind: AppErrorKind.auth,
         shouldReport: false,
-        userMessage: '登录已失效，请重新登录',
+        userMessage: l10n.errorLoginExpired,
       );
     }
 
     if (_isStorageError(error)) {
-      return const AppErrorDecision(
+      return AppErrorDecision(
         kind: AppErrorKind.storage,
         shouldReport: false,
-        userMessage: '存储空间不足或应用数据不可写，请清理空间后重试',
+        userMessage: l10n.errorStorageFull,
       );
     }
 

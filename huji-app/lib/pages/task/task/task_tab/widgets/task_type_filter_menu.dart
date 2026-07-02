@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
@@ -28,12 +29,12 @@ class TaskTypeFilterMenu extends StatelessWidget {
     );
   }
 
-  String _triggerLabel(Set<TaskTypeEnum> selected) {
-    if (selected.isEmpty) return '任务类型';
+  String _triggerLabel(HujiLocalizations l10n, Set<TaskTypeEnum> selected) {
+    if (selected.isEmpty) return l10n.taskTypeFilter;
     if (selected.length == 1) {
-      return TaskTabListUtils.taskTypeLabel(selected.first);
+      return TaskTabListUtils.taskTypeLabel(l10n, selected.first);
     }
-    return '任务类型 · ${selected.length}';
+    return l10n.taskTypeFilterSelected(selected.length);
   }
 
   @override
@@ -52,7 +53,7 @@ class TaskTypeFilterMenu extends StatelessWidget {
           triggerBuilder: (context, controller) {
             return TaskFilterMenuTrigger(
               icon: Icons.category_outlined,
-              label: _triggerLabel(selected),
+              label: _triggerLabel(context.hujiL10n, selected),
               isActive: hasSelection,
               isOpen: controller.isOpen,
               onTap: () {
@@ -72,7 +73,7 @@ class TaskTypeFilterMenu extends StatelessWidget {
               for (final type in TaskTypeEnum.values)
                 SidebarActionMenuItem(
                   icon: TaskTabListUtils.taskTypeIcon(type),
-                  label: TaskTabListUtils.taskTypeLabel(type),
+                  label: TaskTabListUtils.taskTypeLabel(context.hujiL10n, type),
                   menuController: null,
                   trailing: selected.contains(type)
                       ? Icon(
@@ -98,7 +99,7 @@ class TaskTypeFilterMenu extends StatelessWidget {
                 const SidebarActionMenuDivider(),
                 SidebarActionMenuItem(
                   icon: Icons.clear_all,
-                  label: '清除类型筛选',
+                  label: context.hujiL10n.clearTypeFilter,
                   menuController: controller,
                   onTap: () => _updateTypes(filter, {}),
                 ),

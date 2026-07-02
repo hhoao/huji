@@ -1,3 +1,4 @@
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/utils/ffmpeg_error_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -76,7 +77,7 @@ class FFmpegManager {
   }) async {
     try {
       if (!await initialize()) {
-        return FFmpegResult.error('FFmpeg未初始化');
+        return FFmpegResult.error(resolveHujiL10n().ffmpegNotInitialized);
       }
 
       _logger.i('执行FFmpeg命令: $command');
@@ -95,7 +96,7 @@ class FFmpegManager {
         );
       } else if (FFmpegErrorUtils.isCancelledReturnCode(runnerResult.returnCode)) {
         _logger.i('FFmpeg命令已取消');
-        return FFmpegResult.error(FFmpegErrorUtils.cancelledMessage);
+        return FFmpegResult.error(FFmpegErrorUtils.cancelledSentinel);
       } else {
         final logs = runnerResult.output ?? '';
         _logger.e(
@@ -108,11 +109,11 @@ class FFmpegManager {
             logs: logs,
           ),
         );
-        return FFmpegResult.error('执行失败: $logs');
+        return FFmpegResult.error(resolveHujiL10n().ffmpegExecuteFailed(logs));
       }
     } catch (e, stackTrace) {
       _logger.e('FFmpeg命令执行异常: $e', stackTrace);
-      return FFmpegResult.error('执行异常: $e');
+      return FFmpegResult.error(resolveHujiL10n().ffmpegExecuteException('$e'));
     }
   }
 

@@ -1,4 +1,5 @@
 import 'package:logger/logger.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/models/task.dart';
 
 /// 进度回调函数类型
@@ -121,7 +122,7 @@ class ProgressHandler {
 
     _currentProgress = 1.0;
     _currentStatus = TaskStatusEnum.completed;
-    _currentMessage = '任务完成';
+    _currentMessage = resolveHujiL10n().progressTaskCompleted;
 
     _logger.i('任务完成');
     _completeCallback?.call(result);
@@ -131,7 +132,7 @@ class ProgressHandler {
   void cancel() {
     _isCancelled = true;
     _currentStatus = TaskStatusEnum.cancelled;
-    _currentMessage = '任务已取消';
+    _currentMessage = resolveHujiL10n().progressTaskCancelled;
 
     _logger.w('任务已取消');
     _statusCallback?.call(_currentStatus, _currentMessage);

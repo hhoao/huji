@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../l10n/app_localizations.dart';
 import '../../../models/video.dart';
 import '../../../models/autoclip_models.dart';
 import '../../../store/video.dart';
@@ -13,9 +14,13 @@ import 'round_clip_state.dart';
 /// 回合编辑页面Bloc
 class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
   final MultiVideoPlayerBloc _multiVideoPlayerBloc;
+  final HujiLocalizations _l10n;
 
-  RoundClipBloc({required MultiVideoPlayerBloc multiVideoPlayerBloc})
-    : _multiVideoPlayerBloc = multiVideoPlayerBloc,
+  RoundClipBloc({
+    required HujiLocalizations l10n,
+    required MultiVideoPlayerBloc multiVideoPlayerBloc,
+  })  : _l10n = l10n,
+        _multiVideoPlayerBloc = multiVideoPlayerBloc,
       super(const RoundClipState()) {
     on<RoundClipInitializeEvent>(_onInitialize);
     on<SetCurrentPlayingSegmentEvent>(_onSetCurrentPlayingSegment);
@@ -48,7 +53,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
         // 验证视频文件是否存在
         final videoFile = File(event.videoRecord!.filePath!);
         if (!await videoFile.exists()) {
-          emit(state.copyWith(isLoading: false, errorMessage: '视频文件不存在'));
+          emit(state.copyWith(isLoading: false, errorMessage: _l10n.videoFileNotExist));
           return;
         }
 
@@ -66,10 +71,20 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
           ),
         );
       } else {
-        emit(state.copyWith(isLoading: false, errorMessage: '没有可用的视频数据'));
+        emit(
+          state.copyWith(
+            isLoading: false,
+            errorMessage: _l10n.noVideoDataAvailable,
+          ),
+        );
       }
     } catch (e) {
-      emit(state.copyWith(isLoading: false, errorMessage: '初始化失败: $e'));
+      emit(
+        state.copyWith(
+          isLoading: false,
+          errorMessage: _l10n.initFailedWithError(e.toString()),
+        ),
+      );
     }
   }
 
@@ -112,7 +127,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
         emit(state.copyWith(videoRecord: updatedRecord));
       }
     } catch (e) {
-      emit(state.copyWith(errorMessage: '操作失败: $e'));
+      emit(state.copyWith(errorMessage: _l10n.operationFailedWithError(e.toString())));
     }
   }
 
@@ -168,7 +183,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       // 更新播放项列表
       add(const UpdatePlaybackItemsEvent());
     } catch (e) {
-      emit(state.copyWith(errorMessage: '删除失败: $e'));
+      emit(state.copyWith(errorMessage: _l10n.deleteFailedWithError(e.toString())));
     }
   }
 
@@ -195,7 +210,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       );
 
       if (segmentIndex == -1) {
-        emit(state.copyWith(errorMessage: '找不到对应的片段'));
+        emit(state.copyWith(errorMessage: _l10n.segmentNotFound));
         return;
       }
 
@@ -204,7 +219,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       );
 
       if (currentItem == null) {
-        emit(state.copyWith(errorMessage: '播放项不存在'));
+        emit(state.copyWith(errorMessage: _l10n.playbackItemNotFound));
         return;
       }
 
@@ -226,7 +241,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
         ),
       );
     } catch (e) {
-      emit(state.copyWith(errorMessage: '播放片段失败: $e'));
+      emit(state.copyWith(errorMessage: _l10n.playSegmentFailedWithError(e.toString())));
     }
   }
 
@@ -244,7 +259,11 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       _multiVideoPlayerBloc.add(SetItemsEvent(playbackItems));
       emit(state.copyWith(playbackItems: playbackItems));
     } catch (e) {
-      emit(state.copyWith(errorMessage: '更新播放项列表失败: $e'));
+      emit(
+        state.copyWith(
+          errorMessage: _l10n.updatePlaybackListFailedWithError(e.toString()),
+        ),
+      );
     }
   }
 
@@ -313,7 +332,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     Emitter<RoundClipState> emit,
   ) {
     if (state.currentPlayingSegment == null) {
-      emit(state.copyWith(errorMessage: '没有正在播放的回合'));
+      emit(state.copyWith(errorMessage: _l10n.noPlayingRound));
       return;
     }
 
@@ -324,7 +343,9 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     add(ToggleFavoriteEvent(segment));
 
     // 设置成功消息
-    final message = isFavorite ? '已取消收藏当前回合' : '已收藏当前回合';
+    final message = isFavorite
+        ? _l10n.roundUnfavoritedSuccess
+        : _l10n.roundFavoritedSuccess;
     emit(state.copyWith(successMessage: message));
   }
 
@@ -334,7 +355,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     Emitter<RoundClipState> emit,
   ) {
     if (state.currentPlayingSegment == null) {
-      emit(state.copyWith(errorMessage: '没有正在播放的回合'));
+      emit(state.copyWith(errorMessage: _l10n.noPlayingRound));
       return;
     }
 
@@ -344,7 +365,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     add(DeleteSegmentEvent(segment));
 
     // 设置成功消息
-    emit(state.copyWith(successMessage: '已删除当前回合'));
+    emit(state.copyWith(successMessage: _l10n.roundDeletedSuccess));
   }
 
   /// 显示成功消息事件处理
@@ -439,7 +460,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     Emitter<RoundClipState> emit,
   ) async {
     if (state.videoRecord == null) {
-      emit(state.copyWith(errorMessage: '没有可用的视频数据'));
+      emit(state.copyWith(errorMessage: _l10n.noVideoDataAvailable));
       return;
     }
 
@@ -549,7 +570,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       // 更新播放项列表
       add(const UpdatePlaybackItemsEvent());
     } catch (e) {
-      emit(state.copyWith(errorMessage: '保存片段失败: $e'));
+      emit(state.copyWith(errorMessage: _l10n.saveSegmentFailedWithError(e.toString())));
     }
   }
 
@@ -559,7 +580,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     Emitter<RoundClipState> emit,
   ) async {
     if (state.videoRecord == null) {
-      emit(state.copyWith(errorMessage: '没有可用的视频数据'));
+      emit(state.copyWith(errorMessage: _l10n.noVideoDataAvailable));
       return;
     }
 
@@ -581,7 +602,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
           event.oldIndex >= segmentsToReorder.length ||
           event.newIndex < 0 ||
           event.newIndex >= segmentsToReorder.length) {
-        emit(state.copyWith(errorMessage: '无效的索引'));
+        emit(state.copyWith(errorMessage: _l10n.invalidIndex));
         return;
       }
 
@@ -649,7 +670,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       // 更新播放项列表
       add(const UpdatePlaybackItemsEvent());
     } catch (e) {
-      emit(state.copyWith(errorMessage: '重新排序失败: $e'));
+      emit(state.copyWith(errorMessage: _l10n.reorderFailedWithError(e.toString())));
     }
   }
 }

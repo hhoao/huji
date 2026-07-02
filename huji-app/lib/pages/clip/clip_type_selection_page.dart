@@ -7,6 +7,7 @@ import 'package:huji_app/router/modules/clip.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class ClipTypeSelectionPage extends StatefulWidget {
   final SportType? sportType;
@@ -43,9 +44,7 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
             );
           },
         ),
-        title: const Text(
-          '选择剪辑方式',
-          style: TextStyle(
+        title: Text(context.hujiL10n.selectClipMode, style: TextStyle(
             color: Colors.black87,
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -59,43 +58,49 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // 标题和描述
-            const Text(
-              '选择剪辑方式',
-              style: TextStyle(
+            Text(context.hujiL10n.selectClipMode, style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: Colors.black87,
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              '请选择您想要的剪辑方式',
-              style: TextStyle(fontSize: 14, color: Colors.grey),
+            SizedBox(height: 8),
+            Text(context.hujiL10n.selectClipModeHint, style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
 
             // 边拍边剪辑选项
             _buildClipTypeCard(
               clipMode: ClipMode.recordAndClip,
-              title: '边拍边剪辑',
-              subtitle: '实时录制并剪辑视频',
+              title: context.hujiL10n.recordAndClip,
+              subtitle: context.hujiL10n.recordAndClipSubtitle,
               icon: Icons.videocam,
               color: Colors.purple,
-              description: '使用摄像头实时录制视频，同时进行片段标记和剪辑',
-              features: ['实时录制视频', '即时片段标记', '边拍边剪，效率更高', '适合现场比赛录制'],
+              description: context.hujiL10n.recordAndClipDescription,
+              features: [
+                context.hujiL10n.featureLiveRecording,
+                context.hujiL10n.featureInstantSegmentMarking,
+                context.hujiL10n.featureRecordAndClipEfficiency,
+                context.hujiL10n.featureOnSiteRecording,
+              ],
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
             // 已有视频剪辑选项
             _buildClipTypeCard(
               clipMode: ClipMode.existingVideo,
-              title: '已有视频剪辑',
-              subtitle: '剪辑本地视频文件',
+              title: context.hujiL10n.existingVideoClip,
+              subtitle: context.hujiL10n.existingVideoClipSubtitle,
               icon: Icons.video_library,
               color: Colors.blue,
-              description: '选择本地视频文件进行自动剪辑和片段提取',
-              features: ['支持多种视频格式', '智能片段识别', '批量处理能力', '云端和本地剪辑'],
+              description: context.hujiL10n.existingVideoClipDescription,
+              features: [
+                context.hujiL10n.featureMultipleFormats,
+                context.hujiL10n.featureSmartSegmentDetection,
+                context.hujiL10n.featureBatchProcessing,
+                context.hujiL10n.featureCloudAndLocalClip,
+              ],
             ),
           ],
         ),
@@ -147,7 +152,7 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
                   padding: const EdgeInsets.all(12),
                   child: Icon(icon, color: color, size: 24),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +165,7 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
                           color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: 4),
                       Text(
                         subtitle,
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
@@ -175,12 +180,12 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Text(
               description,
               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             // 功能特点列表
             Wrap(
               spacing: 8,
@@ -237,6 +242,7 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
           _sportType!,
           config,
           clipMode: clipMode,
+          l10n: context.hujiL10n,
         );
         if (clipMode == ClipMode.existingVideo) {
           await LocalVideoStorage().add(rawRecord);
@@ -247,7 +253,11 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('准备视频失败：$e')),
+            SnackBar(
+              content: Text(
+                context.hujiL10n.prepareVideoFailed(e.toString()),
+              ),
+            ),
           );
         }
       }

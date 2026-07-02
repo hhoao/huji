@@ -4,6 +4,7 @@ import 'package:video_player/video_player.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import '../../utils/debounce/throttles.dart';
 import '../../services/platform_capability.dart';
 import 'bloc/multi_video_player_bloc.dart';
@@ -76,7 +77,9 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
         if (state.isLoading) return _buildLoadingWidget();
 
         final controller = state.currentVideoController;
-        if (controller == null || !state.isInitialized) return _buildEmptyWidget();
+        if (controller == null || !state.isInitialized) {
+          return _buildEmptyWidget(context);
+        }
 
         return Center(
           child: AspectRatio(
@@ -116,9 +119,12 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyWidget() {
-    return const Center(
-      child: Text('没有可播放的视频', style: TextStyle(color: Colors.white70)),
+  Widget _buildEmptyWidget(BuildContext context) {
+    return Center(
+      child: Text(
+        context.hujiL10n.noPlayableVideos,
+        style: const TextStyle(color: Colors.white70),
+      ),
     );
   }
 
@@ -221,7 +227,7 @@ class _PlaybackControlsRow extends StatelessWidget {
               PopupMenuItem(value: 1.5, child: Text('1.5x')),
               PopupMenuItem(value: 2.0, child: Text('2.0x')),
             ],
-            tooltip: '播放速度',
+            tooltip: context.hujiL10n.playSpeed,
             child: const Icon(Icons.speed, color: Colors.white, size: 20),
           ),
           const SizedBox(width: 8),

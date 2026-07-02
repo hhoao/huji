@@ -21,6 +21,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
 import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopPrecisionEditPage extends StatefulWidget {
   final String clipId;
@@ -42,7 +43,10 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
-    _roundClipBloc = RoundClipBloc(multiVideoPlayerBloc: _multiVideoPlayerBloc);
+    _roundClipBloc = RoundClipBloc(
+      l10n: context.hujiL10n,
+      multiVideoPlayerBloc: _multiVideoPlayerBloc,
+    );
     _initBloc();
   }
 
@@ -75,7 +79,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        _roundClipBloc.add(const ShowErrorMessageEvent('加载视频数据失败'));
+        _roundClipBloc.add(
+          ShowErrorMessageEvent(context.hujiL10n.loadVideoDataFailed),
+        );
       }
     }
   }
@@ -129,20 +135,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  static String _formatActionType(ActionType type) {
-    switch (type) {
-      case ActionType.playBall:
-        return '精彩球';
-      case ActionType.fireBall:
-        return '发球';
-      case ActionType.pickBall:
-        return '捡球';
-      case ActionType.transition:
-        return '过渡';
-      case ActionType.playback:
-        return '回放';
-    }
-  }
+  String _formatActionType(BuildContext context, ActionType type) =>
+      context.hujiL10n.actionTypeLabel(type);
 
   static Color _actionTypeColor(ActionType type) {
     switch (type) {
@@ -215,14 +209,18 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
           return DesktopPageShell(
             currentRoute: '/clip/${widget.clipId}/edit',
-            title: '精修编辑',
-            breadcrumbs: ['视频库', '编辑', '精修编辑'],
+            title: context.hujiL10n.precisionEditTitle,
+            breadcrumbs: [
+              context.hujiL10n.desktopNavLibrary,
+              context.hujiL10n.editBreadcrumb,
+              context.hujiL10n.precisionEditTitle,
+            ],
             actions: [
               OutlinedButton(
                 onPressed: () => context.go('/'),
-                child: const Text('取消'),
+                child: Text(context.hujiL10n.taskStatusCancelledShort),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               OutlinedButton(
                 onPressed: () =>
                     context.go('/clip/${widget.clipId}/preview'),
@@ -231,14 +229,14 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                   side: BorderSide(color: cs.primary.withAlpha(89)),
                   backgroundColor: cs.primary.withAlpha(26),
                 ),
-                child: const Text('↩ 返回预览'),
+                child: Text(context.hujiL10n.backToPreview),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () =>
                     context.go('/clip/${widget.clipId}/preview'),
                 icon: const Icon(Icons.arrow_forward, size: 16),
-                label: const Text('预览'),
+                label: Text(context.hujiL10n.previewTitle),
               ),
             ],
             child: Row(
@@ -277,14 +275,14 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '回合列表',
+                    context.hujiL10n.roundList,
                     style: styles.body.copyWith(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Text(
-                    '${segments.length} 个',
+                    context.hujiL10n.roundCountBadge(segments.length),
                     style: styles.caption.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
@@ -292,7 +290,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             ),
             Expanded(
               child: state.isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(child: CircularProgressIndicator())
                   : state.errorMessage != null
                       ? Padding(
                           padding: const EdgeInsets.all(16),
@@ -305,7 +303,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                       : segments.isEmpty
                           ? Center(
                               child: Text(
-                                '暂无回合片段',
+                                context.hujiL10n.noRoundSegments,
                                 style: styles.body.copyWith(
                                   color: cs.onSurfaceVariant,
                                 ),
@@ -320,7 +318,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                                     vertical: 6,
                                   ),
                                   child: Text(
-                                    '已选回合',
+                                    context.hujiL10n.selectedRounds,
                                     style: styles.caption.copyWith(
                                       color: cs.outline,
                                       letterSpacing: 0.6,
@@ -350,7 +348,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
     final duration = segment.endSeconds - segment.startSeconds;
-    final actionLabel = _formatActionType(segment.actionType);
+    final actionLabel = _formatActionType(context, segment.actionType);
     final actionColor = _actionTypeColor(segment.actionType);
     final actionBgColor = _actionTypeBgColor(segment.actionType);
 
@@ -384,7 +382,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               alignment: Alignment.center,
               child: Text('\u{1F3D3}', style: styles.prominent),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -398,7 +396,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(width: 6),
+                      SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 5,
@@ -415,7 +413,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
                     style: styles.mono.copyWith(color: cs.outline),
@@ -438,7 +436,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     if (activeSegment == null) {
       return Center(
         child: Text(
-          '请从左侧选择一个回合',
+          context.hujiL10n.selectRoundFromLeft,
           style: AppTextStyles.of(context).body.copyWith(
                 color: context.desktopOnSurfaceVariant,
               ),
@@ -447,7 +445,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     }
 
     if (_trimmerLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (trimmerManager == null) {
@@ -456,12 +454,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              '无法加载视频',
+              context.hujiL10n.cannotLoadVideo,
               style: AppTextStyles.of(context).body.copyWith(
                     color: context.desktopOnSurfaceVariant,
                   ),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 final record = state.videoRecord;
@@ -469,7 +467,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                   _initTrimmer(record!.filePath!, record.allMatchSegments);
                 }
               },
-              child: const Text('重试'),
+              child: Text(context.hujiL10n.actionRetry),
             ),
           ],
         ),
@@ -479,7 +477,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     return Column(
       children: [
         _buildInfoRow(activeSegment, segments),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Expanded(
           child: TrimmerEditor(
             onSegmentsChanged: (updatedSegments) {
@@ -511,13 +509,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             Row(
               children: [
                 Text(
-                  '当前编辑：$indexLabel',
+                  context.hujiL10n.currentEditingRound(indexLabel),
                   style: styles.subtitle.copyWith(
                     color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                const SizedBox(width: 10),
+                SizedBox(width: 10),
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -526,7 +524,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: Text(
-                    _formatActionType(segment.actionType),
+                    _formatActionType(context, segment.actionType),
                     style: styles.caption.copyWith(
                       color: _actionTypeColor(segment.actionType),
                       fontWeight: FontWeight.w500,

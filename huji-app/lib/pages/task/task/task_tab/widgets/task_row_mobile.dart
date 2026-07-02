@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
@@ -62,7 +63,7 @@ class TaskRowMobile extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(Task currentTask) {
+  Widget _buildActionButton(BuildContext context, Task currentTask) {
     final supportsPause = TaskStorage().supportsPause(currentTask);
 
     if (currentTask.status == TaskStatusEnum.processing ||
@@ -82,7 +83,9 @@ class TaskRowMobile extends StatelessWidget {
               () => callbacks.onPauseResume(currentTask),
             );
           },
-          tooltip: isPaused ? '恢复任务' : '暂停任务',
+          tooltip: isPaused
+              ? context.hujiL10n.resumeTask
+              : context.hujiL10n.pauseTask,
         );
       }
       return IconButton(
@@ -94,7 +97,7 @@ class TaskRowMobile extends StatelessWidget {
             () => callbacks.onCancel(currentTask),
           );
         },
-        tooltip: '取消任务',
+        tooltip: context.hujiL10n.cancelTask,
       );
     }
 
@@ -107,7 +110,7 @@ class TaskRowMobile extends StatelessWidget {
           () => callbacks.onDelete(currentTask),
         );
       },
-      tooltip: '删除任务',
+      tooltip: context.hujiL10n.deleteTask,
     );
   }
 
@@ -152,7 +155,7 @@ class TaskRowMobile extends StatelessWidget {
         final currentTask = taskMap[task.id] ?? task;
         final isSelected = state.selectedTaskIds.contains(currentTask.id);
         final icon = _iconForTask(currentTask);
-        final typeDesc = currentTask.type.name;
+        final typeDesc = currentTask.type.localizedName(context.hujiL10n);
 
         return Card(
           margin: const EdgeInsets.symmetric(
@@ -334,7 +337,7 @@ class TaskRowMobile extends StatelessWidget {
                       },
                     )
                   else
-                    _buildActionButton(currentTask),
+                    _buildActionButton(context, currentTask),
                 ],
               ),
             ),

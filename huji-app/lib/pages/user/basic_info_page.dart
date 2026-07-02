@@ -4,6 +4,7 @@ import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/pages/user/avatar_picker_widget.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class BasicInfoPage extends StatefulWidget {
   const BasicInfoPage({super.key});
@@ -41,14 +42,16 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
         _selectedSex = userInfo?.sex ?? 1;
       });
     } catch (e) {
-      _showSnackBar('加载用户信息失败: $e');
+      if (mounted) {
+        _showSnackBar(context.hujiL10n.loadUserInfoFailed('$e'));
+      }
     }
   }
 
   Future<void> _updateBasicInfo() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedSex == null) {
-      _showSnackBar('请选择性别');
+      _showSnackBar(context.hujiL10n.pleaseSelectGender);
       return;
     }
 
@@ -63,12 +66,12 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
           sex: _selectedSex!,
         ),
       );
-      _showSnackBar('信息更新成功');
+      _showSnackBar(context.hujiL10n.infoUpdatedSuccessfully);
       if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
-      _showSnackBar('信息更新失败: $e');
+      _showSnackBar(context.hujiL10n.infoUpdateFailed('$e'));
     } finally {
       setState(() {
         _isLoading = false;
@@ -93,7 +96,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text('编辑资料', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(context.hujiL10n.editProfile, style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: Form(
         key: _formKey,
@@ -117,10 +120,8 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                       size: 88,
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '更换头像',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  SizedBox(height: 8),
+                  Text(context.hujiL10n.changeAvatar, style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
                       ).colorScheme.onSurface.withValues(alpha: 0.6),
@@ -129,7 +130,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
             // 信息分组卡片
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -149,7 +150,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
               child: Column(
                 children: [
                   _buildEditRow(
-                    '名字',
+                    context.hujiL10n.name,
                     _nicknameController.text,
                     onTap: () async {
                       final result = await showDialog<String>(
@@ -159,14 +160,12 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             text: _nicknameController.text,
                           );
                           return AlertDialog(
-                            title: Text(
-                              '修改名字',
-                              style: Theme.of(context).textTheme.titleLarge,
+                            title: Text(context.hujiL10n.editName, style: Theme.of(context).textTheme.titleLarge,
                             ),
                             content: TextField(
                               controller: controller,
                               decoration: InputDecoration(
-                                hintText: '请输入名字',
+                                hintText: context.hujiL10n.enterName,
                                 hintStyle: Theme.of(
                                   context,
                                 ).textTheme.bodyMedium,
@@ -179,17 +178,13 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(context),
-                                child: Text(
-                                  '取消',
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                child: Text(context.hujiL10n.taskStatusCancelledShort, style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ),
                               TextButton(
                                 onPressed: () =>
                                     Navigator.pop(context, controller.text),
-                                child: Text(
-                                  '确定',
-                                  style: Theme.of(context).textTheme.bodyMedium,
+                                child: Text(context.hujiL10n.actionConfirm, style: Theme.of(context).textTheme.bodyMedium,
                                 ),
                               ),
                             ],
@@ -205,28 +200,24 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                   ),
                   _buildDivider(),
                   _buildEditRow(
-                    '性别',
-                    _selectedSex == 1 ? '男' : '女',
+                    context.hujiL10n.gender,
+                    _selectedSex == 1
+                        ? context.hujiL10n.male
+                        : context.hujiL10n.female,
                     onTap: () async {
                       final result = await showDialog<int>(
                         context: context,
                         builder: (context) => SimpleDialog(
-                          title: Text(
-                            '选择性别',
-                            style: Theme.of(context).textTheme.titleLarge,
+                          title: Text(context.hujiL10n.selectGender, style: Theme.of(context).textTheme.titleLarge,
                           ),
                           children: [
                             SimpleDialogOption(
-                              child: Text(
-                                '男',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              child: Text(context.hujiL10n.male, style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               onPressed: () => Navigator.pop(context, 1),
                             ),
                             SimpleDialogOption(
-                              child: Text(
-                                '女',
-                                style: Theme.of(context).textTheme.bodyMedium,
+                              child: Text(context.hujiL10n.female, style: Theme.of(context).textTheme.bodyMedium,
                               ),
                               onPressed: () => Navigator.pop(context, 2),
                             ),
@@ -241,15 +232,24 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     },
                   ),
                   _buildDivider(),
-                  _buildEditRow('手机号', _userInfo?.mobile ?? '暂未绑定'),
+                  _buildEditRow(
+                    context.hujiL10n.phoneNumber,
+                    _userInfo?.mobile ?? context.hujiL10n.notBound,
+                  ),
                   _buildDivider(),
-                  _buildEditRow('邮箱', _userInfo?.email ?? '暂未绑定'),
+                  _buildEditRow(
+                    context.hujiL10n.email,
+                    _userInfo?.email ?? context.hujiL10n.notBound,
+                  ),
                   _buildDivider(),
-                  _buildEditRow('积分', '${_userInfo?.experience ?? 0}'),
+                  _buildEditRow(
+                    context.hujiL10n.points,
+                    '${_userInfo?.experience ?? 0}',
+                  ),
                 ],
               ),
             ),
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
             // 底部按钮
             SizedBox(
               width: double.infinity,
@@ -273,9 +273,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                 ),
                 child: _isLoading
                     ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(
-                        '保存',
-                        style: Theme.of(
+                    : Text(context.hujiL10n.actionSave, style: Theme.of(
                           context,
                         ).textTheme.titleLarge?.copyWith(color: Colors.white),
                       ),

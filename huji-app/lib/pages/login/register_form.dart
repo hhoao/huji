@@ -5,6 +5,7 @@ import 'package:huji_app/pages/login/common.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
 import 'login_dialog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class RegisterForm extends StatefulWidget {
   final VoidCallback onClose;
@@ -87,13 +88,17 @@ class _RegisterFormState extends State<RegisterForm> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('注册成功')));
+        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginRegisterSuccess)));
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('注册失败: $e')));
+        ).showSnackBar(
+          SnackBar(
+            content: Text(context.hujiL10n.loginRegisterFailed('$e')),
+          ),
+        );
       }
     } finally {
       setState(() {
@@ -112,16 +117,9 @@ class _RegisterFormState extends State<RegisterForm> {
     widget.onSwitchForm(FormType.login);
   }
 
-  String get _buttonText {
-    return _isLoading ? '注册中...' : '立即注册';
-  }
-
-  Map<String, String> get _jumpText {
-    return {'plain': '已有账号?', 'link': '返回登录'};
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Material(
@@ -131,9 +129,7 @@ class _RegisterFormState extends State<RegisterForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 标题
-              const Text(
-                '用户注册',
-                style: TextStyle(
+              Text(context.hujiL10n.loginRegisterTitle, style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
@@ -141,24 +137,24 @@ class _RegisterFormState extends State<RegisterForm> {
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
               buildTextField(
                 context,
-                '手机号/邮箱',
-                '请输入手机号或邮箱',
+                context.hujiL10n.loginIdentifierLabel,
+                context.hujiL10n.loginIdentifierHint,
                 Icons.person,
                 _identifierController,
                 null,
                 false,
-                validateEmailOrPhone,
+                (value) => validateEmailOrPhone(context.hujiL10n, value),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               buildTextField(
                 context,
-                '验证码',
-                '请输入验证码',
+                context.hujiL10n.loginAuthCodeLabel,
+                context.hujiL10n.loginAuthCodeHint,
                 Icons.key,
                 _codeController,
                 TextButton(
@@ -172,17 +168,19 @@ class _RegisterFormState extends State<RegisterForm> {
                           );
                         },
                   child: Text(
-                    _countdown > 0 ? '${_countdown}s后重新获取' : '获取验证码',
+                    _countdown > 0
+                        ? context.hujiL10n.actionResendCodeCountdown(_countdown)
+                        : context.hujiL10n.actionGetVerificationCode,
                     style: TextStyle(
                       color: _countdown > 0 ? Colors.grey : Colors.blue,
                     ),
                   ),
                 ),
                 false,
-                validateAuthCode,
+                (value) => validateAuthCode(context.hujiL10n, value),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 提交按钮
               SizedBox(
@@ -205,7 +203,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     ),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
@@ -216,7 +214,7 @@ class _RegisterFormState extends State<RegisterForm> {
                           ),
                         )
                       : Text(
-                          _buttonText,
+                          _isLoading ? l10n.loginRegistering : l10n.loginRegisterNow,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
@@ -225,20 +223,20 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 跳转链接
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _jumpText['plain']!,
+                    l10n.loginAlreadyHaveAccount,
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   TextButton(
                     onPressed: _jump,
                     child: Text(
-                      _jumpText['link']!,
+                      l10n.loginBackToLogin,
                       style: const TextStyle(color: Colors.blue, fontSize: 14),
                     ),
                   ),
