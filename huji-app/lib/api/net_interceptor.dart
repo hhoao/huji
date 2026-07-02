@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:huji_app/api/api_manager.dart';
@@ -92,6 +93,18 @@ class NetInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) async {
+    if (_shouldRetryTransientError(err) && err.requestOptions.extra['netRetry'] != true) {
+      err.requestOptions.extra['netRetry'] = true;
+      try {
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        final response = await ApiManager.dio.fetch(err.requestOptions);
+        handler.resolve(response);
+        return;
+      } catch (_) {
+        // Fall through to normal error handling.
+      }
+    }
+
     final decision = AppErrorUtils.classify(err);
     final errorMessage =
         decision.userMessage ??
@@ -264,5 +277,19 @@ class NetInterceptor extends Interceptor {
     if (context != null && context.mounted) {
       LoginDialog.show(context);
     }
+  }
+
+  bool _shouldRetryTransientError(DioException err) {
+    final error = err.error;
+    if (error is SocketException) {
+      return true;
+    }
+    if (error is HttpException &&
+        error.message.toLowerCase().contains('connection abort')) {
+      return true;
+    }
+    final message = err.message?.toLowerCase() ?? '';
+    return message.contains('connection abort') ||
+        message.contains('software caused connection abort');
   }
 }

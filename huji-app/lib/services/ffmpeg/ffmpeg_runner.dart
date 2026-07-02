@@ -54,9 +54,31 @@ abstract class FFmpegRunner {
   Future<void> cancel();
 }
 
+bool _ffmpegArgNeedsQuoting(String arg) {
+  return arg.contains(' ') ||
+      arg.contains('"') ||
+      arg.contains("'") ||
+      arg.contains(r'\');
+}
+
+/// Formats ffmpeg argument list for logs (quotes paths that contain spaces).
+String formatFFmpegArgsForLog(List<String> arguments) {
+  return arguments
+      .map((arg) {
+        if (_ffmpegArgNeedsQuoting(arg)) {
+          return '"${arg.replaceAll('"', r'\"')}"';
+        }
+        return arg;
+      })
+      .join(' ');
+}
+
 /// Splits a shell-style ffmpeg command string into args.
 /// Respects double-quoted segments. Single quotes are NOT treated as quoting
 /// (intentional — ffmpeg paths usually only need double-quote handling).
+///
+/// Prefer passing [List<String>] directly to [FFmpegRunner.execute] instead of
+/// joining and re-splitting — that avoids breaking paths with spaces.
 List<String> splitFFmpegCommand(String cmd) {
   final result = <String>[];
   final current = StringBuffer();

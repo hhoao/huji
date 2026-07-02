@@ -75,7 +75,7 @@ class VideoCompressUtils {
 
       final outputPath = await _generateOutputPath(inputPath, config);
 
-      final command = _buildCompressCommand(
+      final args = _buildCompressCommand(
         inputPath,
         outputPath,
         config,
@@ -84,10 +84,10 @@ class VideoCompressUtils {
 
       _logger.i('开始压缩视频: $inputPath');
       _logger.i('原始信息: ${originalInfo.toJson()}');
-      _logger.i('FFmpeg命令: $command');
+      _logger.i('FFmpeg命令: ${formatFFmpegArgsForLog(args)}');
 
       final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
+        args,
         onProgress: onProgress != null && originalDuration != null
             ? (progress) => onProgress(progress)
             : null,
@@ -136,7 +136,7 @@ class VideoCompressUtils {
           FFmpegErrorUtils.buildCommandException(
             operation: '视频压缩',
             returnCode: result.returnCode,
-            command: command,
+            command: formatFFmpegArgsForLog(args),
             logs: logs,
           ),
         );
@@ -269,8 +269,8 @@ class VideoCompressUtils {
     }
   }
 
-  /// 构建ffmpeg压缩命令
-  static String _buildCompressCommand(
+  /// 构建ffmpeg压缩命令参数
+  static List<String> _buildCompressCommand(
     String inputPath,
     String outputPath,
     VideoCompressConfig config,
@@ -349,7 +349,7 @@ class VideoCompressUtils {
 
     args.addAll(additionalArgs);
 
-    return args.join(' ');
+    return args;
   }
 
   /// 格式化文件大小
@@ -365,10 +365,8 @@ class VideoCompressUtils {
   /// 获取视频信息
   static Future<VideoInfo?> getVideoInfo(String videoPath) async {
     try {
-      final command = '-i "$videoPath" -t 0 -f null -';
-      final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
-      );
+      final args = ['-i', videoPath, '-t', '0', '-f', 'null', '-'];
+      final result = await FFmpegRunner.instance.execute(args);
       final logs = result.output ?? '';
 
       if (!result.isSuccess) {
@@ -382,7 +380,7 @@ class VideoCompressUtils {
           FFmpegErrorUtils.buildCommandException(
             operation: '获取压缩视频信息',
             returnCode: result.returnCode,
-            command: command,
+            command: formatFFmpegArgsForLog(args),
             logs: logs,
           ),
         );

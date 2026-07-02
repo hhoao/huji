@@ -64,18 +64,26 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
       selectedVideoPath = result.first.path;
     }
 
-    final config = getDefaultConfig(sportType);
-    final rawRecord = await createRawVideoRecord(
-      selectedVideoPath ?? '', // 边拍边剪辑模式下可以为空
-      sportType,
-      config,
-      clipMode: clipMode ?? ClipMode.existingVideo, // 使用传递的clipMode或默认值
-    );
-    if (clipMode == ClipMode.existingVideo) {
-      await LocalVideoStorage().add(rawRecord);
-    }
-    if (mounted) {
-      context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+    try {
+      final config = getDefaultConfig(sportType);
+      final rawRecord = await createRawVideoRecord(
+        selectedVideoPath ?? '', // 边拍边剪辑模式下可以为空
+        sportType,
+        config,
+        clipMode: clipMode ?? ClipMode.existingVideo, // 使用传递的clipMode或默认值
+      );
+      if (clipMode == ClipMode.existingVideo) {
+        await LocalVideoStorage().add(rawRecord);
+      }
+      if (mounted) {
+        context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('准备视频失败：$e')),
+        );
+      }
     }
   }
 

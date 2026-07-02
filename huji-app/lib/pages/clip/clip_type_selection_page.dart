@@ -230,18 +230,26 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
         selectedVideoPath = result.first.path;
       }
 
-      final config = getDefaultConfig(_sportType!);
-      final rawRecord = await createRawVideoRecord(
-        selectedVideoPath ?? '', // 边拍边剪辑模式下可以为空
-        _sportType!,
-        config,
-        clipMode: clipMode,
-      );
-      if (clipMode == ClipMode.existingVideo) {
-        await LocalVideoStorage().add(rawRecord);
-      }
-      if (mounted) {
-        context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+      try {
+        final config = getDefaultConfig(_sportType!);
+        final rawRecord = await createRawVideoRecord(
+          selectedVideoPath ?? '', // 边拍边剪辑模式下可以为空
+          _sportType!,
+          config,
+          clipMode: clipMode,
+        );
+        if (clipMode == ClipMode.existingVideo) {
+          await LocalVideoStorage().add(rawRecord);
+        }
+        if (mounted) {
+          context.push(ClipRoute.videoEditConfig, extra: rawRecord);
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('准备视频失败：$e')),
+          );
+        }
       }
     } else {
       // 如果没有运动类型，跳转到运动类型选择页面，传递clipMode参数

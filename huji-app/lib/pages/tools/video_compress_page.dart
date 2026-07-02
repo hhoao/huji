@@ -353,11 +353,11 @@ class _VideoCompressPageState extends State<VideoCompressPage>
             onSuccess: (result) async {
               await previewFile.delete();
 
-              if (mounted) {
-                context.push(
-                  '${VideoRoute.videoPlayer}?videoUrl=${Uri.encodeComponent(result.outputPath!)}&fileName=${Uri.encodeComponent('预览_${_customFileName ?? _originFile!.path.split('/').last}')}',
-                );
-              }
+              if (!mounted) return;
+              context.push(
+                '${VideoRoute.videoPlayer}?videoUrl=${Uri.encodeComponent(result.outputPath ?? '')}&fileName=${Uri.encodeComponent('预览_${_customFileName ?? _originFile?.path.split('/').last ?? 'video'}')}',
+              );
+              if (!mounted) return;
               setState(() {
                 _isCompressing = false;
                 _progress = 100.0;

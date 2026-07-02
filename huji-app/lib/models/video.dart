@@ -86,8 +86,15 @@ abstract class LocalVideoRecord {
 
 String _videoClipConfigReqVoToJson(VideoClipConfigReqVo value) =>
     jsonEncode(value.toJson());
-VideoClipConfigReqVo _videoClipConfigReqVoFromJson(String json) =>
-    VideoClipConfigReqVo.fromJson(jsonDecode(json));
+VideoClipConfigReqVo _videoClipConfigReqVoFromJson(dynamic value) {
+  if (value is String) {
+    return VideoClipConfigReqVo.fromJson(jsonDecode(value));
+  }
+  if (value is Map<String, dynamic>) {
+    return VideoClipConfigReqVo.fromJson(value);
+  }
+  throw ArgumentError('Invalid videoClipConfigReqVo: $value');
+}
 
 @JsonSerializable()
 class RawVideoRecord extends LocalVideoRecord {

@@ -29,7 +29,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
   @override
   Future<void> processTask(Task task) async {
     ImageCompressTask currentTask = task as ImageCompressTask;
-    _taskRunner.updateTask(
+    await _taskRunner.tryUpdateTask(
       currentTask.id,
       (oldTask) =>
           oldTask.copyWith(status: TaskStatusEnum.processing, progress: 0),
@@ -48,7 +48,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
 
         // 更新进度
         final progress = (i + 1) / totalImages;
-        _taskRunner.updateTask(
+        await _taskRunner.tryUpdateTask(
           currentTask.id,
           (oldTask) => oldTask.copyWith(
             status: TaskStatusEnum.processing,
@@ -69,7 +69,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
       }
 
       if (outputList.isNotEmpty) {
-        _taskRunner.updateTask(
+        await _taskRunner.tryUpdateTask(
           currentTask.id,
           (oldTask) => (oldTask as ImageCompressTask).copyWith(
             status: TaskStatusEnum.completed,
@@ -78,7 +78,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
           ),
         );
       } else {
-        _taskRunner.updateTask(
+        await _taskRunner.tryUpdateTask(
           currentTask.id,
           (oldTask) => (oldTask as ImageCompressTask).copyWith(
             status: TaskStatusEnum.failed,
@@ -86,7 +86,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
         );
       }
     } catch (e) {
-      _taskRunner.updateTask(
+      await _taskRunner.tryUpdateTask(
         currentTask.id,
         (oldTask) => (oldTask as ImageCompressTask).copyWith(
           status: TaskStatusEnum.failed,
@@ -99,7 +99,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
   Future<void> pauseTask(Task task) async {
     // 图片压缩任务不支持暂停，直接标记为失败
     final currentTask = task as ImageCompressTask;
-    _taskRunner.updateTask(
+    await _taskRunner.tryUpdateTask(
       currentTask.id,
       (oldTask) => oldTask.copyWith(status: TaskStatusEnum.failed),
     );
@@ -109,7 +109,7 @@ class ImageCompressTaskManager extends AbstractTaskManager {
   Future<void> resumeTask(Task task) async {
     // 图片压缩任务不支持恢复，重新开始处理
     final currentTask = task as ImageCompressTask;
-    _taskRunner.updateTask(
+    await _taskRunner.tryUpdateTask(
       currentTask.id,
       (oldTask) =>
           oldTask.copyWith(status: TaskStatusEnum.pending, progress: 0),

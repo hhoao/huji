@@ -1,4 +1,6 @@
 // 配置项类型
+import 'dart:io';
+
 import 'package:path/path.dart' as path;
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
@@ -20,14 +22,24 @@ Future<RawVideoRecord> createRawVideoRecord(
 
   // 只有在已有视频模式下才生成缩略图
   if (clipMode == ClipMode.existingVideo) {
+    if (videoPath == null || videoPath.isEmpty) {
+      throw Exception('请先选择视频文件');
+    }
+    if (!await File(videoPath).exists()) {
+      throw Exception('视频文件不存在: $videoPath');
+    }
     final appCacheDir = storage.getApplicationDocumentsDirectory();
-    thumbnailPath = await VideoUtils.generateVideoThumbnail(
-      videoPath!,
-      dirPath: path.join(
-        appCacheDir.path,
-        'raw_${DateTime.now().millisecondsSinceEpoch}',
-      ),
-    );
+    try {
+      thumbnailPath = await VideoUtils.generateVideoThumbnail(
+        videoPath,
+        dirPath: path.join(
+          appCacheDir.path,
+          'raw_${DateTime.now().millisecondsSinceEpoch}',
+        ),
+      );
+    } catch (e) {
+      throw Exception('生成缩略图失败: $videoPath: $e');
+    }
   }
 
   final rawRecord = RawVideoRecord(

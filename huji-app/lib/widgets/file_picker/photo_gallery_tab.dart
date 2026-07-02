@@ -7,6 +7,18 @@ import 'package:huji_app/utils/app_error_utils.dart';
 import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'file_selection_page.dart';
 
+Future<File?> resolveAssetFile(AssetEntity asset) async {
+  try {
+    return await asset.file;
+  } on PlatformException catch (e) {
+    debugPrint('Failed to resolve asset ${asset.id}: $e');
+    return null;
+  } catch (e) {
+    debugPrint('Failed to resolve asset ${asset.id}: $e');
+    return null;
+  }
+}
+
 // 媒体类型枚举
 enum MediaType { image, video, all }
 
@@ -183,7 +195,7 @@ class _AssetItemState extends State<_AssetItem>
                 right: 8,
                 child: GestureDetector(
                   onTap: () async {
-                    final file = await widget.asset.file;
+                    final file = await resolveAssetFile(widget.asset);
                     if (file != null && context.mounted) {
                       await VideoPlayerPage.show(
                         context,
@@ -512,7 +524,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
     // 在后台异步预加载文件路径，不阻塞UI
     for (final asset in assets) {
       if (!_assetPathCache.containsKey(asset.id)) {
-        asset.file
+        resolveAssetFile(asset)
             .then((file) {
               if (file != null && mounted) {
                 _assetPathCache[asset.id] = file.path;
@@ -618,7 +630,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   }
 
   Future<void> _toggleAssetSelection(AssetEntity asset) async {
-    final file = await asset.file;
+    final file = await resolveAssetFile(asset);
     if (file == null) return;
 
     // 缓存文件路径
@@ -657,7 +669,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
         : _filteredAssets;
 
     for (final asset in assetsToProcess) {
-      final file = await asset.file;
+      final file = await resolveAssetFile(asset);
       if (file != null) {
         // 缓存文件路径
         _assetPathCache[asset.id] = file.path;
@@ -1384,7 +1396,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
 
   Future<void> _toggleSelection(BuildContext context) async {
     final asset = widget.assets[_currentIndex];
-    final file = await asset.file;
+    final file = await resolveAssetFile(asset);
     if (file == null) return;
 
     final selectedFiles = List<FileSystemEntity>.from(widget.selectedFiles);
@@ -1454,7 +1466,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
           final asset = widget.assets[index];
           return Center(
             child: FutureBuilder<File?>(
-              future: asset.file,
+              future: resolveAssetFile(asset),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator(color: Colors.white);
@@ -1492,7 +1504,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            final file = await asset.file;
+                            final file = await resolveAssetFile(asset);
                             if (file != null && context.mounted) {
                               await VideoPlayerPage.show(
                                 context,

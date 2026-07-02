@@ -189,14 +189,16 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
       _currentTask!.id,
       (oldTask) => oldTask.copyWith(image: file.path),
     );
-    final edittingRecord =
-        await LocalVideoStorage().findById(_currentTask!.edittingRecordId!)
-            as EdittingVideoRecord?;
-    if (edittingRecord != null) {
-      await LocalVideoStorage().update(edittingRecord.id, (record) {
-        final editting = record as EdittingVideoRecord;
-        return editting.copyWith(thumbnailPath: file.path);
-      });
+    final recordId = _currentTask?.edittingRecordId;
+    if (recordId != null) {
+      final edittingRecord =
+          await LocalVideoStorage().findById(recordId) as EdittingVideoRecord?;
+      if (edittingRecord != null) {
+        await LocalVideoStorage().update(edittingRecord.id, (record) {
+          final editting = record as EdittingVideoRecord;
+          return editting.copyWith(thumbnailPath: file.path);
+        });
+      }
     }
   }
 

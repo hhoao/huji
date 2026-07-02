@@ -256,9 +256,9 @@ class VideoUtils {
       }
 
       commandParts.add(outputFile);
-      final command = commandParts.join(' ');
+      final args = commandParts;
 
-      _logger.i('执行FFmpeg命令: $command');
+      _logger.i('执行FFmpeg命令: ${formatFFmpegArgsForLog(args)}');
 
       // 计算总时长（用于进度计算）
       double totalDuration = 0.0;
@@ -275,7 +275,7 @@ class VideoUtils {
 
       // 执行FFmpeg命令
       final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
+        args,
         onProgress: onProgress != null && totalDuration > 0
             ? (p) => onProgress(p, p * totalDuration, totalDuration)
             : null,
@@ -284,7 +284,7 @@ class VideoUtils {
       if (!result.isSuccess) {
         throw FFmpegExecutionException(
           '视频合并失败',
-          command,
+          formatFFmpegArgsForLog(args),
           details: result.output,
         );
       }
@@ -299,7 +299,7 @@ class VideoUtils {
 
   /// 获取视频基本信息
   static Future<VideoBaseInfo> getVideoBaseInfo(String inputFile) async {
-    final command = [
+    final args = [
       '-loglevel',
       'quiet',
       '-show_entries',
@@ -307,11 +307,9 @@ class VideoUtils {
       '-of',
       'json',
       inputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.executeProbe(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.executeProbe(args);
 
     if (!result.isSuccess) {
       throw Exception('获取视频信息失败: ${result.output}');
@@ -349,7 +347,7 @@ class VideoUtils {
 
   /// 获取视频完整信息
   static Future<VideoInfo> getVideoInfo(String inputFile) async {
-    final command = [
+    final args = [
       '-v',
       'error',
       '-select_streams',
@@ -359,11 +357,9 @@ class VideoUtils {
       '-of',
       'json',
       inputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.executeProbe(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.executeProbe(args);
 
     if (!result.isSuccess) {
       throw Exception('获取视频信息失败: ${result.output}');
@@ -479,7 +475,7 @@ class VideoUtils {
 
     final accCodec = await _getAccCodec(videoInfo.codecName);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -500,11 +496,9 @@ class VideoUtils {
       '+faststart',
       '-y',
       outputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (result.isSuccess) {
       final outputFileSize = await File(outputFile).length();
@@ -524,11 +518,9 @@ class VideoUtils {
     }
 
     _logger.i('开始检测硬件加速支持...');
-    final command = ['-hide_banner', '-encoders'].join(' ');
+    final command = ['-hide_banner', '-encoders'];
 
-    final execResult = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final execResult = await FFmpegRunner.instance.execute(command);
     final output = execResult.output ?? '';
 
     String result;
@@ -613,10 +605,8 @@ class VideoUtils {
   static Future<String> _tryAndroidSoftwareEncoders() async {
     try {
       // 检测可用的编码器
-      final command = ['-hide_banner', '-encoders'].join(' ');
-      final execResult = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
-      );
+      final args = ['-hide_banner', '-encoders'];
+      final execResult = await FFmpegRunner.instance.execute(args);
       final output = execResult.output ?? '';
 
       // 按优先级尝试不同的编码器
@@ -676,17 +666,17 @@ class VideoUtils {
 
     _checkCancellation();
 
-    final command = _buildClipVideoCommand(
+    final args = _buildClipVideoCommand(
       inputFile: inputFile,
       startTime: startTime,
       duration: duration,
       outputFile: outputFile,
     );
 
-    _logger.i('执行视频裁剪命令: $command');
+    _logger.i('执行视频裁剪命令: ${formatFFmpegArgsForLog(args)}');
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * duration, duration)
           : null,
@@ -695,7 +685,7 @@ class VideoUtils {
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
         '视频裁剪失败',
-        command,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -704,7 +694,7 @@ class VideoUtils {
     _checkCancellation();
   }
 
-  static String _buildClipVideoCommand({
+  static List<String> _buildClipVideoCommand({
     required String inputFile,
     required double startTime,
     required double duration,
@@ -733,7 +723,7 @@ class VideoUtils {
       '-movflags',
       '+faststart',
       outputFile,
-    ].join(' ');
+    ];
   }
 
   /// 将视频转换为易于编辑的格式
@@ -754,7 +744,7 @@ class VideoUtils {
     final videoInfo = await getVideoInfo(inputFile);
     final accCodec = await _getAccCodec(codec);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-y',
@@ -767,10 +757,10 @@ class VideoUtils {
       '-r',
       videoInfo.fps.toString(),
       outputFile,
-    ].join(' ');
+    ];
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -779,7 +769,7 @@ class VideoUtils {
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
         '视频格式转换失败',
-        command,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -806,7 +796,7 @@ class VideoUtils {
     final videoInfo = await getVideoInfo(inputFile);
     final accCodec = await _getAccCodec(videoInfo.codecName);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -817,10 +807,10 @@ class VideoUtils {
       accCodec,
       '-y',
       outputFile,
-    ].join(' ');
+    ];
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -829,7 +819,7 @@ class VideoUtils {
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
         '视频缩放失败',
-        command,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -860,7 +850,11 @@ class VideoUtils {
     String format = 'png',
   }) async {
     if (!await File(videoPath).exists()) {
-      throw FileSystemException('视频文件不存在: $videoPath');
+      final fileType = FileSystemEntity.typeSync(videoPath);
+      if (fileType == FileSystemEntityType.directory) {
+        throw Exception('生成缩略图失败: $videoPath: Is a directory');
+      }
+      throw FileSystemException('视频文件不存在', videoPath);
     }
     final outputDir = await _getDirPath(dirPath);
     // 生成输出文件名
@@ -869,7 +863,7 @@ class VideoUtils {
     final outputPath = path.join(outputDir.path, outputFileName);
 
     // 构建FFmpeg命令
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-ss',
@@ -884,12 +878,10 @@ class VideoUtils {
       quality.toString(),
       '-y',
       outputPath,
-    ].join(' ');
+    ];
 
     // 执行FFmpeg命令
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (!result.isSuccess) {
       throw Exception('生成缩略图失败: ${result.output}');
@@ -963,9 +955,14 @@ class VideoUtils {
 
     // 按顺序添加文件到 stream（确保按照文件编号顺序）
     void tryEmitNextFiles() {
+      if (controller.isClosed) {
+        return;
+      }
       while (pendingFiles.containsKey(nextExpectedIndex)) {
         final filePath = pendingFiles[nextExpectedIndex]!;
-        controller.add(filePath);
+        if (!controller.isClosed) {
+          controller.add(filePath);
+        }
         pendingFiles.remove(nextExpectedIndex);
         currentCount++;
         nextExpectedIndex++;
@@ -975,7 +972,9 @@ class VideoUtils {
 
         if (currentCount == totalCount) {
           eventStream?.cancel();
-          controller.close();
+          if (!controller.isClosed) {
+            controller.close();
+          }
           return;
         }
       }
@@ -1080,7 +1079,7 @@ class VideoUtils {
     required int frameInterval,
     required String tempDir,
   }) async {
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -1089,11 +1088,9 @@ class VideoUtils {
       'fps=$frameInterval',
       '-y',
       path.join(tempDir, '%d.png'),
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (!result.isSuccess) {
       throw Exception('帧提取失败: ${result.output}');
