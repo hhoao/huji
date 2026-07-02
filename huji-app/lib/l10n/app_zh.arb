@@ -828,6 +828,7 @@
   "processFailedRetry": "处理失败，请重试",
   "processStatusPreparing": "准备中",
   "processVideoFailed": "处理视频失败",
+  "noValidSegments": "没有有效的片段",
   "processedTimeLabel": "已处理时间：{seconds} s",
   "@processedTimeLabel": {"placeholders": {"seconds": {"type": "int"}}},
   "processingEffectLabel": "处理效果",

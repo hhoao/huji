@@ -828,6 +828,7 @@
   "processFailedRetry": "Processing failed. Please try again.",
   "processStatusPreparing": "Preparing",
   "processVideoFailed": "Failed to process video",
+  "noValidSegments": "No valid segments found",
   "processedTimeLabel": "Processed time: {seconds} s",
   "@processedTimeLabel": {"placeholders": {"seconds": {"type": "int"}}},
   "processingEffectLabel": "Processing result",

@@ -2447,6 +2447,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get processVideoFailed => 'Failed to process video';
 
   @override
+  String get noValidSegments => 'No valid segments found';
+
+  @override
   String processedTimeLabel(int seconds) {
     return 'Processed time: $seconds s';
   }

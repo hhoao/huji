@@ -503,7 +503,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
 
       // 检查是否有有效片段
       if (allMatchSegments.isEmpty) {
-        throw Exception('没有有效的片段');
+        throw Exception(resolveHujiL10n().noValidSegments);
       }
 
       return (allMatchSegments, greatMatchSegments);

@@ -4364,6 +4364,12 @@ abstract class HujiLocalizations {
   /// **'Failed to process video'**
   String get processVideoFailed;
 
+  /// No description provided for @noValidSegments.
+  ///
+  /// In en, this message translates to:
+  /// **'No valid segments found'**
+  String get noValidSegments;
+
   /// No description provided for @processedTimeLabel.
   ///
   /// In en, this message translates to:

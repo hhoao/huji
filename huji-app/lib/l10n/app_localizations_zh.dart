@@ -2381,6 +2381,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get processVideoFailed => '处理视频失败';
 
   @override
+  String get noValidSegments => '没有有效的片段';
+
+  @override
   String processedTimeLabel(int seconds) {
     return '已处理时间：$seconds s';
   }
