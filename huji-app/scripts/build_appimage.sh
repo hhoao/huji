@@ -45,17 +45,10 @@ echo -e "Flutter target:   ${GREEN}$FLUTTER_TARGET${NC}"
 echo -e "Output dir:       ${GREEN}$BUILD_DIR${NC}"
 echo
 
-# === Pre-build workarounds (from Task 1 recon) ===
+# === Pre-build workarounds ===
 echo -e "${BLUE}[pre] Applying pre-build workarounds...${NC}"
-# 1. ultralytics_yolo 0.1.29 has a packaging bug: pubspec.yaml lists
-#    example/assets/ but the directory is missing in pub-cache.
-#    Create empty directory to satisfy Flutter's pubspec validation.
-if [[ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]]; then
-  mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-  echo "[ok] ultralytics_yolo example/assets dir ensured"
-fi
-# 2. CMake expects build/native_assets/linux to exist before native_assets
-#    plugin metadata is written. Ensure it exists.
+# CMake expects build/native_assets/linux to exist before native_assets
+# plugin metadata is written. Ensure it exists.
 mkdir -p "$PROJECT_DIR/build/native_assets/linux"
 echo "[ok] native_assets/linux dir ensured"
 
@@ -68,11 +61,6 @@ if [[ "${SKIP_FLUTTER_BUILD:-0}" != "1" ]]; then
   echo -e "${BLUE}[2/5] Building Flutter Linux release...${NC}"
   cd "$PROJECT_DIR"
   flutter pub get
-  # Re-apply the ultralytics_yolo workaround AFTER pub get (in case pub get
-  # restored the broken state).
-  if [[ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]]; then
-    mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-  fi
   flutter build linux --release --target-platform "$FLUTTER_TARGET"
 fi
 

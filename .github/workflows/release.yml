@@ -74,12 +74,6 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
-      - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
-
       - name: Build AppImage (native x86_64)
         if: matrix.qemu_arch == ''
         env:
@@ -149,12 +143,6 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
-      - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
-
       - name: Package
         run: fastforge package --platform macos --targets dmg
 
@@ -205,14 +193,6 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
-      - name: Apply ultralytics_yolo workaround
-        shell: pwsh
-        run: |
-          $cacheDir = "$env:USERPROFILE\.pub-cache\hosted\pub.dev\ultralytics_yolo-0.1.29"
-          if (Test-Path $cacheDir) {
-            New-Item -ItemType Directory -Force -Path "$cacheDir\example\assets" | Out-Null
-          }
-
       - name: Package Windows (ZIP + MSIX)
         run: fastforge package --platform windows --targets zip,msix
 
@@ -252,12 +232,6 @@ jobs:
 
       - name: Resolve Flutter packages
         run: flutter pub get
-
-      - name: Apply ultralytics_yolo workaround
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
 
       - name: Build Android (split APK per ABI + AAB)
         run: |

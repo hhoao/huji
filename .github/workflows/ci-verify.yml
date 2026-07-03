@@ -81,13 +81,6 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
-      - name: Apply ultralytics_yolo workaround
-        shell: bash
-        run: |
-          if [ -d "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29" ]; then
-            mkdir -p "$HOME/.pub-cache/hosted/pub.dev/ultralytics_yolo-0.1.29/example/assets"
-          fi
-
       - name: Analyze (errors only)
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 

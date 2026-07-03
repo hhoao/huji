@@ -92,7 +92,6 @@ class FastModelPredictor implements ModelPredictor {
       return _modelCache!;
     }
     _modelCache = YOLO(modelPath: _modelPath, task: YOLOTask.classify);
-    _modelCache!.loadModel();
     return _modelCache!;
   }
 
