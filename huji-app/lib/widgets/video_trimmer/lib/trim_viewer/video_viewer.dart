@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/services/universal_video_controller.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
 class VideoViewer extends StatelessWidget {
   final UniversalVideoController? videoPlayerController;
@@ -20,6 +21,7 @@ class VideoViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
     final controller = videoPlayerController;
     return controller == null
         ? Container()
@@ -38,9 +40,9 @@ class VideoViewer extends StatelessWidget {
                         ),
                         child: controller.buildVideoWidget(),
                       )
-                    : const Center(
+                    : Center(
                         child: CircularProgressIndicator(
-                          backgroundColor: Colors.white,
+                          color: trimmerTheme.active,
                         ),
                       ),
               ),

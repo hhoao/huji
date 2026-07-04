@@ -1,7 +1,10 @@
 import 'dart:io';
+import 'dart:ui';
 
 import 'package:path/path.dart' as path;
+import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/models/ffmpeg.dart';
+import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:huji_app/utils/ffmpeg_error_utils.dart';
@@ -36,6 +39,20 @@ import 'package:huji_app/utils/logger_utils.dart';
 class VideoCompressUtils {
   static final AppLogger _logger = AppLogger();
 
+  static HujiLocalizations _resolveL10n([HujiLocalizations? l10n]) {
+    if (l10n != null) return l10n;
+
+    final context = appRouter.routerDelegate.navigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      return HujiLocalizations.of(context);
+    }
+
+    final locale = PlatformDispatcher.instance.locale;
+    return lookupHujiLocalizations(
+      locale.languageCode == 'en' ? const Locale('en') : const Locale('zh'),
+    );
+  }
+
   /// 压缩视频
   /// [inputPath] 输入视频路径
   /// [config] 压缩配置
@@ -43,10 +60,12 @@ class VideoCompressUtils {
   static Future<void> compressVideo(
     String inputPath, {
     VideoCompressConfig config = const VideoCompressConfig(),
+    HujiLocalizations? l10n,
     Function(double)? onProgress,
     Function(VideoCompressResult)? onSuccess,
     Function(VideoCompressResult)? onError,
   }) async {
+    final messages = _resolveL10n(l10n);
     final startTime = DateTime.now();
 
     try {
@@ -56,7 +75,7 @@ class VideoCompressUtils {
         onError?.call(
           VideoCompressResult(
             success: false,
-            errorMessage: '输入文件不存在: $inputPath',
+            errorMessage: messages.videoCompressInputNotFound(inputPath),
           ),
         );
         return;
@@ -68,14 +87,17 @@ class VideoCompressUtils {
 
       if (originalInfo == null) {
         onError?.call(
-          VideoCompressResult(success: false, errorMessage: '无法获取视频信息'),
+          VideoCompressResult(
+            success: false,
+            errorMessage: messages.videoCompressInfoUnavailable,
+          ),
         );
         return;
       }
 
       final outputPath = await _generateOutputPath(inputPath, config);
 
-      final command = _buildCompressCommand(
+      final args = _buildCompressCommand(
         inputPath,
         outputPath,
         config,
@@ -84,10 +106,10 @@ class VideoCompressUtils {
 
       _logger.i('开始压缩视频: $inputPath');
       _logger.i('原始信息: ${originalInfo.toJson()}');
-      _logger.i('FFmpeg命令: $command');
+      _logger.i('FFmpeg命令: ${formatFFmpegArgsForLog(args)}');
 
       final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
+        args,
         onProgress: onProgress != null && originalDuration != null
             ? (progress) => onProgress(progress)
             : null,
@@ -121,12 +143,12 @@ class VideoCompressUtils {
             ),
           );
         } else {
-          onError?.call(VideoCompressResult.error('输出文件未生成'));
+          onError?.call(VideoCompressResult.error(messages.videoCompressOutputNotGenerated));
         }
       } else if (FFmpegErrorUtils.isCancelledReturnCode(result.returnCode)) {
         _logger.i('视频压缩已取消: $inputPath');
         onError?.call(
-          VideoCompressResult.error(FFmpegErrorUtils.cancelledMessage),
+          VideoCompressResult.error(FFmpegErrorUtils.cancelledSentinel),
         );
       } else {
         final logs = result.output ?? '';
@@ -136,16 +158,19 @@ class VideoCompressUtils {
           FFmpegErrorUtils.buildCommandException(
             operation: '视频压缩',
             returnCode: result.returnCode,
-            command: command,
+            command: formatFFmpegArgsForLog(args),
             logs: logs,
           ),
         );
-        onError?.call(VideoCompressResult.error('压缩失败: $logs'));
+        onError?.call(VideoCompressResult.error(messages.videoCompressFailed(logs)));
       }
     } catch (e, stackTrace) {
       _logger.e('视频压缩异常: $e', stackTrace, e);
       onError?.call(
-        VideoCompressResult(success: false, errorMessage: '压缩异常: $e'),
+        VideoCompressResult(
+          success: false,
+          errorMessage: messages.videoCompressException('$e'),
+        ),
       );
     }
   }
@@ -269,8 +294,8 @@ class VideoCompressUtils {
     }
   }
 
-  /// 构建ffmpeg压缩命令
-  static String _buildCompressCommand(
+  /// 构建ffmpeg压缩命令参数
+  static List<String> _buildCompressCommand(
     String inputPath,
     String outputPath,
     VideoCompressConfig config,
@@ -349,7 +374,7 @@ class VideoCompressUtils {
 
     args.addAll(additionalArgs);
 
-    return args.join(' ');
+    return args;
   }
 
   /// 格式化文件大小
@@ -365,10 +390,8 @@ class VideoCompressUtils {
   /// 获取视频信息
   static Future<VideoInfo?> getVideoInfo(String videoPath) async {
     try {
-      final command = '-i "$videoPath" -t 0 -f null -';
-      final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
-      );
+      final args = ['-i', videoPath, '-t', '0', '-f', 'null', '-'];
+      final result = await FFmpegRunner.instance.execute(args);
       final logs = result.output ?? '';
 
       if (!result.isSuccess) {
@@ -382,7 +405,7 @@ class VideoCompressUtils {
           FFmpegErrorUtils.buildCommandException(
             operation: '获取压缩视频信息',
             returnCode: result.returnCode,
-            command: command,
+            command: formatFFmpegArgsForLog(args),
             logs: logs,
           ),
         );

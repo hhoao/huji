@@ -11,19 +11,13 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
   final media_kit.Player _player = media_kit.Player();
   late final media_kit_video.VideoController _videoController;
   final List<VoidCallback> _listeners = [];
-  StreamSubscription? _positionSub;
   StreamSubscription? _playingSub;
   bool _isInitialized = false;
 
   MediaKitPlayerAdapter() {
     // Create VideoController BEFORE player.open() so the Video widget
     // can register its texture before media loading begins.
-    _videoController = media_kit_video.VideoController(
-      _player,
-      configuration: const media_kit_video.VideoControllerConfiguration(
-        enableHardwareAcceleration: false,
-      ),
-    );
+    _videoController = media_kit_video.VideoController(_player);
   }
 
   @override
@@ -33,7 +27,7 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
         .firstWhere((d) => d > Duration.zero)
         .timeout(const Duration(seconds: 5));
 
-    await _player.open(media_kit.Media(file.path));
+    await _player.open(media_kit.Media(file.path), play: false);
 
     // Wait for duration metadata (media_kit loads it asynchronously).
     try {
@@ -44,7 +38,7 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
 
     _isInitialized = true;
 
-    _positionSub = _player.stream.position.listen((_) => _notifyListeners());
+    // Position is polled on a timer in TrimmerBloc; only listen for play/pause.
     _playingSub = _player.stream.playing.listen((_) => _notifyListeners());
   }
 
@@ -56,7 +50,6 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
 
   @override
   Future<void> dispose() async {
-    _positionSub?.cancel();
     _playingSub?.cancel();
     await _player.dispose();
     _listeners.clear();
@@ -105,6 +98,9 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
 
   @override
   Widget buildVideoWidget() {
-    return media_kit_video.Video(controller: _videoController);
+    return media_kit_video.Video(
+      controller: _videoController,
+      controls: media_kit_video.NoVideoControls,
+    );
   }
 }

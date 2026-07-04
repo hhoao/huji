@@ -78,7 +78,7 @@ ProcessVideoRecord _$ProcessVideoRecordFromJson(Map<String, dynamic> json) =>
             $enumDecodeNullable(_$ClipModeEnumMap, json['clipMode']) ??
             ClipMode.existingVideo,
         videoClipConfigReqVo: _videoClipConfigReqVoFromJson(
-          json['videoClipConfigReqVo'] as String,
+          json['videoClipConfigReqVo'],
         ),
         taskId: json['taskId'] as String,
       )

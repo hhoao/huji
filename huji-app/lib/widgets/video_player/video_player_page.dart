@@ -18,6 +18,7 @@ import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/widgets/screenshot_progress_dialog.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoPlayerPage extends StatefulWidget {
   final String videoUrl;
@@ -106,7 +107,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       }
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('初始化播放器失败', e.toString());
+        _showErrorDialog(context.hujiL10n.videoPlayerInitFailed(e.toString()), e.toString());
       }
     }
   }
@@ -119,15 +120,18 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           context: context,
           builder: (context) => AlertDialog(
             backgroundColor: Colors.grey[900],
-            title: const Text('文件不存在', style: TextStyle(color: Colors.white)),
+            title: Text(
+              context.hujiL10n.videoPlayerFileNotFound,
+              style: const TextStyle(color: Colors.white),
+            ),
             content: Text(
-              '文件已被移动或删除：\n$videoUrl',
+              context.hujiL10n.videoPlayerFileMovedOrDeleted(videoUrl),
               style: const TextStyle(color: Colors.white),
             ),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('确定', style: TextStyle(color: Colors.white)),
+                child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -151,7 +155,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       await _initializeController();
     } catch (e) {
       if (mounted) {
-        _showErrorDialog('初始化网络播放器失败', e.toString());
+        _showErrorDialog(
+          context.hujiL10n.videoPlayerNetworkInitFailed(e.toString()),
+          e.toString(),
+        );
       }
     }
   }
@@ -195,7 +202,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               Navigator.of(context).pop();
               Navigator.of(context).pop();
             },
-            child: const Text('确定', style: TextStyle(color: Colors.white)),
+            child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -204,7 +211,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   Widget _buildLoadingWidget() {
     if (_isLocal()) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     return Container(
@@ -214,12 +221,14 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(Icons.cloud_download, color: Colors.white, size: 48),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             Text(
-              _isInitialized ? '正在初始化播放器...' : '正在加载视频...',
+              _isInitialized
+                  ? context.hujiL10n.videoPlayerInitializing
+                  : context.hujiL10n.videoPlayerLoadingVideo,
               style: const TextStyle(color: Colors.white, fontSize: 16),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             const CircularProgressIndicator(color: Colors.white),
           ],
         ),
@@ -365,12 +374,15 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('重命名文件', style: TextStyle(color: Colors.white)),
+        title: Text(
+          context.hujiL10n.renameFileTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
         content: TextField(
           controller: controller,
           style: const TextStyle(color: Colors.white),
-          decoration: const InputDecoration(
-            labelText: '新文件名',
+          decoration: InputDecoration(
+            labelText: context.hujiL10n.newFileNameLabel,
             labelStyle: TextStyle(color: Colors.grey),
             enabledBorder: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey),
@@ -383,11 +395,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消', style: TextStyle(color: Colors.white)),
+            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('确定', style: TextStyle(color: Colors.blue)),
+            child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.blue)),
           ),
         ],
       ),
@@ -400,8 +412,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (await File(newPath).exists()) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('文件名已存在'),
+            SnackBar(
+              content: Text(context.hujiL10n.fileNameAlreadyExists),
               backgroundColor: Colors.red,
             ),
           );
@@ -414,7 +426,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       });
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('重命名成功'), backgroundColor: Colors.green),
+          SnackBar(
+            content: Text(context.hujiL10n.renameSucceeded),
+            backgroundColor: Colors.green,
+          ),
         );
       }
     }
@@ -423,20 +438,30 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   Future<void> _showFileInfo(BuildContext context) async {
     final file = File(videoUrl);
     final stat = await file.stat();
+    final l10n = context.hujiL10n;
     final info = [
-      '文件名: $_currentFileName',
-      '缓存路径: ${file.path}',
-      '大小: ${_formatFileSize(_originSize)}',
-      '创建时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.changed)}',
-      '修改时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.modified)}',
-      '访问时间: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.accessed)}',
+      l10n.fileInfoFileName(_currentFileName ?? ''),
+      l10n.fileInfoCachePath(file.path),
+      l10n.fileInfoSize(_formatFileSize(_originSize)),
+      l10n.fileInfoCreatedAt(
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.changed),
+      ),
+      l10n.fileInfoModifiedAt(
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.modified),
+      ),
+      l10n.fileInfoAccessedAt(
+        DateFormat('yyyy-MM-dd HH:mm:ss').format(stat.accessed),
+      ),
     ];
     if (context.mounted) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
           backgroundColor: Colors.grey[900],
-          title: const Text('详细信息', style: TextStyle(color: Colors.white)),
+          title: Text(
+            l10n.fileDetailsTitle,
+            style: const TextStyle(color: Colors.white),
+          ),
           content: SelectableText(
             info.join('\n'),
             style: const TextStyle(color: Colors.white),
@@ -444,7 +469,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: const Text('关闭', style: TextStyle(color: Colors.white)),
+              child: Text(context.hujiL10n.actionClose, style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
@@ -458,19 +483,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('确认删除', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          '确定要删除该文件吗？此操作不可恢复。',
-          style: TextStyle(color: Colors.white),
+        title: Text(context.hujiL10n.confirmDelete, style: TextStyle(color: Colors.white)),
+        content: Text(
+          context.hujiL10n.confirmDeleteFileMessage,
+          style: const TextStyle(color: Colors.white),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消', style: TextStyle(color: Colors.white)),
+            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
+            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -481,8 +506,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         Navigator.of(context).pop();
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('文件已删除'),
+            SnackBar(
+              content: Text(context.hujiL10n.fileDeleted),
               backgroundColor: Colors.orange,
             ),
           );
@@ -505,19 +530,25 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Colors.grey[900],
-        title: const Text('清除缓存', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          '确定要清除该视频的缓存吗？',
-          style: TextStyle(color: Colors.white),
+        title: Text(
+          context.hujiL10n.clearCacheTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
+        content: Text(
+          context.hujiL10n.confirmClearCacheMessage,
+          style: const TextStyle(color: Colors.white),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('取消', style: TextStyle(color: Colors.white)),
+            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('清除', style: TextStyle(color: Colors.blue)),
+            child: Text(
+              context.hujiL10n.actionClear,
+              style: const TextStyle(color: Colors.blue),
+            ),
           ),
         ],
       ),
@@ -528,8 +559,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         DefaultCacheManager().removeFile(getCacheKey());
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('缓存已清除'),
+            SnackBar(
+              content: Text(context.hujiL10n.cacheCleared),
               backgroundColor: Colors.green,
             ),
           );
@@ -538,7 +569,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       } catch (e) {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('清除缓存失败: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(context.hujiL10n.clearCacheFailed(e.toString())),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -660,7 +694,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     ),
                     Expanded(
                       child: Text(
-                        _currentFileName ?? '未知文件',
+                        _currentFileName ?? context.hujiL10n.unknownFile,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
@@ -719,7 +753,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           ),
           Expanded(
             child: Text(
-              _currentFileName ?? '未知文件',
+              _currentFileName ?? context.hujiL10n.unknownFile,
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -794,10 +828,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       child: Row(
                         children: [
                           const Icon(Icons.edit, size: 20, color: Colors.white),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '重命名',
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            context.hujiL10n.actionRename,
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -811,10 +845,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                           size: 20,
                           color: Colors.white,
                         ),
-                        const SizedBox(width: 8),
-                        const Text(
-                          '详细信息',
-                          style: TextStyle(color: Colors.white),
+                        SizedBox(width: 8),
+                        Text(
+                          context.hujiL10n.fileDetailsTitle,
+                          style: const TextStyle(color: Colors.white),
                         ),
                       ],
                     ),
@@ -829,10 +863,8 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             size: 20,
                             color: Colors.white,
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '打开文件夹',
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -848,10 +880,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                             size: 20,
                             color: Colors.white,
                           ),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '清除缓存',
-                            style: TextStyle(color: Colors.white),
+                          SizedBox(width: 8),
+                          Text(
+                            context.hujiL10n.clearCacheTitle,
+                            style: const TextStyle(color: Colors.white),
                           ),
                         ],
                       ),
@@ -861,8 +893,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                     child: Row(
                       children: [
                         const Icon(Icons.delete, size: 20, color: Colors.red),
-                        const SizedBox(width: 8),
-                        const Text('删除文件', style: TextStyle(color: Colors.red)),
+                        SizedBox(width: 8),
+                        Text(
+                          context.hujiL10n.deleteFile,
+                          style: const TextStyle(color: Colors.red),
+                        ),
                       ],
                     ),
                   ),
@@ -893,7 +928,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                   fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
@@ -901,7 +936,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
-                  _isLocal() ? '本地' : '网络',
+                  _isLocal() ? context.hujiL10n.sourceLocal : context.hujiL10n.sourceNetwork,
                   style: TextStyle(
                     color: _isLocal() ? Colors.green[700] : Colors.blue[700],
                     fontSize: 10,
@@ -910,7 +945,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 ),
               ),
               if (_isCached) ...[
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 6,
@@ -928,10 +963,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                         color: Colors.green,
                         size: 10,
                       ),
-                      const SizedBox(width: 2),
-                      const Text(
-                        '已缓存',
-                        style: TextStyle(color: Colors.green, fontSize: 10),
+                      SizedBox(width: 2),
+                      Text(
+                        context.hujiL10n.cachedBadge,
+                        style: const TextStyle(color: Colors.green, fontSize: 10),
                       ),
                     ],
                   ),
@@ -942,7 +977,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             ],
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 播放进度
           Row(
@@ -962,9 +997,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                       color: _isSlowMotion ? Colors.blue : Colors.white,
                       size: 16,
                     ),
-                    const SizedBox(width: 4),
+                    SizedBox(width: 4),
                     Text(
-                      '慢放',
+                      context.hujiL10n.slowMotion,
                       style: TextStyle(
                         color: _isSlowMotion ? Colors.blue : Colors.white,
                         fontSize: 12,
@@ -974,7 +1009,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 ),
               ),
               _buildSpeedMenu(),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Text(
                 _formatDuration(_totalDuration),
                 style: const TextStyle(color: Colors.white, fontSize: 14),
@@ -1008,35 +1043,37 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 播放控制按钮
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _buildControlButton(
-                '-5秒',
+                context.hujiL10n.seekBackward5s,
                 Icons.replay_5,
                 () => _seekRelative(const Duration(seconds: -5)),
               ),
               _buildControlButton(
-                '-1秒',
+                context.hujiL10n.seekBackward1s,
                 Icons.replay,
                 () => _seekRelative(const Duration(seconds: -1)),
               ),
               _buildControlButton(
-                _isPlaying ? '暂停' : '播放',
+                _isPlaying
+                    ? context.hujiL10n.actionPause
+                    : context.hujiL10n.actionPlay,
                 _isPlaying ? Icons.pause : Icons.play_arrow,
                 _togglePlayPause,
                 isMain: true,
               ),
               _buildControlButton(
-                '+1秒',
+                context.hujiL10n.seekForward1s,
                 Icons.fast_forward,
                 () => _seekRelative(const Duration(seconds: 1)),
               ),
               _buildControlButton(
-                '+5秒',
+                context.hujiL10n.seekForward5s,
                 Icons.fast_forward,
                 () => _seekRelative(const Duration(seconds: 5)),
               ),
@@ -1131,7 +1168,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             ),
             child: Icon(icon, color: Colors.white, size: isMain ? 24 : 20),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
             label,
             style: const TextStyle(color: Colors.white, fontSize: 12),
@@ -1160,7 +1197,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             ),
             child: Icon(icon, color: Colors.white, size: isMain ? 20 : 16),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(
             label,
             style: const TextStyle(color: Colors.white, fontSize: 10),
@@ -1214,35 +1251,37 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           ),
         ),
 
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
 
         // 播放控制按钮
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
             _buildFullScreenControlButton(
-              '-5秒',
+              context.hujiL10n.seekBackward5s,
               Icons.replay_5,
               () => _seekRelative(const Duration(seconds: -5)),
             ),
             _buildFullScreenControlButton(
-              '-1秒',
+              context.hujiL10n.seekBackward1s,
               Icons.replay,
               () => _seekRelative(const Duration(seconds: -1)),
             ),
             _buildFullScreenControlButton(
-              _isPlaying ? '暂停' : '播放',
+              _isPlaying
+                  ? context.hujiL10n.actionPause
+                  : context.hujiL10n.actionPlay,
               _isPlaying ? Icons.pause : Icons.play_arrow,
               _togglePlayPause,
               isMain: true,
             ),
             _buildFullScreenControlButton(
-              '+1秒',
+              context.hujiL10n.seekForward1s,
               Icons.fast_forward,
               () => _seekRelative(const Duration(seconds: 1)),
             ),
             _buildFullScreenControlButton(
-              '+5秒',
+              context.hujiL10n.seekForward5s,
               Icons.fast_forward,
               () => _seekRelative(const Duration(seconds: 5)),
             ),
@@ -1284,7 +1323,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('视频已保存到${file.parent.path}/$name'),
+              content: Text(
+                context.hujiL10n.videoSavedTo('${file.parent.path}/$name'),
+              ),
               behavior: SnackBarBehavior.floating,
             ),
           );
@@ -1331,8 +1372,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         if (taskById.status == TaskStatusEnum.completed) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('下载完成'),
+              SnackBar(content: Text(context.hujiL10n.downloadCompleted),
                 backgroundColor: Colors.green,
                 duration: Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
@@ -1343,8 +1383,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         } else if (taskById.status == TaskStatusEnum.failed) {
           if (context.mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('下载失败'),
+              SnackBar(content: Text(context.hujiL10n.downloadFailed),
                 backgroundColor: Colors.red,
                 duration: Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,

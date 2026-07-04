@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:uuid/uuid.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
+import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:video_player/video_player.dart';
 
 import '../../../services/platform_capability.dart';
@@ -24,16 +26,34 @@ class MultiVideoPlayerBloc
   /// Desktop media_kit player instances keyed by video path.
   final Map<String, media_kit.Player> _desktopPlayers = {};
 
+  /// Desktop video controllers — must be created before player.open().
+  final Map<String, media_kit_video.VideoController> _desktopVideoControllers =
+      {};
+
   /// 操作锁，防止竞态条件
   final Lock _operationLock = Lock();
 
   bool _waitForGoNext = false;
+  bool _isScrubbing = false;
+  bool _resumeAfterScrub = false;
+
+  /// Caps progress UI updates; segment boundary checks run on the same tick.
+  Timer? _progressTimer;
+  static const _progressInterval = Duration(milliseconds: 100);
+
+  media_kit_video.VideoController? get desktopVideoController {
+    final path = state.currentVideoPath;
+    if (path == null) return null;
+    return _desktopVideoControllers[path];
+  }
 
   MultiVideoPlayerBloc() : super(const MultiVideoPlayerState()) {
     on<SetItemsEvent>(_onSetItems);
     on<PlayEvent>(_onPlay);
     on<PauseEvent>(_onPause);
     on<SeekToEvent>(_onSeekTo);
+    on<ScrubStartEvent>(_onScrubStart);
+    on<ScrubEndEvent>(_onScrubEnd);
     on<SetPlaybackSpeedEvent>(_onSetPlaybackSpeed);
     on<SetVolumeEvent>(_onSetVolume);
     on<SetLoopingEvent>(_onSetLooping);
@@ -55,19 +75,30 @@ class MultiVideoPlayerBloc
     Emitter<MultiVideoPlayerState> emit,
   ) async {
     await _operationLock.synchronized(() async {
-      await _preloadVideos(event.items);
+      try {
+        await _preloadVideos(event.items);
 
-      emit(
-        state.copyWith(
-          isLoading: false,
-          items: event.items,
-          isLooping: event.isLooping,
-          currentTimeMs: 0,
-          currentVideoController: null,
-        ),
-      );
+        emit(
+          state.copyWith(
+            isLoading: false,
+            items: event.items,
+            isLooping: event.isLooping,
+            currentTimeMs: 0,
+            currentVideoController: null,
+          ),
+        );
 
-      await _seekTo(emit, 0);
+        await _seekTo(emit, 0);
+      } catch (e, st) {
+        debugPrint('[MultiVideoPlayerBloc] SetItems failed: $e\n$st');
+        emit(
+          state.copyWith(
+            isLoading: false,
+            items: event.items,
+            isLooping: event.isLooping,
+          ),
+        );
+      }
     });
   }
 
@@ -88,8 +119,9 @@ class MultiVideoPlayerBloc
       }
 
       // 开始播放
-      await state.currentVideoController!.play();
+      await _playController(state.currentVideoController);
       emit(state.copyWith(isPlaying: true));
+      _startProgressTimer();
     });
   }
 
@@ -101,11 +133,13 @@ class MultiVideoPlayerBloc
     await _operationLock.synchronized(() async {
       if (!state.isPlaying) return;
 
+      _stopProgressTimer();
+
       // 立即更新状态，防止监听器继续处理
       emit(state.copyWith(isPlaying: false));
 
       // 暂停当前视频
-      await state.currentVideoController?.pause();
+      await _pauseController(state.currentVideoController);
     });
   }
 
@@ -120,6 +154,37 @@ class MultiVideoPlayerBloc
       }
 
       await _seekTo(emit, event.timeMs);
+    });
+  }
+
+  Future<void> _onScrubStart(
+    ScrubStartEvent event,
+    Emitter<MultiVideoPlayerState> emit,
+  ) async {
+    await _operationLock.synchronized(() async {
+      _isScrubbing = true;
+      _resumeAfterScrub = state.isPlaying;
+      _stopProgressTimer();
+      if (_resumeAfterScrub) {
+        await _pauseController(state.currentVideoController);
+        emit(state.copyWith(isPlaying: false));
+      }
+    });
+  }
+
+  Future<void> _onScrubEnd(
+    ScrubEndEvent event,
+    Emitter<MultiVideoPlayerState> emit,
+  ) async {
+    await _operationLock.synchronized(() async {
+      await _seekTo(emit, event.timeMs);
+      _isScrubbing = false;
+      if (_resumeAfterScrub) {
+        await _playController(state.currentVideoController);
+        emit(state.copyWith(isPlaying: true));
+        _startProgressTimer();
+      }
+      _resumeAfterScrub = false;
     });
   }
 
@@ -189,51 +254,49 @@ class MultiVideoPlayerBloc
     });
   }
 
-  /// 视频状态更新
-  Future<void> _onVideoUpdate(
+  /// 视频状态更新（定时 tick，避免 position 流高频触发锁竞争与 UI 重建）
+  void _onVideoUpdate(
     VideoUpdateEvent event,
     Emitter<MultiVideoPlayerState> emit,
-  ) async {
-    await _operationLock.synchronized(() async {
-      if (state.items.isEmpty ||
-          state.currentItem == null ||
-          state.currentVideoController == null ||
-          !state.isPlaying) {
-        return;
-      }
+  ) {
+    if (state.items.isEmpty ||
+        state.currentItem == null ||
+        state.currentVideoController == null ||
+        !state.isPlaying) {
+      return;
+    }
 
-      if (_waitForGoNext) {
-        return;
-      }
+    if (_waitForGoNext || _isScrubbing) return;
 
-      // 检查视频内部的播放时间
-      final currentVideoPosition =
-          state.currentVideoController!.value.position.inMilliseconds as int;
-      final videoEndTime = state.currentItem!.endTimeMs;
+    final currentVideoPosition = state.currentVideoPositionMs;
+    if (currentVideoPosition == null) return;
 
-      if (videoEndTime == null) {
-        // 播放到视频结尾的情况，检查视频是否真的播放完毕
-        final videoDuration =
-            state.currentVideoController!.value.duration.inMilliseconds;
-        if (videoDuration > 0 && currentVideoPosition >= videoDuration) {
-          state.currentVideoController?.pause();
-          _waitForGoNext = true;
-          add(const GoToNextEvent());
-        }
-      } else {
-        if (currentVideoPosition >= videoEndTime) {
-          state.currentVideoController?.pause();
-          _waitForGoNext = true;
-          add(const GoToNextEvent());
-        } else if (state.currentTimeMs != currentVideoPosition) {
-          final videoStartTime = state.currentItem?.startTimeMs ?? 0;
-          final newCurrentTimeMs =
-              state.getItemStartTime(state.currentItem!) +
-              (currentVideoPosition - videoStartTime);
-          emit(state.copyWith(currentTimeMs: newCurrentTimeMs));
-        }
+    final videoEndTime = state.currentItem!.endTimeMs;
+
+    if (videoEndTime == null) {
+      final videoDuration = state.currentVideoDurationMs;
+      if (videoDuration != null &&
+          videoDuration > 0 &&
+          currentVideoPosition >= videoDuration) {
+        _waitForGoNext = true;
+        add(const GoToNextEvent());
       }
-    });
+      return;
+    }
+
+    if (currentVideoPosition >= videoEndTime) {
+      _waitForGoNext = true;
+      add(const GoToNextEvent());
+      return;
+    }
+
+    final videoStartTime = state.currentItem?.startTimeMs ?? 0;
+    final newCurrentTimeMs =
+        state.getItemStartTime(state.currentItem!) +
+        (currentVideoPosition - videoStartTime);
+    if (state.currentTimeMs != newCurrentTimeMs) {
+      emit(state.copyWith(currentTimeMs: newCurrentTimeMs));
+    }
   }
 
   /// 预加载所有视频
@@ -264,6 +327,7 @@ class MultiVideoPlayerBloc
     for (final entry in _desktopPlayers.entries) {
       if (!uniquePaths.contains(entry.key)) {
         entry.value.dispose();
+        _desktopVideoControllers.remove(entry.key);
         keysToRemove.add(entry.key);
       }
     }
@@ -271,12 +335,13 @@ class MultiVideoPlayerBloc
       _desktopPlayers.remove(key);
     }
 
-    // Create new players
+    // Create new players — VideoController must exist before open().
     for (final path in uniquePaths) {
       if (_desktopPlayers.containsKey(path)) continue;
       final player = media_kit.Player();
-      await player.open(media_kit.Media(path));
+      _desktopVideoControllers[path] = media_kit_video.VideoController(player);
       _desktopPlayers[path] = player;
+      await player.open(media_kit.Media(path), play: false);
     }
   }
 
@@ -359,14 +424,12 @@ class MultiVideoPlayerBloc
     }
 
     if (state.isPlaying) {
-      await currentController?.play();
+      await _playController(currentController);
+    } else if (currentController is media_kit.Player) {
+      await currentController.pause();
     }
 
     if (preVideoController != currentController) {
-      if (preVideoController != null) {
-        _stopVideoListener(preVideoController);
-      }
-      _startVideoListener(currentController!);
       preVideoController?.pause();
     }
 
@@ -379,23 +442,32 @@ class MultiVideoPlayerBloc
     );
   }
 
-  void _sendUpdateVideoEvent() {
-    add(const VideoUpdateEvent());
+  void _startProgressTimer() {
+    _progressTimer?.cancel();
+    _progressTimer = Timer.periodic(_progressInterval, (_) {
+      if (!isClosed) add(const VideoUpdateEvent());
+    });
   }
 
-  void _startVideoListener(dynamic controller) {
+  void _stopProgressTimer() {
+    _progressTimer?.cancel();
+    _progressTimer = null;
+  }
+
+  Future<void> _pauseController(dynamic controller) async {
     if (controller is VideoPlayerController) {
-      controller.addListener(_sendUpdateVideoEvent);
+      await controller.pause();
     } else if (controller is media_kit.Player) {
-      controller.stream.position.listen((_) => _sendUpdateVideoEvent());
+      await controller.pause();
     }
   }
 
-  void _stopVideoListener(dynamic controller) {
+  Future<void> _playController(dynamic controller) async {
     if (controller is VideoPlayerController) {
-      controller.removeListener(_sendUpdateVideoEvent);
+      await controller.play();
+    } else if (controller is media_kit.Player) {
+      await controller.play();
     }
-    // media_kit stream subscriptions are auto-cancelled on dispose
   }
 
   /// 切换到下一个播放项
@@ -406,6 +478,7 @@ class MultiVideoPlayerBloc
 
     // 如果不是连续播放，则暂停播放
     if (!state.isContinuousPlayback) {
+      _stopProgressTimer();
       emit(state.copyWith(isPlaying: false));
       return;
     }
@@ -421,6 +494,7 @@ class MultiVideoPlayerBloc
       await _seekTo(emit, 0);
     } else {
       // 播放完毕
+      _stopProgressTimer();
       emit(state.copyWith(isPlaying: false));
     }
   }
@@ -536,15 +610,13 @@ class MultiVideoPlayerBloc
 
   @override
   Future<void> close() async {
-    final c = state.currentVideoController;
-    if (c != null) _stopVideoListener(c);
+    _stopProgressTimer();
     for (final controller in _preloadedControllers.values) {
-      _stopVideoListener(controller);
       controller.dispose();
     }
     _preloadedControllers.clear();
+    _desktopVideoControllers.clear();
     for (final player in _desktopPlayers.values) {
-      _stopVideoListener(player);
       player.dispose();
     }
     _desktopPlayers.clear();

@@ -1,0 +1,4486 @@
+{
+  "loginTitle": {
+    "en": "Sign in",
+    "zh": "登录"
+  },
+  "loginWelcome": {
+    "en": "Welcome",
+    "zh": "欢迎使用"
+  },
+  "loginSubtitle": {
+    "en": "Please sign in to your account",
+    "zh": "请登录您的账户"
+  },
+  "loginPasswordTab": {
+    "en": "Account & password",
+    "zh": "账号密码登录"
+  },
+  "loginPasswordMode": {
+    "en": "Password",
+    "zh": "密码登录"
+  },
+  "loginAuthCodeMode": {
+    "en": "Verification code",
+    "zh": "验证码登录"
+  },
+  "loginIdentifierLabel": {
+    "en": "Phone / email",
+    "zh": "手机号/邮箱"
+  },
+  "loginIdentifierLabelOr": {
+    "en": "Phone or email",
+    "zh": "手机号或邮箱"
+  },
+  "loginIdentifierHint": {
+    "en": "Enter your phone number or email",
+    "zh": "请输入手机号或邮箱"
+  },
+  "loginPasswordLabel": {
+    "en": "Password",
+    "zh": "密码"
+  },
+  "loginPasswordHint": {
+    "en": "Enter your password",
+    "zh": "请输入密码"
+  },
+  "loginAuthCodeLabel": {
+    "en": "Verification code",
+    "zh": "验证码"
+  },
+  "loginAuthCodeHint": {
+    "en": "Enter verification code",
+    "zh": "请输入验证码"
+  },
+  "loginRememberPassword": {
+    "en": "Remember password",
+    "zh": "记住密码"
+  },
+  "loginForgotPassword": {
+    "en": "Forgot password?",
+    "zh": "忘记密码？"
+  },
+  "loginNoAccount": {
+    "en": "Don't have an account? ",
+    "zh": "还没有账号? "
+  },
+  "loginRegisterNow": {
+    "en": "Sign up now",
+    "zh": "立即注册"
+  },
+  "loginRegisterAccount": {
+    "en": "Create account",
+    "zh": "注册账户"
+  },
+  "loginSuccess": {
+    "en": "Signed in successfully",
+    "zh": "登录成功"
+  },
+  "loginFailed": {
+    "en": "Sign in failed: {error}",
+    "zh": "登录失败: {error}"
+  },
+  "loginNeedLoginTitle": {
+    "en": "Sign in required",
+    "zh": "需要登录才能访问此功能"
+  },
+  "loginNeedLoginSubtitle": {
+    "en": "Please sign in to your account to continue",
+    "zh": "请先登录您的账户以继续使用"
+  },
+  "loginLoginNow": {
+    "en": "Sign in now",
+    "zh": "立即登录"
+  },
+  "loginRegisterTitle": {
+    "en": "Create account",
+    "zh": "用户注册"
+  },
+  "loginRegisterSuccess": {
+    "en": "Account created successfully",
+    "zh": "注册成功"
+  },
+  "loginRegisterFailed": {
+    "en": "Sign up failed: {error}",
+    "zh": "注册失败: {error}"
+  },
+  "loginRegistering": {
+    "en": "Signing up...",
+    "zh": "注册中..."
+  },
+  "loginAlreadyHaveAccount": {
+    "en": "Already have an account?",
+    "zh": "已有账号?"
+  },
+  "loginBackToLogin": {
+    "en": "Back to sign in",
+    "zh": "返回登录"
+  },
+  "loginResetPasswordTitle": {
+    "en": "Reset password",
+    "zh": "重置密码"
+  },
+  "loginResetPasswordSuccess": {
+    "en": "Password reset successfully",
+    "zh": "密码重置成功"
+  },
+  "loginResetPasswordFailed": {
+    "en": "Password reset failed: {error}",
+    "zh": "密码重置失败: {error}"
+  },
+  "loginNewPassword": {
+    "en": "New password",
+    "zh": "新密码"
+  },
+  "loginNewPasswordHint": {
+    "en": "Enter new password",
+    "zh": "请输入新密码"
+  },
+  "loginConfirmNewPassword": {
+    "en": "Confirm new password",
+    "zh": "确认新密码"
+  },
+  "loginConfirmNewPasswordHint": {
+    "en": "Confirm your new password",
+    "zh": "请确认新密码"
+  },
+  "loginPasswordMismatch": {
+    "en": "Passwords do not match",
+    "zh": "两次输入的密码不一致"
+  },
+  "loginRememberedPassword": {
+    "en": "Remember your password? ",
+    "zh": "想起密码了？ "
+  },
+  "loginAuthCodeSent": {
+    "en": "Verification code sent",
+    "zh": "验证码已发送"
+  },
+  "loginAuthCodeSentCheck": {
+    "en": "Verification code sent. Please check your messages.",
+    "zh": "验证码已发送，请注意查收"
+  },
+  "loginSendAuthCodeFailed": {
+    "en": "Failed to send verification code: {error}",
+    "zh": "发送验证码失败: {error}"
+  },
+  "loginSendFailed": {
+    "en": "Send failed: {error}",
+    "zh": "发送失败: {error}"
+  },
+  "loginValidationAuthCodeRequired": {
+    "en": "Please enter verification code",
+    "zh": "请输入验证码"
+  },
+  "loginValidationAuthCodeFormat": {
+    "en": "Enter a 4–6 digit verification code",
+    "zh": "请输入4-6位数字验证码"
+  },
+  "loginValidationPasswordRequired": {
+    "en": "Please enter password",
+    "zh": "请输入密码"
+  },
+  "loginValidationPasswordMinLength": {
+    "en": "Password must be at least 8 characters",
+    "zh": "密码长度至少为8位"
+  },
+  "loginValidationIdentifierRequired": {
+    "en": "Please enter phone number or email",
+    "zh": "请输入手机号或邮箱"
+  },
+  "loginValidationIdentifierInvalid": {
+    "en": "Please enter a valid phone number or email",
+    "zh": "请输入正确的手机号或邮箱"
+  },
+  "actionGetVerificationCode": {
+    "en": "Get code",
+    "zh": "获取验证码"
+  },
+  "actionSendVerificationCode": {
+    "en": "Send code",
+    "zh": "发送验证码"
+  },
+  "actionResendCodeCountdown": {
+    "en": "Resend in {countdown}s",
+    "zh": "{countdown}s后重新获取"
+  },
+  "actionCountdownSeconds": {
+    "en": "{countdown}s",
+    "zh": "{countdown}s"
+  },
+  "homePageTitle": {
+    "en": "Home",
+    "zh": "主页"
+  },
+  "homeLoading": {
+    "en": "Loading...",
+    "zh": "正在加载..."
+  },
+  "homeCarouselAiClipTitle": {
+    "en": "AI match auto-editing",
+    "zh": "AI比赛自动剪辑"
+  },
+  "homeCarouselAiClipSubtitle": {
+    "en": "Auto-clip highlights and remove rest/ball-pickup segments",
+    "zh": "自动剪辑精彩片段，移除休息捡球片段"
+  },
+  "homeStartClip": {
+    "en": "Start editing",
+    "zh": "开始剪辑"
+  },
+  "homeToolsSection": {
+    "en": "Tools",
+    "zh": "实用工具"
+  },
+  "homePingpongClip": {
+    "en": "Table tennis editing",
+    "zh": "乒乓球剪辑"
+  },
+  "homePingpongClipDesc": {
+    "en": "Edit table tennis match videos",
+    "zh": "剪辑乒乓球比赛视频"
+  },
+  "homeBadmintonClip": {
+    "en": "Badminton editing",
+    "zh": "羽毛球剪辑"
+  },
+  "homeBadmintonClipDesc": {
+    "en": "Edit badminton match videos",
+    "zh": "剪辑羽毛球比赛视频"
+  },
+  "homeImageCompress": {
+    "en": "Image compression",
+    "zh": "图片压缩"
+  },
+  "homeImageCompressDesc": {
+    "en": "Compress image files",
+    "zh": "压缩图片文件"
+  },
+  "homeVideoCompress": {
+    "en": "Video compression",
+    "zh": "视频压缩"
+  },
+  "homeVideoCompressDesc": {
+    "en": "Compress video files",
+    "zh": "压缩视频文件"
+  },
+  "homeVideoCategoryRaw": {
+    "en": "Raw",
+    "zh": "原始"
+  },
+  "homeVideoCategoryProcessing": {
+    "en": "Processing",
+    "zh": "处理中"
+  },
+  "homeVideoCategoryCompleted": {
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  "homeVideoCategoryUnknown": {
+    "en": "Unknown",
+    "zh": "未知"
+  },
+  "homeVideoProcessingProgress": {
+    "en": "Processing {progress}%",
+    "zh": "处理中 {progress}%"
+  },
+  "homeVideoSubtitlePending": {
+    "en": "Pending | Raw file",
+    "zh": "待处理 | 原始文件"
+  },
+  "homeVideoSubtitleProcessing": {
+    "en": "Processing | Task ID: {taskId}",
+    "zh": "处理中 | 处理记录ID: {taskId}"
+  },
+  "homeVideoSubtitleCompleted": {
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  "homeVideoTitleRaw": {
+    "en": "Raw video",
+    "zh": "原始视频"
+  },
+  "homeVideoTitleProcessing": {
+    "en": "Processing record #{taskId}",
+    "zh": "处理中记录Id #{taskId}"
+  },
+  "homeVideoTitleEditing": {
+    "en": "Edit video",
+    "zh": "编辑视频"
+  },
+  "homeVideoTitleUnknown": {
+    "en": "Unknown video",
+    "zh": "未知视频"
+  },
+  "homeVideoNoMoreRecords": {
+    "en": "No more records",
+    "zh": "暂无更多记录"
+  },
+  "splashTagline": {
+    "en": "Table tennis & badminton match video editing",
+    "zh": "乒乓球羽毛球比赛视频剪辑"
+  },
+  "splashInitializing": {
+    "en": "Initializing...",
+    "zh": "正在初始化..."
+  },
+  "prepareVideoFailed": {
+    "en": "Failed to prepare video: {error}",
+    "zh": "准备视频失败：{error}"
+  },
+  "loadDemoVideoFailed": {
+    "en": "Failed to load demo video: {error}",
+    "zh": "加载演示视频失败：{error}"
+  },
+  "selectSportType": {
+    "en": "Select sport type",
+    "zh": "选择运动类型"
+  },
+  "recordAndClipMode": {
+    "en": "Record & clip mode",
+    "zh": "边拍边剪辑模式"
+  },
+  "existingVideoClipMode": {
+    "en": "Existing video clip mode",
+    "zh": "已有视频剪辑模式"
+  },
+  "selectSportTypeHint": {
+    "en": "Select the sport type of the video you want to clip",
+    "zh": "请选择您要剪辑的视频运动类型"
+  },
+  "sportPingPong": {
+    "en": "Table tennis",
+    "zh": "乒乓球"
+  },
+  "pingPongAutoClipSubtitle": {
+    "en": "Automatic table tennis match video clipping",
+    "zh": "乒乓球比赛视频自动剪辑"
+  },
+  "sportClipDescription": {
+    "en": "Supports singles and doubles; automatically identifies highlight rallies",
+    "zh": "支持单打、双打比赛，自动识别精彩球片段"
+  },
+  "sportBadminton": {
+    "en": "Badminton",
+    "zh": "羽毛球"
+  },
+  "badmintonAutoClipSubtitle": {
+    "en": "Automatic badminton match video clipping",
+    "zh": "羽毛球比赛视频自动剪辑"
+  },
+  "quickTry": {
+    "en": "Quick try",
+    "zh": "快速体验"
+  },
+  "quickTryHint": {
+    "en": "No video needed — try the clipping flow with built-in samples",
+    "zh": "无需自备视频，使用内置样例立即体验剪辑流程"
+  },
+  "selectClipMode": {
+    "en": "Select clipping method",
+    "zh": "选择剪辑方式"
+  },
+  "selectClipModeHint": {
+    "en": "Choose how you want to clip your video",
+    "zh": "请选择您想要的剪辑方式"
+  },
+  "recordAndClip": {
+    "en": "Record & clip",
+    "zh": "边拍边剪辑"
+  },
+  "recordAndClipSubtitle": {
+    "en": "Record and clip video in real time",
+    "zh": "实时录制并剪辑视频"
+  },
+  "recordAndClipDescription": {
+    "en": "Record with the camera while marking and clipping segments in real time",
+    "zh": "使用摄像头实时录制视频，同时进行片段标记和剪辑"
+  },
+  "featureLiveRecording": {
+    "en": "Live recording",
+    "zh": "实时录制视频"
+  },
+  "featureInstantSegmentMarking": {
+    "en": "Instant segment marking",
+    "zh": "即时片段标记"
+  },
+  "featureRecordAndClipEfficiency": {
+    "en": "Record and clip for higher efficiency",
+    "zh": "边拍边剪，效率更高"
+  },
+  "featureOnSiteRecording": {
+    "en": "Ideal for on-site match recording",
+    "zh": "适合现场比赛录制"
+  },
+  "existingVideoClip": {
+    "en": "Clip existing video",
+    "zh": "已有视频剪辑"
+  },
+  "existingVideoClipSubtitle": {
+    "en": "Clip local video files",
+    "zh": "剪辑本地视频文件"
+  },
+  "existingVideoClipDescription": {
+    "en": "Select local video files for automatic clipping and segment extraction",
+    "zh": "选择本地视频文件进行自动剪辑和片段提取"
+  },
+  "featureMultipleFormats": {
+    "en": "Multiple video formats supported",
+    "zh": "支持多种视频格式"
+  },
+  "featureSmartSegmentDetection": {
+    "en": "Smart segment detection",
+    "zh": "智能片段识别"
+  },
+  "featureBatchProcessing": {
+    "en": "Batch processing",
+    "zh": "批量处理能力"
+  },
+  "featureCloudAndLocalClip": {
+    "en": "Cloud and local clipping",
+    "zh": "云端和本地剪辑"
+  },
+  "pingPongVideoAutoClip": {
+    "en": "Table tennis auto clip",
+    "zh": "乒乓球视频自动剪辑"
+  },
+  "badmintonVideoAutoClip": {
+    "en": "Badminton auto clip",
+    "zh": "羽毛球视频自动剪辑"
+  },
+  "cloudClipUnavailable": {
+    "en": "Cloud clipping is unavailable",
+    "zh": "无法使用云端剪辑功能"
+  },
+  "openCloudClipFailed": {
+    "en": "Failed to enable cloud clipping: {error}",
+    "zh": "打开云端剪辑功能失败: {error}"
+  },
+  "creatingTask": {
+    "en": "Creating task...",
+    "zh": "正在创建任务..."
+  },
+  "videoPathEmpty": {
+    "en": "Video file path is empty",
+    "zh": "视频文件路径为空"
+  },
+  "clipTaskCreatedRedirecting": {
+    "en": "Clip task created. Redirecting to tasks...",
+    "zh": "视频剪辑任务已创建，正在跳转到任务页面..."
+  },
+  "createTaskFailed": {
+    "en": "Failed to create task",
+    "zh": "创建任务失败"
+  },
+  "createTaskFailedWithError": {
+    "en": "Failed to create task: {error}",
+    "zh": "创建任务失败: {error}"
+  },
+  "localClipTaskCreatedRedirecting": {
+    "en": "Local clip task created. Redirecting to tasks...",
+    "zh": "本地视频剪辑任务已创建，正在跳转到任务页面..."
+  },
+  "localClipFailed": {
+    "en": "Local video clipping failed: {error}",
+    "zh": "本地视频剪辑失败: {error}"
+  },
+  "localVideoClip": {
+    "en": "Local video clip",
+    "zh": "本地视频剪辑"
+  },
+  "currentFile": {
+    "en": "Current file: {path}",
+    "zh": "当前文件: {path}"
+  },
+  "uploading": {
+    "en": "Uploading...",
+    "zh": "上传中..."
+  },
+  "recordAndClipCloud": {
+    "en": "Record & clip (cloud)",
+    "zh": "边拍边剪(云端)"
+  },
+  "cloudClip": {
+    "en": "Cloud clip",
+    "zh": "云端剪辑"
+  },
+  "fasterAndMoreAccurate": {
+    "en": "Faster & more accurate",
+    "zh": "更快更准"
+  },
+  "recordAndClipLocal": {
+    "en": "Record & clip (local)",
+    "zh": "边拍边剪(本地)"
+  },
+  "localClip": {
+    "en": "Local clip",
+    "zh": "本地剪辑"
+  },
+  "videoLoading": {
+    "en": "Loading video...",
+    "zh": "视频加载中..."
+  },
+  "noVideo": {
+    "en": "No video",
+    "zh": "暂无视频"
+  },
+  "roundClip": {
+    "en": "Round clip",
+    "zh": "回合剪辑"
+  },
+  "exporting": {
+    "en": "Exporting...",
+    "zh": "导出中..."
+  },
+  "actionExport": {
+    "en": "Export",
+    "zh": "导出"
+  },
+  "noVideoData": {
+    "en": "No video data",
+    "zh": "暂无视频数据"
+  },
+  "allRounds": {
+    "en": "All rounds",
+    "zh": "全部回合"
+  },
+  "dragToReorderHint": {
+    "en": "Long press and drag to reorder",
+    "zh": "长按拖动可调整顺序"
+  },
+  "deleteCurrentRound": {
+    "en": "Delete current round",
+    "zh": "删除当前回合"
+  },
+  "unfavorite": {
+    "en": "Remove from favorites",
+    "zh": "取消收藏"
+  },
+  "favoriteCurrentRound": {
+    "en": "Favorite current round",
+    "zh": "收藏当前回合"
+  },
+  "favoriteRounds": {
+    "en": "Favorite rounds",
+    "zh": "收藏回合"
+  },
+  "removeFromFavorites": {
+    "en": "Remove from favorites",
+    "zh": "从收藏中移除"
+  },
+  "noFavoriteRounds": {
+    "en": "No favorite rounds",
+    "zh": "暂无收藏回合"
+  },
+  "editRound": {
+    "en": "Edit round",
+    "zh": "编辑回合"
+  },
+  "editFeatureUnavailable": {
+    "en": "Editing is unavailable",
+    "zh": "无法使用编辑功能"
+  },
+  "openEditFeatureFailed": {
+    "en": "Failed to open editing",
+    "zh": "打开编辑功能失败"
+  },
+  "noVideoDataAvailable": {
+    "en": "No video data available",
+    "zh": "没有可用的视频数据"
+  },
+  "videoFileNotFound": {
+    "en": "Video file does not exist",
+    "zh": "视频文件不存在"
+  },
+  "noSegmentsToSave": {
+    "en": "No segments to save",
+    "zh": "没有可保存的片段"
+  },
+  "detectedSegments": {
+    "en": "Detected segments",
+    "zh": "检测到的片段"
+  },
+  "featureNotSupportedOnDesktop": {
+    "en": "This feature is not supported on desktop",
+    "zh": "此功能在桌面端暂不支持"
+  },
+  "actionDone": {
+    "en": "Done",
+    "zh": "完成"
+  },
+  "realtimeDetecting": {
+    "en": "Detecting in real time",
+    "zh": "实时检测中"
+  },
+  "recordAndClipRealtimeDetection": {
+    "en": "Record & clip real-time detection",
+    "zh": "边拍边剪辑实时检测"
+  },
+  "selectVideoFileFirst": {
+    "en": "Please select a video file first",
+    "zh": "请先选择视频文件"
+  },
+  "cloudDetectionTaskName": {
+    "en": "Cloud detection: {fileName}",
+    "zh": "云端检测：{fileName}"
+  },
+  "tasksSubmitted": {
+    "en": "Submitted {successCount} task(s){failSuffix}",
+    "zh": "已提交 {successCount} 个任务{failSuffix}"
+  },
+  "tasksSubmittedFailSuffix": {
+    "en": ", {failCount} failed",
+    "zh": "，{failCount} 个失败"
+  },
+  "viewTasks": {
+    "en": "View tasks",
+    "zh": "查看任务"
+  },
+  "localDetectionTaskName": {
+    "en": "Local detection: {fileName}",
+    "zh": "本地检测：{fileName}"
+  },
+  "localDetecting": {
+    "en": "Running local detection…",
+    "zh": "正在本地检测…"
+  },
+  "segmentsDetectedResult": {
+    "en": "Detected {count} match segment(s) ({seconds}s)",
+    "zh": "检测到 {count} 个比赛片段 ({seconds}s)"
+  },
+  "processDetectionResultFailed": {
+    "en": "Failed to process detection result: {error}",
+    "zh": "处理检测结果失败: {error}"
+  },
+  "localDetectionFailed": {
+    "en": "Local detection failed: {error}",
+    "zh": "本地检测失败: {error}"
+  },
+  "localDetectionTasksSubmitted": {
+    "en": "Submitted {count} local detection task(s). You can leave this page and check the task list.",
+    "zh": "已提交 {count} 个本地检测任务，可离开页面查看任务列表"
+  },
+  "newClip": {
+    "en": "New clip",
+    "zh": "新建剪辑"
+  },
+  "actionCancel": {
+    "en": "Cancel",
+    "zh": "取消"
+  },
+  "startDetectionClip": {
+    "en": "Start detection & clip",
+    "zh": "开始检测剪辑"
+  },
+  "pingPongMatchVideoClip": {
+    "en": "Table tennis match video clipping",
+    "zh": "乒乓球比赛视频剪辑"
+  },
+  "badmintonMatchVideoClip": {
+    "en": "Badminton match video clipping",
+    "zh": "羽毛球比赛视频剪辑"
+  },
+  "uploadVideoHint": {
+    "en": "Upload your match videos to automatically trim rest periods. You can leave this page while processing; you'll get a desktop notification when done.",
+    "zh": "上传你收集的视频，自动裁剪掉休息片段。视频处理期间可离开页面，处理完后会有桌面通知。"
+  },
+  "clipConfig": {
+    "en": "Clip settings",
+    "zh": "剪辑配置"
+  },
+  "defaultPreset": {
+    "en": "Default preset",
+    "zh": "默认预设"
+  },
+  "trainingPreset": {
+    "en": "Training match preset",
+    "zh": "训练赛配置"
+  },
+  "officialMatchPreset": {
+    "en": "Official match preset",
+    "zh": "正式比赛配置"
+  },
+  "badmintonDefaultPreset": {
+    "en": "Badminton default",
+    "zh": "羽毛球默认"
+  },
+  "detectionMode": {
+    "en": "Detection mode",
+    "zh": "检测方式"
+  },
+  "cloudDetection": {
+    "en": "Cloud detection",
+    "zh": "云端检测"
+  },
+  "cloudDetectionHelp": {
+    "en": "Requires internet; higher accuracy",
+    "zh": "需要联网，精度更高"
+  },
+  "localDetection": {
+    "en": "Local detection",
+    "zh": "本地检测"
+  },
+  "localDetectionHelp": {
+    "en": "Works offline; no internet required",
+    "zh": "离线使用，无需联网"
+  },
+  "localOnnxDetectionHint": {
+    "en": "Uses local ONNX models for offline detection",
+    "zh": "使用本地 ONNX 模型进行离线检测"
+  },
+  "cloudDetectionHint": {
+    "en": "Uses cloud services for detection; internet required",
+    "zh": "使用云端服务进行检测，需要联网"
+  },
+  "localModelNotFoundFallback": {
+    "en": "Local models not found; falling back to cloud detection",
+    "zh": "未找到本地模型，已回退为云端检测"
+  },
+  "clipOptions": {
+    "en": "Clip options",
+    "zh": "剪辑选项"
+  },
+  "highlightClip": {
+    "en": "Highlight clip",
+    "zh": "精彩球剪辑"
+  },
+  "highlightClipHelp": {
+    "en": "Automatically identify and keep highlight rallies",
+    "zh": "自动识别并保留精彩回合"
+  },
+  "removeReplay": {
+    "en": "Remove replays",
+    "zh": "移除回放"
+  },
+  "removeReplayHelp": {
+    "en": "Automatically skip replay segments",
+    "zh": "自动跳过回放片段"
+  },
+  "mergeAdjacentRounds": {
+    "en": "Merge adjacent rounds",
+    "zh": "合并相邻回合"
+  },
+  "mergeAdjacentRoundsHelp": {
+    "en": "Auto-merge rounds less than 3 seconds apart",
+    "zh": "间隔小于 3 秒自动合并"
+  },
+  "minHighlightDuration": {
+    "en": "Minimum highlight duration",
+    "zh": "精彩球最小时长"
+  },
+  "durationSeconds": {
+    "en": "{seconds} s",
+    "zh": "{seconds} 秒"
+  },
+  "minDurationHint": {
+    "en": "Rounds shorter than this will not be kept",
+    "zh": "小于此时长的回合不会被保留"
+  },
+  "configPresetMismatch": {
+    "en": "{count} settings differ from \"{presetName}\"",
+    "zh": "已设置 {count} 项参数 · 与\"{presetName}\" 不一致"
+  },
+  "presetComingSoon": {
+    "en": "Preset feature coming soon",
+    "zh": "预设功能即将推出"
+  },
+  "saveAsPreset": {
+    "en": "Save current as preset",
+    "zh": "保存当前为预设"
+  },
+  "videoQualityWarning": {
+    "en": "Camera angle, framing, and resolution affect detection quality. Shoot horizontally at ≥ 720p and avoid heavy compression.",
+    "zh": "视频的角度、大小、分辨率会影响检测效果。建议水平拍摄，分辨率 ≥ 720p，不要过度压缩。"
+  },
+  "localTasks": {
+    "en": "Local tasks",
+    "zh": "本地任务"
+  },
+  "clipRecords": {
+    "en": "Clip records",
+    "zh": "剪辑记录"
+  },
+  "noTasks": {
+    "en": "No tasks",
+    "zh": "暂无任务"
+  },
+  "compressionResults": {
+    "en": "Compression results ({count} images)",
+    "zh": "压缩结果 ({count}张)"
+  },
+  "saveAll": {
+    "en": "Save all",
+    "zh": "保存全部"
+  },
+  "openFolder": {
+    "en": "Open folder",
+    "zh": "打开文件夹"
+  },
+  "imageDetails": {
+    "en": "Image details",
+    "zh": "图片详情"
+  },
+  "fileName": {
+    "en": "File name",
+    "zh": "文件名"
+  },
+  "originalSize": {
+    "en": "Original size",
+    "zh": "原始大小"
+  },
+  "compressedSize": {
+    "en": "Compressed size",
+    "zh": "压缩后大小"
+  },
+  "compressionRatio": {
+    "en": "Compression ratio",
+    "zh": "压缩率"
+  },
+  "actionClose": {
+    "en": "Close",
+    "zh": "关闭"
+  },
+  "saveToGallery": {
+    "en": "Save to gallery",
+    "zh": "保存到相册"
+  },
+  "galleryNotSupportedOnDesktop": {
+    "en": "Gallery access is not supported on desktop",
+    "zh": "相册功能在桌面端暂不支持"
+  },
+  "savedToGallery": {
+    "en": "Saved to gallery",
+    "zh": "已保存到相册"
+  },
+  "saveFailed": {
+    "en": "Save failed: {error}",
+    "zh": "保存失败: {error}"
+  },
+  "savedImagesCount": {
+    "en": "Saved {count} image(s) to gallery",
+    "zh": "成功保存 {count} 张图片到相册"
+  },
+  "featureInDevelopment": {
+    "en": "Feature in development...",
+    "zh": "功能开发中..."
+  },
+  "confirmDelete": {
+    "en": "Confirm delete",
+    "zh": "确认删除"
+  },
+  "confirmDeleteTaskMessage": {
+    "en": "Delete task \"{taskName}\"? This cannot be undone.",
+    "zh": "确定要删除任务\"{taskName}\"吗？此操作不可撤销。"
+  },
+  "taskDeleted": {
+    "en": "Deleted task \"{taskName}\"",
+    "zh": "已删除任务\"{taskName}\""
+  },
+  "actionDelete": {
+    "en": "Delete",
+    "zh": "删除"
+  },
+  "confirmCancel": {
+    "en": "Confirm cancel",
+    "zh": "确认取消"
+  },
+  "confirmCancelTaskMessage": {
+    "en": "Cancel task \"{taskName}\"? This cannot be undone.",
+    "zh": "确定要取消任务\"{taskName}\"吗？此操作不可撤销。"
+  },
+  "actionContinue": {
+    "en": "Continue",
+    "zh": "继续"
+  },
+  "taskCancelled": {
+    "en": "Cancelled task \"{taskName}\"",
+    "zh": "已取消任务\"{taskName}\""
+  },
+  "cancelTask": {
+    "en": "Cancel task",
+    "zh": "取消任务"
+  },
+  "confirmBatchDeleteMessage": {
+    "en": "Delete {count} selected task(s)? This cannot be undone.",
+    "zh": "确定要删除选中的 {count} 个任务吗？此操作不可撤销。"
+  },
+  "batchTasksDeleted": {
+    "en": "Deleted {count} task(s)",
+    "zh": "已删除 {count} 个任务"
+  },
+  "retryFailed": {
+    "en": "Retry failed: {error}",
+    "zh": "重试失败: {error}"
+  },
+  "taskPaused": {
+    "en": "Paused task \"{taskName}\"",
+    "zh": "已暂停任务\"{taskName}\""
+  },
+  "taskResumed": {
+    "en": "Resumed task \"{taskName}\"",
+    "zh": "已恢复任务\"{taskName}\""
+  },
+  "taskPauseNotSupportedWithCancel": {
+    "en": "{taskType} tasks cannot be paused; use Cancel instead",
+    "zh": "{taskType}任务不支持暂停，请使用取消按钮"
+  },
+  "taskPauseNotSupported": {
+    "en": "{taskType} tasks cannot be paused",
+    "zh": "{taskType}任务不支持暂停"
+  },
+  "viewProgress": {
+    "en": "View progress",
+    "zh": "查看进度"
+  },
+  "actionPause": {
+    "en": "Pause",
+    "zh": "暂停"
+  },
+  "actionResume": {
+    "en": "Resume",
+    "zh": "恢复"
+  },
+  "actionView": {
+    "en": "View",
+    "zh": "查看"
+  },
+  "taskStatusPending": {
+    "en": "Pending",
+    "zh": "等待中"
+  },
+  "taskStatusProcessing": {
+    "en": "Processing",
+    "zh": "处理中"
+  },
+  "taskStatusCompleted": {
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  "taskStatusFailed": {
+    "en": "Failed",
+    "zh": "失败"
+  },
+  "taskStatusPaused": {
+    "en": "Paused",
+    "zh": "暂停"
+  },
+  "taskStatusCancelled": {
+    "en": "Cancelled",
+    "zh": "已取消"
+  },
+  "taskStatusCancelledShort": {
+    "en": "Cancelled",
+    "zh": "取消"
+  },
+  "resumeTask": {
+    "en": "Resume task",
+    "zh": "恢复任务"
+  },
+  "pauseTask": {
+    "en": "Pause task",
+    "zh": "暂停任务"
+  },
+  "deleteTask": {
+    "en": "Delete task",
+    "zh": "删除任务"
+  },
+  "taskTypeVideoClip": {
+    "en": "Video clip",
+    "zh": "视频剪辑"
+  },
+  "taskTypeVideoCompress": {
+    "en": "Video compress",
+    "zh": "视频压缩"
+  },
+  "taskTypeImageCompress": {
+    "en": "Image compress",
+    "zh": "图片压缩"
+  },
+  "taskTypeVideoUpload": {
+    "en": "Video upload",
+    "zh": "视频上传"
+  },
+  "taskTypeDownload": {
+    "en": "File download",
+    "zh": "文件下载"
+  },
+  "taskTypeVideoSegmentDetect": {
+    "en": "Real-time video segment detection",
+    "zh": "实时视频片段检测"
+  },
+  "videoSegmentDetection": {
+    "en": "Video segment detection",
+    "zh": "视频片段检测"
+  },
+  "videoListTitle": {
+    "en": "Video list",
+    "zh": "视频列表"
+  },
+  "filterConditions": {
+    "en": "Filters",
+    "zh": "筛选条件"
+  },
+  "actionReset": {
+    "en": "Reset",
+    "zh": "重置"
+  },
+  "videoProcessType": {
+    "en": "Video processing type",
+    "zh": "视频处理类型"
+  },
+  "applyFilter": {
+    "en": "Apply filters",
+    "zh": "应用筛选"
+  },
+  "videoProcessTypeRaw": {
+    "en": "Original video",
+    "zh": "原视频"
+  },
+  "videoProcessTypeGreatMatch": {
+    "en": "Highlight rallies",
+    "zh": "精彩回合"
+  },
+  "videoProcessTypeAllMatchMerged": {
+    "en": "All rallies",
+    "zh": "全部回合"
+  },
+  "sportTypePingpong": {
+    "en": "Table tennis",
+    "zh": "乒乓球"
+  },
+  "sportTypeBadminton": {
+    "en": "Badminton",
+    "zh": "羽毛球"
+  },
+  "matchTypeDoubles": {
+    "en": "Doubles match",
+    "zh": "双打比赛"
+  },
+  "matchTypeSingles": {
+    "en": "Singles match",
+    "zh": "单打比赛"
+  },
+  "filterAll": {
+    "en": "All",
+    "zh": "全部"
+  },
+  "filterLocal": {
+    "en": "Local",
+    "zh": "本地"
+  },
+  "switchToListMode": {
+    "en": "Switch to list view",
+    "zh": "切换为列表模式"
+  },
+  "switchToGridMode": {
+    "en": "Switch to grid view",
+    "zh": "切换为宫格模式"
+  },
+  "loadFailed": {
+    "en": "Failed to load: {error}",
+    "zh": "加载失败: {error}"
+  },
+  "noVideos": {
+    "en": "No videos yet",
+    "zh": "暂无视频"
+  },
+  "expired": {
+    "en": "Expired",
+    "zh": "已过期"
+  },
+  "confirmDeleteLocalVideoMessage": {
+    "en": "Are you sure you want to delete this local video?",
+    "zh": "确定要删除这个本地视频吗？"
+  },
+  "videoDurationAndSize": {
+    "en": "Duration: {duration} | Size: {size}",
+    "zh": "时长: {duration} | 大小: {size}"
+  },
+  "videoExpiresAt": {
+    "en": "{date} | expires {timeAgo}",
+    "zh": "{date} | {timeAgo}过期"
+  },
+  "actionPlay": {
+    "en": "Play",
+    "zh": "播放"
+  },
+  "noMoreData": {
+    "en": "No more data",
+    "zh": "没有更多数据了"
+  },
+  "videoProcessingProgress": {
+    "en": "Video processing progress",
+    "zh": "视频处理进度"
+  },
+  "statusPreparing": {
+    "en": "Preparing",
+    "zh": "准备中"
+  },
+  "statusProcessing": {
+    "en": "Processing",
+    "zh": "处理中"
+  },
+  "statusCompleted": {
+    "en": "Completed",
+    "zh": "已完成"
+  },
+  "statusFailed": {
+    "en": "Failed",
+    "zh": "失败"
+  },
+  "processingNow": {
+    "en": "Processing now",
+    "zh": "正在处理"
+  },
+  "processingHistory": {
+    "en": "Processing history",
+    "zh": "处理记录"
+  },
+  "queuePosition": {
+    "en": "Queue position: {position}",
+    "zh": "队列位置: {position}"
+  },
+  "videoDuration": {
+    "en": "Video duration: {duration}",
+    "zh": "视频时长: {duration}"
+  },
+  "processingSpeed": {
+    "en": "Processing speed: {speed} sec/min",
+    "zh": "处理速度: {speed} 秒/分钟"
+  },
+  "estimatedRemainingTime": {
+    "en": "Estimated remaining time: {duration}",
+    "zh": "预计剩余时间: {duration}"
+  },
+  "createdAt": {
+    "en": "Created at: {time}",
+    "zh": "创建时间: {time}"
+  },
+  "remark": {
+    "en": "Remark: {info}",
+    "zh": "备注: {info}"
+  },
+  "loadUserInfoFailed": {
+    "en": "Failed to load user info: {error}",
+    "zh": "加载用户信息失败: {error}"
+  },
+  "basicInfo": {
+    "en": "Basic info",
+    "zh": "基本信息"
+  },
+  "accountAndSecurity": {
+    "en": "Account & security",
+    "zh": "账号与安全"
+  },
+  "helpAndFeedback": {
+    "en": "Help & feedback",
+    "zh": "帮助与反馈"
+  },
+  "remainingDuration": {
+    "en": "Remaining time",
+    "zh": "剩余时长"
+  },
+  "unlimited": {
+    "en": "Unlimited",
+    "zh": "无限"
+  },
+  "minutesValue": {
+    "en": "{minutes} min",
+    "zh": "{minutes}分钟"
+  },
+  "minutesDecimalValue": {
+    "en": "{value} min",
+    "zh": "{value}分钟"
+  },
+  "profileDefaultUsername": {
+    "en": "Username",
+    "zh": "用户名"
+  },
+  "totalUsage": {
+    "en": "Total used",
+    "zh": "总使用"
+  },
+  "pleaseSelectGender": {
+    "en": "Please select gender",
+    "zh": "请选择性别"
+  },
+  "infoUpdatedSuccessfully": {
+    "en": "Profile updated successfully",
+    "zh": "信息更新成功"
+  },
+  "infoUpdateFailed": {
+    "en": "Failed to update profile: {error}",
+    "zh": "信息更新失败: {error}"
+  },
+  "editProfile": {
+    "en": "Edit profile",
+    "zh": "编辑资料"
+  },
+  "changeAvatar": {
+    "en": "Change avatar",
+    "zh": "更换头像"
+  },
+  "name": {
+    "en": "Name",
+    "zh": "名字"
+  },
+  "editName": {
+    "en": "Edit name",
+    "zh": "修改名字"
+  },
+  "enterName": {
+    "en": "Enter name",
+    "zh": "请输入名字"
+  },
+  "actionConfirm": {
+    "en": "Confirm",
+    "zh": "确定"
+  },
+  "gender": {
+    "en": "Gender",
+    "zh": "性别"
+  },
+  "male": {
+    "en": "Male",
+    "zh": "男"
+  },
+  "female": {
+    "en": "Female",
+    "zh": "女"
+  },
+  "selectGender": {
+    "en": "Select gender",
+    "zh": "选择性别"
+  },
+  "phoneNumber": {
+    "en": "Phone number",
+    "zh": "手机号"
+  },
+  "notBound": {
+    "en": "Not linked",
+    "zh": "暂未绑定"
+  },
+  "email": {
+    "en": "Email",
+    "zh": "邮箱"
+  },
+  "points": {
+    "en": "Points",
+    "zh": "积分"
+  },
+  "actionSave": {
+    "en": "Save",
+    "zh": "保存"
+  },
+  "accountMismatch": {
+    "en": "The entered account does not match the current account",
+    "zh": "输入的账号与当前账号不一致"
+  },
+  "passwordChangedSuccessfully": {
+    "en": "Password changed successfully",
+    "zh": "密码修改成功"
+  },
+  "passwordChangeFailed": {
+    "en": "Failed to change password: {error}",
+    "zh": "密码修改失败: {error}"
+  },
+  "confirmLogoutMessage": {
+    "en": "Are you sure you want to sign out?",
+    "zh": "确定要退出登录吗？"
+  },
+  "logoutFailed": {
+    "en": "Failed to sign out: {error}",
+    "zh": "退出登录失败: {error}"
+  },
+  "enterPhoneOrEmail": {
+    "en": "Enter phone or email",
+    "zh": "请输入手机/邮箱"
+  },
+  "enterVerificationCode": {
+    "en": "Enter verification code",
+    "zh": "请输入验证码"
+  },
+  "countdownSeconds": {
+    "en": "{seconds}s",
+    "zh": "{seconds}s"
+  },
+  "enterNewPassword": {
+    "en": "Enter new password",
+    "zh": "请输入新密码"
+  },
+  "passwordMinLength": {
+    "en": "Password must be at least 6 characters",
+    "zh": "密码长度不能少于6位"
+  },
+  "confirmPassword": {
+    "en": "Confirm password",
+    "zh": "确认密码"
+  },
+  "enterConfirmPassword": {
+    "en": "Confirm your password",
+    "zh": "请确认密码"
+  },
+  "changePassword": {
+    "en": "Change password",
+    "zh": "修改密码"
+  },
+  "loadSubscriptionFailed": {
+    "en": "Failed to load subscription info: {error}",
+    "zh": "加载订阅信息失败: {error}"
+  },
+  "subscriptionPlans": {
+    "en": "Subscription plans",
+    "zh": "订阅方案"
+  },
+  "durationPlans": {
+    "en": "Duration plans",
+    "zh": "时长方案"
+  },
+  "current": {
+    "en": "Current",
+    "zh": "当前"
+  },
+  "recommended": {
+    "en": "Recommended",
+    "zh": "推荐"
+  },
+  "popular": {
+    "en": "Popular",
+    "zh": "热门"
+  },
+  "currentDuration": {
+    "en": "Current duration",
+    "zh": "当前时长"
+  },
+  "used": {
+    "en": "Used",
+    "zh": "已使用"
+  },
+  "durationPackages": {
+    "en": "Duration packages",
+    "zh": "时长套餐"
+  },
+  "packageDurationValidity": {
+    "en": "{minutes} min · valid for {validity}",
+    "zh": "{minutes}分钟 · {validity}有效期"
+  },
+  "permanent": {
+    "en": "Permanent",
+    "zh": "永久"
+  },
+  "validityDays": {
+    "en": "{days} days",
+    "zh": "{days}天"
+  },
+  "purchase": {
+    "en": "Purchase",
+    "zh": "购买"
+  },
+  "notAvailable": {
+    "en": "N/A",
+    "zh": "暂无"
+  },
+  "renew": {
+    "en": "Renew",
+    "zh": "续费"
+  },
+  "subscribe": {
+    "en": "Subscribe",
+    "zh": "订阅"
+  },
+  "subscriptionConfirm": {
+    "en": "Confirm subscription",
+    "zh": "订阅确认"
+  },
+  "subscriptionConfirmMessage": {
+    "en": "Subscribe to the {planName} plan?\nMonthly fee: ¥{price}",
+    "zh": "确定要订阅 {planName} 方案吗？\n月费：¥{price}"
+  },
+  "confirmSubscription": {
+    "en": "Confirm subscription",
+    "zh": "确认订阅"
+  },
+  "purchaseConfirm": {
+    "en": "Confirm purchase",
+    "zh": "购买确认"
+  },
+  "purchaseConfirmMessage": {
+    "en": "Purchase {packageName}?\nDuration: {minutes} min\nPrice: ¥{price}",
+    "zh": "确定要购买 {packageName} 吗？\n时长：{minutes}分钟\n价格：¥{price}"
+  },
+  "confirmPurchase": {
+    "en": "Confirm purchase",
+    "zh": "确认购买"
+  },
+  "purchaseFeatureInDevelopment": {
+    "en": "Purchase feature is under development...",
+    "zh": "购买功能开发中..."
+  },
+  "subscriptionSuccess": {
+    "en": "Successfully subscribed to {planName}!",
+    "zh": "成功订阅 {planName} 方案！"
+  },
+  "subscriptionFailed": {
+    "en": "Subscription failed: {error}",
+    "zh": "订阅失败: {error}"
+  },
+  "versionInfo": {
+    "en": "Version info",
+    "zh": "版本信息"
+  },
+  "appNameLabel": {
+    "en": "App name",
+    "zh": "应用名称"
+  },
+  "versionNumber": {
+    "en": "Version",
+    "zh": "版本号"
+  },
+  "buildNumber": {
+    "en": "Build number",
+    "zh": "构建号"
+  },
+  "installTime": {
+    "en": "Install date",
+    "zh": "安装时间"
+  },
+  "updateTime": {
+    "en": "Update date",
+    "zh": "更新时间"
+  },
+  "changelog": {
+    "en": "Changelog",
+    "zh": "更新日志"
+  },
+  "viewChangelogHistory": {
+    "en": "View version history",
+    "zh": "查看历史版本"
+  },
+  "developerOptions": {
+    "en": "Developer options",
+    "zh": "开发者选项"
+  },
+  "developerOptionsDescription": {
+    "en": "Access developer tools and debugging features",
+    "zh": "访问开发工具和调试功能"
+  },
+  "pleaseEnterTitle": {
+    "en": "Please enter a title",
+    "zh": "请输入标题"
+  },
+  "pleaseEnterDescription": {
+    "en": "Please enter a detailed description",
+    "zh": "请输入详细描述"
+  },
+  "contactInfoPrefix": {
+    "en": "Contact info: {contact}",
+    "zh": "联系方式: {contact}"
+  },
+  "feedbackSubmittedSuccessfully": {
+    "en": "Feedback submitted. Thank you for your suggestion!",
+    "zh": "反馈提交成功，感谢您的建议！"
+  },
+  "submitFailedRetryLater": {
+    "en": "Submission failed. Please try again later.",
+    "zh": "提交失败，请稍后重试"
+  },
+  "cannotOpenLink": {
+    "en": "Unable to open link",
+    "zh": "无法打开链接"
+  },
+  "faqTitle": {
+    "en": "FAQ",
+    "zh": "常见问题"
+  },
+  "faqHowToUploadVideo": {
+    "en": "How do I upload a video?",
+    "zh": "如何上传视频？"
+  },
+  "faqHowToUploadVideoAnswer": {
+    "en": "On the home screen, tap \"Start clipping\" and select the video file to upload.",
+    "zh": "在首页点击\"开始剪辑\"按钮，选择要上传的视频文件即可。"
+  },
+  "faqSupportedFormats": {
+    "en": "Which video formats are supported?",
+    "zh": "支持哪些视频格式？"
+  },
+  "faqSupportedFormatsAnswer": {
+    "en": "Common formats such as MP4, AVI, MOV, and MKV are supported.",
+    "zh": "支持MP4、AVI、MOV、MKV等常见视频格式。"
+  },
+  "faqHowToSelectSport": {
+    "en": "How do I choose a sport type?",
+    "zh": "如何选择运动类型？"
+  },
+  "faqHowToSelectSportAnswer": {
+    "en": "On the clipping settings page, choose a sport such as badminton or table tennis. The system will clip intelligently based on the sport.",
+    "zh": "在剪辑配置页面，您可以选择羽毛球、乒乓球等运动类型，系统会根据运动特点进行智能剪辑。"
+  },
+  "faqClippingDuration": {
+    "en": "How long does clipping take?",
+    "zh": "剪辑需要多长时间？"
+  },
+  "faqClippingDurationAnswer": {
+    "en": "For a one-hour video, clipping usually takes about 10 minutes.",
+    "zh": "一小时的视频，通常需要10分钟左右完成剪辑。"
+  },
+  "contactUs": {
+    "en": "Contact us",
+    "zh": "联系我们"
+  },
+  "emailSupport": {
+    "en": "Email support",
+    "zh": "邮箱支持"
+  },
+  "customerHotline": {
+    "en": "Customer hotline",
+    "zh": "客服热线"
+  },
+  "officialWebsite": {
+    "en": "Official website",
+    "zh": "官方网站"
+  },
+  "feedback": {
+    "en": "Feedback",
+    "zh": "意见反馈"
+  },
+  "issueTypeBug": {
+    "en": "Bug",
+    "zh": "功能异常"
+  },
+  "issueTypeSuggestion": {
+    "en": "Suggestion",
+    "zh": "建议"
+  },
+  "feedbackTitleHint": {
+    "en": "Title (e.g. bug/suggestion)",
+    "zh": "标题（如：功能异常/建议）"
+  },
+  "feedbackDescriptionHint": {
+    "en": "Please describe your issue or suggestion in detail...",
+    "zh": "请详细描述您遇到的问题或建议..."
+  },
+  "contactOptionalHint": {
+    "en": "Contact info (optional)",
+    "zh": "联系方式（可选）"
+  },
+  "submitFeedback": {
+    "en": "Submit feedback",
+    "zh": "提交反馈"
+  },
+  "permissionGrantedSuccess": {
+    "en": "{permissionName} granted successfully",
+    "zh": "{permissionName} 已成功授权"
+  },
+  "permissionDeniedRetry": {
+    "en": "{permissionName} was denied. Please try again.",
+    "zh": "{permissionName} 被拒绝，请重试"
+  },
+  "permissionStatusMessage": {
+    "en": "{permissionName} status: {status}",
+    "zh": "{permissionName} 状态: {status}"
+  },
+  "requestPermissionError": {
+    "en": "Error requesting permission: {error}",
+    "zh": "请求权限时发生错误: {error}"
+  },
+  "requestPermissionTitle": {
+    "en": "Request {permissionName}",
+    "zh": "请求 {permissionName}"
+  },
+  "permissionExplanation": {
+    "en": "This permission is required for the app to work properly. Tap \"Allow\" in the system dialog.",
+    "zh": "此权限对于应用正常运行是必要的。请在接下来的系统对话框中点击\"允许\"。"
+  },
+  "requestPermission": {
+    "en": "Request permission",
+    "zh": "请求权限"
+  },
+  "permissionDenied": {
+    "en": "Permission denied",
+    "zh": "权限被拒绝"
+  },
+  "permissionPermanentlyDenied": {
+    "en": "{permissionName} was permanently denied. Please enable it manually in Settings.",
+    "zh": "{permissionName} 被永久拒绝，请在设置中手动开启。"
+  },
+  "goToSettings": {
+    "en": "Go to settings",
+    "zh": "去设置"
+  },
+  "permissionManagement": {
+    "en": "Permission management",
+    "zh": "权限管理"
+  },
+  "permissionDescriptionTitle": {
+    "en": "About permissions",
+    "zh": "权限说明"
+  },
+  "permissionDescriptionBody": {
+    "en": "The app needs the following permissions to work properly. If a permission is denied, related features may not work.",
+    "zh": "应用需要以下权限才能正常运行。如果权限被拒绝，相关功能可能无法使用。"
+  },
+  "refreshStatus": {
+    "en": "Refresh status",
+    "zh": "刷新状态"
+  },
+  "requestAllPermissions": {
+    "en": "Request all permissions",
+    "zh": "请求所有权限"
+  },
+  "newVersionFound": {
+    "en": "New version available",
+    "zh": "发现新版本"
+  },
+  "currentVersion": {
+    "en": "Current version",
+    "zh": "当前版本"
+  },
+  "latestVersion": {
+    "en": "Latest version",
+    "zh": "最新版本"
+  },
+  "updateContent": {
+    "en": "What's new",
+    "zh": "更新内容"
+  },
+  "updateLater": {
+    "en": "Update later",
+    "zh": "以后更新"
+  },
+  "downloadInBrowser": {
+    "en": "Download in browser",
+    "zh": "浏览器下载"
+  },
+  "installNow": {
+    "en": "Install now",
+    "zh": "立即安装"
+  },
+  "downloadInBackground": {
+    "en": "Download in background",
+    "zh": "后台下载"
+  },
+  "downloadNow": {
+    "en": "Download now",
+    "zh": "立即下载"
+  },
+  "prepareDownload": {
+    "en": "Preparing download",
+    "zh": "准备下载"
+  },
+  "downloadCompleted": {
+    "en": "Download completed",
+    "zh": "下载完成"
+  },
+  "downloadFailed": {
+    "en": "Download failed",
+    "zh": "下载失败"
+  },
+  "linkRequiresBrowserDownload": {
+    "en": "This link must be downloaded in a browser",
+    "zh": "该链接需要在浏览器中下载"
+  },
+  "startDownload": {
+    "en": "Starting download...",
+    "zh": "开始下载..."
+  },
+  "downloadError": {
+    "en": "Download error",
+    "zh": "下载错误"
+  },
+  "downloadErrorWithDetails": {
+    "en": "An error occurred during download: {error}",
+    "zh": "下载过程中发生错误: {error}"
+  },
+  "fetchingDownloadLink": {
+    "en": "Fetching download link...",
+    "zh": "正在获取下载链接..."
+  },
+  "downloadLinkUnavailable": {
+    "en": "Download link unavailable",
+    "zh": "下载链接不可用"
+  },
+  "downloadLinkOpenedInBrowser": {
+    "en": "Download link opened in browser",
+    "zh": "已在浏览器中打开下载链接"
+  },
+  "cannotOpenDownloadLink": {
+    "en": "Unable to open download link",
+    "zh": "无法打开下载链接"
+  },
+  "openBrowserFailed": {
+    "en": "Failed to open browser: {error}",
+    "zh": "打开浏览器失败: {error}"
+  },
+  "labelUnknown": {
+    "en": "Unknown",
+    "zh": "未知"
+  },
+  "labelError": {
+    "en": "Error",
+    "zh": "错误"
+  },
+  "actionProcessing": {
+    "en": "Processing...",
+    "zh": "处理中..."
+  },
+  "appTitle": {
+    "en": "Huji",
+    "zh": "弧迹"
+  },
+  "navHome": {
+    "en": "Home",
+    "zh": "主页"
+  },
+  "navVideos": {
+    "en": "Videos",
+    "zh": "视频"
+  },
+  "navTasks": {
+    "en": "Tasks",
+    "zh": "任务"
+  },
+  "navProfile": {
+    "en": "Profile",
+    "zh": "我的"
+  },
+  "desktopNavLibrary": {
+    "en": "Library",
+    "zh": "视频库"
+  },
+  "desktopNavTasks": {
+    "en": "Tasks",
+    "zh": "任务"
+  },
+  "desktopNavSettings": {
+    "en": "Settings",
+    "zh": "设置"
+  },
+  "desktopWorkspaceSection": {
+    "en": "Workspace",
+    "zh": "工作区"
+  },
+  "accountNotLoggedIn": {
+    "en": "Not signed in",
+    "zh": "未登录"
+  },
+  "accountLoggedIn": {
+    "en": "Signed in",
+    "zh": "已登录"
+  },
+  "accountTapToLogin": {
+    "en": "Tap to sign in",
+    "zh": "点击登录"
+  },
+  "accountLogout": {
+    "en": "Sign out",
+    "zh": "退出登录"
+  },
+  "desktopLibraryTitle": {
+    "en": "Video library",
+    "zh": "视频库"
+  },
+  "desktopLibraryEmptyTitle": {
+    "en": "No videos yet",
+    "zh": "暂无视频"
+  },
+  "desktopLibraryEmptyHint": {
+    "en": "Click \"New clip\" to upload match footage",
+    "zh": "点击「新建剪辑」上传比赛视频"
+  },
+  "desktopLibraryLoadFailed": {
+    "en": "Failed to load: {error}",
+    "zh": "加载失败：{error}"
+  },
+  "actionRetry": {
+    "en": "Retry",
+    "zh": "重试"
+  },
+  "desktopLibraryItemCount": {
+    "en": "{count} items",
+    "zh": "共 {count} 个"
+  },
+  "desktopNewClip": {
+    "en": "New clip",
+    "zh": "新建剪辑"
+  },
+  "settingsDefaultSavePath": {
+    "en": "Default save path",
+    "zh": "默认保存路径"
+  },
+  "settingsDefaultSavePathValue": {
+    "en": "~/Videos/Huji",
+    "zh": "~/Videos/弧迹"
+  },
+  "settingsCheckUpdateOnStart": {
+    "en": "Check for updates on startup",
+    "zh": "启动时检查更新"
+  },
+  "settingsCheckUpdateOnStartDesc": {
+    "en": "Automatically check for new versions when the app launches",
+    "zh": "应用启动时自动检查新版本"
+  },
+  "settingsSendUsageStats": {
+    "en": "Send usage statistics",
+    "zh": "发送使用统计"
+  },
+  "settingsSendUsageStatsDesc": {
+    "en": "Send anonymous usage data to help improve the app",
+    "zh": "匿名发送使用数据以帮助我们改进应用"
+  },
+  "settingsUsername": {
+    "en": "Username",
+    "zh": "用户名"
+  },
+  "settingsApiServer": {
+    "en": "API server",
+    "zh": "API 服务器"
+  },
+  "settingsApiServerDesc": {
+    "en": "Choose the API environment to connect to",
+    "zh": "选择连接的 API 环境"
+  },
+  "settingsApiServerDefault": {
+    "en": "Default",
+    "zh": "默认"
+  },
+  "settingsApiServerSandbox": {
+    "en": "Sandbox",
+    "zh": "Sandbox"
+  },
+  "settingsDownloadConcurrency": {
+    "en": "Download concurrency",
+    "zh": "下载并发数"
+  },
+  "settingsDownloadConcurrencyDesc": {
+    "en": "Number of videos to download at once",
+    "zh": "同时下载的视频数量"
+  },
+  "settingsTitle": {
+    "en": "Settings",
+    "zh": "设置"
+  },
+  "settingsPushNotifications": {
+    "en": "Push notifications",
+    "zh": "推送通知"
+  },
+  "settingsNotificationsUpdated": {
+    "en": "Notification settings updated",
+    "zh": "通知设置已更新"
+  },
+  "settingsDarkMode": {
+    "en": "Dark mode",
+    "zh": "深色模式"
+  },
+  "settingsThemeChanged": {
+    "en": "Theme updated",
+    "zh": "主题切换成功"
+  },
+  "settingsLanguage": {
+    "en": "Language",
+    "zh": "语言"
+  },
+  "settingsChooseLanguage": {
+    "en": "Choose language",
+    "zh": "选择语言"
+  },
+  "settingsLanguageUpdated": {
+    "en": "Language updated",
+    "zh": "语言设置已更新"
+  },
+  "settingsClearCache": {
+    "en": "Clear cache",
+    "zh": "清理缓存"
+  },
+  "settingsStorage": {
+    "en": "Storage",
+    "zh": "存储空间"
+  },
+  "settingsPermissions": {
+    "en": "Permissions",
+    "zh": "权限管理"
+  },
+  "settingsVersionInfo": {
+    "en": "Version info",
+    "zh": "版本信息"
+  },
+  "settingsCheckUpdate": {
+    "en": "Check for updates",
+    "zh": "检查更新"
+  },
+  "settingsPrivacyPolicy": {
+    "en": "Privacy policy",
+    "zh": "隐私政策"
+  },
+  "settingsUserAgreement": {
+    "en": "Terms of service",
+    "zh": "用户协议"
+  },
+  "matchType": {
+    "en": "Match type",
+    "zh": "比赛类型"
+  },
+  "clipOptionsTitle": {
+    "en": "Options",
+    "zh": "选项"
+  },
+  "clipMode": {
+    "en": "Clip mode",
+    "zh": "剪辑模式"
+  },
+  "backendClip": {
+    "en": "Background clip",
+    "zh": "后台剪辑"
+  },
+  "customClip": {
+    "en": "Custom clip",
+    "zh": "自定义剪辑"
+  },
+  "highlightClipTooltip": {
+    "en": "Auto-clip long highlight rallies in a game",
+    "zh": "自动剪辑单局时间长的精彩球"
+  },
+  "minHighlightDurationSeconds": {
+    "en": "Min highlight duration (sec)",
+    "zh": "精彩球最小时长(秒)"
+  },
+  "minHighlightDurationTooltip": {
+    "en": "Minimum highlight duration (seconds)",
+    "zh": "精彩球最小时长（秒）"
+  },
+  "removeReplayTooltipPro": {
+    "en": "Usually only in pro matches, e.g. WTT replays",
+    "zh": "一般专业比赛才有，例如wtt中的回放"
+  },
+  "removeReplayTooltipShort": {
+    "en": "Usually only in pro matches",
+    "zh": "一般专业比赛才有"
+  },
+  "getMatchSegments": {
+    "en": "Extract match segments",
+    "zh": "获取比赛片段"
+  },
+  "mergeServeAndHit": {
+    "en": "Merge serve and hit",
+    "zh": "合并发球和击球"
+  },
+  "mergeServeAndHitTooltip": {
+    "en": "Include serve-only rallies (faults) and practice segments when enabled",
+    "zh": "勾选后，只有发球的回合（发球下网和失误）以及练球片段也会被剪辑进去"
+  },
+  "maxServeDuration": {
+    "en": "Max serve duration",
+    "zh": "最大发球时长"
+  },
+  "maxServeDurationTooltip": {
+    "en": "Limit serve duration (seconds)",
+    "zh": "限制发球时长(秒)"
+  },
+  "reserveBeforeRound": {
+    "en": "Pre-round buffer",
+    "zh": "单回合前保留时间"
+  },
+  "reserveBeforeRoundTooltip": {
+    "en": "Seconds to keep before each rally starts",
+    "zh": "单回合比赛开始前预留的时间（秒）"
+  },
+  "reserveAfterRound": {
+    "en": "Post-round buffer (sec)",
+    "zh": "单回合后保留时长(秒)"
+  },
+  "reserveAfterRoundTooltip": {
+    "en": "Seconds to keep after each rally ends",
+    "zh": "单回合比赛结束后预留的时间（秒）"
+  },
+  "minRoundDuration": {
+    "en": "Min rally duration (sec)",
+    "zh": "单回合最小时长(秒)"
+  },
+  "minRoundDurationTooltip": {
+    "en": "Minimum rally duration (seconds)",
+    "zh": "单回合最小时长（秒）"
+  },
+  "selectVideoFileFirstError": {
+    "en": "Please select a video file first",
+    "zh": "请先选择视频文件"
+  },
+  "videoFileNotFoundWithPath": {
+    "en": "Video file does not exist: {path}",
+    "zh": "视频文件不存在: {path}"
+  },
+  "thumbnailGenerateFailed": {
+    "en": "Failed to generate thumbnail: {path}: {error}",
+    "zh": "生成缩略图失败: {path}: {error}"
+  },
+  "taskPhasePending": {
+    "en": "Task submitted, waiting…",
+    "zh": "任务已提交，等待处理…"
+  },
+  "taskPhaseProcessing": {
+    "en": "Processing…",
+    "zh": "正在处理…"
+  },
+  "taskPhaseUploading": {
+    "en": "Uploading video…",
+    "zh": "正在上传视频…"
+  },
+  "taskPhaseAnalyzing": {
+    "en": "Analyzing video…",
+    "zh": "正在分析视频内容…"
+  },
+  "taskPhaseClipping": {
+    "en": "Clipping video…",
+    "zh": "正在剪辑视频…"
+  },
+  "taskPhaseGenerating": {
+    "en": "Generating final video…",
+    "zh": "正在生成最终视频…"
+  },
+  "taskPhaseDownloading": {
+    "en": "Downloading results…",
+    "zh": "正在下载结果…"
+  },
+  "taskPhasePaused": {
+    "en": "Paused",
+    "zh": "已暂停"
+  },
+  "taskPhaseFailed": {
+    "en": "Processing failed",
+    "zh": "处理失败"
+  },
+  "taskTypeSegmentDetectShort": {
+    "en": "Real-time detect",
+    "zh": "实时检测"
+  },
+  "settingsChooseCleanupContent": {
+    "en": "Choose what to clean up:",
+    "zh": "选择要清理的内容："
+  },
+  "settingsCacheFiles": {
+    "en": "Cache files",
+    "zh": "缓存文件"
+  },
+  "settingsDownloadFiles": {
+    "en": "Downloaded files",
+    "zh": "下载文件"
+  },
+  "settingsViewDownloadFiles": {
+    "en": "View downloaded files",
+    "zh": "查看下载文件"
+  },
+  "settingsCleanupAll": {
+    "en": "Clean all",
+    "zh": "全部清理"
+  },
+  "settingsConfirmCleanup": {
+    "en": "Confirm cleanup",
+    "zh": "确认清理"
+  },
+  "settingsConfirmCleanupMessage": {
+    "en": "Clean up {title}? This cannot be undone.",
+    "zh": "确定要清理{title}吗？此操作不可撤销。"
+  },
+  "settingsConfirmCleanupAction": {
+    "en": "Clean up",
+    "zh": "确定清理"
+  },
+  "settingsConfirmDeleteFileMessage": {
+    "en": "Delete file \"{fileName}\"? This cannot be undone.",
+    "zh": "确定要删除文件 \"{fileName}\" 吗？此操作不可撤销。"
+  },
+  "settingsConfirmDeleteAction": {
+    "en": "Delete",
+    "zh": "确定删除"
+  },
+  "settingsCacheCleanupDone": {
+    "en": "Cache cleaned",
+    "zh": "缓存文件清理完成"
+  },
+  "settingsCacheCleanupFailed": {
+    "en": "Failed to clean cache: {error}",
+    "zh": "缓存文件清理失败: {error}"
+  },
+  "settingsDownloadCleanupDone": {
+    "en": "Downloads cleaned",
+    "zh": "下载文件清理完成"
+  },
+  "settingsDownloadCleanupFailed": {
+    "en": "Failed to clean downloads: {error}",
+    "zh": "下载文件清理失败: {error}"
+  },
+  "settingsDownloadFileList": {
+    "en": "Downloaded files",
+    "zh": "下载文件列表"
+  },
+  "settingsNoDownloadFiles": {
+    "en": "No downloaded files",
+    "zh": "暂无下载文件"
+  },
+  "settingsAllDownloadFiles": {
+    "en": "All downloaded files",
+    "zh": "所有下载文件"
+  },
+  "settingsClearAll": {
+    "en": "Clear all",
+    "zh": "清空全部"
+  },
+  "settingsDownloadListFailed": {
+    "en": "Failed to load download list: {error}",
+    "zh": "获取下载文件列表失败: {error}"
+  },
+  "settingsFileDeleteSuccess": {
+    "en": "File deleted",
+    "zh": "文件删除成功"
+  },
+  "settingsFileDeleteFailed": {
+    "en": "Failed to delete file: {error}",
+    "zh": "文件删除失败: {error}"
+  },
+  "settingsAllFilesCleanupDone": {
+    "en": "All files cleaned",
+    "zh": "全部文件清理完成"
+  },
+  "settingsAllFilesCleanupFailed": {
+    "en": "Failed to clean all files: {error}",
+    "zh": "全部文件清理失败: {error}"
+  },
+  "taskTypeFilter": {
+    "en": "Task type",
+    "zh": "任务类型"
+  },
+  "taskTypeFilterSelected": {
+    "en": "Task type · {count}",
+    "zh": "任务类型 · {count}"
+  },
+  "settingsAlreadyLatestVersion": {
+    "en": "You're on the latest version",
+    "zh": "当前已是最新版本"
+  },
+  "loadVideoDataFailed": {
+    "en": "Failed to load video data",
+    "zh": "加载视频数据失败"
+  },
+  "actionTypePlayBall": {
+    "en": "Highlight",
+    "zh": "精彩球"
+  },
+  "actionTypeFireBall": {
+    "en": "Serve",
+    "zh": "发球"
+  },
+  "actionTypePickBall": {
+    "en": "Ball pickup",
+    "zh": "捡球"
+  },
+  "actionTypeTransition": {
+    "en": "Transition",
+    "zh": "过渡"
+  },
+  "actionTypePlayback": {
+    "en": "Replay",
+    "zh": "回放"
+  },
+  "precisionEditTitle": {
+    "en": "Precision edit",
+    "zh": "精修编辑"
+  },
+  "backToPreview": {
+    "en": "↩ Back to preview",
+    "zh": "↩ 返回预览"
+  },
+  "previewTitle": {
+    "en": "Preview",
+    "zh": "预览"
+  },
+  "editBreadcrumb": {
+    "en": "Edit",
+    "zh": "编辑"
+  },
+  "roundList": {
+    "en": "Round list",
+    "zh": "回合列表"
+  },
+  "roundCountBadge": {
+    "en": "{count}",
+    "zh": "{count} 个"
+  },
+  "noRoundSegments": {
+    "en": "No round segments",
+    "zh": "暂无回合片段"
+  },
+  "selectedRounds": {
+    "en": "Selected rounds",
+    "zh": "已选回合"
+  },
+  "selectRoundFromLeft": {
+    "en": "Select a round from the left",
+    "zh": "请从左侧选择一个回合"
+  },
+  "cannotLoadVideo": {
+    "en": "Unable to load video",
+    "zh": "无法加载视频"
+  },
+  "currentEditingRound": {
+    "en": "Editing: {label}",
+    "zh": "当前编辑：{label}"
+  },
+  "defaultHighlightName": {
+    "en": "Highlights",
+    "zh": "集锦"
+  },
+  "noSegmentsToExport": {
+    "en": "No segments to export",
+    "zh": "没有可导出的片段"
+  },
+  "exportPreparing": {
+    "en": "Preparing export...",
+    "zh": "准备导出..."
+  },
+  "exportEncoding": {
+    "en": "Encoding...",
+    "zh": "正在编码..."
+  },
+  "exportProgressPercent": {
+    "en": "Exporting... {percent}%",
+    "zh": "正在导出... {percent}%"
+  },
+  "exportComplete": {
+    "en": "Export complete",
+    "zh": "导出完成"
+  },
+  "ffmpegExitCode": {
+    "en": "ffmpeg exited with code {code}",
+    "zh": "ffmpeg 退出码 {code}"
+  },
+  "unknownLabel": {
+    "en": "Unknown",
+    "zh": "未知"
+  },
+  "precisionEditButton": {
+    "en": "✎ Precision edit",
+    "zh": "✎ 精修编辑"
+  },
+  "confirmExportTitle": {
+    "en": "Confirm export",
+    "zh": "确认导出"
+  },
+  "formatLabel": {
+    "en": "Format",
+    "zh": "格式"
+  },
+  "qualityLabel": {
+    "en": "Quality",
+    "zh": "清晰度"
+  },
+  "saveToLabel": {
+    "en": "Save to",
+    "zh": "保存到"
+  },
+  "roundCountDurationSummary": {
+    "en": "{count} rounds · {duration} total",
+    "zh": "{count} 个 · 合计 {duration}"
+  },
+  "exportVideoTitle": {
+    "en": "Export video",
+    "zh": "导出视频"
+  },
+  "startExport": {
+    "en": "Start export",
+    "zh": "开始导出"
+  },
+  "exportConfigTitle": {
+    "en": "📤 Export settings",
+    "zh": "📤 导出配置"
+  },
+  "roundTransitionLabel": {
+    "en": "Between-round transition",
+    "zh": "回合间转场"
+  },
+  "transitionNone": {
+    "en": "None (concatenate)",
+    "zh": "无（直接拼接）"
+  },
+  "transitionCrossfade": {
+    "en": "Crossfade",
+    "zh": "交叉淡化"
+  },
+  "transitionSlide": {
+    "en": "Slide",
+    "zh": "滑动"
+  },
+  "exportQualityOriginal": {
+    "en": "Original",
+    "zh": "原画"
+  },
+  "exportQualityOriginalMeta": {
+    "en": "Original resolution",
+    "zh": "原始分辨率"
+  },
+  "exportQualityRecommended": {
+    "en": "Recommended",
+    "zh": "推荐"
+  },
+  "exportQualitySmallerSize": {
+    "en": "Smaller file",
+    "zh": "体积较小"
+  },
+  "exportQualityMobileShare": {
+    "en": "Mobile sharing",
+    "zh": "移动分享"
+  },
+  "roundCountLabel": {
+    "en": "Rounds",
+    "zh": "回合数"
+  },
+  "outputQualityLabel": {
+    "en": "Output quality",
+    "zh": "输出清晰度"
+  },
+  "roundOrder": {
+    "en": "Round order",
+    "zh": "回合顺序"
+  },
+  "roundCountShort": {
+    "en": "{count} rounds",
+    "zh": "{count}个回合"
+  },
+  "playingNow": {
+    "en": "▶ Playing",
+    "zh": "▶ 播放中"
+  },
+  "roundCountUnit": {
+    "en": "rounds",
+    "zh": "个回合"
+  },
+  "totalDurationLabel": {
+    "en": "Total duration",
+    "zh": "合计时长"
+  },
+  "videoFileNotFound": {
+    "en": "Video file not found: {path}",
+    "zh": "视频文件不存在: {path}"
+  },
+  "generateThumbnailFailed": {
+    "en": "Failed to generate thumbnail: {path}: {error}",
+    "zh": "生成缩略图失败: {path}: {error}"
+  },
+  "dragVideoHere": {
+    "en": "Drag videos here",
+    "zh": "拖拽视频到这里"
+  },
+  "orLabel": {
+    "en": "or",
+    "zh": "或者"
+  },
+  "selectFiles": {
+    "en": "Select files",
+    "zh": "选择文件"
+  },
+  "supportedVideoFormats": {
+    "en": "Common video formats supported",
+    "zh": "支持常见视频格式"
+  },
+  "filesSelectedCount": {
+    "en": "{count} file(s) selected",
+    "zh": "已选择 {count} 个文件"
+  },
+  "addMoreFiles": {
+    "en": "+ Add more",
+    "zh": "+ 添加更多"
+  },
+  "usernameLabel": {
+    "en": "Username",
+    "zh": "用户名"
+  },
+  "enterConfirmPasswordRequired": {
+    "en": "Please confirm your password",
+    "zh": "请输入确认密码"
+  },
+  "exportFormatMp4H264": {
+    "en": "MP4 (H.264)",
+    "zh": "MP4 (H.264)"
+  },
+  "videosFolderName": {
+    "en": "Huji",
+    "zh": "弧迹"
+  },
+  "videoPlayerInitFailed": {
+    "en": "Failed to initialize player: {error}",
+    "zh": "初始化播放器失败: {error}"
+  },
+  "videoPlayerFileNotFound": {
+    "en": "File not found",
+    "zh": "文件不存在"
+  },
+  "videoPlayerFileMovedOrDeleted": {
+    "en": "The file was moved or deleted:\n{path}",
+    "zh": "文件已被移动或删除：\n{path}"
+  },
+  "videoPlayerNetworkInitFailed": {
+    "en": "Failed to initialize network player: {error}",
+    "zh": "初始化网络播放器失败: {error}"
+  },
+  "videoPlayerInitializing": {
+    "en": "Initializing player...",
+    "zh": "正在初始化播放器..."
+  },
+  "videoPlayerLoadingVideo": {
+    "en": "Loading video...",
+    "zh": "正在加载视频..."
+  },
+  "renameFileTitle": {
+    "en": "Rename file",
+    "zh": "重命名文件"
+  },
+  "newFileNameLabel": {
+    "en": "New file name",
+    "zh": "新文件名"
+  },
+  "fileNameAlreadyExists": {
+    "en": "File name already exists",
+    "zh": "文件名已存在"
+  },
+  "renameSucceeded": {
+    "en": "Renamed successfully",
+    "zh": "重命名成功"
+  },
+  "fileDetailsTitle": {
+    "en": "Details",
+    "zh": "详细信息"
+  },
+  "fileInfoFileName": {
+    "en": "File name: {name}",
+    "zh": "文件名: {name}"
+  },
+  "fileInfoCachePath": {
+    "en": "Cache path: {path}",
+    "zh": "缓存路径: {path}"
+  },
+  "fileInfoSize": {
+    "en": "Size: {size}",
+    "zh": "大小: {size}"
+  },
+  "fileInfoCreatedAt": {
+    "en": "Created: {time}",
+    "zh": "创建时间: {time}"
+  },
+  "fileInfoModifiedAt": {
+    "en": "Modified: {time}",
+    "zh": "修改时间: {time}"
+  },
+  "fileInfoAccessedAt": {
+    "en": "Accessed: {time}",
+    "zh": "访问时间: {time}"
+  },
+  "confirmDeleteFileMessage": {
+    "en": "Delete this file? This cannot be undone.",
+    "zh": "确定要删除该文件吗？此操作不可恢复。"
+  },
+  "fileDeleted": {
+    "en": "File deleted",
+    "zh": "文件已删除"
+  },
+  "clearCacheTitle": {
+    "en": "Clear cache",
+    "zh": "清除缓存"
+  },
+  "confirmClearCacheMessage": {
+    "en": "Clear cache for this video?",
+    "zh": "确定要清除该视频的缓存吗？"
+  },
+  "actionClear": {
+    "en": "Clear",
+    "zh": "清除"
+  },
+  "cacheCleared": {
+    "en": "Cache cleared",
+    "zh": "缓存已清除"
+  },
+  "clearCacheFailed": {
+    "en": "Failed to clear cache: {error}",
+    "zh": "清除缓存失败: {error}"
+  },
+  "unknownFile": {
+    "en": "Unknown file",
+    "zh": "未知文件"
+  },
+  "actionRename": {
+    "en": "Rename",
+    "zh": "重命名"
+  },
+  "deleteFile": {
+    "en": "Delete file",
+    "zh": "删除文件"
+  },
+  "sourceLocal": {
+    "en": "Local",
+    "zh": "本地"
+  },
+  "sourceNetwork": {
+    "en": "Network",
+    "zh": "网络"
+  },
+  "cachedBadge": {
+    "en": "Cached",
+    "zh": "已缓存"
+  },
+  "slowMotion": {
+    "en": "Slow motion",
+    "zh": "慢放"
+  },
+  "seekBackward5s": {
+    "en": "-5s",
+    "zh": "-5秒"
+  },
+  "seekBackward1s": {
+    "en": "-1s",
+    "zh": "-1秒"
+  },
+  "seekForward1s": {
+    "en": "+1s",
+    "zh": "+1秒"
+  },
+  "seekForward5s": {
+    "en": "+5s",
+    "zh": "+5秒"
+  },
+  "videoSavedTo": {
+    "en": "Video saved to {path}",
+    "zh": "视频已保存到{path}"
+  },
+  "useDemoVideo": {
+    "en": "Or use a demo video",
+    "zh": "或使用演示视频"
+  },
+  "demoPingPongTitle": {
+    "en": "Table tennis demo",
+    "zh": "乒乓球演示"
+  },
+  "demoPingPongSubtitle": {
+    "en": "~23s · sample video",
+    "zh": "约 23 秒 · 算法样例视频"
+  },
+  "demoBadmintonTitle": {
+    "en": "Badminton demo",
+    "zh": "羽毛球演示"
+  },
+  "demoBadmintonSubtitle": {
+    "en": "~51s · sample video",
+    "zh": "约 51 秒 · 算法样例视频"
+  },
+  "selectVideosTitle": {
+    "en": "Select videos",
+    "zh": "选择视频"
+  },
+  "selectImagesTitle": {
+    "en": "Select images",
+    "zh": "选择图片"
+  },
+  "selectMediaTitle": {
+    "en": "Select media",
+    "zh": "选择媒体文件"
+  },
+  "selectDirectoryTitle": {
+    "en": "Select directory",
+    "zh": "选择目录"
+  },
+  "selectFilesAndDirectoriesTitle": {
+    "en": "Select files and directories",
+    "zh": "选择文件和目录"
+  },
+  "switchTabTitle": {
+    "en": "Switch tab",
+    "zh": "切换标签"
+  },
+  "switchTabClearSelectionMessage": {
+    "en": "Switching tabs will clear your current selection. Continue?",
+    "zh": "切换到其他标签会清空当前选择，是否继续？"
+  },
+  "maxSelectionCountReached": {
+    "en": "You can select at most {count} file(s)",
+    "zh": "最多只能选择 {count} 个文件"
+  },
+  "sortOptionsTitle": {
+    "en": "Sort by",
+    "zh": "排序方式"
+  },
+  "sortByName": {
+    "en": "Name",
+    "zh": "按名称排序"
+  },
+  "sortByModifiedTime": {
+    "en": "Modified time",
+    "zh": "按修改时间排序"
+  },
+  "sortByFileSize": {
+    "en": "File size",
+    "zh": "按文件大小排序"
+  },
+  "sortByFileType": {
+    "en": "File type",
+    "zh": "按文件类型排序"
+  },
+  "noItemsSelected": {
+    "en": "No items selected",
+    "zh": "未选择项目"
+  },
+  "selectionSummaryItems": {
+    "en": "{count} items",
+    "zh": "{count}个项目"
+  },
+  "selectionSummaryFilesAndDirs": {
+    "en": " ({fileCount} files, {dirCount} dirs)",
+    "zh": " ({fileCount}个文件, {dirCount}个目录)"
+  },
+  "selectionSummaryFilesOnly": {
+    "en": " ({fileCount} files)",
+    "zh": " ({fileCount}个文件)"
+  },
+  "selectionSummaryDirsOnly": {
+    "en": " ({dirCount} dirs)",
+    "zh": " ({dirCount}个目录)"
+  },
+  "selectFilesTitle": {
+    "en": "Select files",
+    "zh": "选择文件"
+  },
+  "selectFilesPrompt": {
+    "en": "Please select file(s)",
+    "zh": "请选择文件"
+  },
+  "selectDirectoryPrompt": {
+    "en": "Please select a directory",
+    "zh": "请选择目录"
+  },
+  "selectFilesOrDirectoriesPrompt": {
+    "en": "Please select file(s) or directory",
+    "zh": "请选择文件或目录"
+  },
+  "currentDirectoryLabel": {
+    "en": "Current directory",
+    "zh": "当前目录"
+  },
+  "selectThisDirectory": {
+    "en": "Select this directory",
+    "zh": "选择此目录"
+  },
+  "clearSelection": {
+    "en": "Clear selection",
+    "zh": "取消勾选"
+  },
+  "selectAll": {
+    "en": "Select all",
+    "zh": "全选"
+  },
+  "actionConfirmWithCount": {
+    "en": "Confirm ({count})",
+    "zh": "确定 ({count})"
+  },
+  "tabFiles": {
+    "en": "Files",
+    "zh": "文件"
+  },
+  "tabPhotoGallery": {
+    "en": "Gallery",
+    "zh": "相册"
+  },
+  "savePreparing": {
+    "en": "Preparing to save...",
+    "zh": "准备保存..."
+  },
+  "savePreparingInProgress": {
+    "en": "Preparing save...",
+    "zh": "正在准备保存..."
+  },
+  "saveProcessingSegmentsStart": {
+    "en": "Processing video segments...",
+    "zh": "开始处理视频片段..."
+  },
+  "saveSavingMetadata": {
+    "en": "Saving metadata...",
+    "zh": "正在保存元数据..."
+  },
+  "saveSavingToGallery": {
+    "en": "Saving to gallery...",
+    "zh": "正在保存到相册..."
+  },
+  "saveComplete": {
+    "en": "Save complete!",
+    "zh": "保存完成！"
+  },
+  "videoFileNotGenerated": {
+    "en": "Video file was not generated",
+    "zh": "视频文件未生成"
+  },
+  "videoSaveFailed": {
+    "en": "Failed to save video",
+    "zh": "视频保存失败"
+  },
+  "saveFailedShort": {
+    "en": "Save failed",
+    "zh": "保存失败"
+  },
+  "saveTrimmingSegments": {
+    "en": "Trimming video segments...",
+    "zh": "正在裁剪视频片段..."
+  },
+  "saveTrimmingSegmentsProgress": {
+    "en": "Trimming video segments... {percent}%",
+    "zh": "正在裁剪视频片段... {percent}%"
+  },
+  "videoProcessingComplete": {
+    "en": "Video processing complete",
+    "zh": "视频处理完成"
+  },
+  "saveTrimmingSegment": {
+    "en": "Trimming segment...",
+    "zh": "正在裁剪片段"
+  },
+  "saveMergingSegments": {
+    "en": "Merging video segments...",
+    "zh": "正在合并视频片段..."
+  },
+  "saveCleaningTempFiles": {
+    "en": "Cleaning up temporary files...",
+    "zh": "正在清理临时文件..."
+  },
+  "saveProgressTitle": {
+    "en": "Save progress",
+    "zh": "保存进度"
+  },
+  "playVideo": {
+    "en": "Play video",
+    "zh": "播放视频"
+  },
+  "fileNameWithSegmentCount": {
+    "en": "{fileName} ({count} segments)",
+    "zh": "{fileName} ({count}个片段)"
+  },
+  "fileInfoLabel": {
+    "en": "File info:",
+    "zh": "文件信息:"
+  },
+  "saveLocationLabel": {
+    "en": "Save location:",
+    "zh": "保存位置:"
+  },
+  "openFileFailed": {
+    "en": "Failed to open file: {error}",
+    "zh": "打开文件失败: {error}"
+  },
+  "openFolderFailed": {
+    "en": "Failed to open folder: {error}",
+    "zh": "打开文件夹失败: {error}"
+  },
+  "batchSelect": {
+    "en": "Select",
+    "zh": "选择"
+  },
+  "selectedItemsCount": {
+    "en": "{count} selected",
+    "zh": "已选择 {count} 项"
+  },
+  "deselectAll": {
+    "en": "Deselect all",
+    "zh": "取消全选"
+  },
+  "phoneStorageTab": {
+    "en": "Phone storage",
+    "zh": "手机存储"
+  },
+  "appFoldersTab": {
+    "en": "App folders",
+    "zh": "应用文件夹"
+  },
+  "fullDiskSearchTab": {
+    "en": "Search all",
+    "zh": "全盘搜索"
+  },
+  "cannotAccessDirectory": {
+    "en": "Cannot access this directory: {error}",
+    "zh": "无法访问此目录: {error}"
+  },
+  "storagePermissionRequired": {
+    "en": "Storage permission is required to access files",
+    "zh": "需要存储权限才能访问文件"
+  },
+  "authorize": {
+    "en": "Authorize",
+    "zh": "授权"
+  },
+  "pathNotFound": {
+    "en": "Path not found: {path}",
+    "zh": "路径不存在: {path}"
+  },
+  "openThisFolder": {
+    "en": "Open this folder",
+    "zh": "打开此文件夹"
+  },
+  "folderInfo": {
+    "en": "Folder info",
+    "zh": "文件夹信息"
+  },
+  "copyPath": {
+    "en": "Copy path",
+    "zh": "复制路径"
+  },
+  "pathCopiedToClipboard": {
+    "en": "Path copied to clipboard",
+    "zh": "路径已复制到剪贴板"
+  },
+  "createFolderHere": {
+    "en": "New folder here",
+    "zh": "在此处新建文件夹"
+  },
+  "infoPath": {
+    "en": "Path",
+    "zh": "路径"
+  },
+  "infoCreatedAt": {
+    "en": "Created",
+    "zh": "创建时间"
+  },
+  "infoModifiedAt": {
+    "en": "Modified",
+    "zh": "修改时间"
+  },
+  "infoFileCount": {
+    "en": "Files",
+    "zh": "文件数量"
+  },
+  "infoFolderCount": {
+    "en": "Folders",
+    "zh": "文件夹数量"
+  },
+  "infoTotalItems": {
+    "en": "Total items",
+    "zh": "总项目"
+  },
+  "itemCountUnit": {
+    "en": "{count}",
+    "zh": "{count} 个"
+  },
+  "getFolderInfoFailed": {
+    "en": "Failed to get folder info: {error}",
+    "zh": "获取文件夹信息失败: {error}"
+  },
+  "searchResultsAdded": {
+    "en": "Added {count} search result(s) to selection",
+    "zh": "已添加 {count} 个搜索结果到选择列表"
+  },
+  "selectedFirstNItems": {
+    "en": "Selected first {count} item(s)",
+    "zh": "已选择前 {count} 个项目"
+  },
+  "itemTypeFile": {
+    "en": "file",
+    "zh": "文件"
+  },
+  "itemTypeDirectory": {
+    "en": "directory",
+    "zh": "目录"
+  },
+  "itemTypeItem": {
+    "en": "item",
+    "zh": "项目"
+  },
+  "maxSelectionCountReachedFor": {
+    "en": "You can select at most {count} {itemType}",
+    "zh": "最多只能选择 {count} 个{itemType}"
+  },
+  "newFolder": {
+    "en": "New folder",
+    "zh": "新建文件夹"
+  },
+  "folderNameHint": {
+    "en": "Enter folder name",
+    "zh": "输入文件夹名称"
+  },
+  "actionCreate": {
+    "en": "Create",
+    "zh": "创建"
+  },
+  "folderAlreadyExists": {
+    "en": "Folder already exists",
+    "zh": "文件夹已存在"
+  },
+  "folderCreatedSuccess": {
+    "en": "Folder created",
+    "zh": "文件夹创建成功"
+  },
+  "createFolderFailedWithError": {
+    "en": "Failed to create folder: {error}",
+    "zh": "创建文件夹失败: {error}"
+  },
+  "searchFilesTitle": {
+    "en": "Search files",
+    "zh": "搜索文件"
+  },
+  "inputFileNameHint": {
+    "en": "Enter file name...",
+    "zh": "输入文件名..."
+  },
+  "quickAccessDownload": {
+    "en": "Downloads",
+    "zh": "下载"
+  },
+  "quickAccessDocuments": {
+    "en": "Documents",
+    "zh": "文档"
+  },
+  "quickAccessPictures": {
+    "en": "Pictures",
+    "zh": "图片"
+  },
+  "quickAccessVideos": {
+    "en": "Videos",
+    "zh": "视频"
+  },
+  "quickAccessCamera": {
+    "en": "Camera",
+    "zh": "相机"
+  },
+  "noMatchingFiles": {
+    "en": "No matching files found",
+    "zh": "没有找到匹配的文件"
+  },
+  "folderEmpty": {
+    "en": "This folder is empty",
+    "zh": "此文件夹为空"
+  },
+  "clearSearch": {
+    "en": "Clear search",
+    "zh": "清除搜索"
+  },
+  "entityInfoDateAndItemCount": {
+    "en": "{date} {count} items",
+    "zh": "{date} {count}项"
+  },
+  "searchPathEntireStorage": {
+    "en": "Entire storage",
+    "zh": "整个存储"
+  },
+  "searchPathDcim": {
+    "en": "DCIM / Camera",
+    "zh": "DCIM相机"
+  },
+  "searchPathPictures": {
+    "en": "Pictures folder",
+    "zh": "图片文件夹"
+  },
+  "searchPathDownload": {
+    "en": "Downloads folder",
+    "zh": "下载文件夹"
+  },
+  "searchPathDocuments": {
+    "en": "Documents folder",
+    "zh": "文档文件夹"
+  },
+  "searchPathMusic": {
+    "en": "Music folder",
+    "zh": "音乐文件夹"
+  },
+  "searchPathMovies": {
+    "en": "Movies folder",
+    "zh": "视频文件夹"
+  },
+  "enterSearchKeyword": {
+    "en": "Enter a search keyword",
+    "zh": "请输入搜索关键词"
+  },
+  "searchFailedWithError": {
+    "en": "Search failed: {error}",
+    "zh": "搜索失败: {error}"
+  },
+  "searchScope": {
+    "en": "Search scope",
+    "zh": "搜索范围"
+  },
+  "inputFileNameKeywordHint": {
+    "en": "Enter file name keyword...",
+    "zh": "输入文件名关键词..."
+  },
+  "actionSearch": {
+    "en": "Search",
+    "zh": "搜索"
+  },
+  "searching": {
+    "en": "Searching...",
+    "zh": "搜索中..."
+  },
+  "foundFileCount": {
+    "en": "Found {count} file(s)",
+    "zh": "找到 {count} 个文件"
+  },
+  "selectedCountShort": {
+    "en": "Selected: {count}",
+    "zh": "已选: {count}"
+  },
+  "searchingFiles": {
+    "en": "Searching files...",
+    "zh": "正在搜索文件..."
+  },
+  "enterKeywordToStartSearch": {
+    "en": "Enter a keyword to start searching",
+    "zh": "输入关键词开始搜索"
+  },
+  "addSelectedFiles": {
+    "en": "Add {count} file(s)",
+    "zh": "添加 {count} 个文件"
+  },
+  "calculating": {
+    "en": "Calculating...",
+    "zh": "计算中..."
+  },
+  "calculatingFileSize": {
+    "en": "Calculating size...",
+    "zh": "计算大小中..."
+  },
+  "loadAlbumFailed": {
+    "en": "Failed to load albums",
+    "zh": "加载相册失败"
+  },
+  "loadAlbumFailedWithError": {
+    "en": "Failed to load albums: {error}",
+    "zh": "加载相册失败: {error}"
+  },
+  "loadMoreFailedWithError": {
+    "en": "Failed to load more: {error}",
+    "zh": "加载更多失败: {error}"
+  },
+  "mediaTypeImage": {
+    "en": "images",
+    "zh": "图片"
+  },
+  "mediaTypeVideo": {
+    "en": "videos",
+    "zh": "视频"
+  },
+  "mediaTypeAll": {
+    "en": "media",
+    "zh": "媒体"
+  },
+  "galleryPermissionRequired": {
+    "en": "Photo library access required",
+    "zh": "需要相册权限"
+  },
+  "galleryPermissionMessage": {
+    "en": "To select photos and videos, grant photo library access in Settings.",
+    "zh": "为了选择照片和视频，请在设置中授予相册访问权限。"
+  },
+  "searchMediaTitle": {
+    "en": "Search media",
+    "zh": "搜索媒体文件"
+  },
+  "inputKeywordHint": {
+    "en": "Enter keyword...",
+    "zh": "输入关键词..."
+  },
+  "selectAlbum": {
+    "en": "Select album",
+    "zh": "选择相册"
+  },
+  "albumCount": {
+    "en": "{count} album(s)",
+    "zh": "共 {count} 个相册"
+  },
+  "noAlbumsFound": {
+    "en": "No albums found",
+    "zh": "没有找到相册"
+  },
+  "actionReload": {
+    "en": "Reload",
+    "zh": "重新加载"
+  },
+  "albumAllMediaSubtitle": {
+    "en": "All {mediaType} files",
+    "zh": "所有{mediaType}文件"
+  },
+  "loading": {
+    "en": "Loading...",
+    "zh": "加载中..."
+  },
+  "mediaItemCount": {
+    "en": "{count} {mediaType}",
+    "zh": "{count} 个{mediaType}"
+  },
+  "noMatchingMediaFiles": {
+    "en": "No matching {mediaType} files found",
+    "zh": "没有找到匹配的{mediaType}文件"
+  },
+  "noMediaFiles": {
+    "en": "No {mediaType} files found",
+    "zh": "没有找到{mediaType}文件"
+  },
+  "tryModifySearchConditions": {
+    "en": "Try changing your search",
+    "zh": "尝试修改搜索条件"
+  },
+  "checkAlbumPermissionOrEmpty": {
+    "en": "Check album permissions or whether albums are empty",
+    "zh": "请检查相册权限或相册是否为空"
+  },
+  "loadMore": {
+    "en": "Load more...",
+    "zh": "加载更多..."
+  },
+  "videoFileLabel": {
+    "en": "Video file",
+    "zh": "视频文件"
+  },
+  "imageFileLabel": {
+    "en": "Image file",
+    "zh": "图片文件"
+  },
+  "fileSizeLabel": {
+    "en": "Size: {size}",
+    "zh": "大小: {size}"
+  },
+  "createdAtWithValue": {
+    "en": "Created: {time}",
+    "zh": "创建时间: {time}"
+  },
+  "videoLabel": {
+    "en": "Video",
+    "zh": "视频"
+  },
+  "imageLabel": {
+    "en": "Image",
+    "zh": "图片"
+  },
+  "clearTypeFilter": {
+    "en": "Clear type filter",
+    "zh": "清除类型筛选"
+  },
+  "clearFilters": {
+    "en": "Clear filters",
+    "zh": "清除筛选"
+  },
+  "taskStatusInProgress": {
+    "en": "In progress",
+    "zh": "进行中"
+  },
+  "batchSelectedCount": {
+    "en": "Selected {count}",
+    "zh": "已选 {count}"
+  },
+  "loginRequiredForClipHistory": {
+    "en": "Sign in to view clip history",
+    "zh": "需要登录才能查看剪辑记录"
+  },
+  "processStatusPreparing": {
+    "en": "Preparing",
+    "zh": "准备中"
+  },
+  "noProcessingRecords": {
+    "en": "No processing records",
+    "zh": "暂无处理记录"
+  },
+  "durationLabel": {
+    "en": "Duration: {duration}",
+    "zh": "时长: {duration}"
+  },
+  "filterProcessStatus": {
+    "en": "Process status",
+    "zh": "处理状态"
+  },
+  "filterSportType": {
+    "en": "Sport type",
+    "zh": "运动类型"
+  },
+  "createdTimeRange": {
+    "en": "Created time range",
+    "zh": "创建时间范围"
+  },
+  "startDateLabel": {
+    "en": "Start date",
+    "zh": "开始日期"
+  },
+  "endDateLabel": {
+    "en": "End date",
+    "zh": "结束日期"
+  },
+  "dateRangeTo": {
+    "en": "to",
+    "zh": "至"
+  },
+  "videoFileNotExist": {
+    "en": "Video file does not exist",
+    "zh": "视频文件不存在"
+  },
+  "videoEditTitle": {
+    "en": "Video editing",
+    "zh": "视频编辑"
+  },
+  "freeBadge": {
+    "en": "Free",
+    "zh": "限免"
+  },
+  "editToolClip": {
+    "en": "Clip",
+    "zh": "剪辑"
+  },
+  "editToolAudio": {
+    "en": "Audio",
+    "zh": "音频"
+  },
+  "editToolText": {
+    "en": "Text",
+    "zh": "文字"
+  },
+  "editToolAiClip": {
+    "en": "AI clip",
+    "zh": "AI剪辑"
+  },
+  "editToolSticker": {
+    "en": "Stickers",
+    "zh": "贴纸"
+  },
+  "editToolPip": {
+    "en": "Picture-in-picture",
+    "zh": "画中画"
+  },
+  "extendMoreEditFeaturesHint": {
+    "en": "Extend more editing features here",
+    "zh": "可在这里扩展更多编辑功能"
+  },
+  "settingsAppData": {
+    "en": "App data",
+    "zh": "应用数据"
+  },
+  "settingsExternalStorage": {
+    "en": "External storage",
+    "zh": "外部存储"
+  },
+  "settingsTotalUsedSpace": {
+    "en": "Total used: {size}",
+    "zh": "总使用空间: {size}"
+  },
+  "storageInfoCalculating": {
+    "en": "Calculating storage info...",
+    "zh": "正在计算存储信息..."
+  },
+  "storageInfoFetchFailedWithError": {
+    "en": "Failed to get storage info: {error}",
+    "zh": "无法获取存储信息: {error}"
+  },
+  "storageCategoryWithSize": {
+    "en": "{label}: {size}",
+    "zh": "{label}: {size}"
+  },
+  "deviceInfoFetching": {
+    "en": "Fetching...",
+    "zh": "获取中..."
+  },
+  "unknownDevice": {
+    "en": "Unknown device",
+    "zh": "未知设备"
+  },
+  "deviceInfoFetchFailed": {
+    "en": "Failed to fetch",
+    "zh": "获取失败"
+  },
+  "deviceInfoLabel": {
+    "en": "Device info",
+    "zh": "设备信息"
+  },
+  "unfavoriteCurrentRound": {
+    "en": "Unfavorite current round",
+    "zh": "取消收藏当前回合"
+  },
+  "noPlayingRound": {
+    "en": "No round is currently playing",
+    "zh": "没有正在播放的回合"
+  },
+  "confirmDeleteCurrentPlayingRound": {
+    "en": "Delete the currently playing round? This cannot be undone.",
+    "zh": "确定要删除当前正在播放的回合吗？此操作不可撤销。"
+  },
+  "noSegmentsYet": {
+    "en": "No segments yet",
+    "zh": "暂无片段"
+  },
+  "initFailedWithError": {
+    "en": "Initialization failed: {error}",
+    "zh": "初始化失败: {error}"
+  },
+  "operationFailedWithError": {
+    "en": "Operation failed: {error}",
+    "zh": "操作失败: {error}"
+  },
+  "deleteFailedWithError": {
+    "en": "Delete failed: {error}",
+    "zh": "删除失败: {error}"
+  },
+  "segmentNotFound": {
+    "en": "Segment not found",
+    "zh": "找不到对应的片段"
+  },
+  "playbackItemNotFound": {
+    "en": "Playback item not found",
+    "zh": "播放项不存在"
+  },
+  "playSegmentFailedWithError": {
+    "en": "Failed to play segment: {error}",
+    "zh": "播放片段失败: {error}"
+  },
+  "updatePlaybackListFailedWithError": {
+    "en": "Failed to update playback list: {error}",
+    "zh": "更新播放项列表失败: {error}"
+  },
+  "roundUnfavoritedSuccess": {
+    "en": "Unfavorited current round",
+    "zh": "已取消收藏当前回合"
+  },
+  "roundFavoritedSuccess": {
+    "en": "Favorited current round",
+    "zh": "已收藏当前回合"
+  },
+  "roundDeletedSuccess": {
+    "en": "Deleted current round",
+    "zh": "已删除当前回合"
+  },
+  "saveSegmentFailedWithError": {
+    "en": "Failed to save segments: {error}",
+    "zh": "保存片段失败: {error}"
+  },
+  "invalidIndex": {
+    "en": "Invalid index",
+    "zh": "无效的索引"
+  },
+  "reorderFailedWithError": {
+    "en": "Failed to reorder: {error}",
+    "zh": "重新排序失败: {error}"
+  },
+  "deviceInfoFetchFailedWithError": {
+    "en": "Failed to get device info: {error}",
+    "zh": "获取设备信息失败: {error}"
+  },
+  "developerModeAlreadyEnabled": {
+    "en": "Developer mode is already enabled",
+    "zh": "开发模式已启用"
+  },
+  "enterDeveloperPasswordTitle": {
+    "en": "Enter developer password",
+    "zh": "输入开发者密码"
+  },
+  "enterDeveloperPasswordHint": {
+    "en": "Enter the developer password to enable developer mode",
+    "zh": "请输入开发者密码以启用开发模式"
+  },
+  "developerPasswordIncorrect": {
+    "en": "Incorrect developer password",
+    "zh": "请输入正确的开发者密码"
+  },
+  "developerModeEnabledMessage": {
+    "en": "Developer mode enabled. You can now access developer features.",
+    "zh": "开发模式已启用，您现在可以访问开发功能"
+  },
+  "deviceBrandLabel": {
+    "en": "Brand",
+    "zh": "设备品牌"
+  },
+  "deviceModelLabel": {
+    "en": "Model",
+    "zh": "设备型号"
+  },
+  "androidVersionLabel": {
+    "en": "Android version",
+    "zh": "Android版本"
+  },
+  "sdkVersionLabel": {
+    "en": "SDK version",
+    "zh": "SDK版本"
+  },
+  "deviceIdLabel": {
+    "en": "Device ID",
+    "zh": "设备ID"
+  },
+  "manufacturerLabel": {
+    "en": "Manufacturer",
+    "zh": "制造商"
+  },
+  "productNameLabel": {
+    "en": "Product name",
+    "zh": "产品名称"
+  },
+  "hardwareLabel": {
+    "en": "Hardware",
+    "zh": "硬件"
+  },
+  "deviceNameLabel": {
+    "en": "Device name",
+    "zh": "设备名称"
+  },
+  "systemNameLabel": {
+    "en": "System name",
+    "zh": "系统名称"
+  },
+  "systemVersionLabel": {
+    "en": "System version",
+    "zh": "系统版本"
+  },
+  "deviceIdentifierLabel": {
+    "en": "Device identifier",
+    "zh": "设备标识符"
+  },
+  "deviceTypeLabel": {
+    "en": "Device type",
+    "zh": "设备类型"
+  },
+  "localizedModelLabel": {
+    "en": "Localized model",
+    "zh": "本地化型号"
+  },
+  "buildVersionLabel": {
+    "en": "Build version",
+    "zh": "构建版本"
+  },
+  "computerNameLabel": {
+    "en": "Computer name",
+    "zh": "计算机名称"
+  },
+  "userNameLabel": {
+    "en": "User name",
+    "zh": "用户名"
+  },
+  "registryOwnerLabel": {
+    "en": "Registry owner",
+    "zh": "注册表所有者"
+  },
+  "hostNameLabel": {
+    "en": "Host name",
+    "zh": "主机名"
+  },
+  "architectureLabel": {
+    "en": "Architecture",
+    "zh": "架构"
+  },
+  "activeCpuCountLabel": {
+    "en": "Active CPUs",
+    "zh": "活动CPU数"
+  },
+  "memorySizeLabel": {
+    "en": "Memory size",
+    "zh": "内存大小"
+  },
+  "distroNameLabel": {
+    "en": "Distribution",
+    "zh": "发行版名称"
+  },
+  "distroVersionLabel": {
+    "en": "Distribution version",
+    "zh": "发行版版本"
+  },
+  "versionIdLabel": {
+    "en": "Version ID",
+    "zh": "版本ID"
+  },
+  "versionCodenameLabel": {
+    "en": "Version codename",
+    "zh": "版本代号"
+  },
+  "platformLabel": {
+    "en": "Platform",
+    "zh": "平台"
+  },
+  "unknownPlatform": {
+    "en": "Unknown platform",
+    "zh": "未知平台"
+  },
+  "permissionNameNotification": {
+    "en": "Notifications",
+    "zh": "通知权限"
+  },
+  "permissionNameStorage": {
+    "en": "Storage",
+    "zh": "存储权限"
+  },
+  "permissionNameCamera": {
+    "en": "Camera",
+    "zh": "相机权限"
+  },
+  "permissionNameMicrophone": {
+    "en": "Microphone",
+    "zh": "麦克风权限"
+  },
+  "permissionNamePhotos": {
+    "en": "Photos",
+    "zh": "相册权限"
+  },
+  "permissionNameVideos": {
+    "en": "Videos",
+    "zh": "视频权限"
+  },
+  "permissionNameAudio": {
+    "en": "Audio",
+    "zh": "音频权限"
+  },
+  "permissionNameUnknown": {
+    "en": "Unknown permission",
+    "zh": "未知权限"
+  },
+  "permissionDetailNotification": {
+    "en": "Shows progress notifications while processing videos in the background.",
+    "zh": "用于在后台处理视频时显示进度通知，让您了解处理状态"
+  },
+  "permissionDetailStorage": {
+    "en": "Saves edited videos to device storage and reads existing videos.",
+    "zh": "用于保存剪辑后的视频文件到设备存储，以及读取现有视频"
+  },
+  "permissionDetailCamera": {
+    "en": "Records new video content, including photo and video capture.",
+    "zh": "用于录制新的视频内容，支持拍照和视频录制功能"
+  },
+  "permissionDetailMicrophone": {
+    "en": "Captures audio while recording videos.",
+    "zh": "用于录制视频时的音频输入，确保视频有声音"
+  },
+  "permissionDetailPhotos": {
+    "en": "Accesses photos and videos in your library for editing.",
+    "zh": "用于访问相册中的图片和视频，选择现有内容进行剪辑"
+  },
+  "permissionDetailVideos": {
+    "en": "Accesses video files on device storage in various formats.",
+    "zh": "用于访问设备存储中的视频文件，支持各种视频格式"
+  },
+  "permissionDetailAudio": {
+    "en": "Plays video and audio content.",
+    "zh": "用于播放视频和音频内容，确保媒体播放功能正常"
+  },
+  "permissionDetailDefault": {
+    "en": "Required for app functionality.",
+    "zh": "应用功能所需权限"
+  },
+  "permissionStatusGranted": {
+    "en": "Granted",
+    "zh": "已授权"
+  },
+  "permissionStatusDenied": {
+    "en": "Denied",
+    "zh": "已拒绝"
+  },
+  "permissionStatusRestricted": {
+    "en": "Restricted",
+    "zh": "受限制"
+  },
+  "permissionStatusLimited": {
+    "en": "Limited",
+    "zh": "有限权限"
+  },
+  "permissionStatusPermanentlyDenied": {
+    "en": "Permanently denied",
+    "zh": "永久拒绝"
+  },
+  "permissionStatusUnknown": {
+    "en": "Unknown",
+    "zh": "未知"
+  },
+  "permissionSuggestionDenied": {
+    "en": "Tap \"Request permission\" to try again.",
+    "zh": "点击\"请求权限\"按钮重新申请"
+  },
+  "permissionSuggestionPermanentlyDenied": {
+    "en": "Enable manually in system settings.",
+    "zh": "需要在系统设置中手动开启"
+  },
+  "permissionSuggestionRestricted": {
+    "en": "Permission is restricted by the system. Contact your administrator.",
+    "zh": "权限受到系统限制，请联系管理员"
+  },
+  "permissionSuggestionLimited": {
+    "en": "Partially granted; some features may be limited.",
+    "zh": "权限部分授权，部分功能可能受限"
+  },
+  "permissionCheckTitle": {
+    "en": "Permission check",
+    "zh": "权限检查"
+  },
+  "permissionChecking": {
+    "en": "Checking: {permissionName}",
+    "zh": "正在检查: {permissionName}"
+  },
+  "permissionDiagnosticTitle": {
+    "en": "Permission diagnostics",
+    "zh": "权限诊断信息"
+  },
+  "permissionDiagnosticTime": {
+    "en": "Diagnosed at: {timestamp}",
+    "zh": "诊断时间: {timestamp}"
+  },
+  "permissionDiagnosticStats": {
+    "en": "Permission summary:",
+    "zh": "权限统计:"
+  },
+  "permissionDiagnosticTotal": {
+    "en": "  Total: {count}",
+    "zh": "  总数: {count}"
+  },
+  "permissionDiagnosticGranted": {
+    "en": "  Granted: {count}",
+    "zh": "  已授权: {count}"
+  },
+  "permissionDiagnosticDenied": {
+    "en": "  Denied: {count}",
+    "zh": "  已拒绝: {count}"
+  },
+  "permissionDiagnosticPermanentlyDenied": {
+    "en": "  Permanently denied: {count}",
+    "zh": "  永久拒绝: {count}"
+  },
+  "permissionDiagnosticGrantedRate": {
+    "en": "  Grant rate: {percent}%",
+    "zh": "  授权率: {percent}%"
+  },
+  "permissionDiagnosticDetailStatus": {
+    "en": "Detailed status:",
+    "zh": "详细状态:"
+  },
+  "permissionDiagnosticFetchFailed": {
+    "en": "Failed to load diagnostics: {error}",
+    "zh": "获取诊断信息失败: {error}"
+  },
+  "errorNetworkRetry": {
+    "en": "Network error. Check your connection and try again.",
+    "zh": "网络异常，请检查网络后重试"
+  },
+  "errorResourceNotFound": {
+    "en": "Resource not found or no longer available.",
+    "zh": "资源不存在或已失效"
+  },
+  "errorLoginExpired": {
+    "en": "Session expired. Please sign in again.",
+    "zh": "登录已失效，请重新登录"
+  },
+  "errorGalleryReadFailed": {
+    "en": "Failed to read the photo library. Retry or check album permissions.",
+    "zh": "读取相册失败，请重试或检查系统相册权限"
+  },
+  "errorVideoNotSupported": {
+    "en": "This device cannot play this video. Try transcoding or compressing it first.",
+    "zh": "当前设备暂不支持播放该视频，请尝试转码或压缩后再试"
+  },
+  "errorImageLoadFailed": {
+    "en": "Failed to load image. It may be corrupted or unsupported on this device.",
+    "zh": "图片加载失败，可能是图片损坏或当前设备暂不支持该格式"
+  },
+  "errorStorageFull": {
+    "en": "Insufficient storage or app data is not writable. Free up space and try again.",
+    "zh": "存储空间不足或应用数据不可写，请清理空间后重试"
+  },
+  "videoCompressInputNotFound": {
+    "en": "Input file not found: {path}",
+    "zh": "输入文件不存在: {path}"
+  },
+  "videoCompressInfoUnavailable": {
+    "en": "Unable to get video information",
+    "zh": "无法获取视频信息"
+  },
+  "videoCompressOutputNotGenerated": {
+    "en": "Output file was not generated",
+    "zh": "输出文件未生成"
+  },
+  "videoCompressFailed": {
+    "en": "Compression failed: {logs}",
+    "zh": "压缩失败: {logs}"
+  },
+  "videoCompressException": {
+    "en": "Compression error: {error}",
+    "zh": "压缩异常: {error}"
+  },
+  "modelNotFound": {
+    "en": "Model not found: {modelName}",
+    "zh": "模型不存在: {modelName}"
+  },
+  "ffmpegNotInitialized": {
+    "en": "FFmpeg is not initialized",
+    "zh": "FFmpeg未初始化"
+  },
+  "ffmpegExecuteFailed": {
+    "en": "Execution failed: {logs}",
+    "zh": "执行失败: {logs}"
+  },
+  "ffmpegExecuteException": {
+    "en": "Execution error: {error}",
+    "zh": "执行异常: {error}"
+  },
+  "progressTaskCompleted": {
+    "en": "Task completed",
+    "zh": "任务完成"
+  },
+  "progressTaskCancelled": {
+    "en": "Task cancelled",
+    "zh": "任务已取消"
+  },
+  "processVideoFailed": {
+    "en": "Failed to process video",
+    "zh": "处理视频失败"
+  },
+  "operationCancelled": {
+    "en": "Operation cancelled",
+    "zh": "操作已被取消"
+  },
+  "videoInfoFetchFailed": {
+    "en": "Failed to get video info: {output}",
+    "zh": "获取视频信息失败: {output}"
+  },
+  "videoStreamNotFound": {
+    "en": "Video stream not found",
+    "zh": "未找到视频流"
+  },
+  "ffmpegConvertFailed": {
+    "en": "FFmpeg conversion failed: {output}",
+    "zh": "FFmpeg转换失败: {output}"
+  },
+  "softwareEncoderNotFound": {
+    "en": "No suitable software encoder found",
+    "zh": "未找到合适的软件编码器"
+  },
+  "softwareEncoderDetectFailed": {
+    "en": "Software encoder detection failed: {error}",
+    "zh": "软件编码器检测失败: {error}"
+  },
+  "frameOutOfRange": {
+    "en": "Frame index out of range: 0-{maxFrames}",
+    "zh": "帧数超出范围: 0-{maxFrames}"
+  },
+  "startFrameMustBeLessThanEnd": {
+    "en": "Start frame must be less than end frame",
+    "zh": "起始帧必须小于结束帧"
+  },
+  "thumbnailGenerationFailed": {
+    "en": "Failed to generate thumbnail: {detail}",
+    "zh": "生成缩略图失败: {detail}"
+  },
+  "thumbnailFileNotGenerated": {
+    "en": "Thumbnail file was not generated: {path}",
+    "zh": "缩略图文件生成失败: {path}"
+  },
+  "videoMergeFailed": {
+    "en": "Video merge failed",
+    "zh": "视频合并失败"
+  },
+  "videoCropFailed": {
+    "en": "Video crop failed",
+    "zh": "视频裁剪失败"
+  },
+  "videoFormatConvertFailed": {
+    "en": "Video format conversion failed",
+    "zh": "视频格式转换失败"
+  },
+  "videoScaleFailed": {
+    "en": "Video scaling failed",
+    "zh": "视频缩放失败"
+  },
+  "frameExtractionFailed": {
+    "en": "Frame extraction failed: {output}",
+    "zh": "帧提取失败: {output}"
+  },
+  "startTimeCannotBeNegative": {
+    "en": "Start time cannot be negative",
+    "zh": "开始时间不能小于0"
+  },
+  "intervalMustBePositive": {
+    "en": "Interval must be greater than 0",
+    "zh": "时间间隔必须大于0"
+  },
+  "exceptionDetailsLabel": {
+    "en": "Details",
+    "zh": "详细信息"
+  },
+  "taskRecords": {
+    "en": "Task records",
+    "zh": "任务记录"
+  },
+  "downloadStarting": {
+    "en": "Starting download...",
+    "zh": "开始下载..."
+  },
+  "backgroundDownload": {
+    "en": "Download in background",
+    "zh": "后台下载"
+  },
+  "browserDownload": {
+    "en": "Download in browser",
+    "zh": "浏览器下载"
+  },
+  "ffmpegOperationCancelled": {
+    "en": "FFmpeg operation cancelled",
+    "zh": "FFmpeg操作已取消"
+  },
+  "videoClipProgressTitle": {
+    "en": "Video clip progress",
+    "zh": "视频剪辑进度"
+  },
+  "generatingThumbnail": {
+    "en": "Generating thumbnail...",
+    "zh": "生成缩略图中..."
+  },
+  "cannotGenerateThumbnail": {
+    "en": "Unable to generate thumbnail",
+    "zh": "无法生成缩略图"
+  },
+  "taskSubmittedWaiting": {
+    "en": "Task submitted, waiting to start...",
+    "zh": "任务已提交，等待处理..."
+  },
+  "uploadingVideo": {
+    "en": "Uploading video...",
+    "zh": "正在上传视频..."
+  },
+  "analyzingVideoContent": {
+    "en": "Analyzing video content...",
+    "zh": "正在分析视频内容..."
+  },
+  "clippingVideo": {
+    "en": "Clipping video...",
+    "zh": "正在剪辑视频..."
+  },
+  "generatingFinalVideo": {
+    "en": "Generating final video...",
+    "zh": "正在生成最终视频..."
+  },
+  "downloadingResult": {
+    "en": "Downloading result...",
+    "zh": "正在下载结果..."
+  },
+  "clipCompleted": {
+    "en": "Clip completed!",
+    "zh": "剪辑完成！"
+  },
+  "processFailedRetry": {
+    "en": "Processing failed. Please try again.",
+    "zh": "处理失败，请重试"
+  },
+  "editVideo": {
+    "en": "Edit video",
+    "zh": "编辑视频"
+  },
+  "clearAllFilters": {
+    "en": "Clear all",
+    "zh": "清除全部"
+  },
+  "taskStatusFilter": {
+    "en": "Task status",
+    "zh": "任务状态"
+  },
+  "timeRangeFilter": {
+    "en": "Time range",
+    "zh": "时间范围"
+  },
+  "selectTimeRange": {
+    "en": "Select time range",
+    "zh": "选择时间范围"
+  },
+  "imageCompressResultsTitle": {
+    "en": "Compress results ({count})",
+    "zh": "压缩结果 ({count}张)"
+  },
+  "fullscreenPlayback": {
+    "en": "Fullscreen playback",
+    "zh": "全屏播放"
+  },
+  "exitFullscreen": {
+    "en": "Exit fullscreen",
+    "zh": "退出全屏"
+  },
+  "playSpeed": {
+    "en": "Playback speed",
+    "zh": "播放速度"
+  },
+  "favoriteSegment": {
+    "en": "Favorite segment",
+    "zh": "收藏片段"
+  },
+  "fileDoesNotExist": {
+    "en": "File does not exist",
+    "zh": "文件不存在"
+  },
+  "downloadWillContinueInBackground": {
+    "en": "Download will continue in the background",
+    "zh": "下载将在后台继续"
+  },
+  "downloadInProgress": {
+    "en": "Downloading",
+    "zh": "下载中"
+  },
+  "goToFeature": {
+    "en": "Go to feature",
+    "zh": "前往功能"
+  },
+  "selectExportQualityTitle": {
+    "en": "Select export quality",
+    "zh": "选择导出质量"
+  },
+  "downloadProgress": {
+    "en": "Download progress",
+    "zh": "下载进度"
+  },
+  "openFile": {
+    "en": "Open file",
+    "zh": "打开文件"
+  },
+  "noCompletedTasks": {
+    "en": "No completed tasks",
+    "zh": "没有已完成的任务"
+  },
+  "usedDuration": {
+    "en": "Used",
+    "zh": "已使用"
+  },
+  "currentPlanLabel": {
+    "en": "Current plan",
+    "zh": "当前方案"
+  },
+  "monthlyBilledLabel": {
+    "en": "/ month, billed monthly",
+    "zh": "/ 每月"
+  },
+  "screenshotPrepare": {
+    "en": "Preparing screenshot...",
+    "zh": "准备截图..."
+  },
+  "screenshotCapturing": {
+    "en": "Capturing screenshot...",
+    "zh": "正在截图..."
+  },
+  "screenshotGeneratingImage": {
+    "en": "Generating image...",
+    "zh": "正在生成图片..."
+  },
+  "screenshotSavingToGallery": {
+    "en": "Saving to gallery...",
+    "zh": "正在保存到相册..."
+  },
+  "screenshotCompleted": {
+    "en": "Screenshot complete",
+    "zh": "截图完成"
+  },
+  "screenshotFailedTitle": {
+    "en": "Screenshot failed",
+    "zh": "截图失败"
+  },
+  "screenshotProgressTitle": {
+    "en": "Screenshot progress",
+    "zh": "截图进度"
+  },
+  "screenshotFileNotGenerated": {
+    "en": "Screenshot file was not generated",
+    "zh": "截图文件未生成"
+  },
+  "screenshotCaptureFailedWithLogs": {
+    "en": "Screenshot failed: {logs}",
+    "zh": "截图失败: {logs}"
+  },
+  "shareFeatureInDevelopment": {
+    "en": "Share feature is under development...",
+    "zh": "分享功能开发中..."
+  },
+  "testPageTitle": {
+    "en": "Test page",
+    "zh": "测试页"
+  },
+  "testEnvironmentSubtitle": {
+    "en": "Test environment",
+    "zh": "测试环境"
+  },
+  "actionShare": {
+    "en": "Share",
+    "zh": "分享"
+  },
+  "viewLogsButton": {
+    "en": "View logs",
+    "zh": "查看日志"
+  },
+  "cannotOpenLogViewerNavigatorNotInitialized": {
+    "en": "Cannot open log viewer: Navigator not initialized",
+    "zh": "无法打开日志查看器: Navigator未初始化"
+  },
+  "cannotOpenLogViewer": {
+    "en": "Cannot open log viewer: {error}",
+    "zh": "无法打开日志查看器: {error}"
+  },
+  "developerModeTitle": {
+    "en": "Developer mode",
+    "zh": "开发者模式"
+  },
+  "developerModeWarning": {
+    "en": "These features are for development and debugging only. Use with caution.",
+    "zh": "这些功能仅供开发调试使用，请谨慎操作。"
+  },
+  "devToolsSection": {
+    "en": "Developer tools",
+    "zh": "开发工具"
+  },
+  "testPageAccessSubtitle": {
+    "en": "Open test page",
+    "zh": "访问测试页面"
+  },
+  "permissionTestTitle": {
+    "en": "Permission test",
+    "zh": "权限测试"
+  },
+  "permissionTestSubtitle": {
+    "en": "Test app permissions",
+    "zh": "测试应用权限"
+  },
+  "systemInfoTitle": {
+    "en": "System info",
+    "zh": "系统信息"
+  },
+  "systemInfoSubtitle": {
+    "en": "View detailed system information",
+    "zh": "查看系统详细信息"
+  },
+  "testPageForFeaturesSubtitle": {
+    "en": "For testing various features",
+    "zh": "用于测试各种功能"
+  },
+  "logViewerTitle": {
+    "en": "Log viewer",
+    "zh": "日志查看器"
+  },
+  "viewAppLogsSubtitle": {
+    "en": "View app logs",
+    "zh": "查看应用日志"
+  },
+  "dataManagementSection": {
+    "en": "Data management",
+    "zh": "数据管理"
+  },
+  "resetAppTitle": {
+    "en": "Reset app",
+    "zh": "重置应用"
+  },
+  "resetAppSubtitle": {
+    "en": "Clear all app data",
+    "zh": "清除所有应用数据"
+  },
+  "clearAppCacheSubtitle": {
+    "en": "Clear app cache",
+    "zh": "清除应用缓存"
+  },
+  "exportLogsTitle": {
+    "en": "Export logs",
+    "zh": "导出日志"
+  },
+  "exportLogsSubtitle": {
+    "en": "Export app logs",
+    "zh": "导出应用日志"
+  },
+  "debugFeaturesSection": {
+    "en": "Debug features",
+    "zh": "调试功能"
+  },
+  "performanceMonitorTitle": {
+    "en": "Performance monitor",
+    "zh": "性能监控"
+  },
+  "performanceMonitorSubtitle": {
+    "en": "Monitor app performance",
+    "zh": "监控应用性能"
+  },
+  "networkDebugTitle": {
+    "en": "Network debug",
+    "zh": "网络调试"
+  },
+  "networkDebugSubtitle": {
+    "en": "Debug network requests",
+    "zh": "网络请求调试"
+  },
+  "databaseDebugTitle": {
+    "en": "Database debug",
+    "zh": "数据库调试"
+  },
+  "databaseDebugSubtitle": {
+    "en": "View database contents",
+    "zh": "查看数据库内容"
+  },
+  "experimentalFeaturesSection": {
+    "en": "Experimental features",
+    "zh": "实验功能"
+  },
+  "experimentalFeatureATitle": {
+    "en": "Experimental feature A",
+    "zh": "实验功能A"
+  },
+  "experimentalFeatureASubtitle": {
+    "en": "Experimental feature A",
+    "zh": "实验性功能A"
+  },
+  "experimentalFeatureBTitle": {
+    "en": "Experimental feature B",
+    "zh": "实验功能B"
+  },
+  "experimentalFeatureBSubtitle": {
+    "en": "Experimental feature B",
+    "zh": "实验性功能B"
+  },
+  "deviceLabel": {
+    "en": "Device",
+    "zh": "设备"
+  },
+  "mobileDevice": {
+    "en": "Mobile device",
+    "zh": "移动设备"
+  },
+  "desktopDevice": {
+    "en": "Desktop device",
+    "zh": "桌面设备"
+  },
+  "flutterVersionLabel": {
+    "en": "Flutter version",
+    "zh": "Flutter版本"
+  },
+  "dartVersionLabel": {
+    "en": "Dart version",
+    "zh": "Dart版本"
+  },
+  "getxVersionLabel": {
+    "en": "GetX version",
+    "zh": "GetX版本"
+  },
+  "appVersionLabel": {
+    "en": "App version",
+    "zh": "应用版本"
+  },
+  "resetAppConfirmMessage": {
+    "en": "This will clear all app data, including settings, cache, and user data. This action cannot be undone.",
+    "zh": "这将清除所有应用数据，包括设置、缓存和用户数据。此操作不可撤销。"
+  },
+  "namedFeatureInDevelopment": {
+    "en": "{featureName} is under development...",
+    "zh": "{featureName}开发中..."
+  },
+  "filterOptionsTitle": {
+    "en": "Filter options",
+    "zh": "过滤选项"
+  },
+  "logLevelLabel": {
+    "en": "Log level:",
+    "zh": "日志级别:"
+  },
+  "classNameLabel": {
+    "en": "Class name:",
+    "zh": "类名:"
+  },
+  "wrapLinesLabel": {
+    "en": "Wrap lines",
+    "zh": "换行显示"
+  },
+  "showSystemLogsLabel": {
+    "en": "Show system logs",
+    "zh": "显示系统日志"
+  },
+  "viewFromEndLabel": {
+    "en": "View from end",
+    "zh": "从尾部查看"
+  },
+  "loadLogFilesFailed": {
+    "en": "Failed to load log files: {error}",
+    "zh": "加载日志文件失败: {error}"
+  },
+  "readLogContentFailed": {
+    "en": "Failed to read log content: {error}",
+    "zh": "读取日志内容失败: {error}"
+  },
+  "shareLogsFailed": {
+    "en": "Failed to share logs: {error}",
+    "zh": "分享日志失败: {error}"
+  },
+  "clearedLogsOlderThan7Days": {
+    "en": "Cleared logs older than 7 days",
+    "zh": "已清理7天前的日志"
+  },
+  "clearLogsFailed": {
+    "en": "Failed to clear logs: {error}",
+    "zh": "清理日志失败: {error}"
+  },
+  "pendingLogsTitle": {
+    "en": "Pending logs",
+    "zh": "待处理日志"
+  },
+  "pendingLogsWithCount": {
+    "en": "Pending logs ({count} entries)",
+    "zh": "待处理日志 ({count} 条)"
+  },
+  "searchLogsHint": {
+    "en": "Search logs...",
+    "zh": "搜索日志..."
+  },
+  "noLogFilesFound": {
+    "en": "No log files found",
+    "zh": "没有找到日志文件"
+  },
+  "logFilesGeneratedAtRuntime": {
+    "en": "Log files are generated while the app is running",
+    "zh": "日志文件将在应用运行时生成"
+  },
+  "messagesTitle": {
+    "en": "Messages",
+    "zh": "消息"
+  },
+  "noMessages": {
+    "en": "No messages",
+    "zh": "暂无消息"
+  },
+  "markReadFailed": {
+    "en": "Failed to mark as read",
+    "zh": "标记已读失败"
+  },
+  "markAllReadSuccess": {
+    "en": "All messages marked as read",
+    "zh": "已全部标记为已读"
+  },
+  "operationFailed": {
+    "en": "Operation failed",
+    "zh": "操作失败"
+  },
+  "messageTimeLabel": {
+    "en": "Time: {time}",
+    "zh": "时间: {time}"
+  },
+  "loadFailedShort": {
+    "en": "Failed to load",
+    "zh": "加载失败"
+  },
+  "loadChangelogFailed": {
+    "en": "Failed to load changelog: {error}",
+    "zh": "加载更新日志失败: {error}"
+  },
+  "loadingChangelog": {
+    "en": "Loading changelog...",
+    "zh": "正在加载更新日志..."
+  },
+  "noChangelogEntries": {
+    "en": "No changelog entries",
+    "zh": "暂无更新日志"
+  },
+  "aboutChangelogTitle": {
+    "en": "About changelog",
+    "zh": "关于更新日志"
+  },
+  "aboutChangelogDescription": {
+    "en": "We are committed to delivering the best video editing experience. Each update brings new features and improvements. Thank you for your support!",
+    "zh": "我们致力于为用户提供最好的视频剪辑体验。每次更新都会带来新的功能和改进，感谢您的支持！"
+  },
+  "actionRefresh": {
+    "en": "Refresh",
+    "zh": "刷新"
+  },
+  "recordDetailTitle": {
+    "en": "Record details",
+    "zh": "记录详情"
+  },
+  "videoNameLabel": {
+    "en": "Video name",
+    "zh": "视频名称"
+  },
+  "createTimeLabel": {
+    "en": "Created at",
+    "zh": "创建时间"
+  },
+  "progressPercentLabel": {
+    "en": "Progress: {percent}%",
+    "zh": "进度: {percent}%"
+  },
+  "remarkInfoSection": {
+    "en": "Remarks",
+    "zh": "备注信息"
+  },
+  "videoComparisonSection": {
+    "en": "Video comparison",
+    "zh": "视频对比"
+  },
+  "inputVideoLabel": {
+    "en": "Input video",
+    "zh": "输入视频"
+  },
+  "outputVideoLabel": {
+    "en": "Output video",
+    "zh": "输出视频"
+  },
+  "processingEffectLabel": {
+    "en": "Processing result",
+    "zh": "处理效果"
+  },
+  "durationShortenedLabel": {
+    "en": "Duration reduced",
+    "zh": "时长缩短"
+  },
+  "sizeReducedLabel": {
+    "en": "Size reduced",
+    "zh": "大小减少"
+  },
+  "viewVideoButton": {
+    "en": "View video",
+    "zh": "查看视频"
+  },
+  "reprocessButton": {
+    "en": "Reprocess",
+    "zh": "重新处理"
+  },
+  "videoProcessingCompletedViewOutput": {
+    "en": "Processing complete. You can view the output video.",
+    "zh": "视频处理完成，可以查看输出视频"
+  },
+  "videoStillProcessingTryLater": {
+    "en": "Video is still processing. Please try again later.",
+    "zh": "视频还在处理中，请稍后再试"
+  },
+  "labelDuration": {
+    "en": "Duration",
+    "zh": "时长"
+  },
+  "labelSize": {
+    "en": "Size",
+    "zh": "大小"
+  },
+  "labelType": {
+    "en": "Type",
+    "zh": "类型"
+  },
+  "booleanYes": {
+    "en": "Yes",
+    "zh": "是"
+  },
+  "booleanNo": {
+    "en": "No",
+    "zh": "否"
+  },
+  "emailLoginOnlyNotice": {
+    "en": "Due to policy requirements, only email login is available for now.",
+    "zh": "由于政策原因，暂时只能使用邮箱登录"
+  },
+  "pickImageFailed": {
+    "en": "Failed to pick image: {error}",
+    "zh": "选择图片失败: {error}"
+  },
+  "avatarUploadSuccess": {
+    "en": "Avatar uploaded successfully",
+    "zh": "头像上传成功"
+  },
+  "avatarUploadFailed": {
+    "en": "Failed to upload avatar: {error}",
+    "zh": "上传头像失败: {error}"
+  },
+  "pickFromGallery": {
+    "en": "Choose from gallery",
+    "zh": "从相册选择"
+  },
+  "takePhoto": {
+    "en": "Take photo",
+    "zh": "拍照"
+  },
+  "backgroundServicePermissionTitle": {
+    "en": "Background service permission required",
+    "zh": "需要后台服务权限"
+  },
+  "backgroundServicePermissionIntro": {
+    "en": "To keep video compression running in the background, please grant the following permission:",
+    "zh": "为了让视频压缩任务能在后台继续执行，需要您授予以下权限："
+  },
+  "backgroundMediaProcessingPermission": {
+    "en": "Background media processing permission",
+    "zh": "后台媒体处理权限"
+  },
+  "backgroundMediaProcessingDescription": {
+    "en": "Allows the app to process video compression in the background, even when you switch apps or lock the screen.",
+    "zh": "允许应用在后台处理视频压缩任务，即使您切换到其他应用或锁屏，压缩任务也会继续执行。"
+  },
+  "backgroundServicePermissionDeniedHint": {
+    "en": "If you deny this permission, video compression will run in the foreground and may affect other apps.",
+    "zh": "如果拒绝授权，视频压缩将在前台进行，可能会影响您使用其他应用。"
+  },
+  "setupLater": {
+    "en": "Set up later",
+    "zh": "稍后设置"
+  },
+  "loadVideoDetailFailed": {
+    "en": "Failed to load video details: {error}",
+    "zh": "加载视频详情失败: {error}"
+  },
+  "exportFailedTitle": {
+    "en": "Export failed",
+    "zh": "导出失败"
+  },
+  "exportFileNotGenerated": {
+    "en": "Export file was not generated",
+    "zh": "导出文件未生成"
+  },
+  "pageLoadFailed": {
+    "en": "Failed to load page",
+    "zh": "页面加载失败"
+  },
+  "unknownError": {
+    "en": "Unknown error",
+    "zh": "未知错误"
+  },
+  "returnToHome": {
+    "en": "Return to home",
+    "zh": "返回首页"
+  },
+  "untitledName": {
+    "en": "Untitled",
+    "zh": "未命名"
+  },
+  "localVideoStatusPending": {
+    "en": "Pending detection",
+    "zh": "待检测"
+  },
+  "localVideoStatusProcessing": {
+    "en": "Detecting",
+    "zh": "检测中"
+  },
+  "waitingProcessTime": {
+    "en": "Waiting time: {seconds} s",
+    "zh": "等待处理时间: {seconds} s"
+  },
+  "processedTimeLabel": {
+    "en": "Processed time: {seconds} s",
+    "zh": "已处理时间：{seconds} s"
+  },
+  "videoWaitingWithQueue": {
+    "en": "Video is waiting... {count} video(s) ahead in queue",
+    "zh": "视频等待处理中...前方有 {count} 个视频在排队"
+  },
+  "videoWaitingProcessing": {
+    "en": "Video is waiting to be processed...",
+    "zh": "视频等待处理中..."
+  },
+  "videoProcessingInProgress": {
+    "en": "Video is processing...",
+    "zh": "视频处理中..."
+  },
+  "leavePageProcessingNotification": {
+    "en": "You can leave this page. You'll be notified via messages when processing completes.",
+    "zh": "你可以离开页面，视频处理完后将会通过消息通知您。"
+  },
+  "processingSpeedPerSecond": {
+    "en": "Processing speed: {speed} s/s",
+    "zh": "处理速度：{speed} s/s"
+  },
+  "estimatedRemainingTimeSeconds": {
+    "en": "Estimated remaining time: {seconds} s",
+    "zh": "预计剩余时间：{seconds} s"
+  },
+  "videoDurationSeconds": {
+    "en": "Video duration: {seconds} s",
+    "zh": "视频时长：{seconds} s"
+  },
+  "noPlayableVideos": {
+    "en": "No playable videos",
+    "zh": "没有可播放的视频"
+  },
+  "trimSplitLabel": {
+    "en": "Split",
+    "zh": "分割"
+  },
+  "addClipSegmentLabel": {
+    "en": "Add segment",
+    "zh": "添加片段"
+  },
+  "playSelectedSegmentOnly": {
+    "en": "Play segment only",
+    "zh": "只播放片段"
+  }
+}

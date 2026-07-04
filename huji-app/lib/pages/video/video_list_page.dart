@@ -4,6 +4,7 @@ import 'package:huji_app/router/modules/profile.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
 import 'package:huji_app/pages/video/video_list_tab_content.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoListPage extends StatefulWidget {
   final TabController? tabController;
@@ -54,7 +55,7 @@ class _VideoListPageState extends State<VideoListPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
-        title: '视频列表',
+        title: context.hujiL10n.videoListTitle,
         controller: _tabController,
         leftWidget: _buildMenuButton(),
         rightWidget: _buildFilterButton(),

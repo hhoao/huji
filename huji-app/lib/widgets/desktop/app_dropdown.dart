@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop dropdown using MenuAnchor for proper overlay behavior.
 class AppDropdown<T> extends StatefulWidget {
@@ -47,15 +48,16 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     Widget trigger = Container(
       constraints: BoxConstraints(minWidth: widget.minWidth!),
-      padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: DesktopTheme.cardBg,
-        border: Border.all(color: DesktopTheme.borderMedium),
-        borderRadius:
-            BorderRadius.circular(DesktopTheme.radiusMd),
+        color: cs.surfaceContainer,
+        border: Border.all(color: context.desktopBorderMedium),
+        borderRadius: BorderRadius.circular(desktopRadiusMd),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -63,14 +65,11 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
           Flexible(
             child: Text(
               _labelFor(widget.value),
-              style: const TextStyle(
-                  fontSize: 13,
-                  color: DesktopTheme.textPrimary),
+              style: styles.body.copyWith(color: cs.onSurface),
             ),
           ),
           const SizedBox(width: 8),
-          const Icon(Icons.arrow_drop_down,
-              size: 18, color: DesktopTheme.textDim),
+          Icon(Icons.arrow_drop_down, size: 18, color: cs.outline),
         ],
       ),
     );
@@ -91,29 +90,22 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
           },
           child: Text(
             _labelFor(item),
-            style: TextStyle(
-              fontSize: 12,
-              color: isActive
-                  ? DesktopTheme.indigoText
-                  : DesktopTheme.textPrimary,
+            style: styles.bodySmall.copyWith(
+              color: isActive ? cs.primary : cs.onSurface,
             ),
           ),
         );
       }).toList(),
       style: MenuStyle(
-        backgroundColor:
-            WidgetStateProperty.all(DesktopTheme.cardBg),
+        backgroundColor: WidgetStateProperty.all(cs.surfaceContainer),
         elevation: WidgetStateProperty.all(8),
         shape: WidgetStateProperty.all(
           RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(
-                DesktopTheme.radiusLg),
-            side: const BorderSide(
-                color: DesktopTheme.borderMedium),
+            borderRadius: BorderRadius.circular(desktopRadiusLg),
+            side: BorderSide(color: context.desktopBorderMedium),
           ),
         ),
-        padding:
-            WidgetStateProperty.all(const EdgeInsets.all(4)),
+        padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
       ),
       child: AppHoverBox(
         onTap: () {
@@ -123,7 +115,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
             _controller.open();
           }
         },
-        borderRadius: DesktopTheme.radiusMd,
+        borderRadius: desktopRadiusMd,
         child: trigger,
       ),
     );

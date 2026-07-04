@@ -12,6 +12,7 @@ import 'package:huji_app/services/app_update_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class AppUpdateDialog extends StatefulWidget {
   final AppUpdateInfo updateInfo;
@@ -25,7 +26,7 @@ class AppUpdateDialog extends StatefulWidget {
 class _AppUpdateDialogState extends State<AppUpdateDialog> {
   bool _isDownloading = false;
   double _downloadProgress = 0.0;
-  String _downloadStatus = '准备下载';
+  String _downloadStatus = '';
   bool _isExpanded = false;
   List<ChangelogEntry> changelogs = [];
   bool _downloadCompleted = false;
@@ -36,6 +37,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          _downloadStatus = context.hujiL10n.prepareDownload;
+        });
+      }
       _onTaskManagerChanged();
     });
   }
@@ -60,9 +66,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
           children: [
             SizedBox(height: 20),
             Center(
-              child: Text(
-                '发现新版本',
-                style: TextStyle(
+              child: Text(context.hujiL10n.newVersionFound, style: TextStyle(
                   color: Colors.black,
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -116,9 +120,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      '当前版本',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    Text(context.hujiL10n.currentVersion, style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -136,13 +138,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
-                      '最新版本',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    Text(context.hujiL10n.latestVersion, style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     SizedBox(height: 4),
                     Text(
-                      latestApp?.version ?? '未知',
+                      latestApp?.version ?? context.hujiL10n.unknownLabel,
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
@@ -166,9 +166,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
               collapsedShape: Border.all(color: Colors.transparent),
               backgroundColor: Colors.transparent,
               collapsedBackgroundColor: Colors.transparent,
-              title: Text(
-                '更新内容',
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              title: Text(context.hujiL10n.updateContent, style: TextStyle(fontSize: 12, color: Colors.grey[600]),
               ),
               collapsedIconColor: Colors.grey[600],
               collapsedTextColor: Colors.grey[600],
@@ -274,7 +272,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                   Navigator.of(context).pop();
                 },
                 null,
-                '以后更新',
+                context.hujiL10n.updateLater,
               ),
             ),
           // 如果是直接下载链接，显示应用内下载按钮
@@ -302,7 +300,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
               child: _buildBottomButton(
                 () => _handleBrowserDownload(widget.updateInfo.latestApp!),
                 const Icon(Icons.open_in_browser, size: 18),
-                '浏览器下载',
+                context.hujiL10n.browserDownload,
               ),
             ),
         ],
@@ -317,13 +315,14 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   }
 
   String _getBottomButtonText() {
+    final l10n = context.hujiL10n;
     if (_downloadCompleted) {
-      return '立即安装';
+      return l10n.installNow;
     }
     if (_isDownloading) {
-      return '后台下载';
+      return l10n.backgroundDownload;
     }
-    return '立即下载';
+    return l10n.downloadNow;
   }
 
   Widget _buildBottomButton(
@@ -359,8 +358,8 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         if (task.status == TaskStatusEnum.completed ||
             task.status == TaskStatusEnum.failed) {
           _downloadStatus = task.status == TaskStatusEnum.completed
-              ? '下载完成'
-              : '下载失败';
+              ? context.hujiL10n.downloadCompleted
+              : context.hujiL10n.downloadFailed;
           _downloadCompleted = true;
           _downloadProgress = 1.0;
           _isDownloading = false;
@@ -393,8 +392,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     if (downloadType == DownloadTypeEnum.redirect) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('该链接需要在浏览器中下载'),
+          SnackBar(content: Text(context.hujiL10n.linkRequiresBrowserDownload),
             duration: Duration(seconds: 2),
           ),
         );
@@ -405,7 +403,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     setState(() {
       _isDownloading = true;
       _downloadProgress = 0.0;
-      _downloadStatus = '开始下载...';
+      _downloadStatus = context.hujiL10n.downloadStarting;
     });
 
     try {
@@ -415,13 +413,16 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       });
     } catch (e) {
       setState(() {
-        _downloadStatus = '下载错误';
+        _downloadStatus = context.hujiL10n.downloadError;
         _isDownloading = false;
       });
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('下载过程中发生错误: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.downloadErrorWithDetails('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -486,19 +487,19 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     // 显示加载提示
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
+        SnackBar(
           content: Row(
             children: [
-              SizedBox(
+              const SizedBox(
                 width: 20,
                 height: 20,
                 child: CircularProgressIndicator(strokeWidth: 2),
               ),
-              SizedBox(width: 12),
-              Text('正在获取下载链接...'),
+              const SizedBox(width: 12),
+              Text(context.hujiL10n.fetchingDownloadLink),
             ],
           ),
-          duration: Duration(seconds: 30), // 设置较长的超时时间
+          duration: const Duration(seconds: 30), // 设置较长的超时时间
         ),
       );
     }
@@ -513,8 +514,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('下载链接不可用'),
+            SnackBar(content: Text(context.hujiL10n.downloadLinkUnavailable),
               backgroundColor: Colors.red,
             ),
           );
@@ -547,15 +547,13 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           if (launched) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('已在浏览器中打开下载链接'),
+              SnackBar(content: Text(context.hujiL10n.downloadLinkOpenedInBrowser),
                 duration: Duration(seconds: 2),
               ),
             );
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('无法打开下载链接'),
+              SnackBar(content: Text(context.hujiL10n.cannotOpenDownloadLink),
                 backgroundColor: Colors.red,
               ),
             );
@@ -565,7 +563,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         if (mounted) {
           ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('打开浏览器失败: $e'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(context.hujiL10n.openBrowserFailed('$e')),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
@@ -573,7 +574,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).hideCurrentSnackBar();
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开浏览器失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openBrowserFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }

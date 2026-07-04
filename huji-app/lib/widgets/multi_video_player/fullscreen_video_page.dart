@@ -11,6 +11,7 @@ import '../../services/platform_capability.dart';
 import 'bloc/multi_video_player_bloc.dart';
 import 'bloc/multi_video_player_state.dart';
 import 'bloc/multi_video_player_event.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// 全屏视频播放页面
 class FullscreenVideoPage extends StatefulWidget {
@@ -176,12 +177,12 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                                   color: Colors.white,
                                   size: 24,
                                 ),
-                                tooltip: '退出全屏',
+                                tooltip: context.hujiL10n.exitFullscreen,
                               ),
                               const Spacer(),
                               // 标题或其他信息
-                              const Text(
-                                '全屏播放',
+                              Text(
+                                context.hujiL10n.fullscreenPlayback,
                                 style: TextStyle(
                                   color: Colors.white,
                                   fontSize: 16,
@@ -190,7 +191,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                               ),
                               const Spacer(),
                               // 占位，保持居中
-                              const SizedBox(width: 48),
+                              SizedBox(width: 48),
                             ],
                           ),
                         ),
@@ -272,7 +273,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
             ),
           ),
 
-          const SizedBox(height: 2),
+          SizedBox(height: 2),
 
           // 控制按钮行
           Row(
@@ -283,7 +284,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                 style: const TextStyle(color: Colors.white, fontSize: 11),
               ),
 
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
 
               // 上一个按钮
               GestureDetector(
@@ -309,7 +310,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                 ),
               ),
 
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
 
               // 播放/暂停按钮
               GestureDetector(
@@ -335,7 +336,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                 ),
               ),
 
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
 
               // 下一个按钮
               GestureDetector(
@@ -371,7 +372,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                   const PopupMenuItem(value: 1.5, child: Text('1.5x')),
                   const PopupMenuItem(value: 2.0, child: Text('2.0x')),
                 ],
-                tooltip: '播放速度',
+                tooltip: context.hujiL10n.playSpeed,
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
@@ -382,7 +383,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                 ),
               ),
 
-              const SizedBox(width: 6),
+              SizedBox(width: 6),
 
               // 音量控制
               GestureDetector(
@@ -404,7 +405,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                 ),
               ),
 
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
 
               // 总时间显示
               Text(
@@ -421,14 +422,14 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   Widget _buildVideoPlayer(BuildContext context) {
     final state = context.read<MultiVideoPlayerBloc>().state;
     if (state.isLoading) {
-      return const Center(
+      return Center(
         child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
       );
     }
     final controller = state.currentVideoController;
     if (controller == null || !state.isInitialized) {
-      return const Center(
-        child: Text('暂无视频', style: TextStyle(color: Colors.white, fontSize: 16)),
+      return Center(
+        child: Text(context.hujiL10n.desktopLibraryEmptyTitle, style: TextStyle(color: Colors.white, fontSize: 16)),
       );
     }
     return Center(
@@ -445,7 +446,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
             if (!state.isInitialized)
               Container(
                 color: Colors.black54,
-                child: const Center(
+                child: Center(
                   child: CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                   ),

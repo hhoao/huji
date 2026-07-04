@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:logger/logger.dart';
 import 'package:huji_app/services/error_log_service.dart';
-import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
 
 enum LogLevel {
@@ -66,9 +66,7 @@ class AppLogger {
   static final AppLogger _instance = AppLogger._internal();
   factory AppLogger() => _instance;
   AppLogger._internal() {
-    // 立即初始化控制台日志记录器
     _initializeConsoleLogger();
-    _initializeFileLogger();
   }
 
   static AppLogger get instance => _instance;
@@ -76,8 +74,9 @@ class AppLogger {
   static const int _maxLogFileSize = 10 * 1024 * 1024; // 10MB
   static const int _maxLogFiles = 5; // 最多保留5个日志文件
   static const int _maxDays = 7; // 最多保留7天的日志
-  static const Duration _retryDelay = Duration(seconds: 2); // 重试延迟
-
+  static const _excludeLoggerPaths = [
+    'package:huji_app/utils/logger_utils.dart',
+  ];
   // 控制台日志记录器（立即初始化）
   late Logger _consoleLogger;
 
@@ -96,6 +95,7 @@ class AppLogger {
       printer: PrettyPrinter(
         methodCount: 2, // 显示调用栈的方法数量
         errorMethodCount: 8, // 错误时显示更多方法
+        excludePaths: _excludeLoggerPaths,
         lineLength: 120, // 行长度
         colors: true, // 启用颜色
         printEmojis: true, // 启用表情符号
@@ -107,18 +107,24 @@ class AppLogger {
     );
   }
 
-  Future<void> _initializeFileLogger() async {
+  /// 在主 isolate 且 [StorageService.init] 完成后调用，启用文件日志。
+  Future<void> initializeFileLogger() async {
     if (_fileLoggerInitialized ||
         _fileLoggerInitializing ||
         _fileLoggingDisabled) {
       return;
     }
+    if (!StorageService.isInitialized) {
+      return;
+    }
+    await _initializeFileLogger();
+  }
 
+  Future<void> _initializeFileLogger() async {
     _fileLoggerInitializing = true;
 
     try {
-      // 获取应用文档目录，带重试机制
-      final appDocDir = await _getLogDirectoryWithRetry();
+      final appDocDir = _getLogDirectory();
       final logDir = Directory('${appDocDir.path}/logs');
 
       // 创建日志目录
@@ -137,6 +143,7 @@ class AppLogger {
         printer: PrettyPrinter(
           methodCount: 2,
           errorMethodCount: 8,
+          excludePaths: _excludeLoggerPaths,
           lineLength: 120,
           colors: false, // 文件日志不需要颜色
           printEmojis: false, // 文件日志不需要表情符号
@@ -162,17 +169,12 @@ class AppLogger {
     }
   }
 
-  Future<Directory> _getLogDirectoryWithRetry() async {
-    while (true) {
-      try {
-        return storage.getApplicationDocumentsDirectory();
-      } catch (e) {
-        _consoleLogger.w(
-          'Failed to get application documents directory: $e, retrying...',
-        );
-        await Future.delayed(_retryDelay);
-      }
-    }
+  Directory _getLogDirectory() {
+    return storage.getApplicationDocumentsDirectory();
+  }
+
+  bool _isFileLoggingEligible() {
+    return !_fileLoggingDisabled && StorageService.isInitialized;
   }
 
   void _addPendingFileLog(
@@ -356,7 +358,11 @@ class AppLogger {
     dynamic error,
     StackTrace? stackTrace,
   ]) {
-    if (_fileLoggingDisabled || !_fileLoggerInitialized) {
+    if (!_isFileLoggingEligible()) {
+      return;
+    }
+
+    if (!_fileLoggerInitialized) {
       _addPendingFileLog(level, message, error, stackTrace);
       return;
     }
@@ -395,8 +401,7 @@ class AppLogger {
       final size = await _logFile!.length();
       if (size > _maxLogFileSize) {
         // 重新初始化日志文件
-        final appDocDir = await _getLogDirectoryWithRetry();
-        final logDir = Directory('${appDocDir.path}/logs');
+        final logDir = Directory('${_getLogDirectory().path}/logs');
         _logFile = await _getOrCreateLogFile(logDir);
 
         // 更新文件logger的输出
@@ -404,6 +409,7 @@ class AppLogger {
           printer: PrettyPrinter(
             methodCount: 2,
             errorMethodCount: 8,
+            excludePaths: _excludeLoggerPaths,
             lineLength: 120,
             colors: false,
             printEmojis: false,
@@ -483,12 +489,11 @@ class AppLogger {
   }
 
   Future<List<String>> getLogFiles() async {
-    if (!_fileLoggerInitialized) {
+    if (!_fileLoggerInitialized || !StorageService.isInitialized) {
       return [];
     }
 
-    final appDocDir = await _getLogDirectoryWithRetry();
-    final logDir = Directory('${appDocDir.path}/logs');
+    final logDir = Directory('${_getLogDirectory().path}/logs');
     if (!await logDir.exists()) {
       return [];
     }
@@ -509,12 +514,11 @@ class AppLogger {
   }
 
   Future<void> clearOldLogs({int keepDays = 7}) async {
-    if (!_fileLoggerInitialized) {
+    if (!_fileLoggerInitialized || !StorageService.isInitialized) {
       return;
     }
 
-    final appDocDir = await _getLogDirectoryWithRetry();
-    final logDir = Directory('${appDocDir.path}/logs');
+    final logDir = Directory('${_getLogDirectory().path}/logs');
     await _cleanOldLogs(logDir);
   }
 }

@@ -2,10 +2,10 @@ name: huji_app
 description: "弧迹 - 智能视频剪辑应用"
 publish_to: "none"
 
-version: 2.3.1
+version: 2.4.0
 
 environment:
-  sdk: ^3.11.5
+  sdk: ^3.12.2
 
 dependencies:
   flutter:
@@ -42,6 +42,7 @@ dependencies:
   web_socket_channel: ^2.4.0
   sqflite_common_ffi: ^2.3.6
   sqlite3_flutter_libs: ^0.5.34
+  sqflite: ^2.4.2
   
   carousel_slider: ^5.1.1
   dotted_border: ^3.1.0
@@ -49,10 +50,15 @@ dependencies:
   flutter_native_video_trimmer: ^1.1.9
   gal: ^2.3.1
   gal_linux: ^0.1.2
-  sqflite: ^2.4.2
   workmanager: ^0.8.0
   open_file: ^3.5.10
+  shared_ui:
+    path: packages/shared_ui
+  flex_color_scheme: ^8.4.0
+  google_fonts: ^8.1.0
+  flutter_animate: 4.5.2
   intl: ^0.20.2
+
   get: ^4.7.2
   flutter_cache_manager: ^3.4.1
   image_picker: ^1.0.7
@@ -79,7 +85,7 @@ dependencies:
   go_router: ^16.3.0
   camerawesome: ^2.5.0
   image: ^4.3.0
-  ffi: ^2.2.0
+  flutter_onnxruntime: ^1.8.0
   
 
 dev_dependencies:
@@ -99,13 +105,18 @@ dev_dependencies:
   go_router_builder: ^3.3.1
 
 flutter:
+  generate: true
   uses-material-design: true
 
   assets:
     - assets/images/
     - assets/svg/
     - assets/icons/
-    - assets/models/
+    - assets/models/ping_pong/normal/
+    - assets/models/ping_pong/profession/
+    - assets/models/badminton/singles/
+    - assets/models/badminton/doubles/
+    - assets/demo/
     - CHANGELOG.md
 
 flutter_launcher_icons:

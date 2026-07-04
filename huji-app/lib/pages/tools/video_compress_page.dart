@@ -20,6 +20,7 @@ import 'package:video_player/video_player.dart';
 
 import '../../../models/task.dart';
 import '../../store/task/task_manager.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoCompressPage extends StatefulWidget {
   final File? initialFile;
@@ -277,7 +278,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                 Text('${(_progress * 100).toStringAsFixed(1)}%'),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             LinearProgressIndicator(
               value: _progress,
               backgroundColor: Colors.grey[200],
@@ -353,11 +354,11 @@ class _VideoCompressPageState extends State<VideoCompressPage>
             onSuccess: (result) async {
               await previewFile.delete();
 
-              if (mounted) {
-                context.push(
-                  '${VideoRoute.videoPlayer}?videoUrl=${Uri.encodeComponent(result.outputPath!)}&fileName=${Uri.encodeComponent('预览_${_customFileName ?? _originFile!.path.split('/').last}')}',
-                );
-              }
+              if (!mounted) return;
+              context.push(
+                '${VideoRoute.videoPlayer}?videoUrl=${Uri.encodeComponent(result.outputPath ?? '')}&fileName=${Uri.encodeComponent('预览_${_customFileName ?? _originFile?.path.split('/').last ?? 'video'}')}',
+              );
+              if (!mounted) return;
               setState(() {
                 _isCompressing = false;
                 _progress = 100.0;
@@ -515,7 +516,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    SizedBox(width: 16),
                     Expanded(
                       child: ElevatedButton.icon(
                         onPressed: _isCompressing
@@ -569,7 +570,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               height: double.infinity,
                             ),
                           )
-                        : const Center(
+                        : Center(
                             child: Icon(
                               Icons.video_file,
                               color: Colors.white38,
@@ -626,7 +627,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               ),
                             ),
                           ),
-                          const SizedBox(height: 3),
+                          SizedBox(height: 3),
                           Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
@@ -663,7 +664,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               const CircularProgressIndicator(
                                 color: Colors.orange,
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               const Text(
                                 '正在创建预览...',
                                 style: TextStyle(
@@ -672,7 +673,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
                               Text(
                                 '${(_progress * 100).toStringAsFixed(1)}%',
                                 style: const TextStyle(
@@ -727,11 +728,11 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                           actions: [
                             TextButton(
                               onPressed: () => context.pop(),
-                              child: const Text('取消'),
+                              child: Text(context.hujiL10n.taskStatusCancelledShort),
                             ),
                             TextButton(
                               onPressed: () => context.pop(controller.text),
-                              child: const Text('确定'),
+                              child: Text(context.hujiL10n.actionConfirm),
                             ),
                           ],
                         ),
@@ -775,14 +776,14 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             // 压缩质量选择
                             const Text(
                               '压缩质量:',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             SegmentedButton<String>(
                               segments: const [
                                 ButtonSegment(
@@ -825,14 +826,14 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               },
                             ),
 
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             // 压缩速度预设
                             const Text(
                               '压缩速度:',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
                             DropdownButtonFormField<VideoCompressPreset>(
                               value: _compressConfig.preset,
                               decoration: const InputDecoration(
@@ -857,12 +858,12 @@ class _VideoCompressPageState extends State<VideoCompressPage>
 
                             if (_compressConfig.quality ==
                                 VideoCompressQuality.custom) ...[
-                              const SizedBox(height: 16),
+                              SizedBox(height: 16),
                               const Text(
                                 '自定义设置:',
                                 style: TextStyle(fontWeight: FontWeight.w500),
                               ),
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
 
                               // 自定义比特率
                               TextFormField(
@@ -881,7 +882,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                 },
                               ),
 
-                              const SizedBox(height: 8),
+                              SizedBox(height: 8),
 
                               Row(
                                 children: [
@@ -905,7 +906,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                       },
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
+                                  SizedBox(width: 8),
                                   Expanded(
                                     child: TextFormField(
                                       initialValue:
@@ -930,13 +931,13 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               ),
                             ],
 
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
 
                             const Text(
                               '高级选项:',
                               style: TextStyle(fontWeight: FontWeight.w500),
                             ),
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
 
                             CheckboxListTile(
                               title: const Text('包含音频'),
@@ -965,7 +966,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               contentPadding: EdgeInsets.zero,
                             ),
 
-                            const SizedBox(height: 8),
+                            SizedBox(height: 8),
 
                             // 最大文件大小
                             TextFormField(
@@ -1003,7 +1004,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                         child: Row(
                           children: [
                             const Icon(Icons.error, color: Colors.red),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 _errorMessage!,
@@ -1057,7 +1058,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow('文件路径', compressResult.outputPath ?? ''),
-                  const SizedBox(height: 12),
+                  SizedBox(height: 12),
                   _buildInfoRow(
                     '原始大小',
                     _formatFileSize(compressResult.originalSize ?? 0),
@@ -1097,7 +1098,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
         title: Row(
           children: [
             const Icon(Icons.video_library, color: Colors.blue),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             const Text('视频信息'),
           ],
         ),
@@ -1132,7 +1133,7 @@ class _VideoCompressPageState extends State<VideoCompressPage>
           ),
         ),
         actions: [
-          TextButton(onPressed: () => context.pop(), child: const Text('关闭')),
+          TextButton(onPressed: () => context.pop(), child: Text(context.hujiL10n.actionClose)),
         ],
       ),
     );

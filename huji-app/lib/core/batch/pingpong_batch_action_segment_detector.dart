@@ -1,5 +1,6 @@
 import 'package:logger/logger.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 
 import '../../constants/autoclip_constants.dart';
 import '../../models/autoclip_models.dart';
@@ -515,7 +516,7 @@ class PingPongBatchActionSegmentDetector
 
       // 检查是否有有效片段
       if (allMatchSegments.isEmpty) {
-        throw Exception('没有有效的片段');
+        throw Exception(resolveHujiL10n().noValidSegments);
       }
 
       return (allMatchSegments, greatMatchSegments);

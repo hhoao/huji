@@ -4,6 +4,7 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/issue_models.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class HelpFeedbackPage extends StatefulWidget {
   const HelpFeedbackPage({super.key});
@@ -28,29 +29,28 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
   }
 
   Future<void> _submitFeedback() async {
+    final l10n = context.hujiL10n;
     if (_titleController.text.trim().isEmpty) {
-      _showSnackBar('请输入标题');
+      _showSnackBar(l10n.pleaseEnterTitle);
       return;
     }
     if (_descController.text.trim().isEmpty) {
-      _showSnackBar('请输入详细描述');
+      _showSnackBar(l10n.pleaseEnterDescription);
       return;
     }
     setState(() {
       _isSubmitting = true;
     });
     try {
+      final contact = _contactController.text.trim();
       final req = IssueCreateReqVO(
         title: _titleController.text.trim(),
-        description:
-            _descController.text.trim() +
-            (_contactController.text.trim().isNotEmpty
-                ? '\n联系方式: ${_contactController.text.trim()}'
-                : ''),
+        description: _descController.text.trim() +
+            (contact.isNotEmpty ? '\n${l10n.contactInfoPrefix(contact)}' : ''),
         type: _selectedType,
       );
       await Api.issue.createIssue(req);
-      _showSnackBar('反馈提交成功，感谢您的建议！');
+      _showSnackBar(l10n.feedbackSubmittedSuccessfully);
       _titleController.clear();
       _descController.clear();
       _contactController.clear();
@@ -58,7 +58,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
         _selectedType = IssueTypeEnum.bug;
       });
     } catch (e) {
-      _showSnackBar('提交失败，请稍后重试');
+      _showSnackBar(context.hujiL10n.submitFailedRetryLater);
     } finally {
       setState(() {
         _isSubmitting = false;
@@ -71,7 +71,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      _showSnackBar('无法打开链接');
+      _showSnackBar(context.hujiL10n.cannotOpenLink);
     }
   }
 
@@ -86,7 +86,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
-        title: Text('帮助与反馈', style: Theme.of(context).textTheme.headlineMedium),
+        title: Text(context.hujiL10n.helpAndFeedback, style: Theme.of(context).textTheme.headlineMedium),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -95,75 +95,81 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                '常见问题',
-                style: Theme.of(context).textTheme.titleLarge,
+              child: Text(context.hujiL10n.faqTitle, style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
-            _buildFAQItem('如何上传视频？', '在首页点击"开始剪辑"按钮，选择要上传的视频文件即可。'),
-            _buildDivider(),
-            _buildFAQItem('支持哪些视频格式？', '支持MP4、AVI、MOV、MKV等常见视频格式。'),
-            _buildDivider(),
             _buildFAQItem(
-              '如何选择运动类型？',
-              '在剪辑配置页面，您可以选择羽毛球、乒乓球等运动类型，系统会根据运动特点进行智能剪辑。',
+              context.hujiL10n.faqHowToUploadVideo,
+              context.hujiL10n.faqHowToUploadVideoAnswer,
             ),
             _buildDivider(),
-            _buildFAQItem('剪辑需要多长时间？', '一小时的视频，通常需要10分钟左右完成剪辑。'),
+            _buildFAQItem(
+              context.hujiL10n.faqSupportedFormats,
+              context.hujiL10n.faqSupportedFormatsAnswer,
+            ),
+            _buildDivider(),
+            _buildFAQItem(
+              context.hujiL10n.faqHowToSelectSport,
+              context.hujiL10n.faqHowToSelectSportAnswer,
+            ),
+            _buildDivider(),
+            _buildFAQItem(
+              context.hujiL10n.faqClippingDuration,
+              context.hujiL10n.faqClippingDurationAnswer,
+            ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 联系方式分组
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                '联系我们',
-                style: Theme.of(context).textTheme.titleLarge,
+              child: Text(context.hujiL10n.contactUs, style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             _buildContactRow(
               Icons.email,
-              '邮箱支持',
+              context.hujiL10n.emailSupport,
               'restcut@163.com',
               () => _launchUrl('mailto:restcut@163.com'),
             ),
             _buildDivider(),
             _buildContactRow(
               Icons.phone,
-              '客服热线',
+              context.hujiL10n.customerHotline,
               '17679358123',
               () => _launchUrl('tel:17679358123'),
             ),
             _buildDivider(),
             _buildContactRow(
               Icons.web,
-              '官方网站',
+              context.hujiL10n.officialWebsite,
               'www.restcut.com',
               () => _launchUrl('https://www.restcut.com'),
             ),
           ]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           // 反馈分组
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(
-                '意见反馈',
-                style: Theme.of(context).textTheme.titleLarge,
+              child: Text(context.hujiL10n.feedback, style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             Row(
               children: [
-                _buildTypeChip(IssueTypeEnum.bug, '功能异常'),
-                const SizedBox(width: 12),
-                _buildTypeChip(IssueTypeEnum.requirement, '建议'),
+                _buildTypeChip(IssueTypeEnum.bug, context.hujiL10n.issueTypeBug),
+                SizedBox(width: 12),
+                _buildTypeChip(
+                  IssueTypeEnum.requirement,
+                  context.hujiL10n.issueTypeSuggestion,
+                ),
               ],
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: _titleController,
               decoration: InputDecoration(
-                hintText: '标题（如：功能异常/建议）',
+                hintText: context.hujiL10n.feedbackTitleHint,
                 hintStyle: Theme.of(context).textTheme.bodyMedium,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -173,12 +179,12 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                 fillColor: Theme.of(context).colorScheme.surface,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: _descController,
               maxLines: 5,
               decoration: InputDecoration(
-                hintText: '请详细描述您遇到的问题或建议...',
+                hintText: context.hujiL10n.feedbackDescriptionHint,
                 hintStyle: Theme.of(context).textTheme.bodyMedium,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -188,11 +194,11 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                 fillColor: Theme.of(context).colorScheme.surface,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             TextField(
               controller: _contactController,
               decoration: InputDecoration(
-                hintText: '联系方式（可选）',
+                hintText: context.hujiL10n.contactOptionalHint,
                 hintStyle: Theme.of(context).textTheme.bodyMedium,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -202,7 +208,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                 fillColor: Theme.of(context).colorScheme.surface,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: SizedBox(
@@ -227,9 +233,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                   ),
                   child: _isSubmitting
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          '提交反馈',
-                          style: Theme.of(
+                      : Text(context.hujiL10n.submitFeedback, style: Theme.of(
                             context,
                           ).textTheme.titleLarge?.copyWith(color: Colors.white),
                         ),
@@ -237,13 +241,13 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
               ),
             ),
           ]),
-          const SizedBox(height: 32),
+          SizedBox(height: 32),
           // 版本信息
           Center(
             child: Column(
               children: [
-                Text('版本信息', style: Theme.of(context).textTheme.titleLarge),
-                const SizedBox(height: 8),
+                Text(context.hujiL10n.settingsVersionInfo, style: Theme.of(context).textTheme.titleLarge),
+                SizedBox(height: 8),
                 Text(
                   'AutoClip v1.0.0',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -252,7 +256,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                     ).colorScheme.onSurface.withValues(alpha: 0.6),
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: 4),
                 Text(
                   '© 2024 AutoClip. All rights reserved.',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -334,7 +338,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
               ).colorScheme.onSurface.withValues(alpha: 0.7),
               size: 22,
             ),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Text(label, style: Theme.of(context).textTheme.bodyMedium),
             const Spacer(),
             Text(

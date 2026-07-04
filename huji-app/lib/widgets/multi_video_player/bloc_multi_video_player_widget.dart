@@ -4,6 +4,8 @@ import 'package:video_player/video_player.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 
+import 'package:huji_app/l10n/l10n_extensions.dart';
+import '../../utils/debounce/throttles.dart';
 import '../../services/platform_capability.dart';
 import 'bloc/multi_video_player_bloc.dart';
 import 'bloc/multi_video_player_event.dart';
@@ -75,7 +77,9 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
         if (state.isLoading) return _buildLoadingWidget();
 
         final controller = state.currentVideoController;
-        if (controller == null || !state.isInitialized) return _buildEmptyWidget();
+        if (controller == null || !state.isInitialized) {
+          return _buildEmptyWidget(context);
+        }
 
         return Center(
           child: AspectRatio(
@@ -83,9 +87,7 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
             child: Stack(
               children: [
                 if (PlatformCapability.isDesktop && controller is media_kit.Player)
-                  media_kit_video.Video(
-                    controller: media_kit_video.VideoController(controller),
-                  )
+                  _buildDesktopVideo(bloc)
                 else if (controller is VideoPlayerController)
                   VideoPlayer(controller),
               ],
@@ -93,6 +95,17 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildDesktopVideo(MultiVideoPlayerBloc bloc) {
+    final videoController = bloc.desktopVideoController;
+    if (videoController == null) {
+      return _buildLoadingWidget();
+    }
+    return media_kit_video.Video(
+      controller: videoController,
+      controls: media_kit_video.NoVideoControls,
     );
   }
 
@@ -106,14 +119,25 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildEmptyWidget() {
-    return const Center(
-      child: Text('没有可播放的视频', style: TextStyle(color: Colors.white70)),
+  Widget _buildEmptyWidget(BuildContext context) {
+    return Center(
+      child: Text(
+        context.hujiL10n.noPlayableVideos,
+        style: const TextStyle(color: Colors.white70),
+      ),
     );
   }
 
   Widget _buildControls() {
     return BlocBuilder<MultiVideoPlayerBloc, MultiVideoPlayerState>(
+      buildWhen: (previous, current) =>
+          previous.isPlaying != current.isPlaying ||
+          previous.isFullscreen != current.isFullscreen ||
+          previous.canGoToNext != current.canGoToNext ||
+          previous.canGoToPrevious != current.canGoToPrevious ||
+          previous.volume != current.volume ||
+          previous.totalDurationMs != current.totalDurationMs ||
+          (current.currentTimeMs - previous.currentTimeMs).abs() >= 100,
       builder: (context, state) {
         return Container(
           padding: const EdgeInsets.all(8.0),
@@ -121,99 +145,170 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
             color: Colors.black54,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: _buildSingleRowControls(state),
+          child: _PlaybackControlsRow(bloc: bloc, state: state),
         );
       },
     );
   }
+}
 
-  Widget _buildSingleRowControls(MultiVideoPlayerState state) {
+class _PlaybackControlsRow extends StatelessWidget {
+  final MultiVideoPlayerBloc bloc;
+  final MultiVideoPlayerState state;
+
+  const _PlaybackControlsRow({required this.bloc, required this.state});
+
+  @override
+  Widget build(BuildContext context) {
     final totalDuration = (state.totalDuration?.inMilliseconds ?? 1).clamp(
       1,
       double.maxFinite.toInt(),
     );
-    final currentTime = state.currentTimeMs;
-    final clampedCurrentTime = currentTime.clamp(0, totalDuration);
 
-    return Builder(
-      builder: (context) => Row(
-        mainAxisSize: MainAxisSize.min,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GestureDetector(
+          onTap: state.canGoToPrevious
+              ? () => bloc.add(const GoToPreviousEvent())
+              : null,
+          child: const SizedBox(
+            width: 24,
+            height: 24,
+            child: Icon(Icons.skip_previous, color: Colors.white, size: 16),
+          ),
+        ),
+        GestureDetector(
+          onTap: () {
+            if (state.isPlaying) {
+              bloc.add(const PauseEvent());
+            } else {
+              bloc.add(const PlayEvent());
+            }
+          },
+          child: SizedBox(
+            width: 26,
+            height: 26,
+            child: Icon(
+              state.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 18,
+            ),
+          ),
+        ),
+        GestureDetector(
+          onTap: state.canGoToNext
+              ? () => bloc.add(const GoToNextEvent())
+              : null,
+          child: const SizedBox(
+            width: 24,
+            height: 24,
+            child: Icon(Icons.skip_next, color: Colors.white, size: 16),
+          ),
+        ),
+        const SizedBox(width: 4),
+        _ScrubbingProgressSlider(
+          bloc: bloc,
+          totalDuration: totalDuration,
+          currentTimeMs: state.currentTimeMs,
+        ),
+        const SizedBox(width: 8),
+        Text(
+          _formatTime(totalDuration),
+          style: const TextStyle(color: Colors.white, fontSize: 12),
+        ),
+        const SizedBox(width: 8),
+        if (state.isFullscreen) ...[
+          PopupMenuButton<double>(
+            onSelected: (speed) => bloc.add(SetPlaybackSpeedEvent(speed)),
+            itemBuilder: (context) => const [
+              PopupMenuItem(value: 0.5, child: Text('0.5x')),
+              PopupMenuItem(value: 1.0, child: Text('1.0x')),
+              PopupMenuItem(value: 1.5, child: Text('1.5x')),
+              PopupMenuItem(value: 2.0, child: Text('2.0x')),
+            ],
+            tooltip: context.hujiL10n.playSpeed,
+            child: const Icon(Icons.speed, color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 8),
+        ],
+        GestureDetector(
+          onTap: () {
+            final newVolume = state.volume > 0 ? 0.0 : 1.0;
+            bloc.add(SetVolumeEvent(newVolume));
+          },
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: Icon(
+              state.volume > 0 ? Icons.volume_up : Icons.volume_off,
+              color: Colors.white,
+              size: 16,
+            ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        GestureDetector(
+          onTap: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => FullscreenVideoPage(bloc: bloc),
+              fullscreenDialog: true,
+            ),
+          ),
+          child: const SizedBox(
+            width: 24,
+            height: 24,
+            child: Icon(Icons.fullscreen, color: Colors.white, size: 16),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatTime(int milliseconds) {
+    final duration = Duration(milliseconds: milliseconds);
+    final minutes = duration.inMinutes;
+    final seconds = duration.inSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+}
+
+class _ScrubbingProgressSlider extends StatefulWidget {
+  final MultiVideoPlayerBloc bloc;
+  final int totalDuration;
+  final int currentTimeMs;
+
+  const _ScrubbingProgressSlider({
+    required this.bloc,
+    required this.totalDuration,
+    required this.currentTimeMs,
+  });
+
+  @override
+  State<_ScrubbingProgressSlider> createState() =>
+      _ScrubbingProgressSliderState();
+}
+
+class _ScrubbingProgressSliderState extends State<_ScrubbingProgressSlider> {
+  bool _scrubbing = false;
+  double? _scrubValue;
+  int _pendingSeekMs = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final total = widget.totalDuration;
+    final displayMs = _scrubbing
+        ? (_scrubValue ?? widget.currentTimeMs.toDouble())
+        : widget.currentTimeMs.clamp(0, total).toDouble();
+
+    return Expanded(
+      child: Row(
         children: [
-          // 上一个按钮
-          GestureDetector(
-            onTap: state.canGoToPrevious
-                ? () => bloc.add(const GoToPreviousEvent())
-                : null,
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: state.canGoToPrevious
-                    ? Colors.transparent
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Icon(
-                Icons.skip_previous,
-                color: Colors.white,
-                size: 16,
-              ),
-            ),
-          ),
-
-          // 播放/暂停按钮
-          GestureDetector(
-            onTap: () {
-              if (state.isPlaying) {
-                bloc.add(const PauseEvent());
-              } else {
-                bloc.add(const PlayEvent());
-              }
-            },
-            child: Container(
-              width: 26,
-              height: 26,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Icon(
-                state.isPlaying ? Icons.pause : Icons.play_arrow,
-                color: Colors.white,
-                size: 18,
-              ),
-            ),
-          ),
-
-          // 下一个按钮
-          GestureDetector(
-            onTap: state.canGoToNext
-                ? () => bloc.add(const GoToNextEvent())
-                : null,
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: state.canGoToNext
-                    ? Colors.transparent
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Icon(Icons.skip_next, color: Colors.white, size: 16),
-            ),
-          ),
-
-          const SizedBox(width: 4),
-
-          // 时间显示
           Text(
-            _formatTime(clampedCurrentTime),
+            _formatTime(displayMs.round()),
             style: const TextStyle(color: Colors.white, fontSize: 12),
           ),
-
           const SizedBox(width: 8),
-
-          // 进度条
           Expanded(
             child: SliderTheme(
               data: SliderTheme.of(context).copyWith(
@@ -226,78 +321,30 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
                 overlayShape: const RoundSliderOverlayShape(overlayRadius: 10),
               ),
               child: Slider(
-                value: clampedCurrentTime.toDouble(),
+                value: displayMs.clamp(0, total.toDouble()),
                 min: 0,
-                max: totalDuration.toDouble(),
-                onChanged: (value) {
-                  bloc.add(SeekToEvent(value.toInt()));
+                max: total.toDouble(),
+                onChangeStart: (_) {
+                  setState(() => _scrubbing = true);
+                  widget.bloc.add(const ScrubStartEvent());
                 },
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // 总时间显示
-          Text(
-            _formatTime(totalDuration),
-            style: const TextStyle(color: Colors.white, fontSize: 12),
-          ),
-
-          const SizedBox(width: 8),
-
-          // 播放速度按钮 - 只在全屏时显示
-          if (state.isFullscreen) ...[
-            PopupMenuButton<double>(
-              onSelected: (speed) => bloc.add(SetPlaybackSpeedEvent(speed)),
-              itemBuilder: (context) => [
-                const PopupMenuItem(value: 0.5, child: Text('0.5x')),
-                const PopupMenuItem(value: 1.0, child: Text('1.0x')),
-                const PopupMenuItem(value: 1.5, child: Text('1.5x')),
-                const PopupMenuItem(value: 2.0, child: Text('2.0x')),
-              ],
-              tooltip: '播放速度',
-              child: const Icon(Icons.speed, color: Colors.white, size: 20),
-            ),
-            const SizedBox(width: 8),
-          ],
-
-          GestureDetector(
-            onTap: () => () {
-              final newVolume = state.volume > 0 ? 0.0 : 1.0;
-              bloc.add(SetVolumeEvent(newVolume));
-            },
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Icon(
-                state.volume > 0 ? Icons.volume_up : Icons.volume_off,
-                color: Colors.white,
-                size: 16,
-              ),
-            ),
-          ),
-
-          const SizedBox(width: 8),
-
-          // 全屏按钮
-          GestureDetector(
-            onTap: () => _navigateToFullscreen(context, bloc),
-            child: Container(
-              width: 24,
-              height: 24,
-              decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: const Icon(
-                Icons.fullscreen,
-                color: Colors.white,
-                size: 16,
+                onChanged: (value) {
+                  setState(() => _scrubValue = value);
+                  _pendingSeekMs = value.round();
+                  Throttles.throttle(
+                    'mvp_scrub_seek',
+                    const Duration(milliseconds: 200),
+                    () => widget.bloc.add(SeekToEvent(_pendingSeekMs)),
+                  );
+                },
+                onChangeEnd: (value) {
+                  Throttles.cancel('mvp_scrub_seek');
+                  setState(() {
+                    _scrubbing = false;
+                    _scrubValue = null;
+                  });
+                  widget.bloc.add(ScrubEndEvent(value.round()));
+                },
               ),
             ),
           ),
@@ -311,15 +358,5 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
     final minutes = duration.inMinutes;
     final seconds = duration.inSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-  }
-
-  /// 导航到全屏播放页面
-  void _navigateToFullscreen(BuildContext context, MultiVideoPlayerBloc bloc) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => FullscreenVideoPage(bloc: bloc),
-        fullscreenDialog: true,
-      ),
-    );
   }
 }

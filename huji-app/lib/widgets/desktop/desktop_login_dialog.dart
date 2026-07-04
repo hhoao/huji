@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class LoginDialog extends StatefulWidget {
   const LoginDialog({super.key});
@@ -50,7 +53,7 @@ class _LoginDialogState extends State<LoginDialog> {
 
   Future<void> _sendAuthCode() async {
     if (_identifierController.text.isEmpty) {
-      _showError('请输入手机号或邮箱');
+      _showError(context.hujiL10n.loginValidationIdentifierRequired);
       return;
     }
 
@@ -63,9 +66,9 @@ class _LoginDialogState extends State<LoginDialog> {
       );
       setState(() => _countdown = 60);
       _startCountdown();
-      _showError('验证码已发送');
+      _showError(context.hujiL10n.loginAuthCodeSent);
     } catch (e) {
-      _showError('发送验证码失败: $e');
+      _showError(context.hujiL10n.loginSendAuthCodeFailed('$e'));
     } finally {
       setState(() => _isSendingCode = false);
     }
@@ -100,7 +103,7 @@ class _LoginDialogState extends State<LoginDialog> {
 
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
-      _showError('登录失败: $e');
+      _showError(context.hujiL10n.loginFailed('$e'));
     } finally {
       setState(() => _isLoading = false);
     }
@@ -120,20 +123,22 @@ class _LoginDialogState extends State<LoginDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return AlertDialog(
-      backgroundColor: const Color(0xFF232328),
+      backgroundColor: cs.surfaceContainer,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       titlePadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
       contentPadding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
       actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       title: Row(
         children: [
-          const Text('登录',
-              style: TextStyle(color: Colors.white, fontSize: 18)),
+          Text(context.hujiL10n.loginTitle, style: styles.dialogTitle.copyWith(color: cs.onSurface)),
           const Spacer(),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close, color: Color(0xFF999999), size: 20),
+            icon: Icon(Icons.close, color: cs.outline, size: 20),
             padding: EdgeInsets.zero,
             constraints: const BoxConstraints(),
           ),
@@ -147,60 +152,67 @@ class _LoginDialogState extends State<LoginDialog> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Login mode toggle
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF333333),
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
                     children: [
                       _ModeTab(
-                        label: '密码登录',
+                        label: context.hujiL10n.loginPasswordMode,
                         active: _isPasswordLogin,
                         onTap: () => setState(() => _isPasswordLogin = true),
                       ),
                       _ModeTab(
-                        label: '验证码登录',
+                        label: context.hujiL10n.loginAuthCodeMode,
                         active: !_isPasswordLogin,
                         onTap: () => setState(() => _isPasswordLogin = false),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 20),
-
-                // Identifier
+                SizedBox(height: 20),
                 TextFormField(
                   controller: _identifierController,
-                  style: const TextStyle(color: Colors.white, fontSize: 14),
-                  decoration: _inputDecoration('手机号或邮箱', Icons.person_outline),
-                  validator: (v) =>
-                      (v == null || v.isEmpty) ? '请输入手机号或邮箱' : null,
+                  style: styles.body.copyWith(color: cs.onSurface),
+                  decoration: _inputDecoration(
+                    context,
+                    context.hujiL10n.loginIdentifierLabelOr,
+                    Icons.person_outline,
+                  ),
+                  validator: (v) => (v == null || v.isEmpty)
+                      ? context.hujiL10n.loginValidationIdentifierRequired
+                      : null,
                 ),
-                const SizedBox(height: 14),
-
-                // Password or code
+                SizedBox(height: 14),
                 if (_isPasswordLogin)
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: _inputDecoration('密码', Icons.lock_outline).copyWith(
+                    style: styles.body.copyWith(color: cs.onSurface),
+                    decoration: _inputDecoration(
+                      context,
+                      context.hujiL10n.loginPasswordLabel,
+                      Icons.lock_outline,
+                    )
+                            .copyWith(
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isPasswordVisible
                               ? Icons.visibility
                               : Icons.visibility_off,
-                          color: const Color(0xFF999999),
+                          color: cs.outline,
                           size: 18,
                         ),
-                        onPressed: () =>
-                            setState(() => _isPasswordVisible = !_isPasswordVisible),
+                        onPressed: () => setState(
+                          () => _isPasswordVisible = !_isPasswordVisible,
+                        ),
                       ),
                     ),
-                    validator: (v) =>
-                        (v == null || v.isEmpty) ? '请输入密码' : null,
+                    validator: (v) => (v == null || v.isEmpty)
+                        ? context.hujiL10n.loginValidationPasswordRequired
+                        : null,
                   ),
                 if (!_isPasswordLogin)
                   Row(
@@ -208,30 +220,40 @@ class _LoginDialogState extends State<LoginDialog> {
                       Expanded(
                         child: TextFormField(
                           controller: _codeController,
-                          style:
-                              const TextStyle(color: Colors.white, fontSize: 14),
-                          decoration:
-                              _inputDecoration('验证码', Icons.security),
-                          validator: (v) =>
-                              (v == null || v.isEmpty) ? '请输入验证码' : null,
+                          style: styles.body.copyWith(color: cs.onSurface),
+                          decoration: _inputDecoration(
+                            context,
+                            context.hujiL10n.loginAuthCodeLabel,
+                            Icons.security,
+                          ),
+                          validator: (v) => (v == null || v.isEmpty)
+                              ? context.hujiL10n.loginValidationAuthCodeRequired
+                              : null,
                         ),
                       ),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       SizedBox(
                         width: 110,
                         height: 48,
                         child: ElevatedButton(
-                          onPressed:
-                              (_countdown > 0 || _isSendingCode) ? null : _sendAuthCode,
+                          onPressed: (_countdown > 0 || _isSendingCode)
+                              ? null
+                              : _sendAuthCode,
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1),
+                            backgroundColor: cs.primary,
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8)),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                           child: Text(
-                            _countdown > 0 ? '${_countdown}s' : '发送验证码',
-                            style:
-                                const TextStyle(color: Colors.white, fontSize: 13),
+                            _countdown > 0
+                                ? context.hujiL10n.actionResendCodeCountdown(
+                                    _countdown,
+                                  )
+                                : context.hujiL10n.actionSendVerificationCode,
+                            style: styles.bodySmall.copyWith(
+                              color: cs.onPrimary,
+                            ),
                           ),
                         ),
                       ),
@@ -249,35 +271,42 @@ class _LoginDialogState extends State<LoginDialog> {
           child: ElevatedButton(
             onPressed: _isLoading ? null : _login,
             style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF6366F1),
+              backgroundColor: cs.primary,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8)),
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: _isLoading
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2),
+                      color: cs.onPrimary,
+                      strokeWidth: 2,
+                    ),
                   )
-                : const Text('登录',
-                    style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600)),
+                : Text(context.hujiL10n.loginTitle, style: styles.sectionTitle.copyWith(color: cs.onPrimary),
+                  ),
           ),
         ),
       ],
     );
   }
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
+  InputDecoration _inputDecoration(
+    BuildContext context,
+    String hint,
+    IconData icon,
+  ) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: Color(0xFF666666), fontSize: 14),
-      prefixIcon: Icon(icon, color: const Color(0xFF666666), size: 18),
+      hintStyle: styles.mutedBody,
+      prefixIcon: Icon(icon, color: cs.outline, size: 18),
       filled: true,
-      fillColor: const Color(0xFF2A2A30),
+      fillColor: cs.surfaceContainerHigh,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide.none,
@@ -300,21 +329,23 @@ class _ModeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+
     return Expanded(
       child: GestureDetector(
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 10),
           decoration: BoxDecoration(
-            color: active ? const Color(0xFF6366F1) : Colors.transparent,
+            color: active ? cs.primary : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              color: active ? Colors.white : const Color(0xFF999999),
-              fontSize: 13,
+            style: styles.body.copyWith(
+              color: active ? cs.onPrimary : cs.outline,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:huji_app/constants/theme.dart';
 import 'package:huji_app/init.dart';
+import 'package:huji_app/l10n/huji_localizations_setup.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/main_desktop.dart';
 import 'package:huji_app/pages/home/home_page.dart';
 import 'package:huji_app/pages/system/error_page.dart';
@@ -15,6 +17,7 @@ import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 void main(List<String> args) async {
   try {
@@ -48,9 +51,12 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
+  late final AppearanceCubit _appearanceCubit;
+
   @override
   void initState() {
     super.initState();
+    _appearanceCubit = AppearanceCubit();
     WidgetsBinding.instance.addObserver(this);
 
     // 启动时清理旧清理目录
@@ -62,6 +68,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     // 应用退出时清理当前清理目录
     StorageService.instance.cleanCurrentCleanupDirectory();
+    _appearanceCubit.close();
     super.dispose();
   }
 
@@ -75,13 +82,31 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<UserBloc>.value(
-      value: UserBlocInstance.instance,
-      child: MaterialApp.router(
-        title: '弧迹',
-        routerConfig: appRouter,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<UserBloc>.value(value: UserBlocInstance.instance),
+        BlocProvider<AppearanceCubit>.value(value: _appearanceCubit),
+      ],
+      child: BlocBuilder<AppearanceCubit, AppearancePreferences>(
+        builder: (context, prefs) {
+          final systemView =
+              WidgetsBinding.instance.platformDispatcher.implicitView;
+          final systemMq = systemView == null
+              ? const MediaQueryData()
+              : MediaQueryData.fromView(systemView);
+          final locale = resolveAppearanceTheme(prefs, systemMq).locale;
+
+          return MaterialApp.router(
+            title: context.hujiL10n.appTitle,
+            routerConfig: appRouter,
+            theme: AppTheme.themedLightTheme,
+            darkTheme: AppTheme.themedDarkTheme,
+            locale: locale,
+            localizationsDelegates:
+                HujiLocalizationsSetup.localizationsDelegates,
+            supportedLocales: HujiLocalizationsSetup.supportedLocales,
+          );
+        },
       ),
     );
   }
@@ -133,11 +158,23 @@ class _MainNavigationState extends State<MainNavigation> {
     widget.arguments?.clear();
   }
 
-  final List<BottomNavigationBarItem> _navigationItems = const [
-    BottomNavigationBarItem(icon: Icon(Icons.home), label: '主页'),
-    BottomNavigationBarItem(icon: Icon(Icons.video_library), label: '视频'),
-    BottomNavigationBarItem(icon: Icon(Icons.assignment), label: '任务'),
-    BottomNavigationBarItem(icon: Icon(Icons.person), label: '我的'),
+  List<BottomNavigationBarItem> _navigationItems(BuildContext context) => [
+    BottomNavigationBarItem(
+      icon: const Icon(Icons.home),
+      label: context.hujiL10n.navHome,
+    ),
+    BottomNavigationBarItem(
+      icon: const Icon(Icons.video_library),
+      label: context.hujiL10n.navVideos,
+    ),
+    BottomNavigationBarItem(
+      icon: const Icon(Icons.assignment),
+      label: context.hujiL10n.navTasks,
+    ),
+    BottomNavigationBarItem(
+      icon: const Icon(Icons.person),
+      label: context.hujiL10n.navProfile,
+    ),
   ];
 
   @override
@@ -157,7 +194,7 @@ class _MainNavigationState extends State<MainNavigation> {
         iconSize: 18,
         selectedFontSize: 12,
         unselectedFontSize: 12,
-        items: _navigationItems,
+        items: _navigationItems(context),
       ),
     );
   }

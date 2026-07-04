@@ -2,7 +2,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/constants/autoclip_constants.dart';
+import 'package:huji_app/constants/demo_videos.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
@@ -12,14 +15,16 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
 
+import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 /// Smart clip configuration page: left config panel + right upload area.
 /// Mockup reference: smart-edit-v3.html
@@ -31,14 +36,23 @@ class DesktopClipConfigPage extends StatefulWidget {
 }
 
 class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
+  static const _sportPingPong = 'ping_pong';
+  static const _sportBadminton = 'badminton';
+  static const _presetDefault = 'default';
+  static const _presetTraining = 'training';
+  static const _presetOfficial = 'official';
+  static const _presetBadmintonDefault = 'badminton_default';
+
   final List<File> _selectedFiles = [];
-  String _sportType = '乒乓球';
+  String _sportType = _sportPingPong;
+  String _selectedPreset = _presetDefault;
   String _detectionMode = 'cloud';
   bool _highlightClip = true;
   bool _removeReplay = true;
   bool _mergeAdjacent = false;
-  double _minDuration = 10.0;
+  double _minDuration = 2.0;
   LocalModelStatus _localModelStatus = LocalModelStatus.notFound;
+  bool _demoLoading = false;
 
   @override
   void initState() {
@@ -61,14 +75,28 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     }
   }
 
-  static String _presetLabelStatic(String v) {
+  bool get _isPingPong => _sportType == _sportPingPong;
+
+  SportType get _sportTypeEnum =>
+      _isPingPong ? SportType.pingpong : SportType.badminton;
+
+  String _sportDisplayLabel(HujiLocalizations l10n) =>
+      _isPingPong ? l10n.sportPingPong : l10n.sportBadminton;
+
+  String _presetLabel(HujiLocalizations l10n, String key) {
     const emojis = {
-      '默认预设': '📋',
-      '训练赛配置': '🏓',
-      '正式比赛配置': '🏆',
-      '羽毛球默认': '🏸',
+      _presetDefault: '📋',
+      _presetTraining: '🏓',
+      _presetOfficial: '🏆',
+      _presetBadmintonDefault: '🏸',
     };
-    return '${emojis[v] ?? ""} $v';
+    final labels = {
+      _presetDefault: l10n.defaultPreset,
+      _presetTraining: l10n.trainingPreset,
+      _presetOfficial: l10n.officialMatchPreset,
+      _presetBadmintonDefault: l10n.badmintonDefaultPreset,
+    };
+    return '${emojis[key] ?? ''} ${labels[key] ?? key}';
   }
 
   VideoClipConfigReqVo _buildClipConfig(SportType sportType) {
@@ -78,6 +106,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         removeReplay: _removeReplay,
         getMatchSegments: _mergeAdjacent,
         minimumDurationSingleRound: _minDuration,
+        minimumDurationGreatBall: 10.0,
+        reserveTimeBeforeSingleRound: 0.0,
+        reserveTimeAfterSingleRound: 1.0,
+        mergeFireBallAndPlayBall: AutoclipConstants.defaultMergeFireBallAndPlayBall,
       );
     } else {
       return BadmintonVideoClipConfigReqVo(
@@ -85,14 +117,48 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         removeReplay: _removeReplay,
         getMatchSegments: _mergeAdjacent,
         minimumDurationSingleRound: _minDuration,
+        minimumDurationGreatBall: 10.0,
+        reserveTimeBeforeSingleRound: 1.0,
+        reserveTimeAfterSingleRound: 1.0,
       );
+    }
+  }
+
+  Future<void> _useDemoVideo(DemoVideo demo) async {
+    setState(() => _demoLoading = true);
+    try {
+      final file = await DemoVideoService.materialize(demo);
+      if (!mounted) return;
+      setState(() {
+        _sportType = demo.sportTypeKey;
+        _selectedFiles
+          ..clear()
+          ..add(file);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(context.hujiL10n.loadDemoVideoFailed(e.toString())),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _demoLoading = false);
+    }
+  }
+
+  void _goToTasks(String? clipTaskId) {
+    if (clipTaskId != null) {
+      context.go('/tasks?clipTaskId=${Uri.encodeComponent(clipTaskId)}');
+    } else {
+      context.go('/tasks');
     }
   }
 
   Future<void> _startDetection() async {
     if (_selectedFiles.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择视频文件')),
+        SnackBar(content: Text(context.hujiL10n.selectVideoFileFirst)),
       );
       return;
     }
@@ -102,16 +168,17 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       return;
     }
 
+    final l10n = context.hujiL10n;
     final taskStorage = TaskStorage();
     final uploader = MultipartUploader();
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    final SportType sportType =
-        _sportType == '乒乓球' ? SportType.pingpong : SportType.badminton;
+    final sportType = _sportTypeEnum;
     final clipConfig = _buildClipConfig(sportType);
 
     int successCount = 0;
     int failCount = 0;
+    String? lastSubmittedTaskId;
 
     for (final file in _selectedFiles) {
       try {
@@ -125,7 +192,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
         final task = VideoClipTask(
           id: '${now}_$fileName',
-          name: '云端检测：$fileName',
+          name: l10n.cloudDetectionTaskName(fileName),
           videoPath: file.path,
           outputPath: '',
           autoDownload: true,
@@ -150,6 +217,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         );
         await LocalVideoStorage().add(processRecord);
 
+        lastSubmittedTaskId = task.id;
         successCount++;
       } catch (e) {
         failCount++;
@@ -161,11 +229,16 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          '已提交 $successCount 个任务${failCount > 0 ? '，$failCount 个失败' : ''}',
+          l10n.tasksSubmitted(
+            successCount,
+            failCount > 0
+                ? l10n.tasksSubmittedFailSuffix(failCount)
+                : '',
+          ),
         ),
         action: SnackBarAction(
-          label: '查看任务',
-          onPressed: () => context.go('/tasks'),
+          label: context.hujiL10n.viewTasks,
+          onPressed: () => _goToTasks(lastSubmittedTaskId),
         ),
       ),
     );
@@ -173,13 +246,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Future<void> _startLocalDetection() async {
-    final sportTypeKey = _sportType == '乒乓球' ? 'ping_pong' : 'badminton';
-    final matchType = _sportType == '乒乓球' ? 'profession' : 'singles';
-    final sportType =
-        _sportType == '乒乓球' ? SportType.pingpong : SportType.badminton;
+    final l10n = context.hujiL10n;
+    final sportTypeKey = _sportType;
+    final matchType = _isPingPong ? 'profession' : 'singles';
+    final sportType = _sportTypeEnum;
     final clipConfig = _buildClipConfig(sportType);
     final taskStorage = TaskStorage();
     int submittedCount = 0;
+    String? lastSubmittedTaskId;
 
     for (final file in _selectedFiles) {
       final now = DateTime.now().millisecondsSinceEpoch;
@@ -188,7 +262,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       // Create pending task
       final task = VideoClipTask(
         id: '${now}_$fileName',
-        name: '本地检测：$fileName',
+        name: l10n.localDetectionTaskName(fileName),
         videoPath: file.path,
         outputPath: '',
         autoDownload: false,
@@ -211,29 +285,47 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       ));
 
       submittedCount++;
+      lastSubmittedTaskId = task.id;
 
-      // Process.run is already async (uses non-blocking I/O to wait for the
-      // subprocess), so we don't need an Isolate — we just need to not block
-      // the UI with a modal dialog. The future-chain below updates task state
-      // asynchronously; the user can navigate away and check back later.
+      await taskStorage.updateTask(task.id, (oldTask) {
+        return oldTask.copyWith(
+          status: TaskStatusEnum.processing,
+          extraInfo: l10n.localDetecting,
+        );
+      });
+
+      // Inference runs asynchronously; progress is reported frame-by-frame.
       final videoPath = file.path;
-      LocalDetectionService.runInferenceInIsolate({
-        'videoPath': videoPath,
-        'sportType': sportTypeKey,
-        'matchType': matchType,
-      }).then((resultMap) async {
+      final progressThrottler = Throttler(
+        tag: 'local_progress_${task.id}',
+        duration: const Duration(milliseconds: 500),
+      );
+      LocalDetectionService.runInferenceAsync(
+        videoPath: videoPath,
+        clipConfig: clipConfig,
+        sportTypeKey: sportTypeKey,
+        matchType: matchType,
+        onProgress: (progress, message) {
+          progressThrottler.call(() {
+            taskStorage.updateTask(task.id, (oldTask) {
+              return oldTask.copyWith(
+                status: TaskStatusEnum.processing,
+                progress: progress,
+                extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
+              );
+            });
+          });
+        },
+      ).then((result) async {
         try {
-          final segments = (resultMap['matchSegments'] as List<dynamic>)
-              .map((s) {
-                final m = s as Map<String, dynamic>;
-                return SegmentInfo(
-                  actionType: ActionType.fromString(m['action'] as String?),
-                  startSeconds: (m['start'] as num).toDouble(),
-                  endSeconds: (m['end'] as num).toDouble(),
-                );
-              })
+          final output = result.clipOutput;
+          final allSegments = output.allMatchSegments
+              .map((segmentMap) => segmentMap.values.first)
               .toList();
-          final processingTimeMs = resultMap['processingTimeMs'] as int;
+          final greatSegments = output.greatMatchSegments
+              .map((segmentMap) => segmentMap.values.first)
+              .toList();
+          final processingTimeMs = result.processingTime.inMilliseconds;
 
           // Generate thumbnail from source video
           String? thumbPath;
@@ -246,9 +338,12 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           await taskStorage.updateTask(task.id, (oldTask) {
             return oldTask.copyWith(
               status: TaskStatusEnum.completed,
+              progress: 1.0,
               image: thumbPath,
-              extraInfo:
-                  '检测到 ${segments.length} 个比赛片段 (${(processingTimeMs / 1000).toStringAsFixed(1)}s)',
+              extraInfo: l10n.segmentsDetectedResult(
+                allSegments.length,
+                (processingTimeMs / 1000).round(),
+              ),
             );
           });
 
@@ -259,12 +354,13 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             filePath: videoPath,
             thumbnailPath: thumbPath,
             clipMode: ClipMode.existingVideo,
-            allMatchSegments: segments,
-            favoritesMatchSegments: segments,
+            allMatchSegments: allSegments,
+            favoritesMatchSegments:
+                greatSegments.isNotEmpty ? greatSegments : allSegments,
           ));
 
           debugPrint(
-              '[local-detection] ${task.name}: done — ${segments.length} segments');
+              '[local-detection] ${task.name}: done — ${allSegments.length} segments');
         } catch (e, st) {
           AppLogger().e(
             'Local detection completion handler failed: $e',
@@ -274,7 +370,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           await taskStorage.updateTask(task.id, (oldTask) {
             return oldTask.copyWith(
               status: TaskStatusEnum.failed,
-              extraInfo: '处理检测结果失败: $e',
+              extraInfo: l10n.processDetectionResultFailed(e.toString()),
             );
           });
         }
@@ -289,7 +385,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           await taskStorage.updateTask(task.id, (oldTask) {
             return oldTask.copyWith(
               status: TaskStatusEnum.failed,
-              extraInfo: '本地检测失败: $e',
+              extraInfo: l10n.localDetectionFailed(e.toString()),
             );
           });
         } catch (_) {
@@ -302,10 +398,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('已提交 $submittedCount 个本地检测任务，可离开页面查看任务列表'),
+        content: Text(l10n.localDetectionTasksSubmitted(submittedCount)),
         action: SnackBarAction(
-          label: '查看任务',
-          onPressed: () => context.go('/tasks'),
+          label: context.hujiL10n.viewTasks,
+          onPressed: () => _goToTasks(lastSubmittedTaskId),
         ),
       ),
     );
@@ -316,27 +412,29 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   Widget build(BuildContext context) {
     return DesktopPageShell(
       currentRoute: '/clip/new',
-      title: '新建剪辑',
-      breadcrumbs: const ['视频库', '新建剪辑'],
+      title: context.hujiL10n.desktopNewClip,
+      breadcrumbs: [
+        context.hujiL10n.desktopNavLibrary,
+        context.hujiL10n.newClip,
+      ],
       actions: [
         OutlinedButton(
           onPressed: () => context.go('/'),
-          child: const Text('取消'),
+          child: Text(context.hujiL10n.taskStatusCancelledShort),
         ),
-        const SizedBox(width: 8),
+        SizedBox(width: 8),
         ElevatedButton.icon(
           onPressed: _startDetection,
           icon: const Icon(Icons.play_arrow, size: 16),
-          label: const Text('开始检测剪辑'),
+          label: Text(context.hujiL10n.startDetectionClip),
         ),
       ],
       child: Row(
         children: [
-          // Left: config panel
           SizedBox(
             width: 320,
-            child: Container(
-              color: DesktopTheme.subMainBg,
+            child: ColoredBox(
+              color: context.desktopColors.surfaceContainerLow,
               child: Column(
                 children: [
                   Expanded(
@@ -344,13 +442,13 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                       padding: const EdgeInsets.all(22),
                       children: [
                         _buildConfigHeader(),
-                        const SizedBox(height: 18),
+                        SizedBox(height: 18),
                         _buildSportType(),
-                        const SizedBox(height: 22),
+                        SizedBox(height: 22),
                         _buildDetectionMode(),
-                        const SizedBox(height: 22),
+                        SizedBox(height: 22),
                         _buildClipOptions(),
-                        const SizedBox(height: 22),
+                        SizedBox(height: 22),
                         _buildMinDuration(),
                       ],
                     ),
@@ -360,25 +458,27 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               ),
             ),
           ),
-          // Right: upload / preview area
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(36),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '乒乓球比赛视频剪辑',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.w600, color: Colors.white),
+                  Text(
+                    _isPingPong
+                        ? context.hujiL10n.pingPongMatchVideoClip
+                        : context.hujiL10n.badmintonMatchVideoClip,
+                    style: AppTextStyles.of(context).subtitle.copyWith(
+                          color: context.desktopOnSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
-                  const SizedBox(height: 4),
-                  const Text(
-                    '上传你收集的视频，自动裁剪掉休息片段。视频处理期间可离开页面，处理完后会有桌面通知。',
-                    style: TextStyle(fontSize: 13, color: DesktopTheme.textMuted),
+                  SizedBox(height: 4),
+                  Text(context.hujiL10n.uploadVideoHint, style: AppTextStyles.of(context).mutedBody,
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   _buildWarning(),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   Expanded(child: _buildDropZone()),
                 ],
               ),
@@ -390,20 +490,28 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildConfigHeader() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Row(
+        Row(
           children: [
-            Icon(Icons.tune, size: 16, color: Colors.white),
+            Icon(Icons.tune, size: 16, color: cs.onSurface),
             SizedBox(width: 8),
-            Text('剪辑配置', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+            Text(context.hujiL10n.clipConfig, style: styles.sectionTitle.copyWith(color: cs.onSurface),
+            ),
           ],
         ),
         AppDropdown<String>(
-          value: '默认预设',
-          items: const ['默认预设', '训练赛配置', '正式比赛配置', '羽毛球默认'],
-          labelBuilder: _presetLabelStatic,
+          value: _selectedPreset,
+          items: const [
+            _presetDefault,
+            _presetTraining,
+            _presetOfficial,
+            _presetBadmintonDefault,
+          ],
+          labelBuilder: (v) => _presetLabel(context.hujiL10n, v),
         ),
       ],
     );
@@ -411,48 +519,56 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildSportType() {
     return _ConfigSection(
-      label: '比赛类型',
+      label: context.hujiL10n.matchType,
       child: AppDropdown<String>(
         value: _sportType,
-        items: const ['乒乓球', '羽毛球'],
-        labelBuilder: (v) => '${v == "乒乓球" ? "🏓" : "🏸"}  $v',
+        items: const [_sportPingPong, _sportBadminton],
+        labelBuilder: (v) {
+          final l10n = context.hujiL10n;
+          final emoji = v == _sportPingPong ? '🏓' : '🏸';
+          final label =
+              v == _sportPingPong ? l10n.sportPingPong : l10n.sportBadminton;
+          return '$emoji  $label';
+        },
         onChanged: (v) => setState(() => _sportType = v),
       ),
     );
   }
 
   Widget _buildDetectionMode() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final localAvailable = _localModelStatus == LocalModelStatus.available;
     return _ConfigSection(
-      label: '检测方式',
+      label: context.hujiL10n.detectionMode,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _DetectionOption(
-            label: '云端检测',
+            label: context.hujiL10n.cloudDetection,
             emoji: '☁️',
-            help: '需要联网，精度更高',
+            help: context.hujiL10n.cloudDetectionHelp,
             selected: _detectionMode == 'cloud',
             onTap: () => setState(() => _detectionMode = 'cloud'),
           ),
           if (localAvailable) ...[
-            const SizedBox(height: 6),
+            SizedBox(height: 6),
             _DetectionOption(
-              label: '本地检测',
+              label: context.hujiL10n.localDetection,
               emoji: '💻',
-              help: '离线使用，无需联网',
+              help: context.hujiL10n.localDetectionHelp,
               selected: _detectionMode == 'local',
               onTap: () => setState(() => _detectionMode = 'local'),
             ),
           ],
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           Text(
             localAvailable
                 ? _detectionMode == 'local'
-                    ? '使用本地 ONNX 模型进行离线检测'
-                    : '使用云端服务进行检测，需要联网'
-                : '未找到本地模型，已回退为云端检测',
-            style: const TextStyle(fontSize: 11, color: DesktopTheme.textDim),
+                    ? context.hujiL10n.localOnnxDetectionHint
+                    : context.hujiL10n.cloudDetectionHint
+                : context.hujiL10n.localModelNotFoundFallback,
+            style: styles.caption.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -461,24 +577,24 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildClipOptions() {
     return _ConfigSection(
-      label: '剪辑选项',
+      label: context.hujiL10n.clipOptions,
       child: Column(
         children: [
           _CheckOption(
-            label: '精彩球剪辑',
-            help: '自动识别并保留精彩回合',
+            label: context.hujiL10n.highlightClip,
+            help: context.hujiL10n.highlightClipHelp,
             value: _highlightClip,
             onChanged: (v) => setState(() => _highlightClip = v!),
           ),
           _CheckOption(
-            label: '移除回放',
-            help: '自动跳过回放片段',
+            label: context.hujiL10n.removeReplay,
+            help: context.hujiL10n.removeReplayHelp,
             value: _removeReplay,
             onChanged: (v) => setState(() => _removeReplay = v!),
           ),
           _CheckOption(
-            label: '合并相邻回合',
-            help: '间隔小于 3 秒自动合并',
+            label: context.hujiL10n.mergeAdjacentRounds,
+            help: context.hujiL10n.mergeAdjacentRoundsHelp,
             value: _mergeAdjacent,
             onChanged: (v) => setState(() => _mergeAdjacent = v!),
           ),
@@ -488,8 +604,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildMinDuration() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return _ConfigSection(
-      label: '精彩球最小时长',
+      label: context.hujiL10n.minHighlightDuration,
       child: Column(
         children: [
           Row(
@@ -498,10 +616,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 child: SliderTheme(
                   data: SliderThemeData(
                     trackHeight: 4,
-                    activeTrackColor: DesktopTheme.primaryColor,
-                    inactiveTrackColor: DesktopTheme.borderMedium,
-                    thumbColor: Colors.white,
-                    overlayColor: DesktopTheme.primaryColor.withAlpha(40),
+                    activeTrackColor: cs.primary,
+                    inactiveTrackColor: context.desktopBorderMedium,
+                    thumbColor: cs.onPrimary,
+                    overlayColor: cs.primary.withAlpha(40),
                   ),
                   child: Slider(
                     value: _minDuration,
@@ -511,19 +629,17 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                   ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               SizedBox(
                 width: 40,
                 child: Text(
-                  '${_minDuration.toStringAsFixed(1)} 秒',
-                  style: const TextStyle(fontSize: 12, color: DesktopTheme.indigoText),
+                  context.hujiL10n.durationSeconds(_minDuration.round()),
+                  style: styles.bodySmall.copyWith(color: cs.primary),
                 ),
               ),
             ],
           ),
-          const Text(
-            '小于此时长的回合不会被保留',
-            style: TextStyle(fontSize: 11, color: DesktopTheme.textDim),
+          Text(context.hujiL10n.minDurationHint, style: styles.caption.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -531,34 +647,39 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildConfigFooter() {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(22),
-      decoration: const BoxDecoration(
-        color: DesktopTheme.sidebarBg,
-        border: Border(top: BorderSide(color: DesktopTheme.borderLight)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        border: Border(top: BorderSide(color: context.desktopBorderLight)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text(
-            '已设置 4 项参数 · 与"默认预设" 不一致',
-            style: TextStyle(fontSize: 11, color: DesktopTheme.textMuted),
+          Text(
+            context.hujiL10n.configPresetMismatch(
+              4,
+              context.hujiL10n.defaultPreset,
+            ),
+            style: styles.caption.copyWith(color: cs.onSurfaceVariant),
           ),
-          const SizedBox(height: 10),
+          SizedBox(height: 10),
           OutlinedButton.icon(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('预设功能即将推出')),
+                SnackBar(content: Text(context.hujiL10n.presetComingSoon)),
               );
             },
             icon: const Icon(Icons.save_outlined, size: 14),
-            label: const Text('保存当前为预设'),
+            label: Text(context.hujiL10n.saveAsPreset),
             style: OutlinedButton.styleFrom(
-              foregroundColor: DesktopTheme.indigoText,
-              side: BorderSide(color: DesktopTheme.primaryColor.withAlpha(64)),
-              backgroundColor: DesktopTheme.primaryColor.withAlpha(31),
+              foregroundColor: cs.onPrimaryContainer,
+              side: BorderSide(color: cs.primary.withAlpha(64)),
+              backgroundColor: cs.primary.withAlpha(31),
               padding: const EdgeInsets.symmetric(vertical: 9),
-            ),
+          ),
           ),
         ],
       ),
@@ -566,6 +687,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildWarning() {
+    final styles = AppTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -573,15 +695,16 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         border: Border.all(color: const Color(0xFFEAB308).withAlpha(64)),
         borderRadius: BorderRadius.circular(7),
       ),
-      child: const Row(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('⚠️', style: TextStyle(fontSize: 14)),
+          Text('⚠️', style: styles.body),
           SizedBox(width: 10),
           Expanded(
-            child: Text(
-              '视频的角度、大小、分辨率会影响检测效果。建议水平拍摄，分辨率 ≥ 720p，不要过度压缩。',
-              style: TextStyle(fontSize: 12, color: Color(0xFFFDE68A), height: 1.6),
+            child: Text(context.hujiL10n.videoQualityWarning, style: styles.bodySmall.copyWith(
+                color: const Color(0xFFFDE68A),
+                height: 1.6,
+              ),
             ),
           ),
         ],
@@ -592,6 +715,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   Widget _buildDropZone() {
     return DesktopDropZone(
       files: _selectedFiles,
+      demoLoading: _demoLoading,
+      demoSportTypeKey: _sportType,
+      onDemoVideoSelected: _useDemoVideo,
       onFilesAdded: (newFiles) => setState(() {
         final existing = _selectedFiles.map((f) => f.path).toSet();
         for (final f in newFiles) {
@@ -617,17 +743,24 @@ class _ConfigSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(fontSize: 11, color: DesktopTheme.textMuted, letterSpacing: 0.5)),
-        const SizedBox(height: 8),
+        Text(
+          label,
+          style: styles.caption.copyWith(
+            color: cs.onSurfaceVariant,
+            letterSpacing: 0.5,
+          ),
+        ),
+        SizedBox(height: 8),
         child,
       ],
     );
   }
 }
-
 
 class _DetectionOption extends StatelessWidget {
   final String label;
@@ -646,15 +779,17 @@ class _DetectionOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return AppHoverBox(
       onTap: onTap,
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: desktopRadiusMd,
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
-          color: selected ? DesktopTheme.primaryColor.withAlpha(20) : DesktopTheme.cardBg,
+          color: selected ? cs.primary.withAlpha(20) : cs.surfaceContainer,
           border: Border.all(
-            color: selected ? DesktopTheme.primaryColor : DesktopTheme.borderMedium,
+            color: selected ? cs.primary : context.desktopBorderMedium,
             width: selected ? 1.5 : 1.0,
           ),
           borderRadius: BorderRadius.circular(6),
@@ -667,22 +802,25 @@ class _DetectionOption extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: selected ? DesktopTheme.primaryColor : const Color(0xFF555555),
+                  color: selected ? cs.primary : cs.outline,
                   width: selected ? 5.0 : 1.5,
                 ),
                 color: Colors.transparent,
               ),
             ),
-            const SizedBox(width: 10),
-            Text(emoji, style: const TextStyle(fontSize: 14)),
-            const SizedBox(width: 8),
+            SizedBox(width: 10),
+            Text(emoji, style: styles.body),
+            SizedBox(width: 8),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
-                  const SizedBox(height: 2),
-                  Text(help, style: const TextStyle(fontSize: 10, color: DesktopTheme.textDim)),
+                  Text(
+                    label,
+                    style: styles.body.copyWith(color: cs.onSurface),
+                  ),
+                  SizedBox(height: 2),
+                  Text(help, style: styles.caption.copyWith(color: cs.outline)),
                 ],
               ),
             ),
@@ -703,12 +841,14 @@ class _CheckOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: DesktopTheme.borderLight,
-        border: Border.all(color: DesktopTheme.borderLight),
+        color: context.desktopBorderLight,
+        border: Border.all(color: context.desktopBorderLight),
         borderRadius: BorderRadius.circular(6),
       ),
       child: Row(
@@ -720,25 +860,30 @@ class _CheckOption extends StatelessWidget {
               value: value,
               onChanged: onChanged,
               fillColor: WidgetStateProperty.resolveWith((s) {
-                if (s.contains(WidgetState.selected)) return DesktopTheme.primaryColor;
+                if (s.contains(WidgetState.selected)) return cs.primary;
                 return Colors.transparent;
               }),
               side: BorderSide(
-                color: value ? DesktopTheme.primaryColor : const Color(0xFF555555),
+                color: value ? cs.primary : cs.outline,
                 width: 1.5,
               ),
-              checkColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(3)),
+              checkColor: cs.onPrimary,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(3),
+              ),
             ),
           ),
-          const SizedBox(width: 10),
+          SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: const TextStyle(fontSize: 13, color: DesktopTheme.textPrimary)),
-                const SizedBox(height: 2),
-                Text(help, style: const TextStyle(fontSize: 10, color: DesktopTheme.textDim)),
+                Text(
+                  label,
+                  style: styles.body.copyWith(color: cs.onSurface),
+                ),
+                SizedBox(height: 2),
+                Text(help, style: styles.caption.copyWith(color: cs.outline)),
               ],
             ),
           ),

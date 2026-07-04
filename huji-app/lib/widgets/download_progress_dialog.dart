@@ -7,6 +7,8 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/file_utils.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DownloadProgressDialog extends StatefulWidget {
   final DownloadTask task;
@@ -18,7 +20,15 @@ class DownloadProgressDialog extends StatefulWidget {
 
 class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
   double _progress = 0.0;
-  String _status = '准备下载...';
+  String _status = '';
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_status.isEmpty) {
+      _status = context.hujiL10n.prepareDownload;
+    }
+  }
   bool _isCompleted = false;
   bool _isDownloading = false;
   String? _errorMessage;
@@ -52,29 +62,25 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
         _speed =
             _processedSize /
             (DateTime.now().millisecondsSinceEpoch - task.createdAt);
-        _status = _getStatusText(task.status);
+        _status = _getStatusText(context.hujiL10n, task.status);
         _isCompleted = task.status == TaskStatusEnum.completed;
         _isDownloading = task.status == TaskStatusEnum.processing;
-        _errorMessage = task.status == TaskStatusEnum.failed ? '下载失败' : null;
+        _errorMessage = task.status == TaskStatusEnum.failed
+            ? context.hujiL10n.downloadFailed
+            : null;
       });
     }
   }
 
-  String _getStatusText(TaskStatusEnum status) {
-    switch (status) {
-      case TaskStatusEnum.pending:
-        return '等待中';
-      case TaskStatusEnum.processing:
-        return '下载中';
-      case TaskStatusEnum.completed:
-        return '下载完成';
-      case TaskStatusEnum.failed:
-        return '下载失败';
-      case TaskStatusEnum.paused:
-        return '已暂停';
-      case TaskStatusEnum.cancelled:
-        return '已取消';
-    }
+  String _getStatusText(HujiLocalizations l10n, TaskStatusEnum status) {
+    return switch (status) {
+      TaskStatusEnum.pending => l10n.taskStatusPending,
+      TaskStatusEnum.processing => l10n.downloadInProgress,
+      TaskStatusEnum.completed => l10n.downloadCompleted,
+      TaskStatusEnum.failed => l10n.downloadFailed,
+      TaskStatusEnum.paused => l10n.taskStatusPaused,
+      TaskStatusEnum.cancelled => l10n.taskStatusCancelled,
+    };
   }
 
   @override
@@ -91,14 +97,20 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('文件不存在'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(context.hujiL10n.fileDoesNotExist),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件夹失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFolderFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -112,14 +124,20 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('文件不存在'), backgroundColor: Colors.red),
+            SnackBar(
+              content: Text(context.hujiL10n.fileDoesNotExist),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('打开文件失败: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text(context.hujiL10n.openFileFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     }
@@ -137,7 +155,10 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
   void _minimizeToBackground() {
     Navigator.of(context).pop();
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('下载将在后台继续'), backgroundColor: Colors.blue),
+      SnackBar(
+        content: Text(context.hujiL10n.downloadWillContinueInBackground),
+        backgroundColor: Colors.blue,
+      ),
     );
   }
 
@@ -152,10 +173,12 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
             color: _isCompleted ? Colors.green : Colors.blue,
             size: 24,
           ),
-          const SizedBox(width: 8),
+          SizedBox(width: 8),
           Expanded(
             child: Text(
-              _errorMessage != null ? '下载失败' : '下载进度',
+              _errorMessage != null
+                  ? context.hujiL10n.downloadFailed
+                  : context.hujiL10n.downloadProgress,
               style: const TextStyle(color: Colors.white),
             ),
           ),
@@ -180,7 +203,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           if (_errorMessage != null) ...[
             Container(
@@ -192,7 +215,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               child: Row(
                 children: [
                   const Icon(Icons.error, color: Colors.red, size: 20),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
@@ -211,7 +234,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                 _isDownloading ? Colors.orange : Colors.blue,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 进度信息
             Row(
@@ -234,7 +257,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
             // 下载速度和大小信息
             Row(
@@ -251,7 +274,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               ],
             ),
 
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
 
             // 保存路径
             Container(
@@ -263,8 +286,8 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    '保存位置:',
+                  Text(
+                    context.hujiL10n.saveLocationLabel,
                     style: TextStyle(color: Colors.grey, fontSize: 10),
                   ),
                   Text(
@@ -293,7 +316,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                     () => _minimizeToBackground(),
                   );
                 },
-                child: const Text('后台下载', style: TextStyle(color: Colors.grey)),
+                child: Text(context.hujiL10n.downloadInBackground, style: TextStyle(color: Colors.grey)),
               ),
               TextButton(
                 onPressed: () {
@@ -304,7 +327,9 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                   );
                 },
                 child: Text(
-                  _isDownloading ? '取消' : '开始下载',
+                  _isDownloading
+                      ? context.hujiL10n.taskStatusCancelledShort
+                      : context.hujiL10n.downloadNow,
                   style: const TextStyle(color: Colors.red),
                 ),
               ),
@@ -318,8 +343,8 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                     () => _openFile(context),
                   );
                 },
-                child: const Text(
-                  '打开文件',
+                child: Text(
+                  context.hujiL10n.openFile,
                   style: TextStyle(color: Colors.green),
                 ),
               ),
@@ -331,9 +356,7 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                     () => _openFolder(context),
                   );
                 },
-                child: const Text(
-                  '打开文件夹',
-                  style: TextStyle(color: Colors.blue),
+                child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
                 ),
               ),
             ],

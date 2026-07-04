@@ -9,10 +9,12 @@
 </p>
 
 <p align="center">
+  <a href="README.en.md">English</a> •
   <a href="#概述">概述</a> •
   <a href="#主要功能">主要功能</a> •
   <a href="#项目结构">项目结构</a> •
   <a href="#快速开始">快速开始</a> •
+  <a href="#社区">社区</a> •
   <a href="#license">License</a>
 </p>
 
@@ -91,14 +93,57 @@ flutter pub get
 flutter run
 ```
 
-### huji-algorithm（算法服务）
+### huji-algorithm（Python 端）
+
+进入子模块目录：`cd huji-algorithm`
+
+#### 本地快速剪辑（推荐）
+
+**Linux / macOS**
 
 ```bash
-cd huji-algorithm
 ./setup.sh
-cd docker/dev && docker compose up -d   # 消息模式需要 Kafka
-python main.py                          # 默认读取 src/resources/application.yml
+source .venv/bin/activate
+
+python main.py --video-path videos/demo.mp4 --sport ping_pong
+python main.py -v src/resources/video/examples/test.mp4 --sport badminton --match-type doubles
 ```
+
+**Windows（PowerShell）**
+
+```powershell
+.\setup.ps1
+.venv\Scripts\activate
+
+python main.py --video-path videos\demo.mp4 --sport ping_pong
+```
+
+需预先安装 [FFmpeg](https://ffmpeg.org/) 并加入 PATH。更多 Windows 说明见 [huji-algorithm/README.md](huji-algorithm/README.md)。
+
+#### 服务模式（Kafka + HTTP）
+
+```bash
+cd docker/dev && docker compose up -d
+python main.py --serve
+```
+
+常用 CLI 参数：
+
+| 参数 | 说明 |
+|------|------|
+| `--video-path` / `-v` | 本地视频文件路径 |
+| `--sport` | `ping_pong` 或 `badminton` |
+| `--match-type` | 羽毛球：`singles`（默认）/ `doubles` |
+| `--output-dir` / `-o` | 输出目录（覆盖配置） |
+| `--serve` | 启动 Kafka + HTTP 服务 |
+| `--train` | 训练模型 |
+
+更多说明见 [huji-algorithm/README.md](huji-algorithm/README.md)。
+
+## 社区
+
+- **QQ 群**：112856301
+- **Discord**：[加入群组](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## License
 

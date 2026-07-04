@@ -15,6 +15,14 @@ class VideoCompressTaskManager extends AbstractTaskManager {
 
   VideoCompressTaskManager(this._taskRunner);
 
+  Future<VideoCompressTask?> _updateCompressTask(
+    String taskId,
+    Task Function(Task) updateFn,
+  ) async {
+    final updated = await _taskRunner.tryUpdateTask(taskId, updateFn);
+    return updated is VideoCompressTask ? updated : null;
+  }
+
   @override
   Future<void> processTask(Task task) async {
     VideoCompressTask currentTask = task as VideoCompressTask;
@@ -24,31 +32,33 @@ class VideoCompressTaskManager extends AbstractTaskManager {
         currentTask.videoPath,
         config: currentTask.compressConfig,
         onProgress: (progress) async {
-          currentTask =
-              await _taskRunner.updateTask(
-                    currentTask.id,
-                    (oldTask) => (oldTask as VideoCompressTask).copyWith(
-                      status: TaskStatusEnum.processing,
-                      progress: progress,
-                    ),
-                  )
-                  as VideoCompressTask;
+          final updated = await _updateCompressTask(
+            currentTask.id,
+            (oldTask) => (oldTask as VideoCompressTask).copyWith(
+              status: TaskStatusEnum.processing,
+              progress: progress,
+            ),
+          );
+          if (updated != null) {
+            currentTask = updated;
+          }
         },
         onSuccess: (result) async {
           VideoCompressResult videoCompressResult = result;
           if (PlatformCapability.supportsGalleryAccess) {
             await Gal.putVideo(videoCompressResult.outputPath!);
           }
-          currentTask =
-              await _taskRunner.updateTask(
-                    currentTask.id,
-                    (oldTask) => (oldTask as VideoCompressTask).copyWith(
-                      status: TaskStatusEnum.completed,
-                      outputPath: videoCompressResult.outputPath!,
-                      progress: 1.0,
-                    ),
-                  )
-                  as VideoCompressTask;
+          final updated = await _updateCompressTask(
+            currentTask.id,
+            (oldTask) => (oldTask as VideoCompressTask).copyWith(
+              status: TaskStatusEnum.completed,
+              outputPath: videoCompressResult.outputPath!,
+              progress: 1.0,
+            ),
+          );
+          if (updated != null) {
+            currentTask = updated;
+          }
           BackgroundService.instance.stopService();
         },
         onError: (result) async {
@@ -56,29 +66,25 @@ class VideoCompressTaskManager extends AbstractTaskManager {
           final isCancelled =
               latestTask?.status == TaskStatusEnum.cancelled ||
               FFmpegErrorUtils.isCancelledMessage(result.errorMessage);
-          currentTask =
-              await _taskRunner.updateTask(
-                    currentTask.id,
-                    (oldTask) => (oldTask as VideoCompressTask).copyWith(
-                      status: isCancelled
-                          ? TaskStatusEnum.cancelled
-                          : TaskStatusEnum.failed,
-                    ),
-                  )
-                  as VideoCompressTask;
+          await _updateCompressTask(
+            currentTask.id,
+            (oldTask) => (oldTask as VideoCompressTask).copyWith(
+              status: isCancelled
+                  ? TaskStatusEnum.cancelled
+                  : TaskStatusEnum.failed,
+            ),
+          );
           BackgroundService.instance.stopService();
         },
       );
     } catch (e) {
       await BackgroundService.instance.stopService();
-      currentTask =
-          await _taskRunner.updateTask(
-                currentTask.id,
-                (oldTask) => (oldTask as VideoCompressTask).copyWith(
-                  status: TaskStatusEnum.failed,
-                ),
-              )
-              as VideoCompressTask;
+      await _updateCompressTask(
+        currentTask.id,
+        (oldTask) => (oldTask as VideoCompressTask).copyWith(
+          status: TaskStatusEnum.failed,
+        ),
+      );
     }
   }
 

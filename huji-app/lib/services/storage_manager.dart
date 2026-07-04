@@ -10,7 +10,15 @@ import 'package:huji_app/utils/logger_utils.dart';
 class StorageManager extends GetxController {
   static StorageManager get to => Get.find();
 
-  final _storageSize = '计算中...'.obs;
+  static const storageKeyCache = 'cache';
+  static const storageKeyAppData = 'app_data';
+  static const storageKeyDownloads = 'downloads';
+  static const storageKeyExternal = 'external';
+
+  static const storageSizeCalculating = '__storage_calculating__';
+  static const storageSizeUnknown = '__storage_unknown__';
+
+  final _storageSize = storageSizeCalculating.obs;
 
   // Getters
   String get storageSize => _storageSize.value;
@@ -21,13 +29,13 @@ class StorageManager extends GetxController {
       final totalSize = await _getTotalStorageSize();
       _storageSize.value = _formatFileSize(totalSize);
     } catch (e) {
-      _storageSize.value = '未知';
+      _storageSize.value = storageSizeUnknown;
     }
   }
 
   // 刷新存储大小
   Future<void> refreshStorageSize() async {
-    _storageSize.value = '计算中...';
+    _storageSize.value = storageSizeCalculating;
     await _calculateStorageSize();
   }
 
@@ -96,30 +104,35 @@ class StorageManager extends GetxController {
 
   // 获取详细存储信息
   Future<Map<String, int>> getDetailedStorageInfo() async {
-    Map<String, int> storageInfo = {'缓存文件': 0, '应用数据': 0, '下载文件': 0, '外部存储': 0};
+    Map<String, int> storageInfo = {
+      storageKeyCache: 0,
+      storageKeyAppData: 0,
+      storageKeyDownloads: 0,
+      storageKeyExternal: 0,
+    };
 
     try {
       // 缓存目录
       final cacheDir = storage.getTemporaryDirectory();
       final cacheSize = await _getDirectorySize(cacheDir);
-      storageInfo['缓存文件'] = cacheSize;
+      storageInfo[storageKeyCache] = cacheSize;
 
       // 获取下载目录
       final downloadsDir = await path_utils.getDownloadsDirectory();
       final downloadsSize = await _getDirectorySize(downloadsDir);
-      storageInfo['下载文件'] = downloadsSize;
+      storageInfo[storageKeyDownloads] = downloadsSize;
 
       // 应用文档目录 - 应用数据
       final appDocDir = storage.getApplicationDocumentsDirectory();
       final appDataSize = await _getDirectorySize(appDocDir);
-      storageInfo['应用数据'] = appDataSize;
+      storageInfo[storageKeyAppData] = appDataSize;
 
       // 外部存储目录
       try {
         final externalDir = storage.getExternalStorageDirectory();
         if (externalDir != null) {
           final externalSize = await _getDirectorySize(externalDir);
-          storageInfo['外部存储'] = externalSize;
+          storageInfo[storageKeyExternal] = externalSize;
         }
       } catch (e, stackTrace) {
         AppLogger().e('Error getting external storage info: $e', stackTrace, e);

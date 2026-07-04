@@ -7,7 +7,7 @@ import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
 import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
 import 'package:huji_app/pages/desktop/desktop_settings_page.dart';
 import 'package:huji_app/pages/login/login_page.dart';
-import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
+import 'package:huji_app/shell/huji_desktop_shell.dart';
 
 class DesktopRoutes {
   DesktopRoutes._();
@@ -18,8 +18,6 @@ class DesktopRoutes {
   static const String clipEdit = '/clip/:id/edit';
   static const String tasks = '/tasks';
   static const String settings = '/settings';
-  static const String help = '/help';
-  static const String about = '/about';
 
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {
     return NoTransitionPage<void>(key: state.pageKey, child: child);
@@ -27,9 +25,15 @@ class DesktopRoutes {
 
   static List<RouteBase> getRoutes() {
     return [
+      GoRoute(
+        path: '/login',
+        name: 'desktop-login',
+        pageBuilder: (context, state) =>
+            _noTransitionPage(state, const LoginPage()),
+      ),
       ShellRoute(
         builder: (context, state, child) {
-          return DesktopAppShell(currentRoute: state.uri.path, child: child);
+          return HujiDesktopShell(currentRoute: state.uri.path, child: child);
         },
         routes: [
           GoRoute(
@@ -75,32 +79,19 @@ class DesktopRoutes {
           GoRoute(
             path: '/tasks',
             name: 'desktop-tasks',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopTasksPage()),
+            pageBuilder: (context, state) {
+              final clipTaskId = state.uri.queryParameters['clipTaskId'];
+              return _noTransitionPage(
+                state,
+                DesktopTasksPage(clipTaskId: clipTaskId),
+              );
+            },
           ),
           GoRoute(
             path: '/settings',
             name: 'desktop-settings',
             pageBuilder: (context, state) =>
                 _noTransitionPage(state, const DesktopSettingsPage()),
-          ),
-          GoRoute(
-            path: '/help',
-            name: 'desktop-help',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopHomePage()),
-          ),
-          GoRoute(
-            path: '/about',
-            name: 'desktop-about',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopHomePage()),
-          ),
-          GoRoute(
-            path: '/login',
-            name: 'desktop-login',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const LoginPage()),
           ),
         ],
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'login_form.dart';
 import 'register_form.dart';
 import 'forgot_password_form.dart';
@@ -167,9 +168,9 @@ class _LoginDialogState extends State<LoginDialog>
                                 ),
                                 alignment: Alignment.center,
 
-                                child: const Text(
-                                  '由于政策原因，暂时只能使用邮箱登录',
-                                  style: TextStyle(
+                                child: Text(
+                                  context.hujiL10n.emailLoginOnlyNotice,
+                                  style: const TextStyle(
                                     color: Colors.orange,
                                     fontSize: 12,
                                     decoration: TextDecoration.none,

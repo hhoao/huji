@@ -267,9 +267,11 @@ class VideoClipTaskManager extends AbstractTaskManager {
 
       if (currentTask != null) {
         _checkTaskStatus(currentTask);
-        final normalizedProgress = progress.progress.clamp(0.0, 1.0);
+        final normalizedProgress = progress.progress > 1.0
+            ? progress.progress / 100
+            : progress.progress;
         final mappedProgress =
-            _uploadProgress + (normalizedProgress * _clipProgress);
+            _uploadProgress + (normalizedProgress.clamp(0.0, 1.0) * _clipProgress);
 
         currentTask =
             await _taskRunner.updateTask(
@@ -437,7 +439,9 @@ class VideoClipTaskManager extends AbstractTaskManager {
         if (processRecord != null) {
           if (processRecord.status == ProcessStatus.processing) {
             processingVideoClipTask.status = TaskStatusEnum.processing;
-            processingVideoClipTask.progress = processRecord.progress;
+            processingVideoClipTask.progress = processRecord.progress > 1.0
+                ? processRecord.progress / 100
+                : processRecord.progress;
           } else if (processRecord.status == ProcessStatus.completed) {
             processingVideoClipTask.status = TaskStatusEnum.completed;
             processingVideoClipTask.progress = 1.0;

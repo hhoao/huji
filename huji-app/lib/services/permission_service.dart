@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -13,36 +15,14 @@ class PermissionService {
 
   // 应用所需的所有权限列表
   final List<Permission> _requiredPermissions = [
-    Permission.notification, // 通知权限
-    Permission.storage, // 存储权限
-    Permission.camera, // 相机权限
-    Permission.microphone, // 麦克风权限
-    Permission.photos, // 相册权限
-    Permission.videos, // 视频权限
-    Permission.audio, // 音频权限
+    Permission.notification,
+    Permission.storage,
+    Permission.camera,
+    Permission.microphone,
+    Permission.photos,
+    Permission.videos,
+    Permission.audio,
   ];
-
-  // 权限详细说明
-  final Map<Permission, String> _permissionDetails = {
-    Permission.notification: '用于在后台处理视频时显示进度通知，让您了解处理状态',
-    Permission.storage: '用于保存剪辑后的视频文件到设备存储，以及读取现有视频',
-    Permission.camera: '用于录制新的视频内容，支持拍照和视频录制功能',
-    Permission.microphone: '用于录制视频时的音频输入，确保视频有声音',
-    Permission.photos: '用于访问相册中的图片和视频，选择现有内容进行剪辑',
-    Permission.videos: '用于访问设备存储中的视频文件，支持各种视频格式',
-    Permission.audio: '用于播放视频和音频内容，确保媒体播放功能正常',
-  };
-
-  // 权限名称映射
-  final Map<Permission, String> _permissionNames = {
-    Permission.notification: '通知权限',
-    Permission.storage: '存储权限',
-    Permission.camera: '相机权限',
-    Permission.microphone: '麦克风权限',
-    Permission.photos: '相册权限',
-    Permission.videos: '视频权限',
-    Permission.audio: '音频权限',
-  };
 
   // 初始化权限服务
   Future<void> initialize() async {
@@ -89,15 +69,15 @@ class PermissionService {
       for (final permission in permissionsToRequest) {
         try {
           final status = await permission.request();
-          _logger.i('${_permissionNames[permission]} request result: $status');
+          _logger.i('$permission request result: $status');
 
           // 如果权限被永久拒绝，记录日志但不显示对话框（避免阻塞启动流程）
           if (status.isPermanentlyDenied) {
-            _logger.w('${_permissionNames[permission]} is permanently denied');
+            _logger.w('$permission is permanently denied');
           }
         } catch (e, stackTrace) {
           _logger.e(
-            'Error requesting ${_permissionNames[permission]}: $e',
+            'Error requesting $permission: $e',
             stackTrace,
             e,
           );
@@ -144,7 +124,7 @@ class PermissionService {
       return status;
     } catch (e, stackTrace) {
       _logger.e(
-        'Error requesting ${_permissionNames[permission]}: $e',
+        'Error requesting $permission: $e',
         stackTrace,
         e,
       );
@@ -225,21 +205,11 @@ class PermissionService {
   }
 
   // 获取权限状态文本
-  String getPermissionStatusText(PermissionStatus status) {
-    switch (status) {
-      case PermissionStatus.granted:
-        return '已授权';
-      case PermissionStatus.denied:
-        return '已拒绝';
-      case PermissionStatus.restricted:
-        return '受限制';
-      case PermissionStatus.limited:
-        return '有限权限';
-      case PermissionStatus.permanentlyDenied:
-        return '永久拒绝';
-      default:
-        return '未知';
-    }
+  String getPermissionStatusText(
+    PermissionStatus status,
+    HujiLocalizations l10n,
+  ) {
+    return l10n.permissionStatusLabel(status);
   }
 
   // 获取权限状态颜色
@@ -275,13 +245,13 @@ class PermissionService {
   }
 
   // 获取权限名称
-  String getPermissionName(Permission permission) {
-    return _permissionNames[permission] ?? '未知权限';
+  String getPermissionName(Permission permission, HujiLocalizations l10n) {
+    return l10n.permissionNameLabel(permission);
   }
 
   // 获取权限详细说明
-  String getPermissionDetail(Permission permission) {
-    return _permissionDetails[permission] ?? '应用功能所需权限';
+  String getPermissionDetail(Permission permission, HujiLocalizations l10n) {
+    return l10n.permissionDetailLabel(permission);
   }
 
   // 检查权限是否对应用功能至关重要
@@ -294,25 +264,17 @@ class PermissionService {
   String getPermissionSuggestion(
     Permission permission,
     PermissionStatus status,
+    HujiLocalizations l10n,
   ) {
-    switch (status) {
-      case PermissionStatus.denied:
-        return '点击"请求权限"按钮重新申请';
-      case PermissionStatus.permanentlyDenied:
-        return '需要在系统设置中手动开启';
-      case PermissionStatus.restricted:
-        return '权限受到系统限制，请联系管理员';
-      case PermissionStatus.limited:
-        return '权限部分授权，部分功能可能受限';
-      default:
-        return '';
-    }
+    return l10n.permissionSuggestionLabel(permission, status);
   }
 
   List<Permission> get requiredPermissions =>
       List.unmodifiable(_requiredPermissions);
 
-  Future<Map<String, dynamic>> diagnosePermissionIssues() async {
+  Future<Map<String, dynamic>> diagnosePermissionIssues(
+    HujiLocalizations l10n,
+  ) async {
     final Map<String, dynamic> diagnosis = {
       'timestamp': DateTime.now().toIso8601String(),
       'permissions': {},
@@ -325,7 +287,7 @@ class PermissionService {
       final permission = entry.key;
       final status = entry.value;
 
-      diagnosis['permissions'][_permissionNames[permission]] = {
+      diagnosis['permissions'][getPermissionName(permission, l10n)] = {
         'status': status.toString(),
         'isGranted': status.isGranted,
         'isDenied': status.isDenied,

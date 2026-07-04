@@ -4,6 +4,7 @@ import 'package:huji_app/pages/system/error_page.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/main.dart';
 import 'package:huji_app/services/error_log_service.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -60,38 +61,32 @@ class _SplashPageState extends State<SplashPage> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
 
             // 应用名称
-            Text(
-              '弧迹',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+            Text(context.hujiL10n.appTitle, style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                 fontWeight: FontWeight.bold,
                 color: Theme.of(context).colorScheme.primary,
               ),
             ),
 
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
 
-            Text(
-              '乒乓球羽毛球比赛视频剪辑',
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            Text(context.hujiL10n.splashTagline, style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
 
-            const SizedBox(height: 48),
+            SizedBox(height: 48),
 
             // 加载指示器
             const CircularProgressIndicator(),
 
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
 
-            Text(
-              '正在初始化...',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            Text(context.hujiL10n.splashInitializing, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                 color: Theme.of(
                   context,
                 ).colorScheme.onSurface.withValues(alpha: 0.6),

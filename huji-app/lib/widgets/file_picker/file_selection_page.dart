@@ -7,6 +7,7 @@ import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'desktop_file_picker.dart';
 import 'filesystem_tab.dart';
 import 'photo_gallery_tab.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 enum TabType { fileSystem, photoGallery }
 
@@ -113,7 +114,7 @@ class FileSelection extends StatefulWidget {
       context: context,
       allowMultiple: allowMultiple,
       allowedExtensions: FileExtensions.videoExtensionsList,
-      title: '选择视频',
+      title: context.hujiL10n.selectVideosTitle,
       maxSelectionCount: maxSelectionCount,
       initialTab: initialTab,
       initialPath: initialPath,
@@ -132,7 +133,7 @@ class FileSelection extends StatefulWidget {
       context: context,
       allowMultiple: allowMultiple,
       allowedExtensions: FileExtensions.imageExtensionsList,
-      title: '选择图片',
+      title: context.hujiL10n.selectImagesTitle,
       maxSelectionCount: maxSelectionCount,
       initialTab: initialTab,
       initialPath: initialPath,
@@ -151,7 +152,7 @@ class FileSelection extends StatefulWidget {
       context: context,
       allowMultiple: allowMultiple,
       allowedExtensions: FileExtensions.visualMediaExtensionsList,
-      title: '选择媒体文件',
+      title: context.hujiL10n.selectMediaTitle,
       maxSelectionCount: maxSelectionCount,
       initialTab: initialTab,
     );
@@ -168,7 +169,7 @@ class FileSelection extends StatefulWidget {
   }) async {
     if (PlatformCapability.isDesktop) {
       final picked = await DesktopFilePicker.pickDirectory(
-        dialogTitle: '选择目录',
+        dialogTitle: context.hujiL10n.selectDirectoryTitle,
         initialDirectory: initialPath,
       );
       return picked?.whereType<Directory>().toList();
@@ -178,7 +179,7 @@ class FileSelection extends StatefulWidget {
       MaterialPageRoute(
         builder: (context) => FileSelection(
           allowMultiple: allowMultiple,
-          title: '选择目录',
+          title: context.hujiL10n.selectDirectoryTitle,
           maxSelectionCount: maxSelectionCount,
           initialTab: initialTab,
           initialPath: initialPath,
@@ -206,7 +207,7 @@ class FileSelection extends StatefulWidget {
       context: context,
       allowMultiple: allowMultiple,
       allowedExtensions: allowedExtensions,
-      title: title ?? '选择文件和目录',
+      title: title ?? context.hujiL10n.selectFilesAndDirectoriesTitle,
       maxSelectionCount: maxSelectionCount,
       initialTab: initialTab,
       initialPath: initialPath,
@@ -287,14 +288,14 @@ class _FileSelectionState extends State<FileSelection>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('切换标签'),
-        content: const Text('切换到其他标签会清空当前选择，是否继续？'),
+        title: Text(context.hujiL10n.switchTabTitle),
+        content: Text(context.hujiL10n.switchTabClearSelectionMessage),
         actions: [
           TextButton(
             onPressed: () {
               Navigator.pop(context);
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
@@ -305,7 +306,7 @@ class _FileSelectionState extends State<FileSelection>
               _currentTabIndex = targetIndex;
               _tabController.animateTo(targetIndex);
             },
-            child: const Text('确定'),
+            child: Text(context.hujiL10n.actionConfirm),
           ),
         ],
       ),
@@ -334,7 +335,9 @@ class _FileSelectionState extends State<FileSelection>
   void _showMaxSelectionReachedSnackBar() {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('最多只能选择 ${widget.maxSelectionCount} 个文件'),
+        content: Text(
+          context.hujiL10n.maxSelectionCountReached(widget.maxSelectionCount!),
+        ),
         backgroundColor: Colors.orange,
         duration: const Duration(seconds: 2),
       ),
@@ -443,14 +446,14 @@ class _FileSelectionState extends State<FileSelection>
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
-              '排序方式',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              context.hujiL10n.sortOptionsTitle,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.sort_by_alpha),
-              title: const Text('按名称排序'),
+              title: Text(context.hujiL10n.sortByName),
               onTap: () {
                 Navigator.pop(context);
                 _applySorting('name');
@@ -458,7 +461,7 @@ class _FileSelectionState extends State<FileSelection>
             ),
             ListTile(
               leading: const Icon(Icons.access_time),
-              title: const Text('按修改时间排序'),
+              title: Text(context.hujiL10n.sortByModifiedTime),
               onTap: () {
                 Navigator.pop(context);
                 _applySorting('date');
@@ -466,7 +469,7 @@ class _FileSelectionState extends State<FileSelection>
             ),
             ListTile(
               leading: const Icon(Icons.storage),
-              title: const Text('按文件大小排序'),
+              title: Text(context.hujiL10n.sortByFileSize),
               onTap: () {
                 Navigator.pop(context);
                 _applySorting('size');
@@ -474,7 +477,7 @@ class _FileSelectionState extends State<FileSelection>
             ),
             ListTile(
               leading: const Icon(Icons.category),
-              title: const Text('按文件类型排序'),
+              title: Text(context.hujiL10n.sortByFileType),
               onTap: () {
                 Navigator.pop(context);
                 _applySorting('type');
@@ -496,8 +499,8 @@ class _FileSelectionState extends State<FileSelection>
     }
   }
 
-  String _getSelectionSummary() {
-    if (_selectedFiles.isEmpty) return '未选择项目';
+  String _getSelectionSummary(HujiLocalizations l10n) {
+    if (_selectedFiles.isEmpty) return l10n.noItemsSelected;
 
     final itemCount = _selectedFiles.length;
     int totalSize = 0;
@@ -517,13 +520,16 @@ class _FileSelectionState extends State<FileSelection>
       }
     }
 
-    String summary = '$itemCount个项目';
+    String summary = l10n.selectionSummaryItems(itemCount);
     if (fileCount > 0 && directoryCount > 0) {
-      summary += ' ($fileCount个文件, $directoryCount个目录)';
+      summary += l10n.selectionSummaryFilesAndDirs(
+        fileCount.toString(),
+        directoryCount.toString(),
+      );
     } else if (fileCount > 0) {
-      summary += ' ($fileCount个文件)';
+      summary += l10n.selectionSummaryFilesOnly(fileCount.toString());
     } else if (directoryCount > 0) {
-      summary += ' ($directoryCount个目录)';
+      summary += l10n.selectionSummaryDirsOnly(directoryCount.toString());
     }
 
     if (totalSize > 0) {
@@ -533,29 +539,29 @@ class _FileSelectionState extends State<FileSelection>
     return summary;
   }
 
-  String _getDefaultTitle() {
+  String _getDefaultTitle(HujiLocalizations l10n) {
     switch (widget.selectionMode) {
       case SelectionMode.files:
-        return '选择文件';
+        return l10n.selectFilesTitle;
       case SelectionMode.directories:
-        return '选择目录';
+        return l10n.selectDirectoryTitle;
       case SelectionMode.both:
-        return '选择文件和目录';
+        return l10n.selectFilesAndDirectoriesTitle;
     }
   }
 
-  String _getSelectionPrompt() {
+  String _getSelectionPrompt(HujiLocalizations l10n) {
     switch (widget.selectionMode) {
       case SelectionMode.files:
-        return '请选择文件';
+        return l10n.selectFilesPrompt;
       case SelectionMode.directories:
-        return '请选择目录';
+        return l10n.selectDirectoryPrompt;
       case SelectionMode.both:
-        return '请选择文件或目录';
+        return l10n.selectFilesOrDirectoriesPrompt;
     }
   }
 
-  Widget _buildDirectoryModeBottomBar() {
+  Widget _buildDirectoryModeBottomBar(HujiLocalizations l10n) {
     return Row(
       children: [
         // 左侧：当前路径信息
@@ -563,14 +569,14 @@ class _FileSelectionState extends State<FileSelection>
           child: Row(
             children: [
               Icon(Icons.folder, color: Colors.blue, size: 16),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '当前目录',
+                      l10n.currentDirectoryLabel,
                       style: TextStyle(color: Colors.grey[600], fontSize: 12),
                     ),
                     Text(
@@ -586,17 +592,22 @@ class _FileSelectionState extends State<FileSelection>
                   ],
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
             ],
           ),
         ),
         // 右侧：确定按钮
-        getBottomButton(_onConfirmSelection, '选择此目录', Colors.blue, Icons.check),
+        getBottomButton(
+          _onConfirmSelection,
+          l10n.selectThisDirectory,
+          Colors.blue,
+          Icons.check,
+        ),
       ],
     );
   }
 
-  Widget _buildFileModeBottomBar() {
+  Widget _buildFileModeBottomBar(HujiLocalizations l10n) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -606,14 +617,14 @@ class _FileSelectionState extends State<FileSelection>
             TextButton(
               onPressed: _selectedFiles.isNotEmpty ? _onCancelSelection : null,
               child: Text(
-                '取消勾选',
+                l10n.clearSelection,
                 style: TextStyle(
                   color: _selectedFiles.isNotEmpty ? Colors.blue : Colors.grey,
                 ),
               ),
             ),
             if (widget.maxSelectionCount != null) ...[
-              const SizedBox(width: 10),
+              SizedBox(width: 10),
               Text(
                 '${_selectedFiles.length}/${widget.maxSelectionCount}',
                 style: TextStyle(color: Colors.blue[700], fontSize: 12),
@@ -625,8 +636,8 @@ class _FileSelectionState extends State<FileSelection>
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text('全选', style: const TextStyle(color: Colors.black)),
-                  const SizedBox(width: 8),
+                  Text(l10n.selectAll, style: const TextStyle(color: Colors.black)),
+                  SizedBox(width: 8),
                   Container(
                     width: 20,
                     height: 20,
@@ -662,18 +673,18 @@ class _FileSelectionState extends State<FileSelection>
                 children: [
                   if (_isSelectionMode) ...[
                     Icon(Icons.check_circle, color: Colors.blue, size: 16),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      _getSelectionSummary(),
+                      _getSelectionSummary(l10n),
                       style: TextStyle(
                         color: Colors.blue[700],
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     if (widget.maxSelectionCount != null) ...[
-                      const SizedBox(width: 12),
+                      SizedBox(width: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 6,
@@ -694,9 +705,9 @@ class _FileSelectionState extends State<FileSelection>
                     ],
                   ] else ...[
                     Icon(Icons.folder_open, color: Colors.grey[400], size: 16),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
-                      _getSelectionPrompt(),
+                      _getSelectionPrompt(l10n),
                       style: TextStyle(
                         color: const Color.fromARGB(255, 188, 150, 150),
                         fontSize: 14,
@@ -714,8 +725,8 @@ class _FileSelectionState extends State<FileSelection>
                 getBottomButton(
                   _selectedFiles.isNotEmpty ? _onConfirmSelection : null,
                   _selectedFiles.isNotEmpty
-                      ? '确定 (${_selectedFiles.length})'
-                      : '确定',
+                      ? l10n.actionConfirmWithCount(_selectedFiles.length)
+                      : l10n.actionConfirm,
                   Colors.blue,
                   null,
                 ),
@@ -775,33 +786,34 @@ class _FileSelectionState extends State<FileSelection>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     // 目录模式下只显示文件系统标签页
     final showPhotoGallery = widget.selectionMode != SelectionMode.directories;
 
     return Scaffold(
       appBar: CommonAppBar(
-        title: widget.title ?? _getDefaultTitle(),
+        title: widget.title ?? _getDefaultTitle(l10n),
         tabs: showPhotoGallery
-            ? const [
+            ? [
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.folder, size: 12),
-                      SizedBox(width: 4),
-                      Text('文件'),
+                      const Icon(Icons.folder, size: 12),
+                      const SizedBox(width: 4),
+                      Text(l10n.tabFiles),
                     ],
                   ),
                 ),
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.photo_library, size: 12),
-                      SizedBox(width: 4),
-                      Text('相册'),
+                      const Icon(Icons.photo_library, size: 12),
+                      const SizedBox(width: 4),
+                      Text(l10n.tabPhotoGallery),
                     ],
                   ),
                 ),
@@ -873,8 +885,8 @@ class _FileSelectionState extends State<FileSelection>
               ],
             ),
             child: widget.selectionMode == SelectionMode.directories
-                ? _buildDirectoryModeBottomBar()
-                : _buildFileModeBottomBar(),
+                ? _buildDirectoryModeBottomBar(l10n)
+                : _buildFileModeBottomBar(l10n),
           ),
         ],
       ),

@@ -6,6 +6,19 @@ import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
 import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'file_selection_page.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
+
+Future<File?> resolveAssetFile(AssetEntity asset) async {
+  try {
+    return await asset.file;
+  } on PlatformException catch (e) {
+    debugPrint('Failed to resolve asset ${asset.id}: $e');
+    return null;
+  } catch (e) {
+    debugPrint('Failed to resolve asset ${asset.id}: $e');
+    return null;
+  }
+}
 
 // 媒体类型枚举
 enum MediaType { image, video, all }
@@ -137,7 +150,7 @@ class _AssetItemState extends State<_AssetItem>
                     : _isLoading
                     ? Container(
                         color: Colors.grey[300],
-                        child: const Center(
+                        child: Center(
                           child: SizedBox(
                             width: 20,
                             height: 20,
@@ -183,7 +196,7 @@ class _AssetItemState extends State<_AssetItem>
                 right: 8,
                 child: GestureDetector(
                   onTap: () async {
-                    final file = await widget.asset.file;
+                    final file = await resolveAssetFile(widget.asset);
                     if (file != null && context.mounted) {
                       await VideoPlayerPage.show(
                         context,
@@ -228,9 +241,9 @@ class _AssetItemState extends State<_AssetItem>
                         ),
                       )
                     else if (_isLoading)
-                      const Text(
-                        '计算中...',
-                        style: TextStyle(
+                      Text(
+                        context.hujiL10n.calculating,
+                        style: const TextStyle(
                           color: Colors.white,
                           fontSize: 10,
                           fontWeight: FontWeight.w500,
@@ -292,6 +305,8 @@ class PhotoGalleryTab extends StatefulWidget {
 }
 
 class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
+  static const _albumAllKey = '__album_all__';
+
   List<AssetEntity> _mediaAssets = [];
   List<AssetEntity> _filteredAssets = [];
   bool _isLoading = false;
@@ -303,7 +318,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   // 相册相关
   List<AssetPathEntity> _albums = [];
   AssetPathEntity? _currentAlbum;
-  String _currentAlbumName = '最近项目';
+  String _currentAlbumName = '';
 
   // 分页参数
   static const int _pageSize = 50;
@@ -353,6 +368,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   }
 
   Future<void> _requestPermissionAndLoadAssets() async {
+    final l10n = context.hujiL10n;
     try {
       final PermissionState permission =
           await PhotoManager.requestPermissionExtend();
@@ -371,7 +387,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
         _isLoading = false;
       });
       final decision = AppErrorUtils.classify(e);
-      _showErrorSnackBar(decision.userMessage ?? '加载相册失败');
+      _showErrorSnackBar(decision.userMessage ?? l10n.loadAlbumFailed);
     }
   }
 
@@ -467,7 +483,9 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
         _isLoading = false;
         _hasMoreData = false;
       });
-      _showErrorSnackBar('加载相册失败: ${e.toString()}');
+      _showErrorSnackBar(
+        context.hujiL10n.loadAlbumFailedWithError(e.toString()),
+      );
     }
   }
 
@@ -503,7 +521,9 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
       setState(() {
         _isLoadingMore = false;
       });
-      _showErrorSnackBar('加载更多失败: ${e.toString()}');
+      _showErrorSnackBar(
+        context.hujiL10n.loadMoreFailedWithError(e.toString()),
+      );
     }
   }
 
@@ -512,7 +532,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
     // 在后台异步预加载文件路径，不阻塞UI
     for (final asset in assets) {
       if (!_assetPathCache.containsKey(asset.id)) {
-        asset.file
+        resolveAssetFile(asset)
             .then((file) {
               if (file != null && mounted) {
                 _assetPathCache[asset.id] = file.path;
@@ -553,34 +573,38 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
     }
   }
 
-  String _getMediaTypeDisplayName() {
+  String _mediaTypeLabel(HujiLocalizations l10n) {
     switch (widget.mediaType) {
       case MediaType.image:
-        return '图片';
+        return l10n.mediaTypeImage;
       case MediaType.video:
-        return '视频';
+        return l10n.mediaTypeVideo;
       case MediaType.all:
-        return '媒体';
+        return l10n.mediaTypeAll;
     }
   }
 
+  String _displayAlbumName(HujiLocalizations l10n) =>
+      _currentAlbumName == _albumAllKey ? l10n.filterAll : _currentAlbumName;
+
   void _showPermissionDialog() {
+    final l10n = context.hujiL10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('需要相册权限'),
-        content: const Text('为了选择照片和视频，请在设置中授予相册访问权限。'),
+        title: Text(l10n.galleryPermissionRequired),
+        content: Text(l10n.galleryPermissionMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               PhotoManager.openSetting();
             },
-            child: const Text('去设置'),
+            child: Text(context.hujiL10n.goToSettings),
           ),
         ],
       ),
@@ -608,9 +632,15 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   }
 
   void _showMaxSelectionReachedSnackBar() {
+    final l10n = context.hujiL10n;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('最多只能选择 ${widget.maxSelectionCount} 个文件'),
+        content: Text(
+          l10n.maxSelectionCountReachedFor(
+            widget.maxSelectionCount!,
+            l10n.itemTypeFile,
+          ),
+        ),
         backgroundColor: Colors.orange,
         duration: const Duration(seconds: 2),
       ),
@@ -618,7 +648,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   }
 
   Future<void> _toggleAssetSelection(AssetEntity asset) async {
-    final file = await asset.file;
+    final file = await resolveAssetFile(asset);
     if (file == null) return;
 
     // 缓存文件路径
@@ -657,7 +687,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
         : _filteredAssets;
 
     for (final asset in assetsToProcess) {
-      final file = await asset.file;
+      final file = await resolveAssetFile(asset);
       if (file != null) {
         // 缓存文件路径
         _assetPathCache[asset.id] = file.path;
@@ -669,7 +699,9 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
 
     if (widget.maxSelectionCount != null &&
         _filteredAssets.length > widget.maxSelectionCount!) {
-      _showInfoSnackBar('已选择前 ${widget.maxSelectionCount} 个文件');
+      _showInfoSnackBar(
+        context.hujiL10n.selectedFirstNItems(widget.maxSelectionCount!),
+      );
     }
   }
 
@@ -710,15 +742,16 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   }
 
   void _showSearchDialog() {
+    final l10n = context.hujiL10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('搜索媒体文件'),
+        title: Text(l10n.searchMediaTitle),
         content: TextField(
           controller: _searchController,
-          decoration: const InputDecoration(
-            hintText: '输入关键词...',
-            prefixIcon: Icon(Icons.search),
+          decoration: InputDecoration(
+            hintText: l10n.inputKeywordHint,
+            prefixIcon: const Icon(Icons.search),
           ),
           onChanged: _onSearchChanged,
           autofocus: true,
@@ -730,11 +763,11 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
               _onSearchChanged('');
               Navigator.pop(context);
             },
-            child: const Text('清除'),
+            child: Text(l10n.actionClear),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('确定'),
+            child: Text(context.hujiL10n.actionConfirm),
           ),
         ],
       ),
@@ -784,17 +817,17 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                       child: Row(
                         children: [
                           const Icon(Icons.photo_library, color: Colors.blue),
-                          const SizedBox(width: 8),
-                          const Text(
-                            '选择相册',
-                            style: TextStyle(
+                          SizedBox(width: 8),
+                          Text(
+                            context.hujiL10n.selectAlbum,
+                            style: const TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const Spacer(),
                           Text(
-                            '共 ${_albums.length} 个相册',
+                            context.hujiL10n.albumCount(_albums.length),
                             style: TextStyle(
                               fontSize: 14,
                               color: Colors.grey[600],
@@ -803,7 +836,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    SizedBox(height: 16),
                     // 可滚动内容
                     Expanded(
                       child: _albums.isEmpty
@@ -817,18 +850,18 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                                     size: 48,
                                     color: Colors.grey[400],
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   Text(
-                                    '没有找到相册',
+                                    context.hujiL10n.noAlbumsFound,
                                     style: TextStyle(color: Colors.grey[600]),
                                   ),
-                                  const SizedBox(height: 8),
+                                  SizedBox(height: 8),
                                   ElevatedButton(
                                     onPressed: () {
                                       Navigator.pop(context);
                                       _requestPermissionAndLoadAssets();
                                     },
-                                    child: const Text('重新加载'),
+                                    child: Text(context.hujiL10n.actionReload),
                                   ),
                                 ],
                               ),
@@ -857,7 +890,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                                               ConnectionState.waiting) {
                                             return Container(
                                               color: Colors.grey[300],
-                                              child: const Center(
+                                              child: Center(
                                                 child: SizedBox(
                                                   width: 20,
                                                   height: 20,
@@ -918,13 +951,16 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                                       ),
                                     ),
                                   ),
-                                  title: '全部',
-                                  subtitle: '所有${_getMediaTypeDisplayName()}文件',
-                                  isSelected: _currentAlbumName == '全部',
+                                  title: context.hujiL10n.filterAll,
+                                  subtitle: context.hujiL10n.albumAllMediaSubtitle(
+                                    _mediaTypeLabel(context.hujiL10n),
+                                  ),
+                                  isSelected: _currentAlbumName == _albumAllKey,
                                   onTap: () {
-                                    _changeAlbum(null, '全部');
+                                    _changeAlbum(null, _albumAllKey);
                                     Navigator.pop(context);
                                   },
+                                  l10n: context.hujiL10n,
                                 ),
                                 const Divider(height: 1),
                                 // 具体相册列表
@@ -946,7 +982,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                                                 ConnectionState.waiting) {
                                               return Container(
                                                 color: Colors.grey[300],
-                                                child: const Center(
+                                                child: Center(
                                                   child: SizedBox(
                                                     width: 20,
                                                     height: 20,
@@ -991,10 +1027,11 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                                       _changeAlbum(album, album.name);
                                       Navigator.pop(context);
                                     },
+                                    l10n: context.hujiL10n,
                                   ),
                                 ),
                                 // 底部安全区域
-                                const SizedBox(height: 20),
+                                SizedBox(height: 20),
                               ],
                             ),
                     ),
@@ -1015,6 +1052,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
     Future<int>? subtitleFuture,
     required bool isSelected,
     required VoidCallback onTap,
+    required HujiLocalizations l10n,
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(vertical: 8, horizontal: 0),
@@ -1027,10 +1065,12 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
               future: subtitleFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('加载中...');
+                  return Text(l10n.loading);
                 }
                 final count = snapshot.data ?? 0;
-                return Text('$count 个${_getMediaTypeDisplayName()}');
+                return Text(
+                  l10n.mediaItemCount(count, _mediaTypeLabel(l10n)),
+                );
               },
             )
           : null,
@@ -1127,8 +1167,10 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
   @override
   Widget build(BuildContext context) {
     if (!PlatformCapability.supportsGalleryAccess) {
-      return const Center(child: Text('此功能在桌面端暂不支持'));
+      return Center(child: Text(context.hujiL10n.featureNotSupportedOnDesktop));
     }
+    final l10n = context.hujiL10n;
+    final mediaType = _mediaTypeLabel(l10n);
     return Column(
       children: [
         // 筛选栏
@@ -1157,9 +1199,9 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                         size: 16,
                         color: Colors.white,
                       ),
-                      const SizedBox(width: 4),
+                      SizedBox(width: 4),
                       Text(
-                        _currentAlbumName,
+                        _displayAlbumName(l10n),
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.white,
@@ -1169,7 +1211,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               // 视图切换按钮
               TextButton.icon(
                 onPressed: () {
@@ -1182,7 +1224,9 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                   size: 16,
                 ),
                 label: Text(
-                  _viewMode == 'grid' ? '列表' : '网格',
+                  _viewMode == 'grid'
+                      ? l10n.switchToListMode
+                      : l10n.switchToGridMode,
                   style: const TextStyle(fontSize: 12),
                 ),
                 style: TextButton.styleFrom(
@@ -1210,7 +1254,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
         // 媒体网格
         Expanded(
           child: _isLoading
-              ? const Center(child: CircularProgressIndicator())
+              ? Center(child: CircularProgressIndicator())
               : _filteredAssets.isEmpty
               ? Center(
                   child: Column(
@@ -1221,32 +1265,34 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                         size: 64,
                         color: Colors.grey[400],
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       Text(
                         _searchQuery.isNotEmpty
-                            ? '没有找到匹配的${_getMediaTypeDisplayName()}文件'
-                            : '没有找到${_getMediaTypeDisplayName()}文件',
+                            ? l10n.noMatchingMediaFiles(mediaType)
+                            : l10n.noMediaFiles(mediaType),
                         style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
-                        _searchQuery.isNotEmpty ? '尝试修改搜索条件' : '请检查相册权限或相册是否为空',
+                        _searchQuery.isNotEmpty
+                            ? l10n.tryModifySearchConditions
+                            : l10n.checkAlbumPermissionOrEmpty,
                         style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                       ),
-                      const SizedBox(height: 16),
+                      SizedBox(height: 16),
                       if (_searchQuery.isNotEmpty)
                         TextButton(
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged('');
                           },
-                          child: const Text('清除搜索'),
+                          child: Text(l10n.clearSearch),
                         )
                       else
                         ElevatedButton.icon(
                           onPressed: _requestPermissionAndLoadAssets,
                           icon: const Icon(Icons.refresh),
-                          label: const Text('重新加载'),
+                          label: Text(l10n.actionReload),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue,
                             foregroundColor: Colors.white,
@@ -1315,7 +1361,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                     if (_isLoadingMore)
                       Container(
                         padding: const EdgeInsets.all(16),
-                        child: const Row(
+                        child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             SizedBox(
@@ -1325,7 +1371,7 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
                             ),
                             SizedBox(width: 8),
                             Text(
-                              '加载更多...',
+                              l10n.loadMore,
                               style: TextStyle(color: Colors.grey),
                             ),
                           ],
@@ -1384,7 +1430,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
 
   Future<void> _toggleSelection(BuildContext context) async {
     final asset = widget.assets[_currentIndex];
-    final file = await asset.file;
+    final file = await resolveAssetFile(asset);
     if (file == null) return;
 
     final selectedFiles = List<FileSystemEntity>.from(widget.selectedFiles);
@@ -1395,9 +1441,15 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
       if (widget.maxSelectionCount != null &&
           selectedFiles.length >= widget.maxSelectionCount!) {
         if (context.mounted) {
+          final l10n = context.hujiL10n;
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('最多只能选择 ${widget.maxSelectionCount} 个文件'),
+              content: Text(
+                l10n.maxSelectionCountReachedFor(
+                  widget.maxSelectionCount!,
+                  l10n.itemTypeFile,
+                ),
+              ),
               backgroundColor: Colors.orange,
             ),
           );
@@ -1424,6 +1476,12 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final currentAsset = widget.assets[_currentIndex];
+    final createdAt = DateTime.fromMillisecondsSinceEpoch(
+      currentAsset.createDateTime.millisecondsSinceEpoch,
+    ).toString().split('.')[0];
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -1454,7 +1512,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
           final asset = widget.assets[index];
           return Center(
             child: FutureBuilder<File?>(
-              future: asset.file,
+              future: resolveAssetFile(asset),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator(color: Colors.white);
@@ -1492,7 +1550,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                         ),
                         GestureDetector(
                           onTap: () async {
-                            final file = await asset.file;
+                            final file = await resolveAssetFile(asset);
                             if (file != null && context.mounted) {
                               await VideoPlayerPage.show(
                                 context,
@@ -1542,9 +1600,9 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.assets[_currentIndex].type == AssetType.video
-                        ? '视频'
-                        : '图片',
+                    currentAsset.type == AssetType.video
+                        ? l10n.videoLabel
+                        : l10n.imageLabel,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -1552,14 +1610,14 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                     ),
                   ),
                   Text(
-                    '创建时间: ${DateTime.fromMillisecondsSinceEpoch(widget.assets[_currentIndex].createDateTime.millisecondsSinceEpoch).toString().split('.')[0]}',
+                    l10n.createdAtWithValue(createdAt),
                     style: const TextStyle(color: Colors.grey, fontSize: 12),
                   ),
                 ],
               ),
             ),
             Text(
-              '已选择: ${widget.selectedFiles.length}',
+              l10n.selectedCountShort(widget.selectedFiles.length),
               style: const TextStyle(color: Colors.white, fontSize: 14),
             ),
           ],
@@ -1662,6 +1720,10 @@ class _AssetListItemState extends State<_AssetListItem>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final l10n = context.hujiL10n;
+    final createdAt = DateTime.fromMillisecondsSinceEpoch(
+      widget.asset.createDateTime.millisecondsSinceEpoch,
+    ).toString().split(' ')[0];
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -1679,7 +1741,7 @@ class _AssetListItemState extends State<_AssetListItem>
               child: _thumbnail != null
                   ? Image.memory(_thumbnail!, fit: BoxFit.cover)
                   : _isLoading
-                  ? const Center(
+                  ? Center(
                       child: SizedBox(
                         width: 20,
                         height: 20,
@@ -1714,18 +1776,20 @@ class _AssetListItemState extends State<_AssetListItem>
         ],
       ),
       title: Text(
-        widget.asset.type == AssetType.video ? '视频文件' : '图片文件',
+        widget.asset.type == AssetType.video
+            ? l10n.videoFileLabel
+            : l10n.imageFileLabel,
         style: const TextStyle(fontWeight: FontWeight.w500),
       ),
       subtitle: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (_fileSize != null)
-            Text('大小: $_fileSize')
+            Text(l10n.fileSizeLabel(_fileSize!))
           else if (_isLoading)
-            const Text('计算大小中...'),
+            Text(l10n.calculatingFileSize),
           Text(
-            '创建时间: ${DateTime.fromMillisecondsSinceEpoch(widget.asset.createDateTime.millisecondsSinceEpoch).toString().split(' ')[0]}',
+            l10n.createdAtWithValue(createdAt),
             style: const TextStyle(fontSize: 12),
           ),
         ],
@@ -1736,7 +1800,7 @@ class _AssetListItemState extends State<_AssetListItem>
           IconButton(
             icon: const Icon(Icons.visibility),
             onPressed: widget.onPreview,
-            tooltip: '预览',
+            tooltip: l10n.previewTitle,
           ),
           Checkbox(
             value: widget.isSelected,

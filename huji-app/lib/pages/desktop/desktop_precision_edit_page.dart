@@ -4,7 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uuid/uuid.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_bloc.dart';
@@ -20,6 +21,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
 import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopPrecisionEditPage extends StatefulWidget {
   final String clipId;
@@ -41,7 +43,10 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
-    _roundClipBloc = RoundClipBloc(multiVideoPlayerBloc: _multiVideoPlayerBloc);
+    _roundClipBloc = RoundClipBloc(
+      l10n: context.hujiL10n,
+      multiVideoPlayerBloc: _multiVideoPlayerBloc,
+    );
     _initBloc();
   }
 
@@ -74,7 +79,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       }
     } catch (e) {
       if (mounted) {
-        _roundClipBloc.add(const ShowErrorMessageEvent('加载视频数据失败'));
+        _roundClipBloc.add(
+          ShowErrorMessageEvent(context.hujiL10n.loadVideoDataFailed),
+        );
       }
     }
   }
@@ -128,20 +135,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  static String _formatActionType(ActionType type) {
-    switch (type) {
-      case ActionType.playBall:
-        return '精彩球';
-      case ActionType.fireBall:
-        return '发球';
-      case ActionType.pickBall:
-        return '捡球';
-      case ActionType.transition:
-        return '过渡';
-      case ActionType.playback:
-        return '回放';
-    }
-  }
+  String _formatActionType(BuildContext context, ActionType type) =>
+      context.hujiL10n.actionTypeLabel(type);
 
   static Color _actionTypeColor(ActionType type) {
     switch (type) {
@@ -210,34 +205,38 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           }
           final activeSegment = validActive;
 
+          final cs = context.desktopColors;
+
           return DesktopPageShell(
             currentRoute: '/clip/${widget.clipId}/edit',
-            title: '精修编辑',
-            breadcrumbs: ['视频库', '编辑', '精修编辑'],
+            title: context.hujiL10n.precisionEditTitle,
+            breadcrumbs: [
+              context.hujiL10n.desktopNavLibrary,
+              context.hujiL10n.editBreadcrumb,
+              context.hujiL10n.precisionEditTitle,
+            ],
             actions: [
               OutlinedButton(
                 onPressed: () => context.go('/'),
-                child: const Text('取消'),
+                child: Text(context.hujiL10n.taskStatusCancelledShort),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               OutlinedButton(
                 onPressed: () =>
                     context.go('/clip/${widget.clipId}/preview'),
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: DesktopTheme.indigoText,
-                  side: BorderSide(
-                      color: DesktopTheme.primaryColor.withAlpha(89)),
-                  backgroundColor:
-                      DesktopTheme.primaryColor.withAlpha(26),
+                  foregroundColor: cs.onPrimaryContainer,
+                  side: BorderSide(color: cs.primary.withAlpha(89)),
+                  backgroundColor: cs.primary.withAlpha(26),
                 ),
-                child: const Text('↩ 返回预览'),
+                child: Text(context.hujiL10n.backToPreview),
               ),
-              const SizedBox(width: 8),
+              SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () =>
                     context.go('/clip/${widget.clipId}/preview'),
                 icon: const Icon(Icons.arrow_forward, size: 16),
-                label: const Text('预览'),
+                label: Text(context.hujiL10n.previewTitle),
               ),
             ],
             child: Row(
@@ -257,60 +256,74 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   Widget _buildRoundList(BuildContext context, RoundClipState state,
       List<SegmentInfo> segments) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     return SizedBox(
       width: 240,
-      child: Container(
-        color: DesktopTheme.subMainBg,
+      child: ColoredBox(
+        color: cs.surfaceContainerLow,
         child: Column(
           children: [
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 border: Border(
-                    bottom: BorderSide(color: DesktopTheme.borderLight)),
+                  bottom: BorderSide(color: context.desktopBorderLight),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('回合列表',
-                      style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500)),
-                  Text('${segments.length} 个',
-                      style: const TextStyle(
-                          fontSize: 11, color: DesktopTheme.textMuted)),
+                  Text(
+                    context.hujiL10n.roundList,
+                    style: styles.body.copyWith(
+                      color: cs.onSurface,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    context.hujiL10n.roundCountBadge(segments.length),
+                    style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+                  ),
                 ],
               ),
             ),
             Expanded(
               child: state.isLoading
-                  ? const Center(child: CircularProgressIndicator())
+                  ? Center(child: CircularProgressIndicator())
                   : state.errorMessage != null
                       ? Padding(
                           padding: const EdgeInsets.all(16),
-                          child: Text(state.errorMessage!,
-                              style: const TextStyle(
-                                  color: Colors.red, fontSize: 12),
-                              textAlign: TextAlign.center),
+                          child: Text(
+                            state.errorMessage!,
+                            style: styles.bodySmall.copyWith(color: Colors.red),
+                            textAlign: TextAlign.center,
+                          ),
                         )
                       : segments.isEmpty
-                          ? const Center(
-                              child: Text('暂无回合片段',
-                                  style: TextStyle(
-                                      color: DesktopTheme.textMuted,
-                                      fontSize: 13)))
+                          ? Center(
+                              child: Text(
+                                context.hujiL10n.noRoundSegments,
+                                style: styles.body.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                              ),
+                            )
                           : ListView(
                               padding: const EdgeInsets.all(8),
                               children: [
-                                const Padding(
-                                  padding: EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 6),
-                                  child: Text('已选回合',
-                                      style: TextStyle(
-                                          fontSize: 9,
-                                          color: Color(0xFF555555),
-                                          letterSpacing: 0.6)),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 6,
+                                  ),
+                                  child: Text(
+                                    context.hujiL10n.selectedRounds,
+                                    style: styles.caption.copyWith(
+                                      color: cs.outline,
+                                      letterSpacing: 0.6,
+                                    ),
+                                  ),
                                 ),
                                 ...List.generate(
                                   segments.length,
@@ -332,8 +345,10 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   Widget _buildRoundItem(
       BuildContext context, SegmentInfo segment, int index, bool isActive) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final duration = segment.endSeconds - segment.startSeconds;
-    final actionLabel = _formatActionType(segment.actionType);
+    final actionLabel = _formatActionType(context, segment.actionType);
     final actionColor = _actionTypeColor(segment.actionType);
     final actionBgColor = _actionTypeBgColor(segment.actionType);
 
@@ -342,18 +357,15 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         setState(() => _activeSegment = segment);
         _seekToSegmentInTrimmer(segment);
       },
-      borderRadius: DesktopTheme.radiusMd,
+      borderRadius: desktopRadiusMd,
       child: Container(
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
-          color: isActive
-              ? DesktopTheme.primaryColor.withAlpha(31)
-              : null,
+          color: isActive ? cs.primary.withAlpha(31) : null,
           border: Border.all(
-              color: isActive
-                  ? DesktopTheme.primaryColor.withAlpha(89)
-                  : Colors.transparent),
+            color: isActive ? cs.primary.withAlpha(89) : Colors.transparent,
+          ),
           borderRadius: BorderRadius.circular(6),
         ),
         child: Row(
@@ -364,47 +376,47 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(4),
                 gradient: const LinearGradient(
-                    colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)]),
+                  colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)],
+                ),
               ),
               alignment: Alignment.center,
-              child: const Text('\u{1F3D3}',
-                  style: TextStyle(fontSize: 16)),
+              child: Text('\u{1F3D3}', style: styles.prominent),
             ),
-            const SizedBox(width: 10),
+            SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Text('#$index',
-                          style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w500)),
-                      const SizedBox(width: 6),
+                      Text(
+                        '#$index',
+                        style: styles.bodySmall.copyWith(
+                          color: cs.onSurface,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(width: 6),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 1),
+                          horizontal: 5,
+                          vertical: 1,
+                        ),
                         decoration: BoxDecoration(
                           color: actionBgColor,
                           borderRadius: BorderRadius.circular(3),
                         ),
                         child: Text(
                           actionLabel,
-                          style:
-                              TextStyle(fontSize: 9, color: actionColor),
+                          style: styles.caption.copyWith(color: actionColor),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: 2),
                   Text(
                     '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
-                    style: const TextStyle(
-                        fontSize: 10,
-                        color: DesktopTheme.textDim,
-                        fontFamily: 'monospace'),
+                    style: styles.mono.copyWith(color: cs.outline),
                   ),
                 ],
               ),
@@ -422,14 +434,18 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       List<SegmentInfo> segments,
       VideoTrimmerBlocManager? trimmerManager) {
     if (activeSegment == null) {
-      return const Center(
-        child: Text('请从左侧选择一个回合',
-            style: TextStyle(color: DesktopTheme.textMuted, fontSize: 14)),
+      return Center(
+        child: Text(
+          context.hujiL10n.selectRoundFromLeft,
+          style: AppTextStyles.of(context).body.copyWith(
+                color: context.desktopOnSurfaceVariant,
+              ),
+        ),
       );
     }
 
     if (_trimmerLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return Center(child: CircularProgressIndicator());
     }
 
     if (trimmerManager == null) {
@@ -437,9 +453,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('无法加载视频',
-                style: TextStyle(color: DesktopTheme.textMuted, fontSize: 14)),
-            const SizedBox(height: 16),
+            Text(
+              context.hujiL10n.cannotLoadVideo,
+              style: AppTextStyles.of(context).body.copyWith(
+                    color: context.desktopOnSurfaceVariant,
+                  ),
+            ),
+            SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
                 final record = state.videoRecord;
@@ -447,7 +467,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                   _initTrimmer(record!.filePath!, record.allMatchSegments);
                 }
               },
-              child: const Text('重试'),
+              child: Text(context.hujiL10n.actionRetry),
             ),
           ],
         ),
@@ -457,7 +477,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     return Column(
       children: [
         _buildInfoRow(activeSegment, segments),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Expanded(
           child: TrimmerEditor(
             onSegmentsChanged: (updatedSegments) {
@@ -473,51 +493,52 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   }
 
   Widget _buildInfoRow(SegmentInfo segment, List<SegmentInfo> segments) {
+    final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
     final segmentIndex = segments.indexWhere((s) => s == segment);
     final indexLabel = segmentIndex >= 0 ? '#${segmentIndex + 1}' : '#?';
     final duration = segment.endSeconds - segment.startSeconds;
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      color: DesktopTheme.subMainBg,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Text(
-                '当前编辑：$indexLabel',
-                style: const TextStyle(
-                    fontSize: 16,
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(width: 10),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _actionTypeBgColor(segment.actionType),
-                  borderRadius: BorderRadius.circular(4),
+    return ColoredBox(
+      color: cs.surfaceContainerLow,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                Text(
+                  context.hujiL10n.currentEditingRound(indexLabel),
+                  style: styles.subtitle.copyWith(
+                    color: cs.onSurface,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
-                child: Text(
-                  _formatActionType(segment.actionType),
-                  style: TextStyle(
-                      fontSize: 11,
+                SizedBox(width: 10),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: _actionTypeBgColor(segment.actionType),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    _formatActionType(context, segment.actionType),
+                    style: styles.caption.copyWith(
                       color: _actionTypeColor(segment.actionType),
-                      fontWeight: FontWeight.w500),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Text(
-            '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
-            style: const TextStyle(
-                fontSize: 12,
-                color: DesktopTheme.textMuted,
-                fontFamily: 'monospace'),
-          ),
-        ],
+              ],
+            ),
+            Text(
+              '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
+              style: styles.mono.copyWith(color: cs.onSurfaceVariant),
+            ),
+          ],
+        ),
       ),
     );
   }

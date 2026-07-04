@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 /// macOS-style toggle switch.
@@ -11,29 +11,28 @@ class AppSwitch extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+
     return AppHoverBox(
       onTap: onTap,
       borderRadius: 10,
       child: AnimatedContainer(
         width: 36,
         height: 20,
-        duration: DesktopTheme.animationFast,
-        curve: DesktopTheme.defaultCurve,
+        duration: desktopAnimationFast,
+        curve: desktopDefaultCurve,
         decoration: BoxDecoration(
-          color: active
-              ? DesktopTheme.primaryColor
-              : DesktopTheme.borderMedium,
+          color: active ? cs.primary : context.desktopBorderMedium,
           borderRadius: BorderRadius.circular(10),
         ),
-        alignment:
-            active ? Alignment.centerRight : Alignment.centerLeft,
+        alignment: active ? Alignment.centerRight : Alignment.centerLeft,
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Container(
           width: 16,
           height: 16,
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white,
+            color: cs.onPrimary,
           ),
         ),
       ),

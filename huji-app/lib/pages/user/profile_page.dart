@@ -10,6 +10,7 @@ import 'package:huji_app/pages/system/help_feedback_page.dart';
 import 'package:huji_app/pages/user/security_settings_page.dart';
 import 'package:huji_app/pages/system/settings_page.dart';
 import 'package:huji_app/pages/plan/subscription_page.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -87,7 +88,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
       setState(() {
         _isLoading = false;
       });
-      _showSnackBar('加载用户信息失败: $e');
+      _showSnackBar(context.hujiL10n.loadUserInfoFailed(e.toString()));
     }
   }
 
@@ -166,7 +167,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      _userInfo?.nickname ?? '用户名',
+                      _userInfo?.nickname ?? context.hujiL10n.profileDefaultUsername,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
@@ -192,7 +193,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
               const SizedBox(height: 24),
               // 功能入口分组卡片
               _buildCard([
-                _buildMenuRow(Icons.person_outline, '基本信息', () {
+                _buildMenuRow(Icons.person_outline, context.hujiL10n.basicInfo, () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -201,7 +202,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                   ).then((_) => _loadUserInfo());
                 }),
                 _buildDivider(),
-                _buildMenuRow(Icons.security, '账号与安全', () {
+                _buildMenuRow(Icons.security, context.hujiL10n.accountAndSecurity, () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -210,7 +211,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                   );
                 }),
                 _buildDivider(),
-                _buildMenuRow(Icons.settings, '设置', () {
+                _buildMenuRow(Icons.settings, context.hujiL10n.settingsTitle, () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -219,7 +220,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                   );
                 }),
                 _buildDivider(),
-                _buildMenuRow(Icons.help_outline, '帮助与反馈', () {
+                _buildMenuRow(Icons.help_outline, context.hujiL10n.helpAndFeedback, () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -344,16 +345,20 @@ class ProfilePageContentState extends State<ProfilePageContent> {
             Row(
               children: [
                 _buildSubscriptionDetail(
-                  '剩余时长',
+                  context.hujiL10n.remainingDuration,
                   _totalRemainingMinutes == -1
-                      ? '无限'
-                      : '${_totalRemainingMinutes.toStringAsFixed(1)}分钟',
+                      ? context.hujiL10n.unlimited
+                      : context.hujiL10n.minutesDecimalValue(
+                          _totalRemainingMinutes.toStringAsFixed(1),
+                        ),
                   Icons.hourglass_empty,
                 ),
                 const SizedBox(width: 16),
                 _buildSubscriptionDetail(
-                  '总使用',
-                  '${_totalUsedMinutes.toStringAsFixed(1)}分钟',
+                  context.hujiL10n.totalUsage,
+                  context.hujiL10n.minutesDecimalValue(
+                    _totalUsedMinutes.toStringAsFixed(1),
+                  ),
                   Icons.timer,
                 ),
               ],

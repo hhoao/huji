@@ -1,128 +1,181 @@
-import 'dart:ffi';
 import 'dart:typed_data';
 
-import 'package:ffi/ffi.dart';
-import 'package:huji_app/services/inference/onnx_runtime_bindings.dart';
+import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
+import 'package:huji_app/services/inference/yolo_onnx_metadata.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
-/// Manages an ONNX Runtime inference session for a single YOLO classification model.
+/// ONNX Runtime session wrapper for YOLO classification models.
 class OnnxInferenceEngine {
+  static const inputName = 'images';
+  static const outputName = 'output0';
+
   final AppLogger _logger = AppLogger();
-  final OnnxRuntime _ort;
+  final OnnxRuntime _ort = OnnxRuntime();
 
-  Pointer<OrtEnv>? _env;
-  Pointer<OrtMemoryInfo>? _memoryInfo;
-  Pointer<OrtSession>? _session;
-
+  OrtSession? _session;
   bool _loaded = false;
+  List<String>? _classNames;
+  int _numClasses = 0;
 
-  OnnxInferenceEngine({OnnxRuntime? ort}) : _ort = ort ?? OnnxRuntime();
+  /// Class names read from ONNX metadata (`names` field), index-aligned.
+  List<String> get classNames {
+    final names = _classNames;
+    if (names == null || names.isEmpty) {
+      throw StateError('Class names not loaded. Call loadModelFromFile() first.');
+    }
+    return names;
+  }
 
-  /// Load an ONNX model from [modelPath].
-  void loadModel(String modelPath) {
-    _env = _ort.createEnv();
+  /// Asset key under `assets/models/`, e.g. `assets/models/ping_pong/normal/best.onnx`.
+  static String modelAssetFor(String sportType, String matchType) =>
+      'assets/models/$sportType/$matchType/best.onnx';
+
+  /// Load an ONNX model from an on-disk file path.
+  ///
+  /// [fallbackClassNames] is used when the plugin cannot read ONNX custom
+  /// metadata (known limitation on Linux desktop).
+  Future<void> loadModelFromFile(
+    String filePath, {
+    List<String>? fallbackClassNames,
+  }) async {
+    _session = await _ort.createSession(filePath);
+    _loaded = true;
+    await _loadClassNames(filePath, fallbackClassNames);
+  }
+
+  Future<void> _loadClassNames(
+    String sourceLabel,
+    List<String>? fallbackClassNames,
+  ) async {
+    List<String>? classNames;
     try {
-      _memoryInfo = _ort.createCpuMemoryInfo();
-      try {
-        final options = _ort.createSessionOptions();
-        try {
-          _session = _ort.createSession(modelPath, options, _env!);
-        } finally {
-          _ort.releaseSessionOptions(options);
+      final metadata = await _session!.getMetadata();
+      classNames = YoloOnnxMetadata.tryParseClassNames(
+        metadata.customMetadataMap['names'] ?? '',
+      );
+    } catch (e) {
+      _logger.w('ONNX metadata unavailable, using fallback class names: $e');
+    }
+
+    classNames ??= fallbackClassNames;
+    if (classNames == null || classNames.isEmpty) {
+      throw StateError(
+        'No class names for $sourceLabel: ONNX metadata empty and no fallback provided',
+      );
+    }
+
+    _numClasses = await _resolveNumClasses();
+    if (_numClasses > 0 && classNames.length != _numClasses) {
+      _logger.w(
+        'Class name count (${classNames.length}) != model output ($_numClasses), '
+        'trimming to match output shape',
+      );
+      if (classNames.length > _numClasses) {
+        classNames = classNames.sublist(0, _numClasses);
+      }
+    } else if (_numClasses == 0) {
+      _numClasses = classNames.length;
+    }
+
+    _classNames = List.unmodifiable(classNames);
+    _logger.i(
+      'Model loaded: $sourceLabel (${_classNames!.length} classes: ${_classNames!.join(", ")})',
+    );
+  }
+
+  /// Infer class count from output tensor shape, e.g. `[1, 3]` → 3.
+  Future<int> _resolveNumClasses() async {
+    final session = _session;
+    if (session == null) return 0;
+
+    try {
+      final outputs = await session.getOutputInfo();
+      for (final info in outputs) {
+        if (info['name'] == outputName || outputs.length == 1) {
+          final shapeRaw = info['shape'];
+          if (shapeRaw is List) {
+            final shape = shapeRaw.map((d) => (d as num).toInt()).toList();
+            return _classCountFromShape(shape);
+          }
         }
-      } catch (e) {
-        _ort.releaseMemoryInfo(_memoryInfo!);
-        _memoryInfo = null;
-        rethrow;
       }
     } catch (e) {
-      _ort.releaseEnv(_env!);
-      _env = null;
-      rethrow;
+      _logger.w('Unable to read ONNX output info: $e');
     }
-    _loaded = true;
-    _logger.i('Model loaded: $modelPath');
+    return 0;
+  }
+
+  static int _classCountFromShape(List<int> shape) {
+    if (shape.isEmpty) return 0;
+    // YOLO classify: [1, N] or [N]
+    if (shape.length == 2 && shape[0] == 1) return shape[1];
+    if (shape.length == 1) return shape[0];
+    // Fallback: last dimension when batch-like
+    return shape.last;
+  }
+
+  static int _classCountFromOutput(OrtValue output, int fallback) {
+    final fromShape = _classCountFromShape(output.shape);
+    if (fromShape > 0) return fromShape;
+    return fallback;
+  }
+
+  static Float32List _parseLogits(List<dynamic> flat, int classCount) {
+    final limit = classCount > 0
+        ? classCount.clamp(0, flat.length)
+        : flat.length;
+    final result = Float32List(limit);
+    for (var i = 0; i < limit; i++) {
+      result[i] = (flat[i] as num).toDouble();
+    }
+    return result;
   }
 
   /// Run inference on a preprocessed input tensor.
   ///
   /// [inputTensor] is Float32List in CHW layout (channels first).
-  /// Returns logits as Float32List of shape [numClasses].
-  Float32List predict(
+  /// Returns raw logits (length = model class count).
+  Future<Float32List> predict(
     Float32List inputTensor,
     int inputWidth,
     int inputHeight,
-  ) {
-    if (!_loaded || _session == null || _memoryInfo == null) {
-      throw StateError('Model not loaded. Call loadModel() first.');
+  ) async {
+    final session = _session;
+    if (!_loaded || session == null) {
+      throw StateError('Model not loaded. Call loadModelFromFile() first.');
     }
 
-    final dataLen = inputTensor.length * sizeOf<Float>();
-    final dataPtr = calloc.allocate<Float>(inputTensor.length);
-    try {
-      // Copy input data to native memory
-      for (var i = 0; i < inputTensor.length; i++) {
-        dataPtr[i] = inputTensor[i];
-      }
+    final input = await OrtValue.fromList(
+      inputTensor,
+      [1, 3, inputHeight, inputWidth],
+    );
 
-      // Create input tensor: shape [1, 3, height, width]
-      final inputShape = [1, 3, inputHeight, inputWidth];
-      final inputValue = _ort.createTensor(
-        memoryInfo: _memoryInfo!,
-        data: dataPtr.cast<Void>(),
-        dataLen: dataLen,
-        shape: inputShape,
-      );
+    try {
+      final outputs = await session.run({inputName: input});
+      final output = outputs[outputName];
+      if (output == null) {
+        throw StateError('Missing output tensor: $outputName');
+      }
 
       try {
-        // YOLO11n-cls ONNX: input name 'images', output name 'output0'
-        final outputs = _ort.run(
-          session: _session!,
-          inputNames: ['images'],
-          inputs: [inputValue],
-          outputNames: ['output0'],
-        );
-
-        try {
-          final outputData = _ort.getTensorMutableFloatData(outputs[0]);
-          final outputShape = _ort.getTensorShape(outputs[0]);
-          final numClasses = outputShape.last; // [1, num_classes]
-
-          final result = Float32List(numClasses);
-          for (var i = 0; i < numClasses; i++) {
-            result[i] = outputData[i];
-          }
-
-          return result;
-        } finally {
-          for (final out in outputs) {
-            _ort.releaseValue(out);
-          }
-        }
+        final flat = await output.asFlattenedList();
+        final classCount = _classCountFromOutput(output, _numClasses);
+        return _parseLogits(flat, classCount);
       } finally {
-        _ort.releaseValue(inputValue);
+        await output.dispose();
       }
     } finally {
-      calloc.free(dataPtr);
+      await input.dispose();
     }
   }
 
-  /// Whether the model has been loaded.
   bool get isLoaded => _loaded;
 
-  void dispose() {
-    if (_session != null) {
-      _ort.releaseSession(_session!);
-      _session = null;
-    }
-    if (_memoryInfo != null) {
-      _ort.releaseMemoryInfo(_memoryInfo!);
-      _memoryInfo = null;
-    }
-    if (_env != null) {
-      _ort.releaseEnv(_env!);
-      _env = null;
-    }
+  Future<void> dispose() async {
+    await _session?.close();
+    _session = null;
     _loaded = false;
+    _classNames = null;
+    _numClasses = 0;
   }
 }

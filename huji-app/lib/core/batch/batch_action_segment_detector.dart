@@ -1,10 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
 
@@ -39,6 +40,38 @@ class CleanableFileCollection {
 
   /// 获取文件列表
   List<String> get fileList => List.unmodifiable(_fileList);
+}
+
+/// Isolate-safe prediction cache backed by plain files (no Flutter binding).
+class _PredictionFileCache {
+  static Directory get _cacheDir => Directory(
+        path.join(Directory.systemTemp.path, 'huji_prediction_cache'),
+      );
+
+  static Future<File> _cacheFileFor(String videoPath) async {
+    final digest = sha256.convert(utf8.encode(videoPath)).toString();
+    await _cacheDir.create(recursive: true);
+    return File(path.join(_cacheDir.path, '$digest.json'));
+  }
+
+  static Future<List<PredictedFrameInfo>?> read(String videoPath) async {
+    final file = await _cacheFileFor(videoPath);
+    if (!await file.exists()) return null;
+    final raw = json.decode(await file.readAsString());
+    if (raw is! List) return null;
+    return raw
+        .map((item) => PredictedFrameInfo.fromJson(item as Map<String, dynamic>))
+        .toList();
+  }
+
+  static Future<void> write(
+    String videoPath,
+    List<PredictedFrameInfo> predictions,
+  ) async {
+    final file = await _cacheFileFor(videoPath);
+    final jsonData = predictions.map((p) => p.toJson()).toList();
+    await file.writeAsString(json.encode(jsonData));
+  }
 }
 
 /// 自动剪辑器抽象基类
@@ -245,30 +278,19 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
 
   /// 加载缓存
   Future<List<PredictedFrameInfo>?> _loadCache(String videoPath) async {
-    final cachedPredictions = await DefaultCacheManager().getFileFromCache(
-      videoPath,
-    );
-    if (cachedPredictions != null) {
-      return json.decode(cachedPredictions.file.readAsStringSync());
-    }
-    return null;
+    return _PredictionFileCache.read(videoPath);
   }
 
   /// 缓存预测信息
-  void _cachePredictInfos(
+  Future<void> _cachePredictInfos(
     List<PredictedFrameInfo> predictions,
     String videoPath,
-  ) {
+  ) async {
     try {
-      final jsonData = predictions.map((p) => p.toJson()).toList();
-      DefaultCacheManager().putFile(
-        videoPath,
-        Uint8List.fromList(jsonData.toString().codeUnits),
-        key: videoPath,
-      );
+      await _PredictionFileCache.write(videoPath, predictions);
       _logger.i('预测结果已缓存');
-    } catch (e) {
-      _logger.w('缓存预测结果失败: ${e.toString()}');
+    } catch (e, stackTrace) {
+      _logger.w('缓存预测结果失败', error: e, stackTrace: stackTrace);
     }
   }
 
@@ -292,22 +314,37 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         }
       }
 
-      final predictions = await _predictVideoActionPointsInternalV2(
-        videoPath: videoPath,
-        modelName: modelName,
-        classMappings: classMappings,
-        segmentDetectConfig: segmentDetectConfig,
-        progressHandler: progressHandler,
-      );
+      final resizeTempDir = await Directory.systemTemp.createTemp('video_resize_');
+      try {
+        final stem = path.basenameWithoutExtension(videoPath);
+        final resizedPath = path.join(resizeTempDir.path, '${stem}_640.mp4');
+        _logger.i('缩放视频至 640 宽度: $resizedPath');
+        await VideoUtils.resizeVideoRatio(
+          inputFile: videoPath,
+          outputFile: resizedPath,
+          width: 640,
+        );
+        cleanableFileCollection.addFile(resizedPath);
 
-      // 缓存预测结果
-      if (isUseCache) {
-        _cachePredictInfos(predictions, videoPath);
+        final predictions = await _predictVideoActionPointsInternalV2(
+          videoPath: resizedPath,
+          modelName: modelName,
+          classMappings: classMappings,
+          segmentDetectConfig: segmentDetectConfig,
+          progressHandler: progressHandler,
+        );
+
+        // 缓存预测结果
+        if (isUseCache) {
+          await _cachePredictInfos(predictions, videoPath);
+        }
+
+        return predictions;
+      } finally {
+        await resizeTempDir.delete(recursive: true);
       }
-
-      return predictions;
-    } catch (e) {
-      _logger.e('预测视频动作点失败: ${e.toString()}');
+    } catch (e, stackTrace) {
+      _logger.e('预测视频动作点失败', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }
@@ -354,9 +391,9 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         greatMatchSegments: greatMatchSegments,
       );
       progressHandler?.complete(videoOutputInfo);
-    } catch (e) {
-      _logger.e('处理视频失败: ${e.toString()}');
-      progressHandler?.reportError('处理视频失败', details: e.toString());
+    } catch (e, stackTrace) {
+      _logger.e('处理视频失败', error: e, stackTrace: stackTrace);
+      progressHandler?.reportError(resolveHujiL10n().processVideoFailed, details: e.toString());
       rethrow;
     }
   }
@@ -466,7 +503,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
 
       // 检查是否有有效片段
       if (allMatchSegments.isEmpty) {
-        throw Exception('没有有效的片段');
+        throw Exception(resolveHujiL10n().noValidSegments);
       }
 
       return (allMatchSegments, greatMatchSegments);

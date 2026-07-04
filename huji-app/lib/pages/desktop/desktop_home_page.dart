@@ -3,14 +3,17 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'package:path/path.dart' as p;
-import 'package:huji_app/constants/desktop_theme.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
-import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
-import 'package:huji_app/widgets/desktop/app_tab.dart';
+import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
+import 'package:path/path.dart' as p;
+import 'package:shared_ui/shell/workspace_surface_layers.dart';
+import 'package:shared_ui/theme/app_icon_sizes.dart';
+import 'package:shared_ui/theme/app_text_styles.dart';
 
+/// Video library — Teampilot [HomeAllWorkspacesPane] layout in the main right pane.
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({super.key});
   @override
@@ -18,7 +21,7 @@ class DesktopHomePage extends StatefulWidget {
 }
 
 class _DesktopHomePageState extends State<DesktopHomePage> {
-  int _activeTab = 0;
+  var _gridView = true;
 
   List<LocalVideoRecord> _records = [];
   bool _loading = true;
@@ -56,7 +59,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
       if (mounted) {
         setState(() {
           _loading = false;
-          _error = '加载失败：$e';
+          _error = e.toString();
         });
       }
     }
@@ -69,118 +72,134 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return DesktopPageShell(
-      currentRoute: '/',
-      title: '视频库',
-      actions: [
-        ElevatedButton.icon(
-          onPressed: () => context.go('/clip/new'),
-          icon: const Icon(Icons.add, size: 16),
-          label: const Text('新建剪辑'),
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+
+    return ColoredBox(
+      color: cs.workspaceCard,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.desktopLibraryTitle,
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(color: cs.onSurface),
+          ),
+          SizedBox(height: 16),
+          Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+          SizedBox(height: 16),
+          Expanded(child: _buildBody(context)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBody(BuildContext context) {
+    if (_loading) {
+      return Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return _buildErrorState(context);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        DesktopLibraryToolbar(
+          gridView: _gridView,
+          onToggleView: (grid) => setState(() => _gridView = grid),
+          onNewClip: () => context.go('/clip/new'),
+          itemCount: _records.isEmpty ? null : _records.length,
+        ),
+        SizedBox(height: 16),
+        Expanded(
+          child: _records.isEmpty
+              ? _buildEmptyState(context)
+              : _gridView
+              ? _buildGrid(context)
+              : _buildList(context),
         ),
       ],
-      child: _loading
-          ? const Center(child: CircularProgressIndicator())
-          : _error != null
-              ? _buildErrorState()
-              : _records.isEmpty
-                  ? _buildEmptyState()
-                  : _buildContent(),
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+    final styles = AppTextStyles.of(context);
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.video_library_outlined,
-              size: 64, color: DesktopTheme.textDim),
-          const SizedBox(height: 16),
-          const Text('暂无视频',
-              style: TextStyle(
-                  fontSize: 14,
-                  color: DesktopTheme.textSecondary)),
-          const SizedBox(height: 8),
-          ElevatedButton.icon(
-            onPressed: () => context.go('/clip/new'),
-            icon: const Icon(Icons.add, size: 16),
-            label: const Text('新建剪辑'),
+          Icon(
+            Icons.video_library_outlined,
+            size: context.appIconSizes.md,
+            color: cs.onSurfaceVariant.withValues(alpha: 0.5),
+          ),
+          SizedBox(height: 14),
+          Text(
+            l10n.desktopLibraryEmptyTitle,
+            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+          ),
+          Text(
+            l10n.desktopLibraryEmptyHint,
+            style: styles.bodySmall.copyWith(
+              color: cs.onSurfaceVariant.withValues(alpha: 0.75),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+    final styles = AppTextStyles.of(context);
     return Center(
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.error_outline,
-              size: 64, color: DesktopTheme.textDim),
-          const SizedBox(height: 16),
-          Text(_error!,
-              style: const TextStyle(
-                  fontSize: 14,
-                  color: DesktopTheme.textSecondary)),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
+          Icon(
+            Icons.error_outline,
+            size: context.appIconSizes.md,
+            color: cs.outline,
+          ),
+          SizedBox(height: 14),
+          Text(
+            l10n.desktopLibraryLoadFailed(_error!),
+            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+          ),
+          SizedBox(height: 16),
+          FilledButton.icon(
             onPressed: _loadRecords,
             icon: const Icon(Icons.refresh, size: 16),
-            label: const Text('重试'),
+            label: Text(l10n.actionRetry),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(32, 20, 32, 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildTabs(),
-          const SizedBox(height: 18),
-          Row(
-            children: [
-              const Text('全部视频',
-                  style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: DesktopTheme.textPrimary)),
-              const SizedBox(width: 10),
-              Text('共 ${_records.length} 个',
-                  style: const TextStyle(
-                      fontSize: 11,
-                      color: DesktopTheme.textDim)),
-            ],
-          ),
-          const SizedBox(height: 10),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    mainAxisSpacing: 14,
-                    crossAxisSpacing: 14,
-                    childAspectRatio: 1.0),
-            itemCount: _records.length,
-            itemBuilder: (context, i) =>
-                _VideoCard(record: _records[i]),
-          ),
-        ],
+  Widget _buildGrid(BuildContext context) {
+    return GridView.builder(
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 320,
+        mainAxisExtent: 220,
+        crossAxisSpacing: 20,
+        mainAxisSpacing: 20,
       ),
+      itemCount: _records.length,
+      itemBuilder: (context, i) => _VideoCard(record: _records[i]),
     );
   }
 
-  Widget _buildTabs() {
-    return AppTab(
-      tabs: const ['最近', '已收藏', '回收站'],
-      activeIndex: _activeTab,
-      onChanged: (i) => setState(() => _activeTab = i),
+  Widget _buildList(BuildContext context) {
+    return ListView.separated(
+      itemCount: _records.length,
+      separatorBuilder: (_, __) => SizedBox(height: 10),
+      itemBuilder: (context, i) => _VideoListTile(record: _records[i]),
     );
   }
 }
@@ -191,79 +210,67 @@ class _VideoCard extends StatelessWidget {
 
   bool get _isNavigable {
     if (record is ProcessVideoRecord) {
-      return record.processStatus ==
-          LocalVideoProcessStatusEnum.completed;
+      return record.processStatus == LocalVideoProcessStatusEnum.completed;
     }
-    // EdittingVideoRecord and SavedVideoRecord are always navigable
-    return record is EdittingVideoRecord ||
-        record is SavedVideoRecord;
+    return record is EdittingVideoRecord || record is SavedVideoRecord;
   }
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final styles = AppTextStyles.of(context);
     return InkWell(
       onTap: _isNavigable
           ? () => context.go('/clip/${record.id}/preview')
           : null,
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(10),
       child: Container(
-        decoration: BoxDecoration(
-            color: DesktopTheme.cardBg,
-            border: Border.all(color: DesktopTheme.borderLight),
-            borderRadius: BorderRadius.circular(8)),
+        decoration: workspaceCardDecoration(cs, radius: 10),
+        clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 2,
-              child: Container(
-                decoration: const BoxDecoration(
-                    borderRadius: BorderRadius.vertical(
-                        top: Radius.circular(7)),
-                    gradient: LinearGradient(
-                        colors: [
-                          Color(0xFF2D2D35),
-                          Color(0xFF1A1A1D)
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight)),
-                child: Stack(
-                  children: [
-                    Center(child: _buildThumbnail()),
-                    Positioned(
-                        top: 8,
-                        right: 8,
-                        child:
-                            _StatusBadge(status: record.processStatus)),
-                  ],
-                ),
+              flex: 3,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  _VideoThumbnail(record: record),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: _StatusBadge(status: record.processStatus),
+                  ),
+                ],
               ),
             ),
             Expanded(
-              flex: 1,
+              flex: 2,
               child: Padding(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
                 child: Column(
-                    crossAxisAlignment:
-                        CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                          record.filePath != null
-                              ? p.basename(record.filePath!)
-                              : '未命名',
-                          style: const TextStyle(
-                              fontSize: 13,
-                              color:
-                                  DesktopTheme.textPrimary),
-                          overflow: TextOverflow.ellipsis),
-                      const SizedBox(height: 4),
-                      Text(record.sportType.title,
-                          style: const TextStyle(
-                              fontSize: 11,
-                              color:
-                                  DesktopTheme.textDim)),
-                    ]),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      record.filePath != null
+                          ? p.basename(record.filePath!)
+                          : context.hujiL10n.untitledName,
+                      style: styles.bodyStrong.copyWith(color: cs.onSurface),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      record.sportType.title,
+                      style: styles.caption.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -271,20 +278,102 @@ class _VideoCard extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildThumbnail() {
+class _VideoListTile extends StatelessWidget {
+  const _VideoListTile({required this.record});
+
+  final LocalVideoRecord record;
+
+  bool get _isNavigable {
+    if (record is ProcessVideoRecord) {
+      return record.processStatus == LocalVideoProcessStatusEnum.completed;
+    }
+    return record is EdittingVideoRecord || record is SavedVideoRecord;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final styles = AppTextStyles.of(context);
+    return Material(
+      color: cs.surfaceContainer,
+      borderRadius: BorderRadius.circular(10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: _isNavigable
+            ? () => context.go('/clip/${record.id}/preview')
+            : null,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: SizedBox(
+                  width: 96,
+                  height: 54,
+                  child: _VideoThumbnail(record: record),
+                ),
+              ),
+              SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      record.filePath != null
+                          ? p.basename(record.filePath!)
+                          : context.hujiL10n.untitledName,
+                      style: styles.bodyStrong.copyWith(color: cs.onSurface),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      record.sportType.title,
+                      style: styles.caption.copyWith(
+                        color: cs.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(width: 8),
+              _StatusBadge(status: record.processStatus),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _VideoThumbnail extends StatelessWidget {
+  const _VideoThumbnail({required this.record});
+
+  final LocalVideoRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     final thumbPath = record.thumbnailPath;
     if (thumbPath != null && File(thumbPath).existsSync()) {
       return Image.file(
         File(thumbPath),
         fit: BoxFit.cover,
-        errorBuilder: (context, error, stackTrace) =>
-            const Icon(Icons.videocam,
-                size: 32, color: DesktopTheme.textDim),
+        width: double.infinity,
+        height: double.infinity,
+        errorBuilder: (context, error, stackTrace) => ColoredBox(
+          color: cs.surfaceContainerHigh,
+          child: Icon(Icons.videocam, size: 32, color: cs.outline),
+        ),
       );
     }
-    return const Icon(Icons.videocam,
-        size: 32, color: DesktopTheme.textDim);
+    return ColoredBox(
+      color: cs.surfaceContainerHigh,
+      child: Center(child: Icon(Icons.videocam, size: 32, color: cs.outline)),
+    );
   }
 }
 
@@ -294,24 +383,32 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
     final (label, color) = switch (status) {
-      LocalVideoProcessStatusEnum.pending =>
-        ('待检测', const Color(0xFFEAB308)),
-      LocalVideoProcessStatusEnum.processing =>
-        ('检测中', DesktopTheme.primaryColor),
-      LocalVideoProcessStatusEnum.completed =>
-        ('已完成', const Color(0xFF22C55E)),
+      LocalVideoProcessStatusEnum.pending => (
+        l10n.localVideoStatusPending,
+        const Color(0xFFEAB308),
+      ),
+      LocalVideoProcessStatusEnum.processing => (
+        l10n.localVideoStatusProcessing,
+        cs.primary,
+      ),
+      LocalVideoProcessStatusEnum.completed => (
+        l10n.taskStatusCompleted,
+        const Color(0xFF22C55E),
+      ),
     };
     return Container(
-        padding: const EdgeInsets.symmetric(
-            horizontal: 7, vertical: 2),
-        decoration: BoxDecoration(
-            color: color.withAlpha(217),
-            borderRadius: BorderRadius.circular(3)),
-        child: Text(label,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 10,
-                fontWeight: FontWeight.w500)));
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: color.withAlpha(217),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        label,
+        style: AppTextStyles.of(context).caption.copyWith(color: cs.onPrimary),
+      ),
+    );
   }
 }

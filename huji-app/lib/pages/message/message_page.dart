@@ -5,6 +5,7 @@ import 'package:huji_app/api/models/member/notify_models.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class MessagePage extends StatefulWidget {
   const MessagePage({super.key});
@@ -21,7 +22,7 @@ class _MessagePageState extends State<MessagePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
-        title: '消息',
+        title: context.hujiL10n.messagesTitle,
         leftWidget: _buildBackButton(),
         rightWidget: _buildMarkAllReadButton(),
       ),
@@ -115,10 +116,12 @@ class MessagePageContentState extends State<MessagePageContent> {
         _isLoading = false;
       });
     } catch (e) {
-      setState(() {
-        _errorMessage = '加载失败: ${e.toString()}';
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _errorMessage = context.hujiL10n.loadFailed('${e.toString()}');
+          _isLoading = false;
+        });
+      }
     }
   }
 
@@ -178,8 +181,8 @@ class MessagePageContentState extends State<MessagePageContent> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('标记已读失败'),
+          SnackBar(
+            content: Text(context.hujiL10n.markReadFailed),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -215,8 +218,8 @@ class MessagePageContentState extends State<MessagePageContent> {
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('已全部标记为已读'),
+          SnackBar(
+            content: Text(context.hujiL10n.markAllReadSuccess),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -224,8 +227,8 @@ class MessagePageContentState extends State<MessagePageContent> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('操作失败'),
+          SnackBar(
+            content: Text(context.hujiL10n.operationFailed),
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -268,14 +271,16 @@ class MessagePageContentState extends State<MessagePageContent> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // 时间
                 Text(
-                  '时间: ${timeStampToTimeAgo(message.createTime)}',
+                  context.hujiL10n.messageTimeLabel(
+                    timeStampToTimeAgo(message.createTime),
+                  ),
                   style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
 
                 // 消息内容
                 Flexible(
@@ -370,7 +375,7 @@ class MessagePageContentState extends State<MessagePageContent> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         message.templateContent,
                         style: TextStyle(
@@ -400,8 +405,11 @@ class MessagePageContentState extends State<MessagePageContent> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.message_outlined, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
-          Text('暂无消息', style: TextStyle(fontSize: 16, color: Colors.grey[600])),
+          SizedBox(height: 16),
+          Text(
+            context.hujiL10n.noMessages,
+            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+          ),
         ],
       ),
     );
@@ -413,13 +421,13 @@ class MessagePageContentState extends State<MessagePageContent> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
-            _errorMessage ?? '加载失败',
+            _errorMessage ?? context.hujiL10n.loadFailedShort,
             style: TextStyle(fontSize: 16, color: Colors.grey[600]),
           ),
-          const SizedBox(height: 16),
-          ElevatedButton(onPressed: _loadMessages, child: const Text('重试')),
+          SizedBox(height: 16),
+          ElevatedButton(onPressed: _loadMessages, child: Text(context.hujiL10n.actionRetry)),
         ],
       ),
     );
@@ -440,7 +448,7 @@ class MessagePageContentState extends State<MessagePageContent> {
               itemBuilder: (context, index) {
                 if (index == _messages.length) {
                   return _hasMore
-                      ? const Center(
+                      ? Center(
                           child: Padding(
                             padding: EdgeInsets.all(16),
                             child: CircularProgressIndicator(),

@@ -7,6 +7,8 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/custom_divider_painters.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
 /// 视频剪辑片段覆盖层
 class ClipSegmentOverlay extends StatelessWidget {
@@ -114,28 +116,52 @@ class _ClipSegmentOverlayContentState
   }
 
   Widget _buildSegmentWidget(VideoClipSegment segment) {
-    // 如果片段已删除，显示占位符
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     if (segment.isDeleted) {
       return Container(height: widget.thumbnailHeight);
     }
 
-    // 正常片段的显示
+    final isSelected = segment.isSelected;
+    final borderWidth = isSelected
+        ? layout.segmentSelectedBorderWidth
+        : layout.segmentBorderWidth;
+    final borderColor = isSelected
+        ? trimmerTheme.segmentSelectedBorder
+        : trimmerTheme.segmentBorder;
+
     return GestureDetector(
       onTap: () {
-        if (!segment.isSelected) {
+        if (!isSelected) {
           context.read<ClipSegmentBloc>().add(
             ClipSegmentSelect(segment: segment),
           );
         }
       },
-      child: Container(
-        height: widget.thumbnailHeight,
-        decoration: BoxDecoration(
-          border: Border.all(
-            color: segment.isSelected ? Colors.white : Colors.white,
-            width: segment.isSelected ? 2.0 : 1.0,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(
+            color: isSelected
+                ? trimmerTheme.segmentSelectedOverlay
+                : trimmerTheme.segmentUnselectedOverlay,
           ),
-        ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: borderColor, width: borderWidth),
+              boxShadow: isSelected
+                  ? [
+                      BoxShadow(
+                        color: trimmerTheme.segmentSelectedBorder.withValues(
+                          alpha: 0.45,
+                        ),
+                        spreadRadius: 1,
+                      ),
+                    ]
+                  : null,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -154,6 +180,8 @@ class _ClipSegmentOverlayContentState
     BuildContext context,
     List<VideoClipSegment> segments,
   ) {
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     MultiSplitView multiSplitView = MultiSplitView(
       onDividerDragUpdate: (dividerIndex) {
         final areas = _controller.areas;
@@ -193,17 +221,17 @@ class _ClipSegmentOverlayContentState
     MultiSplitViewTheme theme = MultiSplitViewTheme(
       data: MultiSplitViewThemeData(
         dividerThickness: 0,
-        dividerHandleBuffer: 12,
+        dividerHandleBuffer: layout.dividerHandleBuffer,
         dividerPainter: CustomDividerPainters.roundedRect(
-          size: 30,
-          thickness: 8,
+          size: layout.dividerHandleSize,
+          thickness: layout.dividerHandleThickness,
           highlightedSize: widget.thumbnailHeight,
-          highlightedThickness: 8,
-          backgroundColor: Colors.white,
-          highlightedBackgroundColor: Colors.white,
-          dividerColor: Colors.black,
-          highlightedDividerColor: Colors.black,
-          borderRadius: 4,
+          highlightedThickness: layout.dividerHandleThickness + 2,
+          backgroundColor: trimmerTheme.handleBackground,
+          highlightedBackgroundColor: trimmerTheme.handleBackground,
+          dividerColor: trimmerTheme.handleForeground,
+          highlightedDividerColor: trimmerTheme.handleForeground,
+          borderRadius: 6,
         ),
       ),
       child: multiSplitView,

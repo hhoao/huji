@@ -5,7 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/models/large_model.dart';
+import 'package:huji_app/services/inference/desktop_inference_spec.dart';
+import 'package:huji_app/services/inference/onnx_model_predictor.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:ultralytics_yolo/yolo.dart';
 
@@ -141,12 +144,32 @@ class LargeModelService {
 
   final Map<String, ModelPredictor> _predictorCache = {};
 
+  /// Active desktop ONNX spec for the current inference scope.
+  DesktopInferenceSpec? _desktopInferenceSpec;
+
   LargeModelService._();
 
   final Map<String, String> _modelNamePathMapping =
       AutoclipConstants.modelNamePathMapping;
 
+  /// Run [action] with a resolved desktop ONNX model on disk.
+  Future<T> runWithDesktopSpec<T>({
+    required DesktopInferenceSpec spec,
+    required Future<T> Function() action,
+  }) async {
+    _desktopInferenceSpec = spec;
+    try {
+      return await action();
+    } finally {
+      _desktopInferenceSpec = null;
+    }
+  }
+
   ModelPredictor getPredictor(String modelName) {
+    if (PlatformCapability.isDesktop) {
+      return _getDesktopPredictor(modelName);
+    }
+
     if (_predictorCache.containsKey(modelName)) {
       return _predictorCache[modelName]!;
     }
@@ -155,9 +178,24 @@ class LargeModelService {
     return predictor;
   }
 
+  ModelPredictor _getDesktopPredictor(String modelName) {
+    final spec = _desktopInferenceSpec;
+    if (spec == null) {
+      throw StateError(
+        'Desktop inference requires runWithDesktopSpec() before getPredictor()',
+      );
+    }
+
+    // Not cached: batch pipeline disposes the predictor after each video.
+    return OnnxModelPredictor(
+      modelFilePath: spec.modelFilePath,
+      fallbackClassNames: spec.classNames,
+    );
+  }
+
   String getModelPath(String modelName) {
     if (!_modelNamePathMapping.containsKey(modelName)) {
-      throw Exception('模型不存在: $modelName');
+      throw Exception(resolveHujiL10n().modelNotFound(modelName));
     }
     return _modelNamePathMapping[modelName]!;
   }

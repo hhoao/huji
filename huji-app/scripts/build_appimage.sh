@@ -76,6 +76,28 @@ if [[ ! -d "$FLUTTER_OUT" ]]; then
 fi
 
 cp -r "$FLUTTER_OUT/"* "$APPDIR/usr/bin/"
+
+# flutter_onnxruntime may link against system libonnxruntime without installing it
+# into bundle/lib; linuxdeploy then fails when resolving plugin dependencies.
+BUNDLE_LIB_DIR="$APPDIR/usr/bin/lib"
+mkdir -p "$BUNDLE_LIB_DIR"
+rm -f "$BUNDLE_LIB_DIR/libonnxruntime.so"
+if [[ ! -f "$BUNDLE_LIB_DIR/libonnxruntime.so" ]]; then
+  ONNX_SRC=$(find "$PROJECT_DIR/build/linux" -path "*flutter_onnxruntime*" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
+  if [[ -z "$ONNX_SRC" ]]; then
+    ONNX_SRC=$(find "$PROJECT_DIR/build" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
+  fi
+  if [[ -z "$ONNX_SRC" ]] && command -v ldconfig >/dev/null 2>&1; then
+    ONNX_SRC=$(ldconfig -p 2>/dev/null | awk '/libonnxruntime\.so/{print $NF; exit}' || true)
+  fi
+  if [[ -n "$ONNX_SRC" && -f "$ONNX_SRC" ]]; then
+    cp -L "$ONNX_SRC" "$BUNDLE_LIB_DIR/libonnxruntime.so"
+    echo "[ok] bundled libonnxruntime.so from $ONNX_SRC"
+  else
+    echo -e "${YELLOW}WARN: libonnxruntime.so not found; AppImage packaging may fail${NC}"
+  fi
+fi
+
 # Keep Flutter plugin .so files in usr/bin/lib/ — the binary's RPATH is
 # $ORIGIN/lib, so they must stay there. linuxdeploy will deploy their
 # transitive system-library dependencies via --deploy-deps-only below.

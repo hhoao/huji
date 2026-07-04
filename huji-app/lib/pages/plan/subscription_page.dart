@@ -5,6 +5,7 @@ import 'package:huji_app/api/models/autoclip/minutes_models.dart';
 import 'package:huji_app/constants/theme.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class SubscriptionPage extends StatefulWidget {
   const SubscriptionPage({super.key});
@@ -78,7 +79,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       });
     } catch (e) {
       setState(() {
-        _errorMessage = '加载订阅信息失败: ${e.toString()}';
+        _errorMessage = context.hujiL10n.loadSubscriptionFailed('${e.toString()}');
         _isLoading = false;
       });
     }
@@ -90,14 +91,14 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       appBar: CommonAppBar(
         leftWidget: const BackButton(),
         tabs: [
-          Tab(text: '订阅方案'),
-          Tab(text: '时长方案'),
+          Tab(text: context.hujiL10n.subscriptionPlans),
+          Tab(text: context.hujiL10n.durationPlans),
         ],
         controller: _appBarTabController,
       ),
       backgroundColor: AppTheme.backgroundColor,
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(child: CircularProgressIndicator())
           : _errorMessage != null
           ? _buildErrorWidget()
           : TabBarView(
@@ -113,16 +114,16 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           Text(
             _errorMessage!,
             style: const TextStyle(color: Colors.grey),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           ElevatedButton(
             onPressed: _loadSubscriptionData,
-            child: const Text('重试'),
+            child: Text(context.hujiL10n.actionRetry),
           ),
         ],
       ),
@@ -154,15 +155,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         children: [
           // 当前时长状态卡片
           _buildCurrentMinutesCard(),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
 
           // 时长套餐列表
           if (_minutesPackages.isNotEmpty) ...[
-            const Text(
-              '时长套餐',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(context.hujiL10n.durationPackages, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12),
             ..._minutesPackages.map(
               (package) => _buildMinutesPackageCard(package),
             ),
@@ -205,16 +204,19 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     children: [
                       Text(plan.planName),
                       if (plan.planType == _userSubscription?.planType) ...[
-                        const SizedBox(width: 6),
-                        _buildCurrentPlanTag('当前', Colors.green),
+                        SizedBox(width: 6),
+                        _buildCurrentPlanTag(context.hujiL10n.current, Colors.green),
                       ],
                       if (plan.recommended) ...[
-                        const SizedBox(width: 6),
-                        _buildCurrentPlanTag('推荐', AppTheme.accentColor),
+                        SizedBox(width: 6),
+                        _buildCurrentPlanTag(
+                          context.hujiL10n.recommended,
+                          AppTheme.accentColor,
+                        ),
                       ],
                       if (plan.popular) ...[
-                        const SizedBox(width: 6),
-                        _buildCurrentPlanTag('热门', Colors.red),
+                        SizedBox(width: 6),
+                        _buildCurrentPlanTag(context.hujiL10n.popular, Colors.red),
                       ],
                     ],
                   ),
@@ -269,11 +271,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   size: 16,
                 ),
               ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  '当前时长',
-                  style: TextStyle(
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(context.hujiL10n.currentDuration, style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF333333),
@@ -282,12 +282,17 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          SizedBox(height: 16),
           _buildInfoRow(
-            '剩余时长',
-            '${_totalRemainingMinutes.toStringAsFixed(1)}分钟',
+            context.hujiL10n.remainingDuration,
+            context.hujiL10n.minutesValue(
+              _totalRemainingMinutes.round(),
+            ),
           ),
-          _buildInfoRow('已使用', '${_totalUsedMinutes.toStringAsFixed(1)}分钟'),
+          _buildInfoRow(
+            context.hujiL10n.usedDuration,
+            context.hujiL10n.minutesValue(_totalUsedMinutes.round()),
+          ),
         ],
       ),
     );
@@ -335,19 +340,24 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: 8),
           Text(
-            '${package.minutes.toStringAsFixed(0)}分钟 · ${package.validDays == -1 ? '永久' : '${package.validDays}天'}有效期',
+            context.hujiL10n.packageDurationValidity(
+              package.minutes.round(),
+              package.validDays == -1
+                  ? context.hujiL10n.permanent
+                  : context.hujiL10n.validityDays(package.validDays),
+            ),
             style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
           ),
           if (package.description.isNotEmpty) ...[
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             Text(
               package.description,
               style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
             ),
           ],
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -361,9 +371,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 ),
                 elevation: 0,
               ),
-              child: const Text(
-                '购买',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+              child: Text(context.hujiL10n.purchase, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -438,8 +446,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                             color: Colors.green,
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Text(
-                            'Current Plan',
+                          child: Text(
+                            context.hujiL10n.currentPlanLabel,
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -452,7 +460,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
                   // 描述
                   if (plan.description.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
                       plan.description,
                       style: const TextStyle(
@@ -463,12 +471,14 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ],
 
                   // 价格区域
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
-                        plan.monthlyPrice > 0 ? '¥${plan.monthlyPrice}' : '暂无',
+                        plan.monthlyPrice > 0
+                            ? '¥${plan.monthlyPrice}'
+                            : context.hujiL10n.notAvailable,
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.bold,
@@ -477,9 +487,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                               : const Color(0xFF333333),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        '/ 每月 billed monthly',
+                      SizedBox(width: 8),
+                      Text(
+                        context.hujiL10n.monthlyBilledLabel,
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF999999),
@@ -489,7 +499,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ),
 
                   // 操作按钮
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -511,10 +521,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       ),
                       child: Text(
                         isCurrentPlan && isActive
-                            ? 'Current Plan'
+                            ? context.hujiL10n.currentPlanLabel
                             : isCurrentPlan
-                            ? '续费'
-                            : '订阅',
+                            ? context.hujiL10n.renew
+                            : context.hujiL10n.subscribe,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
@@ -524,9 +534,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ),
 
                   // 分割线
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
                   const Divider(height: 1, color: Color(0xFFE0E0E0)),
-                  const SizedBox(height: 20),
+                  SizedBox(height: 20),
 
                   // 功能特性列表
                   ...plan.features.map((feature) => _buildFeatureItem(feature)),
@@ -553,7 +563,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
             ),
             child: const Icon(Icons.check, color: Colors.white, size: 14),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: 12),
           Expanded(
             child: Text(
               feature.name,
@@ -569,8 +579,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('订阅确认'),
-        content: Text('确定要订阅 ${plan.planName} 方案吗？\n月费：¥${plan.monthlyPrice}'),
+        title: Text(context.hujiL10n.subscriptionConfirm),
+        content: Text(
+          context.hujiL10n.subscriptionConfirmMessage(
+            plan.planName,
+            '${plan.monthlyPrice}',
+          ),
+        ),
         actions: [
           TextButton(
             onPressed: () {
@@ -580,7 +595,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 () => Navigator.of(context).pop(),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -593,7 +608,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 },
               );
             },
-            child: const Text('确认订阅'),
+            child: Text(context.hujiL10n.confirmSubscription),
           ),
         ],
       ),
@@ -604,9 +619,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('购买确认'),
+        title: Text(context.hujiL10n.purchaseConfirm),
         content: Text(
-          '确定要购买 ${package.packageName} 吗？\n时长：${package.minutes.toStringAsFixed(0)}分钟\n价格：¥${package.price.toStringAsFixed(2)}',
+          context.hujiL10n.purchaseConfirmMessage(
+            package.packageName,
+            package.minutes.round(),
+            package.price.toStringAsFixed(2),
+          ),
         ),
         actions: [
           TextButton(
@@ -617,7 +636,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 () => Navigator.of(context).pop(),
               );
             },
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () {
@@ -627,15 +646,14 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 () async {
                   Navigator.of(context).pop();
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('购买功能开发中...'),
+                    SnackBar(content: Text(context.hujiL10n.purchaseFeatureInDevelopment),
                       backgroundColor: Colors.orange,
                     ),
                   );
                 },
               );
             },
-            child: const Text('确认购买'),
+            child: Text(context.hujiL10n.confirmPurchase),
           ),
         ],
       ),
@@ -650,7 +668,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => const Center(child: CircularProgressIndicator()),
+        builder: (context) => Center(child: CircularProgressIndicator()),
       );
 
       // 调用创建订阅API
@@ -671,7 +689,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       // 显示成功消息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('成功订阅 ${plan.planName} 方案！'),
+          content: Text(context.hujiL10n.subscriptionSuccess(plan.planName)),
           backgroundColor: Colors.green,
         ),
       );
@@ -685,7 +703,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       // 显示错误消息
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('订阅失败: ${e.toString()}'),
+          content: Text(context.hujiL10n.subscriptionFailed('${e.toString()}')),
           backgroundColor: Colors.red,
         ),
       );

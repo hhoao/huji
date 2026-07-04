@@ -78,6 +78,9 @@ abstract class TaskStore {
     TaskStatusEnum? status,
   );
   Future<Task> updateTask(String taskId, Task Function(Task) updateFn);
+
+  /// Updates a task when it still exists; returns null if it was removed.
+  Future<Task?> tryUpdateTask(String taskId, Task Function(Task) updateFn);
 }
 
 class TaskStorage extends ChangeNotifier
@@ -86,6 +89,8 @@ class TaskStorage extends ChangeNotifier
   factory TaskStorage() => _instance;
   var lock = Lock(reentrant: true);
   int _lastNotifyTime = DateTime.now().millisecondsSinceEpoch;
+  Timer? _progressNotifyTimer;
+  bool _progressNotifyPending = false;
 
   TaskStorage._internal() {
     _taskManagers[TaskTypeEnum.videoCompress] = VideoCompressTaskManager(this);
@@ -183,20 +188,35 @@ class TaskStorage extends ChangeNotifier
 
   @override
   Future<void> deleteByTaskId(String taskId) async {
-    final taskIndex = _tasks.indexWhere((t) => t.id == taskId);
-    if (taskIndex != -1) {
-      final task = _tasks[taskIndex];
-      if (task.status == TaskStatusEnum.processing ||
-          task.status == TaskStatusEnum.paused ||
-          task.status == TaskStatusEnum.pending) {
-        await cancelTask(task);
+    Task? task;
+    await lock.synchronized(() async {
+      final index = _tasks.indexWhere((t) => t.id == taskId);
+      if (index == -1) {
+        return;
       }
-      await _taskManagers[task.type]?.deleteTask(task);
-      _tasks.removeAt(taskIndex);
-      await _deleteTaskFromDb(task.id, task.type);
-
-      _notifyListenersInternal(null);
+      task = _tasks[index];
+    });
+    if (task == null) {
+      return;
     }
+
+    final taskToDelete = task!;
+    if (taskToDelete.status == TaskStatusEnum.processing ||
+        taskToDelete.status == TaskStatusEnum.paused ||
+        taskToDelete.status == TaskStatusEnum.pending) {
+      await cancelTask(taskToDelete);
+    }
+    await _taskManagers[taskToDelete.type]?.deleteTask(taskToDelete);
+
+    await lock.synchronized(() async {
+      final before = _tasks.length;
+      _tasks.removeWhere((t) => t.id == taskId);
+      if (_tasks.length == before) {
+        return;
+      }
+      await _deleteTaskFromDb(taskId, taskToDelete.type);
+      _notifyListenersInternal(null);
+    });
   }
 
   Future<void> _deleteTaskFromDb(String taskId, TaskTypeEnum type) async {
@@ -401,14 +421,47 @@ class TaskStorage extends ChangeNotifier
     }
   }
 
-  // 修改 updateTask 的接口
+  bool _isProgressOnlyUpdate(Task oldTask, Task updatedTask) {
+    return oldTask.status == updatedTask.status &&
+        oldTask.name == updatedTask.name &&
+        oldTask.image == updatedTask.image &&
+        oldTask.type == updatedTask.type &&
+        oldTask.createdAt == updatedTask.createdAt &&
+        oldTask.hide == updatedTask.hide &&
+        oldTask.supportsPause == updatedTask.supportsPause &&
+        oldTask.total == updatedTask.total &&
+        oldTask.processed == updatedTask.processed;
+  }
+
+  void _scheduleProgressNotify() {
+    if (_progressNotifyTimer != null) {
+      _progressNotifyPending = true;
+      return;
+    }
+    notifyListeners();
+    _progressNotifyTimer = Timer(const Duration(milliseconds: 300), () {
+      _progressNotifyTimer = null;
+      if (_progressNotifyPending) {
+        _progressNotifyPending = false;
+        notifyListeners();
+      }
+    });
+  }
+
+  void _notifyProgressOnly(Task task) {
+    _scheduleProgressNotify();
+  }
+
   @override
-  Future<Task> updateTask(String taskId, Task Function(Task) updateFn) async {
+  Future<Task?> tryUpdateTask(
+    String taskId,
+    Task Function(Task) updateFn,
+  ) async {
     return await lock.synchronized(() async {
       final idx = _tasks.indexWhere((t) => t.id == taskId);
       if (idx == -1) {
         AppLogger().w('Task not found for update: $taskId');
-        throw StateError('Task not found for update: $taskId');
+        return null;
       }
 
       final oldTask = _tasks[idx];
@@ -427,6 +480,11 @@ class TaskStorage extends ChangeNotifier
 
       _tasks[idx] = updatedTask;
       try {
+        final progressOnly = _isProgressOnlyUpdate(oldTask, updatedTask);
+        if (progressOnly) {
+          _notifyProgressOnly(updatedTask);
+          return updatedTask;
+        }
         await _saveTask(updatedTask);
       } catch (e, stackTrace) {
         final decision = AppErrorUtils.classify(e);
@@ -457,6 +515,16 @@ class TaskStorage extends ChangeNotifier
 
       return updatedTask;
     });
+  }
+
+  // 修改 updateTask 的接口
+  @override
+  Future<Task> updateTask(String taskId, Task Function(Task) updateFn) async {
+    final updated = await tryUpdateTask(taskId, updateFn);
+    if (updated == null) {
+      throw StateError('Task not found for update: $taskId');
+    }
+    return updated;
   }
 
   /// 在任务状态变化时记录遥测数据
@@ -540,6 +608,9 @@ class TaskStorage extends ChangeNotifier
 
   @override
   void dispose() {
+    _progressNotifyTimer?.cancel();
+    _progressNotifyTimer = null;
+    _progressNotifyPending = false;
     super.dispose();
     for (final taskManager in _taskManagers.values) {
       taskManager.dispose();

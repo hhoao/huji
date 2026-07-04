@@ -16,6 +16,7 @@ import 'package:huji_app/store/message.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
 import '../../widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -30,8 +31,6 @@ class _HomePageState extends State<HomePage> {
   // 轮播图数据
   final List<Map<String, dynamic>> _carouselItems = [
     {
-      'title': 'AI比赛自动剪辑',
-      'subtitle': '自动剪辑精彩片段，移除休息捡球片段',
       'image': 'assets/images/163.png',
       'color': Colors.blue,
     },
@@ -43,7 +42,7 @@ class _HomePageState extends State<HomePage> {
 
     return Container(
       color: Colors.black.withValues(alpha: 0.5),
-      child: const Center(
+      child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -51,9 +50,7 @@ class _HomePageState extends State<HomePage> {
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
             SizedBox(height: 16),
-            Text(
-              '正在加载...',
-              style: TextStyle(
+            Text(context.hujiL10n.homeLoading, style: TextStyle(
                 color: Colors.white,
                 fontSize: 16,
                 fontWeight: FontWeight.w500,
@@ -74,15 +71,15 @@ class _HomePageState extends State<HomePage> {
         children: [
           // 轮播图
           _buildCarousel(),
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
 
           buildStartClipWidget(),
 
-          const SizedBox(height: 12),
+          SizedBox(height: 12),
 
-          const SizedBox(height: 74, child: HomeVideoListWidget()),
+          SizedBox(height: 74, child: HomeVideoListWidget()),
 
-          const SizedBox(height: 18),
+          SizedBox(height: 18),
 
           // 工具栏
           _buildToolsSection(),
@@ -160,16 +157,16 @@ class _HomePageState extends State<HomePage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item['title'],
+                          context.hujiL10n.homeCarouselAiClipTitle,
                           style: const TextStyle(
                             fontSize: 24,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Text(
-                          item['subtitle'],
+                          context.hujiL10n.homeCarouselAiClipSubtitle,
                           style: const TextStyle(
                             fontSize: 16,
                             color: Colors.white70,
@@ -211,7 +208,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CommonAppBar(
-        title: '主页',
+        title: context.hujiL10n.navHome,
         leftWidget: _buildMenuButton(),
         rightWidget: _buildMessageButton(),
       ),
@@ -321,11 +318,9 @@ class _HomePageState extends State<HomePage> {
                 size: 24,
               ),
             ),
-            const SizedBox(width: 16),
-            const Expanded(
-              child: Text(
-                '开始剪辑',
-                style: TextStyle(
+            SizedBox(width: 16),
+            Expanded(
+              child: Text(context.hujiL10n.homeStartClip, style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -343,11 +338,9 @@ class _HomePageState extends State<HomePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '实用工具',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(context.hujiL10n.homeToolsSection, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         GridView.count(
           crossAxisCount: 2,
           mainAxisSpacing: 12,
@@ -360,8 +353,8 @@ class _HomePageState extends State<HomePage> {
             Container(
               child: _buildToolCard(
                 icon: Icons.sports_golf,
-                title: '乒乓球剪辑',
-                subtitle: '剪辑乒乓球比赛视频',
+                title: context.hujiL10n.homePingpongClip,
+                subtitle: context.hujiL10n.homePingpongClipDesc,
                 color: Colors.red,
                 onTap: () {
                   Throttles.throttle(
@@ -375,8 +368,8 @@ class _HomePageState extends State<HomePage> {
             Container(
               child: _buildToolCard(
                 icon: Icons.sports_tennis,
-                title: '羽毛球剪辑',
-                subtitle: '剪辑羽毛球比赛视频',
+                title: context.hujiL10n.homeBadmintonClip,
+                subtitle: context.hujiL10n.homeBadmintonClipDesc,
                 color: Colors.blue,
                 onTap: () {
                   Throttles.throttle(
@@ -390,8 +383,8 @@ class _HomePageState extends State<HomePage> {
             Container(
               child: _buildToolCard(
                 icon: Icons.image,
-                title: '图片压缩',
-                subtitle: '压缩图片文件',
+                title: context.hujiL10n.taskTypeImageCompress,
+                subtitle: context.hujiL10n.homeImageCompressDesc,
                 color: Colors.purple,
                 onTap: () {
                   Throttles.throttle(
@@ -418,8 +411,8 @@ class _HomePageState extends State<HomePage> {
             Container(
               child: _buildToolCard(
                 icon: Icons.video_file,
-                title: '视频压缩',
-                subtitle: '压缩视频文件',
+                title: context.hujiL10n.taskTypeVideoCompress,
+                subtitle: context.hujiL10n.homeVideoCompressDesc,
                 color: Colors.teal,
                 onTap: () {
                   Throttles.throttle(
@@ -447,8 +440,8 @@ class _HomePageState extends State<HomePage> {
               Container(
                 child: _buildToolCard(
                   icon: Icons.sports_tennis,
-                  title: '测试页',
-                  subtitle: '测试环境',
+                  title: context.hujiL10n.testPageTitle,
+                  subtitle: context.hujiL10n.testEnvironmentSubtitle,
                   color: Colors.blue,
                   onTap: () {
                     Throttles.throttle(
@@ -494,7 +487,7 @@ class _HomePageState extends State<HomePage> {
             Row(
               children: [
                 Icon(icon, color: color, size: 20),
-                const SizedBox(width: 6),
+                SizedBox(width: 6),
                 Text(
                   title,
                   style: const TextStyle(
@@ -505,7 +498,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: 4),
             Text(
               subtitle,
               style: const TextStyle(fontSize: 10, color: Colors.grey),

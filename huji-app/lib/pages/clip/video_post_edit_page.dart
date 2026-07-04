@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoPostEditPage extends StatefulWidget {
   final String videoUrl;
@@ -62,15 +63,15 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
                       color: Colors.pink,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: const Text(
-                      '限免',
+                    child: Text(
+                      context.hujiL10n.freeBadge,
                       style: TextStyle(fontSize: 10, color: Colors.white),
                     ),
                   ),
                 ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: 4),
           Text(label, style: const TextStyle(fontSize: 13)),
         ],
       ),
@@ -79,9 +80,10 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Scaffold(
       appBar: AppBar(
-        title: const Text('视频编辑'),
+        title: Text(l10n.videoEditTitle),
         backgroundColor: Colors.black,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -148,9 +150,7 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
                               ),
                             ),
                             onPressed: () {},
-                            child: const Text(
-                              '导出',
-                              style: TextStyle(
+                            child: Text(context.hujiL10n.actionExport, style: TextStyle(
                                 fontSize: 16,
                                 color: Colors.white,
                               ),
@@ -159,7 +159,7 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
                         ),
                       ],
                     )
-                  : const Center(child: CircularProgressIndicator()),
+                  : Center(child: CircularProgressIndicator()),
             ),
             // 时间轴
             Container(
@@ -207,12 +207,16 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildEditButton(Icons.content_cut, '剪辑'),
-                  _buildEditButton(Icons.music_note, '音频'),
-                  _buildEditButton(Icons.text_fields, '文字'),
-                  _buildEditButton(Icons.movie_filter, 'AI剪辑', highlight: true),
-                  _buildEditButton(Icons.emoji_emotions, '贴纸'),
-                  _buildEditButton(Icons.picture_in_picture, '画中画'),
+                  _buildEditButton(Icons.content_cut, l10n.editToolClip),
+                  _buildEditButton(Icons.music_note, l10n.editToolAudio),
+                  _buildEditButton(Icons.text_fields, l10n.editToolText),
+                  _buildEditButton(
+                    Icons.movie_filter,
+                    l10n.editToolAiClip,
+                    highlight: true,
+                  ),
+                  _buildEditButton(Icons.emoji_emotions, l10n.editToolSticker),
+                  _buildEditButton(Icons.picture_in_picture, l10n.editToolPip),
                 ],
               ),
             ),
@@ -220,9 +224,9 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
             Expanded(
               child: Container(
                 color: Colors.grey[100],
-                child: const Center(
+                child: Center(
                   child: Text(
-                    '可在这里扩展更多编辑功能',
+                    l10n.extendMoreEditFeaturesHint,
                     style: TextStyle(color: Colors.black54),
                   ),
                 ),

@@ -1,0 +1,32 @@
+{
+  "video": "test/fixtures/video/blue.mp4",
+  "sport": "badminton",
+  "match_type": "singles",
+  "source": "huji-algorithm",
+  "model": "badminton_singles",
+  "all_match_segment_count": 4,
+  "great_match_segment_count": 0,
+  "all_match_segments": [
+    {
+      "action": "play_ball",
+      "start": 1.17,
+      "end": 3.33
+    },
+    {
+      "action": "play_ball",
+      "start": 13.0,
+      "end": 14.0
+    },
+    {
+      "action": "play_ball",
+      "start": 25.67,
+      "end": 28.5
+    },
+    {
+      "action": "play_ball",
+      "start": 38.67,
+      "end": 42.5
+    }
+  ],
+  "great_match_segments": []
+}

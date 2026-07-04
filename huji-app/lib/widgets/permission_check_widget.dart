@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:huji_app/services/permission_service.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class PermissionCheckWidget extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -25,6 +26,9 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
   }
 
   Future<void> _checkPermissions() async {
+    if (!mounted) return;
+    final l10n = context.hujiL10n;
+
     setState(() {
       _isChecking = true;
     });
@@ -32,9 +36,11 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
     final permissions = _permissionService.requiredPermissions;
 
     for (final permission in permissions) {
+      if (!mounted) return;
       setState(() {
         _currentCheckingPermission = _permissionService.getPermissionName(
           permission,
+          l10n,
         );
       });
 
@@ -91,22 +97,22 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                 child: Icon(Icons.security, size: 40, color: Colors.white),
               ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // 标题
               Text(
-                '权限检查',
+                context.hujiL10n.permissionCheckTitle,
                 style: context.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 当前检查的权限
               if (_isChecking && _currentCheckingPermission.isNotEmpty)
                 Text(
-                  '正在检查: $_currentCheckingPermission',
+                  context.hujiL10n.permissionChecking(_currentCheckingPermission),
                   style: context.textTheme.bodyMedium?.copyWith(
                     color: context.theme.colorScheme.onSurface.withValues(
                       alpha: 0.7,
@@ -114,17 +120,20 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                   ),
                 ),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // 权限列表
               ..._permissionStatuses.entries.map((entry) {
                 final permission = entry.key;
                 final status = entry.value;
+                final l10n = context.hujiL10n;
                 final permissionName = _permissionService.getPermissionName(
                   permission,
+                  l10n,
                 );
                 final statusText = _permissionService.getPermissionStatusText(
                   status,
+                  l10n,
                 );
                 final statusColor = _permissionService.getPermissionStatusColor(
                   status,
@@ -158,7 +167,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                         ),
                       ),
 
-                      const SizedBox(width: 16),
+                      SizedBox(width: 16),
 
                       // 权限信息
                       Expanded(
@@ -171,7 +180,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            SizedBox(height: 4),
                             Text(
                               statusText,
                               style: context.textTheme.bodySmall?.copyWith(
@@ -197,7 +206,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                 );
               }),
 
-              const SizedBox(height: 32),
+              SizedBox(height: 32),
 
               // 进度指示器或完成按钮
               if (_isChecking)
@@ -209,7 +218,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                       widget.onComplete!();
                     }
                   },
-                  child: const Text('继续'),
+                  child: Text(context.hujiL10n.actionContinue),
                 ),
             ],
           ),

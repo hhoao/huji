@@ -6,6 +6,9 @@ import 'package:huji_app/pages/task/record/bloc/video_record_detail_bloc.dart';
 import 'package:huji_app/pages/task/record/bloc/video_record_detail_event.dart';
 import 'package:huji_app/pages/task/record/bloc/video_record_detail_state.dart';
 import 'package:huji_app/utils/time_utils.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class VideoRecordDetailDialog extends StatelessWidget {
   final VideoProcessRecordVO record;
@@ -31,6 +34,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
@@ -51,10 +55,10 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               child: Row(
                 children: [
                   const Icon(Icons.info_outline, color: Colors.white),
-                  const SizedBox(width: 8),
+                  SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      '记录详情',
+                      l10n.recordDetailTitle,
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -82,7 +86,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                     previous.outputVideo != current.outputVideo,
                 builder: (context, state) {
                   if (state.isLoading) {
-                    return const Center(child: CircularProgressIndicator());
+                    return Center(child: CircularProgressIndicator());
                   }
 
                   if (state.errorMessage != null) {
@@ -96,14 +100,14 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                               style: const TextStyle(color: Colors.red),
                               textAlign: TextAlign.center,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: () {
                                 context.read<VideoRecordDetailBloc>().add(
                                   const VideoRecordDetailRetryEvent(),
                                 );
                               },
-                              child: const Text('重试'),
+                              child: Text(context.hujiL10n.actionRetry),
                             ),
                           ],
                         ),
@@ -117,22 +121,24 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 基本信息
-                        _buildDetailSection('基本信息', [
-                          _buildDetailRow('视频名称', record.videoName),
+                        _buildDetailSection(l10n, l10n.basicInfo, [
+                          _buildDetailRow(l10n, l10n.videoNameLabel, record.videoName),
                           _buildDetailRow(
-                            '运动类型',
-                            _getSportTypeText(record.sportType),
+                            l10n,
+                            l10n.filterSportType,
+                            l10n.sportTypeLabel(record.sportType),
                           ),
                           _buildDetailRow(
-                            '创建时间',
+                            l10n,
+                            l10n.createTimeLabel,
                             timeStampToDateString(record.createTime),
                           ),
                         ]),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         // 处理状态
-                        _buildDetailSection('处理状态', [
+                        _buildDetailSection(l10n, l10n.filterProcessStatus, [
                           Row(
                             children: [
                               Container(
@@ -150,16 +156,18 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                                   ),
                                 ),
                                 child: Text(
-                                  _getStatusText(record.status),
+                                  l10n.processStatusLabel(record.status),
                                   style: TextStyle(
                                     color: _getStatusColor(record.status),
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              SizedBox(width: 12),
                               Text(
-                                '进度: ${record.progress.toStringAsFixed(1)}%',
+                                l10n.progressPercentLabel(
+                                  record.progress.toStringAsFixed(1),
+                                ),
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -167,7 +175,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                               ),
                             ],
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: 8),
                           LinearProgressIndicator(
                             value: record.progress / 100,
                             backgroundColor: Colors.grey[300],
@@ -177,7 +185,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                           ),
                         ]),
 
-                        const SizedBox(height: 16),
+                        SizedBox(height: 16),
 
                         // 视频对比信息 - 只在视频数据变化时重建
                         if (state.inputVideo != null &&
@@ -190,21 +198,21 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                                 previous.inputVideo != current.inputVideo ||
                                 previous.outputVideo != current.outputVideo,
                             builder: (context, state) {
-                              return _buildVideoComparisonSection(state);
+                              return _buildVideoComparisonSection(l10n, state);
                             },
                           ),
 
                         // 配置信息
                         if (record.videoClipConfigReqVo != null) ...[
-                          const SizedBox(height: 16),
-                          _buildConfigSection(record.videoClipConfigReqVo!),
+                          SizedBox(height: 16),
+                          _buildConfigSection(l10n, record.videoClipConfigReqVo!),
                         ],
 
                         // 备注信息
                         if (record.extraInfo != null &&
                             record.extraInfo!.isNotEmpty) ...[
-                          const SizedBox(height: 16),
-                          _buildDetailSection('备注信息', [
+                          SizedBox(height: 16),
+                          _buildDetailSection(l10n, l10n.remarkInfoSection, [
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(12),
@@ -247,42 +255,48 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                         Navigator.of(context).pop();
                         if (record.status == ProcessStatus.completed) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('视频处理完成，可以查看输出视频'),
+                            SnackBar(
+                              content: Text(
+                                l10n.videoProcessingCompletedViewOutput,
+                              ),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
                         } else {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('视频还在处理中，请稍后再试'),
+                            SnackBar(
+                              content: Text(l10n.videoStillProcessingTryLater),
                               behavior: SnackBarBehavior.floating,
                             ),
                           );
                         }
                       },
                       icon: const Icon(Icons.play_arrow),
-                      label: const Text('查看视频'),
+                      label: Text(l10n.viewVideoButton),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.deepPurple,
                         foregroundColor: Colors.white,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: 12),
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.of(context).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('重新处理功能开发中'),
+                          SnackBar(
+                            content: Text(
+                              l10n.namedFeatureInDevelopment(
+                                l10n.reprocessButton,
+                              ),
+                            ),
                             behavior: SnackBarBehavior.floating,
                           ),
                         );
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('重新处理'),
+                      label: Text(l10n.reprocessButton),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: Colors.deepPurple,
                         side: const BorderSide(color: Colors.deepPurple),
@@ -298,7 +312,10 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildVideoComparisonSection(VideoRecordDetailState state) {
+  Widget _buildVideoComparisonSection(
+    HujiLocalizations l10n,
+    VideoRecordDetailState state,
+  ) {
     final inputVideo = state.inputVideo!;
     final outputVideo = state.outputVideo!;
 
@@ -309,7 +326,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     final sizeReduction = inputVideo.size - outputVideo.size;
     final sizeReductionPercent = (sizeReduction / inputVideo.size * 100);
 
-    return _buildDetailSection('视频对比', [
+    return _buildDetailSection(l10n, l10n.videoComparisonSection, [
       // 输入视频信息
       Container(
         padding: const EdgeInsets.all(12),
@@ -324,9 +341,9 @@ class _VideoRecordDetailDialog extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.input, color: Colors.blue[700], size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
-                  '输入视频',
+                  l10n.inputVideoLabel,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -335,19 +352,28 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildDetailRow('文件名', inputVideo.fileName),
-            _buildDetailRow('时长', _formatDuration(inputVideo.duration)),
-            _buildDetailRow('大小', _formatFileSize(inputVideo.size)),
+            SizedBox(height: 8),
+            _buildDetailRow(l10n, l10n.fileName, inputVideo.fileName),
             _buildDetailRow(
-              '类型',
-              _getProcessTypeText(inputVideo.videoProcessType),
+              l10n,
+              l10n.labelDuration,
+              _formatDuration(inputVideo.duration),
+            ),
+            _buildDetailRow(
+              l10n,
+              l10n.labelSize,
+              _formatFileSize(inputVideo.size),
+            ),
+            _buildDetailRow(
+              l10n,
+              l10n.labelType,
+              l10n.videoProcessTypeLabel(inputVideo.videoProcessType),
             ),
           ],
         ),
       ),
 
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
 
       // 输出视频信息
       Container(
@@ -363,9 +389,9 @@ class _VideoRecordDetailDialog extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.output, color: Colors.green[700], size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
-                  '输出视频',
+                  l10n.outputVideoLabel,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -374,19 +400,28 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            _buildDetailRow('文件名', outputVideo.fileName),
-            _buildDetailRow('时长', _formatDuration(outputVideo.duration)),
-            _buildDetailRow('大小', _formatFileSize(outputVideo.size)),
+            SizedBox(height: 8),
+            _buildDetailRow(l10n, l10n.fileName, outputVideo.fileName),
             _buildDetailRow(
-              '类型',
-              _getProcessTypeText(outputVideo.videoProcessType),
+              l10n,
+              l10n.labelDuration,
+              _formatDuration(outputVideo.duration),
+            ),
+            _buildDetailRow(
+              l10n,
+              l10n.labelSize,
+              _formatFileSize(outputVideo.size),
+            ),
+            _buildDetailRow(
+              l10n,
+              l10n.labelType,
+              l10n.videoProcessTypeLabel(outputVideo.videoProcessType),
             ),
           ],
         ),
       ),
 
-      const SizedBox(height: 12),
+      SizedBox(height: 12),
 
       // 对比结果
       Container(
@@ -402,9 +437,9 @@ class _VideoRecordDetailDialog extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.compare_arrows, color: Colors.orange[700], size: 20),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Text(
-                  '处理效果',
+                  l10n.processingEffectLabel,
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -413,15 +448,15 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: 8),
             _buildComparisonRow(
-              '时长缩短',
+              l10n.durationShortenedLabel,
               _formatDuration(durationReduction),
               '${durationReductionPercent.toStringAsFixed(1)}%',
               durationReductionPercent > 0 ? Colors.green : Colors.red,
             ),
             _buildComparisonRow(
-              '大小减少',
+              l10n.sizeReducedLabel,
               _formatFileSize(sizeReduction),
               '${sizeReductionPercent.toStringAsFixed(1)}%',
               sizeReductionPercent > 0 ? Colors.green : Colors.red,
@@ -483,7 +518,11 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailSection(String title, List<Widget> children) {
+  Widget _buildDetailSection(
+    HujiLocalizations l10n,
+    String title,
+    List<Widget> children,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -495,13 +534,13 @@ class _VideoRecordDetailDialog extends StatelessWidget {
             color: Colors.deepPurple,
           ),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         ...children,
       ],
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(HujiLocalizations l10n, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -529,67 +568,91 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildConfigSection(VideoClipConfigReqVo config) {
+  Widget _buildConfigSection(
+    HujiLocalizations l10n,
+    VideoClipConfigReqVo config,
+  ) {
     final configItems = <Widget>[];
 
     if (config.mode != null) {
-      configItems.add(_buildDetailRow('剪辑模式', _getModeText(config.mode!)));
+      configItems.add(
+        _buildDetailRow(l10n, l10n.clipMode, l10n.modeLabel(config.mode!)),
+      );
     }
     if (config.matchType != null) {
       configItems.add(
-        _buildDetailRow('比赛类型', _getMatchTypeText(config.matchType!)),
+        _buildDetailRow(
+          l10n,
+          l10n.matchType,
+          l10n.matchTypeLabel(config.matchType!),
+        ),
       );
     }
     if (config.greatBallEditing != null) {
       configItems.add(
-        _buildDetailRow('精彩球剪辑', config.greatBallEditing! ? '是' : '否'),
+        _buildDetailRow(
+          l10n,
+          l10n.highlightClip,
+          l10n.booleanLabel(config.greatBallEditing!),
+        ),
       );
     }
     if (config.removeReplay != null) {
       configItems.add(
-        _buildDetailRow('移除回放', config.removeReplay! ? '是' : '否'),
+        _buildDetailRow(
+          l10n,
+          l10n.removeReplay,
+          l10n.booleanLabel(config.removeReplay!),
+        ),
       );
     }
     if (config.getMatchSegments != null) {
       configItems.add(
-        _buildDetailRow('获取比赛片段', config.getMatchSegments! ? '是' : '否'),
+        _buildDetailRow(
+          l10n,
+          l10n.getMatchSegments,
+          l10n.booleanLabel(config.getMatchSegments!),
+        ),
       );
     }
     if (config.reserveTimeBeforeSingleRound != null) {
       configItems.add(
-        _buildDetailRow('单回合前保留时间', '${config.reserveTimeBeforeSingleRound}秒'),
+        _buildDetailRow(
+          l10n,
+          l10n.reserveBeforeRound,
+          l10n.durationSeconds(config.reserveTimeBeforeSingleRound!.round()),
+        ),
       );
     }
     if (config.reserveTimeAfterSingleRound != null) {
       configItems.add(
-        _buildDetailRow('单回合后保留时间', '${config.reserveTimeAfterSingleRound}秒'),
+        _buildDetailRow(
+          l10n,
+          l10n.reserveAfterRound,
+          l10n.durationSeconds(config.reserveTimeAfterSingleRound!.round()),
+        ),
       );
     }
     if (config.minimumDurationSingleRound != null) {
       configItems.add(
-        _buildDetailRow('单回合最小时长', '${config.minimumDurationSingleRound}秒'),
+        _buildDetailRow(
+          l10n,
+          l10n.minRoundDuration,
+          l10n.durationSeconds(config.minimumDurationSingleRound!.round()),
+        ),
       );
     }
     if (config.minimumDurationGreatBall != null) {
       configItems.add(
-        _buildDetailRow('精彩球最小时长', '${config.minimumDurationGreatBall}秒'),
+        _buildDetailRow(
+          l10n,
+          l10n.minHighlightDurationSeconds,
+          l10n.durationSeconds(config.minimumDurationGreatBall!.round()),
+        ),
       );
     }
 
-    return _buildDetailSection('剪辑配置', configItems);
-  }
-
-  String _getStatusText(ProcessStatus status) {
-    switch (status) {
-      case ProcessStatus.preparing:
-        return '准备中';
-      case ProcessStatus.processing:
-        return '处理中';
-      case ProcessStatus.completed:
-        return '已完成';
-      case ProcessStatus.failed:
-        return '失败';
-    }
+    return _buildDetailSection(l10n, l10n.clipConfig, configItems);
   }
 
   Color _getStatusColor(ProcessStatus status) {
@@ -602,44 +665,6 @@ class _VideoRecordDetailDialog extends StatelessWidget {
         return Colors.green;
       case ProcessStatus.failed:
         return Colors.red;
-    }
-  }
-
-  String _getSportTypeText(SportType type) {
-    switch (type) {
-      case SportType.pingpong:
-        return '乒乓球';
-      case SportType.badminton:
-        return '羽毛球';
-    }
-  }
-
-  String _getProcessTypeText(VideoProcessType type) {
-    switch (type) {
-      case VideoProcessType.raw:
-        return '原视频';
-      case VideoProcessType.greatMatch:
-        return '精彩回合';
-      case VideoProcessType.allMatchMerged:
-        return '全部回合';
-    }
-  }
-
-  String _getModeText(ModeEnum mode) {
-    switch (mode) {
-      case ModeEnum.backendClip:
-        return '后台剪辑';
-      case ModeEnum.customClip:
-        return '自定义剪辑';
-    }
-  }
-
-  String _getMatchTypeText(MatchType type) {
-    switch (type) {
-      case MatchType.doublesMatch:
-        return '双打比赛';
-      case MatchType.singlesMatch:
-        return '单打比赛';
     }
   }
 

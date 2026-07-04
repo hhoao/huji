@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/l10n/huji_l10n_helpers.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class TaskFilter {
   Set<TaskTypeEnum> selectedTypes;
@@ -100,11 +102,9 @@ class _TaskTabContentFilterDialogState
             child: Row(
               children: [
                 const Icon(Icons.filter_list, color: Colors.blue),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    '筛选条件',
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                SizedBox(width: 8),
+                Expanded(
+                  child: Text(context.hujiL10n.filterConditions, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                 ),
                 if (widget.taskFilter.hasActiveFilters)
@@ -121,8 +121,8 @@ class _TaskTabContentFilterDialogState
                         },
                       );
                     },
-                    child: const Text(
-                      '清除全部',
+                    child: Text(
+                      context.hujiL10n.clearAllFilters,
                       style: TextStyle(color: Colors.red),
                     ),
                   ),
@@ -139,14 +139,14 @@ class _TaskTabContentFilterDialogState
               ],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: 20),
           // 筛选内容
           _buildTaskTypeFilter(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           _buildTaskStatusFilter(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           _buildDateRangeFilter(),
-          const SizedBox(height: 24),
+          SizedBox(height: 24),
           // 底部按钮
           Container(
             padding: const EdgeInsets.all(16),
@@ -161,10 +161,10 @@ class _TaskTabContentFilterDialogState
                         () => Navigator.of(context).pop(),
                       );
                     },
-                    child: const Text('取消'),
+                    child: Text(context.hujiL10n.taskStatusCancelledShort),
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton(
                     onPressed: () {
@@ -185,7 +185,7 @@ class _TaskTabContentFilterDialogState
                       backgroundColor: Colors.blue,
                       foregroundColor: Colors.white,
                     ),
-                    child: const Text('应用筛选'),
+                    child: Text(context.hujiL10n.applyFilter),
                   ),
                 ),
               ],
@@ -197,20 +197,21 @@ class _TaskTabContentFilterDialogState
   }
 
   Widget _buildTaskTypeFilter() {
+    final l10n = context.hujiL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '任务类型',
+        Text(
+          l10n.taskTypeFilter,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Wrap(
           spacing: 8,
           children: TaskTypeEnum.values.map((type) {
             final isSelected = widget.taskFilter.selectedTypes.contains(type);
             return FilterChip(
-              label: Text(type.name),
+              label: Text(l10n.taskTypeLabel(type)),
               selected: isSelected,
               onSelected: (selected) {
                 setState(() {
@@ -229,14 +230,15 @@ class _TaskTabContentFilterDialogState
   }
 
   Widget _buildTaskStatusFilter() {
+    final l10n = context.hujiL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '任务状态',
+        Text(
+          l10n.taskStatusFilter,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Wrap(
           spacing: 8,
           children: TaskStatusEnum.values.map((status) {
@@ -244,7 +246,7 @@ class _TaskTabContentFilterDialogState
               status,
             );
             return FilterChip(
-              label: Text(status.name),
+              label: Text(l10n.taskStatusLabel(status)),
               selected: isSelected,
               onSelected: (selected) {
                 setState(() {
@@ -263,14 +265,15 @@ class _TaskTabContentFilterDialogState
   }
 
   Widget _buildDateRangeFilter() {
+    final l10n = context.hujiL10n;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '时间范围',
+        Text(
+          l10n.timeRangeFilter,
           style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: 8),
         Row(
           children: [
             Expanded(
@@ -300,7 +303,7 @@ class _TaskTabContentFilterDialogState
                 label: Text(
                   widget.taskFilter.dateRange != null
                       ? '${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.start)} ~ ${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.end)}'
-                      : '选择时间范围',
+                      : l10n.selectTimeRange,
                 ),
               ),
             ),

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/round_clip_page.dart';
 import 'package:huji_app/pages/home/bloc/home_video_list_bloc.dart';
@@ -74,18 +75,21 @@ class _HomeVideoListWidget extends StatelessWidget {
                       final item = state.videoList[idx];
                       return _buildVideoCard(
                         context: context,
-                        title: _getRecordTitle(item),
+                        title: _getRecordTitle(context, item),
                         thumbnailUrl: item.thumbnailPath,
-                        subtitle: _getRecordSubtitle(item),
-                        extra: _getRecordExtra(state, item),
+                        subtitle: _getRecordSubtitle(context, item),
+                        extra: _getRecordExtra(context, state, item),
                         onTap: () => _onRecordTap(context, item),
                         onDelete: () => _deleteVideo(context, item.id),
                         highlight: _isHighlightVideo(item),
                         time: _getRecordTime(item),
-                        category: _getRecordCategory(item),
+                        category: _getRecordCategory(context, item),
                       );
                     } else if (remain >= 0) {
-                      return _buildPlaceholderCard(width: placeholderWidth);
+                      return _buildPlaceholderCard(
+                        context,
+                        width: placeholderWidth,
+                      );
                     } else {
                       return null;
                     }
@@ -103,15 +107,16 @@ class _HomeVideoListWidget extends StatelessWidget {
     return time_utils.timeStampToTimeAgo(record.createdAt);
   }
 
-  String _getRecordCategory(LocalVideoRecord record) {
+  String _getRecordCategory(BuildContext context, LocalVideoRecord record) {
+    final l10n = context.hujiL10n;
     if (record is RawVideoRecord) {
-      return '原始';
+      return l10n.homeVideoCategoryRaw;
     } else if (record is ProcessVideoRecord) {
-      return '处理中';
+      return l10n.homeVideoCategoryProcessing;
     } else if (record is EdittingVideoRecord) {
-      return '已完成';
+      return l10n.homeVideoCategoryCompleted;
     }
-    return '未知';
+    return l10n.homeVideoCategoryUnknown;
   }
 
   void _deleteVideo(BuildContext context, String id) {
@@ -119,7 +124,12 @@ class _HomeVideoListWidget extends StatelessWidget {
     // 错误处理通过 BlocListener 在 Bloc 中处理
   }
 
-  Widget? _getRecordExtra(HomeVideoListState state, LocalVideoRecord record) {
+  Widget? _getRecordExtra(
+    BuildContext context,
+    HomeVideoListState state,
+    LocalVideoRecord record,
+  ) {
+    final l10n = context.hujiL10n;
     if (record is ProcessVideoRecord) {
       // 从 Bloc 状态中获取任务进度
       final progress = state.taskProgressMap[record.taskId] ?? 0.0;
@@ -134,7 +144,7 @@ class _HomeVideoListWidget extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '处理中 ${(progress * 100).toStringAsFixed(0)}%',
+            l10n.homeVideoProcessingProgress((progress * 100).round()),
             style: const TextStyle(fontSize: 11, color: Colors.grey),
           ),
         ],
@@ -145,7 +155,7 @@ class _HomeVideoListWidget extends StatelessWidget {
         children: [
           const SizedBox(height: 4),
           Text(
-            '已完成',
+            l10n.homeVideoSubtitleCompleted,
             style: const TextStyle(fontSize: 11, color: Colors.green),
           ),
         ],
@@ -171,13 +181,14 @@ class _HomeVideoListWidget extends StatelessWidget {
     }
   }
 
-  String _getRecordSubtitle(LocalVideoRecord record) {
+  String _getRecordSubtitle(BuildContext context, LocalVideoRecord record) {
+    final l10n = context.hujiL10n;
     if (record is RawVideoRecord) {
-      return '待处理 | 原始文件';
+      return l10n.homeVideoSubtitlePending;
     } else if (record is ProcessVideoRecord) {
-      return '处理中 | 处理记录ID: ${record.taskId}';
+      return l10n.homeVideoSubtitleProcessing(record.taskId);
     } else if (record is EdittingVideoRecord) {
-      return '已完成';
+      return l10n.homeVideoSubtitleCompleted;
     }
     return '';
   }
@@ -189,15 +200,16 @@ class _HomeVideoListWidget extends StatelessWidget {
     return false;
   }
 
-  String _getRecordTitle(LocalVideoRecord record) {
+  String _getRecordTitle(BuildContext context, LocalVideoRecord record) {
+    final l10n = context.hujiL10n;
     if (record is RawVideoRecord) {
-      return '原始视频';
+      return l10n.homeVideoTitleRaw;
     } else if (record is ProcessVideoRecord) {
-      return '处理中记录Id #${record.taskId}';
+      return l10n.homeVideoTitleProcessing(record.taskId);
     } else if (record is EdittingVideoRecord) {
-      return '编辑视频';
+      return l10n.homeVideoTitleEditing;
     }
-    return '未知视频';
+    return l10n.homeVideoTitleUnknown;
   }
 
   Widget _buildVideoCard({
@@ -309,7 +321,7 @@ class _HomeVideoListWidget extends StatelessWidget {
                         borderRadius: BorderRadius.circular(4),
                       ),
                       child: Text(
-                        category ?? '未知',
+                        category ?? context.hujiL10n.unknownLabel,
                         style: const TextStyle(
                           fontSize: 10,
                           color: Colors.white,
@@ -351,7 +363,7 @@ class _HomeVideoListWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderCard({double? width}) {
+  Widget _buildPlaceholderCard(BuildContext context, {double? width}) {
     return SizedBox(
       width: width,
       child: DottedBorder(
@@ -366,7 +378,7 @@ class _HomeVideoListWidget extends StatelessWidget {
           color: Colors.transparent,
           child: Center(
             child: Text(
-              '暂无更多记录',
+              context.hujiL10n.homeVideoNoMoreRecords,
               style: TextStyle(color: Colors.grey[400], fontSize: 10),
             ),
           ),

@@ -8,6 +8,7 @@ import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
 import 'login_dialog.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 enum LoginType { password, authCode }
 
@@ -113,7 +114,7 @@ class _LoginFormState extends State<LoginForm> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(const SnackBar(content: Text('登录成功')));
+        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginSuccess)));
       }
       // 调用登录成功回调，如果没有则调用普通关闭回调
       if (widget.onLoginSuccess != null) {
@@ -125,7 +126,7 @@ class _LoginFormState extends State<LoginForm> {
       if (context.mounted) {
         ScaffoldMessenger.of(
           context,
-        ).showSnackBar(SnackBar(content: Text('登录失败: ${e.message}')));
+        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginFailed(e.message))));
       }
     } finally {
       setState(() {
@@ -153,17 +154,14 @@ class _LoginFormState extends State<LoginForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 标题
-              const Text(
-                '登录',
-                style: TextStyle(
+              Text(context.hujiL10n.loginTitle, style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 登录方式切换
               Container(
@@ -187,9 +185,7 @@ class _LoginFormState extends State<LoginForm> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            '账号密码登录',
-                            style: TextStyle(
+                          child: Text(context.hujiL10n.loginPasswordTab, style: TextStyle(
                               color: _loginType == LoginType.password
                                   ? Colors.white
                                   : Colors.black87,
@@ -215,9 +211,7 @@ class _LoginFormState extends State<LoginForm> {
                                 : Colors.transparent,
                             borderRadius: BorderRadius.circular(8),
                           ),
-                          child: Text(
-                            '验证码登录',
-                            style: TextStyle(
+                          child: Text(context.hujiL10n.loginAuthCodeMode, style: TextStyle(
                               color: _loginType == LoginType.authCode
                                   ? Colors.white
                                   : Colors.black87,
@@ -233,25 +227,31 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
 
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 账号输入
               buildTextField(
-                '手机号/邮箱',
-                '请输入手机号或邮箱',
+                context,
+                context.hujiL10n.loginIdentifierLabel,
+                context.hujiL10n.loginIdentifierHint,
                 Icons.person,
                 _identifierController,
                 null,
                 false,
-                validateEmailOrPhone,
+                (value) => validateEmailOrPhone(context.hujiL10n, value),
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 密码/验证码输入
               buildTextField(
-                _loginType == LoginType.password ? '密码' : '验证码',
-                _loginType == LoginType.password ? '请输入密码' : '请输入验证码',
+                context,
+                _loginType == LoginType.password
+                    ? context.hujiL10n.loginPasswordLabel
+                    : context.hujiL10n.loginAuthCodeLabel,
+                _loginType == LoginType.password
+                    ? context.hujiL10n.loginPasswordHint
+                    : context.hujiL10n.loginAuthCodeHint,
                 _loginType == LoginType.password ? Icons.lock : Icons.key,
                 _loginType == LoginType.password
                     ? _passwordController
@@ -281,7 +281,11 @@ class _LoginFormState extends State<LoginForm> {
                                 );
                               },
                         child: Text(
-                          _countdown > 0 ? '${_countdown}s后重新获取' : '获取验证码',
+                          _countdown > 0
+                              ? context.hujiL10n.actionResendCodeCountdown(
+                                  _countdown,
+                                )
+                              : context.hujiL10n.actionGetVerificationCode,
                           style: TextStyle(
                             color: _countdown > 0 ? Colors.grey : Colors.blue,
                           ),
@@ -291,17 +295,17 @@ class _LoginFormState extends State<LoginForm> {
                 (value) {
                   if (value == null || value.isEmpty) {
                     return _loginType == LoginType.password
-                        ? '请输入密码'
-                        : '请输入验证码';
+                        ? context.hujiL10n.loginValidationPasswordRequired
+                        : context.hujiL10n.loginValidationAuthCodeRequired;
                   }
                   if (_loginType == LoginType.authCode) {
-                    return validateAuthCode(value);
+                    return validateAuthCode(context.hujiL10n, value);
                   }
                   return null;
                 },
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: 16),
 
               // 记住密码和忘记密码（仅密码登录时显示）
               if (_loginType == LoginType.password) ...[
@@ -318,9 +322,7 @@ class _LoginFormState extends State<LoginForm> {
                             });
                           },
                         ),
-                        const Text(
-                          '记住密码',
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                        Text(context.hujiL10n.loginRememberPassword, style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                       ],
                     ),
@@ -329,14 +331,12 @@ class _LoginFormState extends State<LoginForm> {
                         _resetForm();
                         widget.onSwitchForm(FormType.forgotPassword);
                       },
-                      child: const Text(
-                        '忘记密码？',
-                        style: TextStyle(color: Colors.blue, fontSize: 14),
+                      child: Text(context.hujiL10n.loginForgotPassword, style: TextStyle(color: Colors.blue, fontSize: 14),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: 16),
               ],
 
               // 登录按钮
@@ -360,7 +360,7 @@ class _LoginFormState extends State<LoginForm> {
                     ),
                   ),
                   child: _isLoading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
@@ -370,9 +370,7 @@ class _LoginFormState extends State<LoginForm> {
                             ),
                           ),
                         )
-                      : const Text(
-                          '登录',
-                          style: TextStyle(
+                      : Text(context.hujiL10n.loginTitle, style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
@@ -380,7 +378,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
               ),
 
-              // const SizedBox(height: 24),
+              // SizedBox(height: 24),
 
               // // 分割线
               // Row(
@@ -397,37 +395,33 @@ class _LoginFormState extends State<LoginForm> {
               //   ],
               // ),
 
-              // const SizedBox(height: 16),
+              // SizedBox(height: 16),
 
               // 社交登录按钮
               // Row(
               //   mainAxisAlignment: MainAxisAlignment.center,
               //   children: [
               //     _buildSocialButton(Icons.wechat, Colors.green),
-              //     const SizedBox(width: 16),
+              //     SizedBox(width: 16),
               //     _buildSocialButton(Icons.chat, Colors.blue),
-              //     const SizedBox(width: 16),
+              //     SizedBox(width: 16),
               //     _buildSocialButton(Icons.payment, Colors.orange),
               //   ],
               // ),
-              const SizedBox(height: 24),
+              SizedBox(height: 24),
 
               // 注册链接
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    '还没有账号? ',
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
+                  Text(context.hujiL10n.loginNoAccount, style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   TextButton(
                     onPressed: () {
                       _resetForm();
                       widget.onSwitchForm(FormType.register);
                     },
-                    child: const Text(
-                      '立即注册',
-                      style: TextStyle(color: Colors.blue, fontSize: 14),
+                    child: Text(context.hujiL10n.loginRegisterNow, style: TextStyle(color: Colors.blue, fontSize: 14),
                     ),
                   ),
                 ],

@@ -4,6 +4,8 @@ import 'dart:io';
 
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
+import 'package:huji_app/l10n/app_localizations.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:watcher/watcher.dart';
 
@@ -22,7 +24,7 @@ class VideoProcessException implements Exception {
   @override
   String toString() {
     if (details != null) {
-      return 'VideoProcessException: $message\n详细信息: $details';
+      return 'VideoProcessException: $message\n${resolveHujiL10n().exceptionDetailsLabel}: $details';
     }
     return 'VideoProcessException: $message';
   }
@@ -30,8 +32,11 @@ class VideoProcessException implements Exception {
 
 /// 文件不存在异常
 class VideoFileNotFoundException extends VideoProcessException {
-  VideoFileNotFoundException(String filePath)
-    : super('视频文件不存在', details: filePath);
+  VideoFileNotFoundException(String filePath, [HujiLocalizations? l10n])
+    : super(
+        resolveHujiL10n(l10n).videoFileNotFoundWithPath(filePath),
+        details: filePath,
+      );
 }
 
 /// FFmpeg执行失败异常
@@ -42,13 +47,15 @@ class FFmpegExecutionException extends VideoProcessException {
 
   @override
   String toString() {
-    return 'FFmpegExecutionException: $message\n命令: $command${details != null ? '\n详细信息: $details' : ''}';
+    final detailsLabel = resolveHujiL10n().exceptionDetailsLabel;
+    return 'FFmpegExecutionException: $message\n命令: $command${details != null ? '\n$detailsLabel: $details' : ''}';
   }
 }
 
 /// 操作被取消异常
 class OperationCancelledException extends VideoProcessException {
-  OperationCancelledException([String? message]) : super(message ?? '操作已被取消');
+  OperationCancelledException([String? message, HujiLocalizations? l10n])
+    : super(message ?? resolveHujiL10n(l10n).operationCancelled);
 }
 
 // ==================== 进度回调类型 ====================
@@ -256,9 +263,9 @@ class VideoUtils {
       }
 
       commandParts.add(outputFile);
-      final command = commandParts.join(' ');
+      final args = commandParts;
 
-      _logger.i('执行FFmpeg命令: $command');
+      _logger.i('执行FFmpeg命令: ${formatFFmpegArgsForLog(args)}');
 
       // 计算总时长（用于进度计算）
       double totalDuration = 0.0;
@@ -275,7 +282,7 @@ class VideoUtils {
 
       // 执行FFmpeg命令
       final result = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
+        args,
         onProgress: onProgress != null && totalDuration > 0
             ? (p) => onProgress(p, p * totalDuration, totalDuration)
             : null,
@@ -283,8 +290,8 @@ class VideoUtils {
 
       if (!result.isSuccess) {
         throw FFmpegExecutionException(
-          '视频合并失败',
-          command,
+          resolveHujiL10n().videoMergeFailed,
+          formatFFmpegArgsForLog(args),
           details: result.output,
         );
       }
@@ -299,7 +306,7 @@ class VideoUtils {
 
   /// 获取视频基本信息
   static Future<VideoBaseInfo> getVideoBaseInfo(String inputFile) async {
-    final command = [
+    final args = [
       '-loglevel',
       'quiet',
       '-show_entries',
@@ -307,21 +314,21 @@ class VideoUtils {
       '-of',
       'json',
       inputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.executeProbe(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.executeProbe(args);
 
     if (!result.isSuccess) {
-      throw Exception('获取视频信息失败: ${result.output}');
+      throw Exception(
+        resolveHujiL10n().videoInfoFetchFailed(result.output ?? ''),
+      );
     }
 
     final jsonData = json.decode(result.output ?? '');
     final format = jsonData['format'];
 
     if (format == null) {
-      throw Exception('未找到视频流');
+      throw Exception(resolveHujiL10n().videoStreamNotFound);
     }
 
     // 安全地解析 duration 和 size
@@ -349,7 +356,7 @@ class VideoUtils {
 
   /// 获取视频完整信息
   static Future<VideoInfo> getVideoInfo(String inputFile) async {
-    final command = [
+    final args = [
       '-v',
       'error',
       '-select_streams',
@@ -359,21 +366,21 @@ class VideoUtils {
       '-of',
       'json',
       inputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.executeProbe(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.executeProbe(args);
 
     if (!result.isSuccess) {
-      throw Exception('获取视频信息失败: ${result.output}');
+      throw Exception(
+        resolveHujiL10n().videoInfoFetchFailed(result.output ?? ''),
+      );
     }
 
     final jsonData = json.decode(result.output ?? '');
     final streams = jsonData['streams'] as List?;
 
     if (streams == null || streams.isEmpty) {
-      throw Exception('未找到视频流');
+      throw Exception(resolveHujiL10n().videoStreamNotFound);
     }
 
     final stream = streams.first as Map<String, dynamic>;
@@ -479,7 +486,7 @@ class VideoUtils {
 
     final accCodec = await _getAccCodec(videoInfo.codecName);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -500,11 +507,9 @@ class VideoUtils {
       '+faststart',
       '-y',
       outputFile,
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (result.isSuccess) {
       final outputFileSize = await File(outputFile).length();
@@ -512,7 +517,9 @@ class VideoUtils {
         '转换完成, 输出文件大小: ${(outputFileSize / (1024 * 1024)).toStringAsFixed(2)} MB',
       );
     } else {
-      throw Exception('FFmpeg转换失败: ${result.output}');
+      throw Exception(
+        resolveHujiL10n().ffmpegConvertFailed(result.output ?? ''),
+      );
     }
   }
 
@@ -524,11 +531,9 @@ class VideoUtils {
     }
 
     _logger.i('开始检测硬件加速支持...');
-    final command = ['-hide_banner', '-encoders'].join(' ');
+    final command = ['-hide_banner', '-encoders'];
 
-    final execResult = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final execResult = await FFmpegRunner.instance.execute(command);
     final output = execResult.output ?? '';
 
     String result;
@@ -613,10 +618,8 @@ class VideoUtils {
   static Future<String> _tryAndroidSoftwareEncoders() async {
     try {
       // 检测可用的编码器
-      final command = ['-hide_banner', '-encoders'].join(' ');
-      final execResult = await FFmpegRunner.instance.execute(
-        splitFFmpegCommand(command),
-      );
+      final args = ['-hide_banner', '-encoders'];
+      final execResult = await FFmpegRunner.instance.execute(args);
       final output = execResult.output ?? '';
 
       // 按优先级尝试不同的编码器
@@ -627,10 +630,10 @@ class VideoUtils {
       } else if (output.contains('mpeg4')) {
         return 'mpeg4';
       } else {
-        throw Exception('未找到合适的软件编码器');
+        throw Exception(resolveHujiL10n().softwareEncoderNotFound);
       }
     } catch (e) {
-      throw Exception('软件编码器检测失败: $e');
+      throw Exception(resolveHujiL10n().softwareEncoderDetectFailed('$e'));
     }
   }
 
@@ -643,10 +646,12 @@ class VideoUtils {
     required int endFrame,
   }) async {
     if (startFrame < 0 || endFrame > videoInfo.totalFrames) {
-      throw ArgumentError('帧数超出范围: 0-${videoInfo.totalFrames}');
+      throw ArgumentError(
+        resolveHujiL10n().frameOutOfRange('${videoInfo.totalFrames}'),
+      );
     }
     if (startFrame >= endFrame) {
-      throw ArgumentError('起始帧必须小于结束帧');
+      throw ArgumentError(resolveHujiL10n().startFrameMustBeLessThanEnd);
     }
 
     final startTime = startFrame / videoInfo.fps;
@@ -676,17 +681,17 @@ class VideoUtils {
 
     _checkCancellation();
 
-    final command = _buildClipVideoCommand(
+    final args = _buildClipVideoCommand(
       inputFile: inputFile,
       startTime: startTime,
       duration: duration,
       outputFile: outputFile,
     );
 
-    _logger.i('执行视频裁剪命令: $command');
+    _logger.i('执行视频裁剪命令: ${formatFFmpegArgsForLog(args)}');
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * duration, duration)
           : null,
@@ -694,8 +699,8 @@ class VideoUtils {
 
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
-        '视频裁剪失败',
-        command,
+        resolveHujiL10n().videoCropFailed,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -704,7 +709,7 @@ class VideoUtils {
     _checkCancellation();
   }
 
-  static String _buildClipVideoCommand({
+  static List<String> _buildClipVideoCommand({
     required String inputFile,
     required double startTime,
     required double duration,
@@ -733,7 +738,7 @@ class VideoUtils {
       '-movflags',
       '+faststart',
       outputFile,
-    ].join(' ');
+    ];
   }
 
   /// 将视频转换为易于编辑的格式
@@ -754,7 +759,7 @@ class VideoUtils {
     final videoInfo = await getVideoInfo(inputFile);
     final accCodec = await _getAccCodec(codec);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-y',
@@ -767,10 +772,10 @@ class VideoUtils {
       '-r',
       videoInfo.fps.toString(),
       outputFile,
-    ].join(' ');
+    ];
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -778,8 +783,8 @@ class VideoUtils {
 
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
-        '视频格式转换失败',
-        command,
+        resolveHujiL10n().videoFormatConvertFailed,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -806,7 +811,7 @@ class VideoUtils {
     final videoInfo = await getVideoInfo(inputFile);
     final accCodec = await _getAccCodec(videoInfo.codecName);
 
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -817,10 +822,10 @@ class VideoUtils {
       accCodec,
       '-y',
       outputFile,
-    ].join(' ');
+    ];
 
     final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
+      args,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -828,8 +833,8 @@ class VideoUtils {
 
     if (!result.isSuccess) {
       throw FFmpegExecutionException(
-        '视频缩放失败',
-        command,
+        resolveHujiL10n().videoScaleFailed,
+        formatFFmpegArgsForLog(args),
         details: result.output,
       );
     }
@@ -860,7 +865,16 @@ class VideoUtils {
     String format = 'png',
   }) async {
     if (!await File(videoPath).exists()) {
-      throw FileSystemException('视频文件不存在: $videoPath');
+      final fileType = FileSystemEntity.typeSync(videoPath);
+      if (fileType == FileSystemEntityType.directory) {
+        throw Exception(
+          resolveHujiL10n().thumbnailGenerationFailed('$videoPath: Is a directory'),
+        );
+      }
+      throw FileSystemException(
+        resolveHujiL10n().videoFileNotFoundWithPath(videoPath),
+        videoPath,
+      );
     }
     final outputDir = await _getDirPath(dirPath);
     // 生成输出文件名
@@ -869,7 +883,7 @@ class VideoUtils {
     final outputPath = path.join(outputDir.path, outputFileName);
 
     // 构建FFmpeg命令
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-ss',
@@ -884,20 +898,20 @@ class VideoUtils {
       quality.toString(),
       '-y',
       outputPath,
-    ].join(' ');
+    ];
 
     // 执行FFmpeg命令
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (!result.isSuccess) {
-      throw Exception('生成缩略图失败: ${result.output}');
+      throw Exception(
+        resolveHujiL10n().thumbnailGenerationFailed(result.output ?? ''),
+      );
     }
 
     // 检查输出文件是否成功生成
     if (!await File(outputPath).exists()) {
-      throw Exception('缩略图文件生成失败: $outputPath');
+      throw Exception(resolveHujiL10n().thumbnailFileNotGenerated(outputPath));
     }
 
     return outputPath;
@@ -963,9 +977,14 @@ class VideoUtils {
 
     // 按顺序添加文件到 stream（确保按照文件编号顺序）
     void tryEmitNextFiles() {
+      if (controller.isClosed) {
+        return;
+      }
       while (pendingFiles.containsKey(nextExpectedIndex)) {
         final filePath = pendingFiles[nextExpectedIndex]!;
-        controller.add(filePath);
+        if (!controller.isClosed) {
+          controller.add(filePath);
+        }
         pendingFiles.remove(nextExpectedIndex);
         currentCount++;
         nextExpectedIndex++;
@@ -975,7 +994,9 @@ class VideoUtils {
 
         if (currentCount == totalCount) {
           eventStream?.cancel();
-          controller.close();
+          if (!controller.isClosed) {
+            controller.close();
+          }
           return;
         }
       }
@@ -1080,7 +1101,7 @@ class VideoUtils {
     required int frameInterval,
     required String tempDir,
   }) async {
-    final command = [
+    final args = [
       '-loglevel',
       logLevel,
       '-i',
@@ -1089,14 +1110,14 @@ class VideoUtils {
       'fps=$frameInterval',
       '-y',
       path.join(tempDir, '%d.png'),
-    ].join(' ');
+    ];
 
-    final result = await FFmpegRunner.instance.execute(
-      splitFFmpegCommand(command),
-    );
+    final result = await FFmpegRunner.instance.execute(args);
 
     if (!result.isSuccess) {
-      throw Exception('帧提取失败: ${result.output}');
+      throw Exception(
+        resolveHujiL10n().frameExtractionFailed(result.output ?? ''),
+      );
     }
   }
 
@@ -1112,16 +1133,19 @@ class VideoUtils {
     Future<void> Function()? completeCallback,
   }) async {
     if (!await File(videoPath).exists()) {
-      throw FileSystemException('视频文件不存在: $videoPath');
+      throw FileSystemException(
+        resolveHujiL10n().videoFileNotFoundWithPath(videoPath),
+        videoPath,
+      );
     }
 
     final actualStartTime = startTime ?? 0.0;
 
     if (actualStartTime < 0) {
-      throw ArgumentError('开始时间不能小于0');
+      throw ArgumentError(resolveHujiL10n().startTimeCannotBeNegative);
     }
     if (interval <= 0) {
-      throw ArgumentError('时间间隔必须大于0');
+      throw ArgumentError(resolveHujiL10n().intervalMustBePositive);
     }
 
     final outputDir = await _getDirPath(dirPath);

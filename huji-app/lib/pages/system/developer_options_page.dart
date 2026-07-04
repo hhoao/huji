@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
 import 'package:huji_app/router/modules/tools.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DeveloperOptionsPage extends StatefulWidget {
   const DeveloperOptionsPage({super.key});
@@ -16,7 +17,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('开发者选项'),
+        title: Text(context.hujiL10n.developerOptions),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
         elevation: 0,
       ),
@@ -40,9 +41,9 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
                           color: Colors.orange,
                           size: 24,
                         ),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text(
-                          '开发者模式',
+                          context.hujiL10n.developerModeTitle,
                           style: context.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w600,
                             color: Colors.orange,
@@ -50,9 +51,9 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    SizedBox(height: 8),
                     Text(
-                      '这些功能仅供开发调试使用，请谨慎操作。',
+                      context.hujiL10n.developerModeWarning,
                       style: context.textTheme.bodySmall?.copyWith(
                         color: context.theme.colorScheme.onSurface.withValues(
                           alpha: 0.7,
@@ -64,43 +65,43 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 开发工具
-            _buildSection(context, '开发工具', Icons.build, [
+            _buildSection(context, context.hujiL10n.devToolsSection, Icons.build, [
               _buildDeveloperButton(
                 context,
-                '测试页面',
+                context.hujiL10n.testPageTitle,
                 Icons.science,
-                '访问测试页面',
+                context.hujiL10n.testPageAccessSubtitle,
                 () => context.push(ToolsRoute.test),
               ),
               _buildDeveloperButton(
                 context,
-                '权限测试',
+                context.hujiL10n.permissionTestTitle,
                 Icons.security,
-                '测试应用权限',
+                context.hujiL10n.permissionTestSubtitle,
                 () => context.push('${ToolsRoute.test}?tab=permission'),
               ),
               _buildDeveloperButton(
                 context,
-                '系统信息',
+                context.hujiL10n.systemInfoTitle,
                 Icons.info,
-                '查看系统详细信息',
+                context.hujiL10n.systemInfoSubtitle,
                 () => _showSystemInfo(context),
               ),
               ListTile(
                 leading: const Icon(Icons.bug_report),
-                title: const Text('测试页面'),
-                subtitle: const Text('用于测试各种功能'),
+                title: Text(context.hujiL10n.testPageTitle),
+                subtitle: Text(context.hujiL10n.testPageForFeaturesSubtitle),
                 onTap: () {
                   Navigator.pushNamed(context, '/test');
                 },
               ),
               ListTile(
                 leading: const Icon(Icons.text_snippet),
-                title: const Text('日志查看器'),
-                subtitle: const Text('查看应用日志'),
+                title: Text(context.hujiL10n.logViewerTitle),
+                subtitle: Text(context.hujiL10n.viewAppLogsSubtitle),
                 onTap: () {
                   Navigator.push(
                     context,
@@ -112,82 +113,94 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
               ),
             ]),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 数据管理
-            _buildSection(context, '数据管理', Icons.storage, [
+            _buildSection(
+              context,
+              context.hujiL10n.dataManagementSection,
+              Icons.storage,
+              [
               _buildDeveloperButton(
                 context,
-                '重置应用',
+                context.hujiL10n.resetAppTitle,
                 Icons.refresh,
-                '清除所有应用数据',
+                context.hujiL10n.resetAppSubtitle,
                 () => _resetApp(context),
                 isDestructive: true,
               ),
               _buildDeveloperButton(
                 context,
-                '清除缓存',
+                context.hujiL10n.clearCacheTitle,
                 Icons.cleaning_services,
-                '清除应用缓存',
+                context.hujiL10n.clearAppCacheSubtitle,
                 _clearCache,
               ),
               _buildDeveloperButton(
                 context,
-                '导出日志',
+                context.hujiL10n.exportLogsTitle,
                 Icons.download,
-                '导出应用日志',
+                context.hujiL10n.exportLogsSubtitle,
                 _exportLogs,
               ),
             ]),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 调试功能
-            _buildSection(context, '调试功能', Icons.bug_report, [
+            _buildSection(
+              context,
+              context.hujiL10n.debugFeaturesSection,
+              Icons.bug_report,
+              [
               _buildDeveloperButton(
                 context,
-                '性能监控',
+                context.hujiL10n.performanceMonitorTitle,
                 Icons.speed,
-                '监控应用性能',
+                context.hujiL10n.performanceMonitorSubtitle,
                 _showPerformanceMonitor,
               ),
               _buildDeveloperButton(
                 context,
-                '网络调试',
+                context.hujiL10n.networkDebugTitle,
                 Icons.network_check,
-                '网络请求调试',
+                context.hujiL10n.networkDebugSubtitle,
                 _showNetworkDebug,
               ),
               _buildDeveloperButton(
                 context,
-                '数据库调试',
+                context.hujiL10n.databaseDebugTitle,
                 Icons.storage,
-                '查看数据库内容',
+                context.hujiL10n.databaseDebugSubtitle,
                 _showDatabaseDebug,
               ),
             ]),
 
-            const SizedBox(height: 24),
+            SizedBox(height: 24),
 
             // 实验功能
-            _buildSection(context, '实验功能', Icons.science, [
+            _buildSection(
+              context,
+              context.hujiL10n.experimentalFeaturesSection,
+              Icons.science,
+              [
               _buildDeveloperButton(
                 context,
-                '实验功能A',
+                context.hujiL10n.experimentalFeatureATitle,
                 Icons.science,
-                '实验性功能A',
+                context.hujiL10n.experimentalFeatureASubtitle,
                 _experimentalFeatureA,
               ),
               _buildDeveloperButton(
                 context,
-                '实验功能B',
+                context.hujiL10n.experimentalFeatureBTitle,
                 Icons.science,
-                '实验性功能B',
+                context.hujiL10n.experimentalFeatureBSubtitle,
                 _experimentalFeatureB,
               ),
             ]),
 
-            const SizedBox(height: 32),
+            SizedBox(height: 32),
           ],
         ),
       ),
@@ -206,7 +219,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
         Row(
           children: [
             Icon(icon, color: context.theme.primaryColor),
-            const SizedBox(width: 8),
+            SizedBox(width: 8),
             Text(
               title,
               style: context.textTheme.titleMedium?.copyWith(
@@ -215,7 +228,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
             ),
           ],
         ),
-        const SizedBox(height: 16),
+        SizedBox(height: 16),
         ...children.map(
           (child) =>
               Padding(padding: const EdgeInsets.only(bottom: 8), child: child),
@@ -257,7 +270,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
                   size: 20,
                 ),
               ),
-              const SizedBox(width: 16),
+              SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,7 +282,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
                         color: isDestructive ? Colors.red : null,
                       ),
                     ),
-                    const SizedBox(height: 4),
+                    SizedBox(height: 4),
                     Text(
                       description,
                       style: context.textTheme.bodySmall?.copyWith(
@@ -296,29 +309,36 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   }
 
   void _showSystemInfo(BuildContext context) {
+    final l10n = context.hujiL10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('系统信息'),
+        title: Text(l10n.systemInfoTitle),
         content: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              _buildInfoRow('平台', GetPlatform.isAndroid ? 'Android' : 'iOS'),
-              _buildInfoRow('设备', GetPlatform.isMobile ? '移动设备' : '桌面设备'),
-              _buildInfoRow('Flutter版本', '3.16.0'),
-              _buildInfoRow('Dart版本', '3.2.0'),
-              _buildInfoRow('GetX版本', '4.6.5'),
-              _buildInfoRow('应用版本', '1.0.0'),
-              _buildInfoRow('构建号', '1'),
+              _buildInfoRow(
+                l10n.platformLabel,
+                GetPlatform.isAndroid ? 'Android' : 'iOS',
+              ),
+              _buildInfoRow(
+                l10n.deviceLabel,
+                GetPlatform.isMobile ? l10n.mobileDevice : l10n.desktopDevice,
+              ),
+              _buildInfoRow(l10n.flutterVersionLabel, '3.16.0'),
+              _buildInfoRow(l10n.dartVersionLabel, '3.2.0'),
+              _buildInfoRow(l10n.getxVersionLabel, '4.6.5'),
+              _buildInfoRow(l10n.appVersionLabel, '1.0.0'),
+              _buildInfoRow(l10n.buildNumber, '1'),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('关闭'),
+            child: Text(context.hujiL10n.actionClose),
           ),
         ],
       ),
@@ -353,101 +373,79 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   }
 
   void _resetApp(BuildContext context) {
+    final l10n = context.hujiL10n;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('重置应用'),
-        content: const Text('这将清除所有应用数据，包括设置、缓存和用户数据。此操作不可撤销。'),
+        title: Text(l10n.resetAppTitle),
+        content: Text(l10n.resetAppConfirmMessage),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('重置功能开发中...'),
+                SnackBar(
+                  content: Text(
+                    context.hujiL10n.namedFeatureInDevelopment(
+                      context.hujiL10n.resetAppTitle,
+                    ),
+                  ),
                   backgroundColor: Colors.orange,
                 ),
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: const Text('重置'),
+            child: Text(context.hujiL10n.actionReset),
           ),
         ],
       ),
     );
   }
 
-  void _clearCache() {
+  void _showFeatureInDevelopmentSnackBar(String featureName) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('缓存清除功能开发中...'),
-        backgroundColor: Colors.blue,
+        content: Text(
+          context.hujiL10n.namedFeatureInDevelopment(featureName),
+        ),
         behavior: SnackBarBehavior.floating,
       ),
     );
+  }
+
+  void _clearCache() {
+    _showFeatureInDevelopmentSnackBar(context.hujiL10n.clearCacheTitle);
   }
 
   void _exportLogs() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('日志导出功能开发中...'),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _showFeatureInDevelopmentSnackBar(context.hujiL10n.exportLogsTitle);
   }
 
   void _showPerformanceMonitor() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('性能监控功能开发中...'),
-        backgroundColor: Colors.purple,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _showFeatureInDevelopmentSnackBar(context.hujiL10n.performanceMonitorTitle);
   }
 
   void _showNetworkDebug() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('网络调试功能开发中...'),
-        backgroundColor: Colors.teal,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _showFeatureInDevelopmentSnackBar(context.hujiL10n.networkDebugTitle);
   }
 
   void _showDatabaseDebug() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('数据库调试功能开发中...'),
-        backgroundColor: Colors.indigo,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    _showFeatureInDevelopmentSnackBar(context.hujiL10n.databaseDebugTitle);
   }
 
   void _experimentalFeatureA() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('实验功能A开发中...'),
-        backgroundColor: Colors.amber,
-        behavior: SnackBarBehavior.floating,
-      ),
+    _showFeatureInDevelopmentSnackBar(
+      context.hujiL10n.experimentalFeatureATitle,
     );
   }
 
   void _experimentalFeatureB() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('实验功能B开发中...'),
-        backgroundColor: Colors.amber,
-        behavior: SnackBarBehavior.floating,
-      ),
+    _showFeatureInDevelopmentSnackBar(
+      context.hujiL10n.experimentalFeatureBTitle,
     );
   }
 }

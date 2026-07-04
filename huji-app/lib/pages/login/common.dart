@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 
 Future<void> getVerificationCode(
   BuildContext context,
@@ -9,7 +10,7 @@ Future<void> getVerificationCode(
   Function() onSuccess,
   Function(String) onError,
 ) async {
-  final error = validateEmailOrPhone(identifier);
+  final error = validateEmailOrPhone(context.hujiL10n, identifier);
   if (error != null) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -28,8 +29,7 @@ Future<void> getVerificationCode(
     );
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('验证码已发送，请注意查收'),
+        SnackBar(content: Text(context.hujiL10n.loginAuthCodeSentCheck),
           backgroundColor: Colors.green,
         ),
       );
@@ -38,48 +38,52 @@ Future<void> getVerificationCode(
   } catch (e) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('发送失败: $e'), backgroundColor: Colors.red),
+        SnackBar(
+          content: Text(context.hujiL10n.loginSendFailed(e.toString())),
+          backgroundColor: Colors.red,
+        ),
       );
     }
     onError(e.toString());
   }
 }
 
-String? validateAuthCode(String? value) {
+String? validateAuthCode(HujiLocalizations l10n, String? value) {
   if (value == null || value.isEmpty) {
-    return '请输入验证码';
+    return l10n.loginValidationAuthCodeRequired;
   }
   if (!RegExp(r'^\d{4,6}$').hasMatch(value)) {
-    return '请输入4-6位数字验证码';
+    return l10n.loginValidationAuthCodeFormat;
   }
   return null;
 }
 
-String? validatePassword(String? value) {
+String? validatePassword(HujiLocalizations l10n, String? value) {
   if (value == null || value.isEmpty) {
-    return '请输入密码';
+    return l10n.loginValidationPasswordRequired;
   }
   if (value.length < 8) {
-    return '密码长度至少为8位';
+    return l10n.loginValidationPasswordMinLength;
   }
   return null;
 }
 
-String? validateEmailOrPhone(String? value) {
+String? validateEmailOrPhone(HujiLocalizations l10n, String? value) {
   if (value == null || value.isEmpty) {
-    return '请输入手机号或邮箱';
+    return l10n.loginValidationIdentifierRequired;
   }
   final emailRegex = RegExp(
     r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
   );
   final phoneRegex = RegExp(r'^1[3-9]\d{9}$');
   if (!emailRegex.hasMatch(value) && !phoneRegex.hasMatch(value)) {
-    return '请输入正确的手机号或邮箱';
+    return l10n.loginValidationIdentifierInvalid;
   }
   return null;
 }
 
 TextFormField buildTextField(
+  BuildContext context,
   String label,
   String hint,
   IconData icon,
@@ -88,24 +92,30 @@ TextFormField buildTextField(
   bool obscureText,
   FormFieldValidator<String> validator,
 ) {
+  final inputTheme = Theme.of(context).inputDecorationTheme;
   return TextFormField(
     controller: controller,
     obscureText: obscureText,
     decoration: InputDecoration(
       labelText: label,
+      hintText: hint,
       prefixIcon: Icon(icon, color: Colors.grey, size: 20),
       suffixIcon: suffixIcon,
-      border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
-      ),
+      border: inputTheme.border ??
+          OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+      enabledBorder: inputTheme.enabledBorder ??
+          OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
+          ),
+      focusedBorder: inputTheme.focusedBorder ??
+          OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
+          ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      fillColor: Colors.white,
+      filled: inputTheme.filled,
+      fillColor: inputTheme.fillColor,
       iconColor: Colors.grey[100],
       hintStyle: TextStyle(color: Colors.grey[500]!),
       labelStyle: TextStyle(

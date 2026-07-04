@@ -40,6 +40,21 @@ class SeekToEvent extends MultiVideoPlayerEvent {
   List<Object?> get props => [timeMs];
 }
 
+/// 进度条开始拖动（暂停 tick，避免与拖动抢状态）
+class ScrubStartEvent extends MultiVideoPlayerEvent {
+  const ScrubStartEvent();
+}
+
+/// 进度条结束拖动（最终 seek，必要时恢复播放）
+class ScrubEndEvent extends MultiVideoPlayerEvent {
+  final int timeMs;
+
+  const ScrubEndEvent(this.timeMs);
+
+  @override
+  List<Object?> get props => [timeMs];
+}
+
 /// 设置播放速度事件
 class SetPlaybackSpeedEvent extends MultiVideoPlayerEvent {
   final double speed;

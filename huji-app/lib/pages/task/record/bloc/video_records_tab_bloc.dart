@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 
@@ -69,7 +70,12 @@ class VideoRecordsTabBloc
         ),
       );
     } catch (e) {
-      emit(state.copyWith(errorMessage: '加载失败: $e', isLoading: false));
+      emit(
+        state.copyWith(
+          errorMessage: resolveHujiL10n().loadFailed('$e'),
+          isLoading: false,
+        ),
+      );
     }
   }
 
