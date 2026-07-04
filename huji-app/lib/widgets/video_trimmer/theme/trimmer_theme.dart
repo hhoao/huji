@@ -76,23 +76,28 @@ class TrimmerThemeData extends ThemeExtension<TrimmerThemeData> {
   final Color sliderOverlay;
 
   factory TrimmerThemeData.from(ColorScheme scheme) {
+    final isDark = scheme.brightness == Brightness.dark;
     return TrimmerThemeData(
       scaffoldBackground: scheme.surface,
       previewBackground: scheme.surfaceContainerLow,
       toolbarBackground: scheme.surfaceContainer,
       timelineBackground: scheme.surfaceContainerHigh,
       timelineBottomSpan: scheme.outlineVariant.withValues(alpha: 0.18),
-      segmentBorder: scheme.outline,
+      segmentBorder: isDark
+          ? const Color(0xD9FFFFFF)
+          : scheme.outline.withValues(alpha: 0.9),
       segmentSelectedBorder: scheme.primary,
       segmentChipBackground: scheme.surfaceContainerHighest,
       segmentChipSelectedBackground: scheme.primary,
       segmentSelectedOverlay: scheme.primary.withValues(alpha: 0.28),
-      segmentUnselectedOverlay: scheme.scrim.withValues(alpha: 0.12),
+      segmentUnselectedOverlay: isDark
+          ? Colors.black.withValues(alpha: 0.32)
+          : scheme.scrim.withValues(alpha: 0.12),
       playheadColor: scheme.primary,
       rulerTickColor: scheme.outline,
       rulerLabelColor: scheme.onSurface,
-      handleBackground: scheme.primary,
-      handleForeground: scheme.onPrimary,
+      handleBackground: isDark ? Colors.white : const Color(0xFF1A1A1D),
+      handleForeground: isDark ? const Color(0xFF1A1A1D) : Colors.white,
       playOverlayBackground: scheme.scrim.withValues(alpha: 0.45),
       onToolbar: scheme.onSurface,
       onToolbarMuted: scheme.onSurfaceVariant,

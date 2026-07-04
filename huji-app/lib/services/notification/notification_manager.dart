@@ -66,17 +66,26 @@ class NotificationManager implements NotificationService<dynamic> {
     // Linux settings
     final LinuxInitializationSettings? initializationSettingsLinux =
         Platform.isLinux
-            ? LinuxInitializationSettings(
-                defaultActionName: 'huji',
-                defaultIcon: ThemeLinuxIcon('huji'),
-              )
-            : null;
+        ? LinuxInitializationSettings(
+            defaultActionName: 'huji',
+            defaultIcon: ThemeLinuxIcon('huji'),
+          )
+        : null;
+
+    // Windows settings
+    const WindowsInitializationSettings initializationSettingsWindows =
+        WindowsInitializationSettings(
+          appName: '弧迹',
+          appUserModelId: 'Com.Huji.HujiApp',
+          guid: 'a3f8c2e1-9b4d-4a7e-8f6c-1d2e3b4a5c6d',
+        );
 
     // Initialization settings
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
       linux: initializationSettingsLinux,
+      windows: Platform.isWindows ? initializationSettingsWindows : null,
     );
 
     // Initialize plugin
@@ -108,7 +117,9 @@ class NotificationManager implements NotificationService<dynamic> {
 
   // 检查通知权限
   Future<bool> checkNotificationPermission() async {
-    if (Platform.isLinux) return true;
+    if (Platform.isLinux || Platform.isWindows || Platform.isMacOS) {
+      return true;
+    }
     if (!(Platform.isAndroid || Platform.isIOS)) return false;
     final status = await Permission.notification.status;
     return status.isGranted;

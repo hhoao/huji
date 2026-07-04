@@ -35,18 +35,17 @@ class AppUpdateService {
     // 调用API获取最新版本信息
     final latestApps = await Api.app.getLatestAppInfo(appName, platform.value);
 
-    if (latestApps.isEmpty ||
-        _compareVersions(latestApps.first.version, packageInfo.version)) {
+    if (latestApps.isEmpty) {
+      _logger.i('未找到应用更新信息');
+      return AppUpdateInfo(hasUpdate: false);
+    }
+
+    if (_compareVersions(latestApps.first.version, packageInfo.version)) {
       _logger.i('当前已是最新版本: ${latestApps.first.version}');
       return AppUpdateInfo(hasUpdate: false);
     }
 
     final currentApp = await getCurrentApp();
-
-    if (latestApps.isEmpty) {
-      _logger.i('未找到应用更新信息');
-      return AppUpdateInfo(hasUpdate: false);
-    }
 
     // 找到当前平台的最新版本
     final latestApp = latestApps.firstWhere(

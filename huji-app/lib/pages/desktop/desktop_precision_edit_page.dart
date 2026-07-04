@@ -39,16 +39,25 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   VideoTrimmerBlocManager? _trimmerBlocManager;
   SegmentInfo? _activeSegment;
   bool _trimmerLoading = false;
+  bool _blocsInitialized = false;
 
   @override
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
-    _roundClipBloc = RoundClipBloc(
-      l10n: context.hujiL10n,
-      multiVideoPlayerBloc: _multiVideoPlayerBloc,
-    );
-    _initBloc();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (!_blocsInitialized) {
+      _blocsInitialized = true;
+      _roundClipBloc = RoundClipBloc(
+        l10n: context.hujiL10n,
+        multiVideoPlayerBloc: _multiVideoPlayerBloc,
+      );
+      _initBloc();
+    }
   }
 
   Future<void> _initBloc() async {

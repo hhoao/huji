@@ -126,9 +126,7 @@ class _ClipSegmentOverlayContentState
     final borderWidth = isSelected
         ? layout.segmentSelectedBorderWidth
         : layout.segmentBorderWidth;
-    final borderColor = isSelected
-        ? trimmerTheme.segmentSelectedBorder
-        : trimmerTheme.segmentBorder;
+    final borderColor = trimmerTheme.segmentBorder;
 
     return GestureDetector(
       onTap: () {
@@ -138,30 +136,13 @@ class _ClipSegmentOverlayContentState
           );
         }
       },
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(
-            color: isSelected
-                ? trimmerTheme.segmentSelectedOverlay
-                : trimmerTheme.segmentUnselectedOverlay,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          border: Border.all(
+            color: borderColor.withValues(alpha: isSelected ? 1.0 : 0.65),
+            width: borderWidth,
           ),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              border: Border.all(color: borderColor, width: borderWidth),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: trimmerTheme.segmentSelectedBorder.withValues(
-                          alpha: 0.45,
-                        ),
-                        spreadRadius: 1,
-                      ),
-                    ]
-                  : null,
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -209,7 +190,7 @@ class _ClipSegmentOverlayContentState
               resizable: resizable,
               dragging: dragging,
               highlighted: highlighted,
-              themeData: themeData,
+              thumbnailHeight: widget.thumbnailHeight,
               segments: segments,
             );
           },
@@ -242,14 +223,14 @@ class _ClipSegmentOverlayContentState
   }
 }
 
-/// 条件显示的 Divider Widget，使用 BlocBuilder 只更新 Divider 部分
+/// 片段边界拖动手柄；选中片段相邻的手柄高亮，其余保持可见但弱化。
 class _ConditionalDivider extends StatelessWidget {
   final Axis axis;
   final int dividerIndex;
   final bool resizable;
   final bool dragging;
   final bool highlighted;
-  final MultiSplitViewThemeData themeData;
+  final double thumbnailHeight;
   final List<VideoClipSegment> segments;
 
   const _ConditionalDivider({
@@ -258,24 +239,20 @@ class _ConditionalDivider extends StatelessWidget {
     required this.resizable,
     required this.dragging,
     required this.highlighted,
-    required this.themeData,
+    required this.thumbnailHeight,
     required this.segments,
   });
 
   @override
   Widget build(BuildContext context) {
-    // 使用 BlocSelector 只选择 selectedSegment，避免不必要的重建
     return BlocSelector<ClipSegmentBloc, ClipSegmentState, VideoClipSegment?>(
       selector: (state) => state.selectedSegment,
       builder: (context, selectedSegment) {
-        // 读取最新的 segments 状态
         final currentSegments = context
             .read<ClipSegmentBloc>()
             .state
             .allSegments;
 
-        // Divider 位于两个片段之间，需要检查左右两侧片段是否至少有一个被选中
-        // dividerIndex 表示左侧片段的索引
         final leftSegmentSelected =
             dividerIndex >= 0 &&
             dividerIndex < currentSegments.length &&
@@ -283,18 +260,40 @@ class _ConditionalDivider extends StatelessWidget {
         final rightSegmentSelected =
             dividerIndex + 1 < currentSegments.length &&
             currentSegments[dividerIndex + 1].isSelected;
+        final isActive = leftSegmentSelected || rightSegmentSelected;
 
-        // 如果左右两侧片段都没有被选中，不显示 Divider
-        if (!leftSegmentSelected && !rightSegmentSelected) {
-          return const SizedBox.shrink();
-        }
+        final trimmerTheme = context.trimmerTheme;
+        final layout = context.trimmerLayout;
+        final handleBg = trimmerTheme.handleBackground;
+        final handleFg = trimmerTheme.handleForeground;
+        final inactiveHandleBg = handleBg.withValues(alpha: 0.72);
+        final inactiveHandleFg = handleFg.withValues(alpha: 0.85);
 
-        // 返回默认的 Divider（使用主题的 DividerWidget）
+        final themeData = MultiSplitViewThemeData(
+          dividerThickness: 0,
+          dividerHandleBuffer: layout.dividerHandleBuffer,
+          dividerPainter: CustomDividerPainters.roundedRect(
+            size: isActive
+                ? layout.dividerHandleSize
+                : layout.dividerHandleSize * 0.88,
+            thickness: isActive
+                ? layout.dividerHandleThickness
+                : layout.dividerHandleThickness - 2,
+            highlightedSize: thumbnailHeight,
+            highlightedThickness: layout.dividerHandleThickness + 2,
+            backgroundColor: isActive ? handleBg : inactiveHandleBg,
+            highlightedBackgroundColor: handleBg,
+            dividerColor: isActive ? handleFg : inactiveHandleFg,
+            highlightedDividerColor: handleFg,
+            borderRadius: 6,
+          ),
+        );
+
         return DividerWidget(
           axis: axis,
           index: dividerIndex,
           themeData: themeData,
-          highlighted: highlighted,
+          highlighted: highlighted || isActive,
           resizable: resizable,
           dragging: dragging,
         );
