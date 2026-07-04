@@ -5,6 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/utils/file_utils.dart';
 
 enum LogLevel {
   info,
@@ -280,7 +281,7 @@ class AppLogger {
       var deletedCount = 0;
 
       for (var file in files) {
-        final fileName = file.path.split('/').last;
+        final fileName = fileNameFromPath(file.path);
         final modified = file.lastModifiedSync();
         final age = now.difference(modified).inDays;
 

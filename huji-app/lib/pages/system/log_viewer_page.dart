@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 // import 'package:share_plus/share_plus.dart';
 
@@ -402,7 +403,7 @@ class _LogViewerPageState extends State<LogViewerPage> {
                                       pendingCount,
                                     );
                                   } else {
-                                    name = file.split('/').last;
+                                    name = fileNameFromPath(file);
                                   }
                                   return DropdownMenuItem(
                                     value: file,

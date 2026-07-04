@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:huji_app/models/task.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/store/task/task_manager.dart';
@@ -62,7 +63,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
 
       if (result != null && result.isNotEmpty) {
         final file = File(result.first.path);
-        final fileName = result.first.path.split('/').last;
+        final fileName = fileNameFromPath(result.first.path);
         final fileSize = await file.length();
 
         setState(() {
@@ -93,7 +94,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
 
       final task = await VideoUploadTaskManager.createUploadTask(
         filePath: _selectedFile!.path,
-        fileName: _selectedFile!.path.split('/').last,
+        fileName: fileNameFromPath(_selectedFile!.path),
         directory: _uploadDirectory,
         contentType: 'video/mp4',
         chunkSize: _chunkSize,

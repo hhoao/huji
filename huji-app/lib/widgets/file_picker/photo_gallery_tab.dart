@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:photo_manager/photo_manager.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -201,7 +202,7 @@ class _AssetItemState extends State<_AssetItem>
                       await VideoPlayerPage.show(
                         context,
                         file.path,
-                        file.path.split('/').last,
+                        fileNameFromPath(file.path),
                       );
                     }
                   },
@@ -1555,7 +1556,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                               await VideoPlayerPage.show(
                                 context,
                                 file.path,
-                                file.path.split('/').last,
+                                fileNameFromPath(file.path),
                               );
                             }
                           },

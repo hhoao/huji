@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_cache_manager/flutter_cache_manager.dart' as cache;
 import 'package:get/get_utils/get_utils.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
@@ -119,7 +120,7 @@ class VideoClipTaskManager extends AbstractTaskManager {
       configId: task.presignedConfigId,
       url: task.presignedUrl!,
       path: task.presignedPath ?? '',
-      name: task.videoPath.split('/').last,
+      name: fileNameFromPath(task.videoPath),
       type: 'video/mp4',
       size: await File(task.videoPath).length(),
     );

@@ -1,5 +1,6 @@
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/utils/file_utils.dart';
 
 enum VideoSource { remote, local }
 
@@ -57,7 +58,7 @@ class VideoDisplayItem {
   factory VideoDisplayItem.fromLocal(SavedVideoRecord record) {
     return VideoDisplayItem(
       source: VideoSource.local,
-      fileName: record.filePath?.split('/').last.split('.').first ?? '',
+      fileName: fileNameWithoutExtensionFromPath(record.filePath ?? ''),
       playUrl: record.filePath ?? '',
       thumbnailPath: record.thumbnailPath,
       size: record.fileSize,

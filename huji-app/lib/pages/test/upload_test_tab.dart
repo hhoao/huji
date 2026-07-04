@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:huji_app/api/api_manager.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 
 class UploadTestTab extends StatefulWidget {
@@ -46,7 +47,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
       if (result != null && result.isNotEmpty) {
         final file = File(result.first.path);
-        final fileName = result.first.path.split('/').last;
+        final fileName = fileNameFromPath(file.path);
         final fileSize = await file.length();
 
         setState(() {
@@ -91,7 +92,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
       final uploadedPath = await Api.multipartUpload.uploadFileWithMultipart(
         file: _selectedFile!,
-        fileName: _selectedFile!.path.split('/').last,
+        fileName: fileNameFromPath(_selectedFile!.path),
         directory: _uploadDirectory,
         contentType: 'video/mp4',
         chunkSize: _chunkSize,

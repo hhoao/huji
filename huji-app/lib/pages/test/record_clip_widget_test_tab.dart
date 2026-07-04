@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/services/large_model_service.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/image_utils.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/widgets/camerax/bloc/camerax_bloc.dart';
@@ -153,7 +154,7 @@ class _RecordClipWidgetTestTabState extends State<RecordClipWidgetTestTab> {
                         ),
                         if (_recordedVideo != null)
                           Text(
-                            '📁 录制文件: ${_recordedVideo!.path.split('/').last}',
+                            '📁 录制文件: ${fileNameFromPath(_recordedVideo!.path)}',
                           ),
                       ],
                     ),

@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
 
@@ -49,7 +50,7 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  _selectedVideoFile!.path.split('/').last,
+                                  fileNameFromPath(_selectedVideoFile!.path),
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w500,
                                   ),

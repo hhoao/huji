@@ -1,6 +1,14 @@
 import 'dart:io';
 
 import 'package:huji_app/services/storage_service.dart' show storage;
+import 'package:path/path.dart' as p;
+
+/// File name from a filesystem path (handles Windows `\` and POSIX `/`).
+String fileNameFromPath(String filePath) => p.basename(filePath);
+
+/// File name without extension from a filesystem path.
+String fileNameWithoutExtensionFromPath(String filePath) =>
+    p.basenameWithoutExtension(filePath);
 
 bool isExternalStorage(String path) {
   if (Platform.isAndroid) {

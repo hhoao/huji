@@ -9,6 +9,7 @@ import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/permission_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/constants/app_setting_constants.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/upload.dart';
 import 'package:huji_app/models/video.dart';
@@ -200,7 +201,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         return;
       }
       final file = File(rawRecord.filePath!);
-      final fileName = file.path.split('/').last;
+      final fileName = fileNameFromPath(file.path);
 
       VideoClipConfigReqVo config = configValues;
 

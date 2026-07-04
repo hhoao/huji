@@ -8,6 +8,7 @@ import 'package:huji_app/pages/clip/round_clip_page.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:huji_app/utils/file_utils.dart';
 
 import '../../../../models/task.dart';
 import 'bloc/task_tab_bloc.dart';
@@ -181,7 +182,7 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                originalFile.path.split('/').last,
+                                fileNameFromPath(originalFile.path),
                                 style: const TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
@@ -296,7 +297,7 @@ void _showImageDetail(
           SizedBox(height: 16),
           _buildDetailRow(
             context.hujiL10n.fileName,
-            originalFile.path.split('/').last,
+            fileNameFromPath(originalFile.path),
           ),
           _buildDetailRow(
             context.hujiL10n.originalSize,

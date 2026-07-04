@@ -245,7 +245,7 @@ class StorageManager extends GetxController {
       if (await dir.exists()) {
         await for (final entity in dir.list(recursive: true)) {
           if (entity is File) {
-            final fileName = entity.path.split('/').last;
+            final fileName = path_utils.fileNameFromPath(entity.path);
             final extension = fileName.split('.').last.toLowerCase();
             final size = await entity.length();
             files.add({

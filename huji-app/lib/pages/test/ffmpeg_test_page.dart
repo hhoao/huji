@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/models/ffmpeg.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
@@ -56,7 +57,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
       MaterialPageRoute(
         builder: (context) => VideoPlayerPage(
           videoUrl: videoPath,
-          fileName: file.path.split('/').last,
+          fileName: fileNameFromPath(videoPath),
         ),
       ),
     );
@@ -113,7 +114,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
               itemCount: files.length,
               itemBuilder: (context, index) {
                 final file = files[index] as File;
-                final fileName = file.path.split('/').last;
+                final fileName = fileNameFromPath(file.path);
                 final fileSize = _formatFileSize(file.lengthSync());
                 final modifiedTime = DateTime.fromMillisecondsSinceEpoch(
                   file.lastModifiedSync().millisecondsSinceEpoch,
@@ -171,7 +172,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
         _status = '视频比较完成';
         _logs.add('=== 视频比较结果 ===');
         _logs.add('输入视频:');
-        _logs.add('  文件名: ${_selectedVideoPath!.split('/').last}');
+        _logs.add('  文件名: ${fileNameFromPath(_selectedVideoPath!)}');
         _logs.add(
           '  大小: ${_formatFileSize(_lastCompressResult!.originalSize ?? 0)}',
         );
@@ -183,7 +184,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
         _logs.add('  帧率: ${inputInfo?.fps ?? "未知"} fps');
         _logs.add('');
         _logs.add('输出视频:');
-        _logs.add('  文件名: ${_lastCompressResult!.outputPath!.split('/').last}');
+        _logs.add('  文件名: ${fileNameFromPath(_lastCompressResult!.outputPath!)}');
         _logs.add(
           '  大小: ${_formatFileSize(_lastCompressResult!.compressedSize ?? 0)}',
         );
@@ -389,7 +390,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
       if (result != null && result.isNotEmpty) {
         setState(() {
           _selectedVideoPath = result.first.path;
-          _logs.add('已选择视频文件: ${result.first.path.split('/').last}');
+          _logs.add('已选择视频文件: ${fileNameFromPath(result.first.path)}');
         });
       }
     } catch (e) {
@@ -1366,7 +1367,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '输入视频: ${_selectedVideoPath?.split('/').last ?? '未选择'}',
+                          '输入视频: ${_selectedVideoPath != null ? fileNameFromPath(_selectedVideoPath!) : '未选择'}',
                           style: TextStyle(
                             color: _selectedVideoPath != null
                                 ? Colors.black
@@ -1405,7 +1406,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '输出视频: ${_lastCompressResult?.outputPath?.split('/').last ?? '未生成'}',
+                          '输出视频: ${_lastCompressResult?.outputPath != null ? fileNameFromPath(_lastCompressResult!.outputPath!) : '未生成'}',
                           style: TextStyle(
                             color: _lastCompressResult?.outputPath != null
                                 ? Colors.black
