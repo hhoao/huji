@@ -29,6 +29,10 @@ flutter test test/fixtures/autoclip/autoclip_fixture_test.dart
 
 # Integration golden tests (ONNX cases skip in VM)
 flutter test test/integration/local_detection_golden_test.dart
+
+# End-to-end clip flow: demo video → local detection → task completed
+# (tagged `integration`; excluded from default CI via --exclude-tags integration)
+flutter test test/integration/clip_flow_integration_test.dart
 ```
 
 Expected segment counts (algorithm golden):
