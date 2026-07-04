@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:huji_app/pages/login/login_dialog.dart';
 
 void main() {
@@ -10,6 +11,9 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         theme: AppTheme.darkTheme,
+        locale: const Locale('zh'),
+        localizationsDelegates: HujiLocalizationsSetup.localizationsDelegates,
+        supportedLocales: HujiLocalizationsSetup.supportedLocales,
         home: const Scaffold(body: LoginDialog(visible: true)),
       ),
     );

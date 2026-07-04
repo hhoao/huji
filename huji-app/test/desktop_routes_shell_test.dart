@@ -8,12 +8,13 @@ void main() {
   test('desktop routes keep navigation chrome in a ShellRoute', () {
     final routes = DesktopRoutes.getRoutes();
 
-    expect(routes, hasLength(1));
-    expect(routes.single, isA<ShellRoute>());
+    expect(routes, hasLength(2));
+    expect(routes.whereType<GoRoute>(), hasLength(1));
+    expect(routes.whereType<ShellRoute>(), hasLength(1));
   });
 
   test('desktop shell child routes disable route-level page transitions', () {
-    final shell = DesktopRoutes.getRoutes().single as ShellRoute;
+    final shell = DesktopRoutes.getRoutes().whereType<ShellRoute>().single;
     final childRoutes = shell.routes.whereType<GoRoute>();
 
     expect(childRoutes, isNotEmpty);
@@ -32,7 +33,7 @@ void main() {
   });
 
   testWidgets(
-    'desktop page transition slides without fading or painting outgoing page',
+    'desktop page transition fades and slides without painting outgoing page',
     (tester) async {
       Widget buildPage(String route, String label) {
         return MaterialApp(
@@ -55,7 +56,7 @@ void main() {
       final shell = find.byType(DesktopPageShell);
       expect(
         find.descendant(of: shell, matching: find.byType(FadeTransition)),
-        findsNothing,
+        findsOneWidget,
       );
       expect(
         find.descendant(of: shell, matching: find.byType(SlideTransition)),
