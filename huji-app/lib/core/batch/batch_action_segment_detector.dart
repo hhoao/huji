@@ -121,6 +121,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     required ModelPredictor modelPredictor,
     required Map<String, ActionType> classMappings,
     ProgressHandler? progressHandler,
+    int? maxWidth,
   }) async {
     final results = <PredictedFrameInfo>[];
 
@@ -131,6 +132,9 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         videoPath: videoSegmentInfo.videoPath,
         frameInterval: perSecondFrames,
         tempDir: tempDir.path,
+        startTime: videoSegmentInfo.startTime,
+        duration: videoSegmentInfo.endTime - videoSegmentInfo.startTime,
+        maxWidth: maxWidth,
       );
 
       final frames = await _getFrameFiles(tempDir.path);
@@ -205,63 +209,43 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     required Map<ActionType, SegmentDetectorConfig> segmentDetectConfig,
     double segmentDuration = 120.0,
     int perSecondFrames = 6,
+    int inferenceWidth = 640,
     ProgressHandler? progressHandler,
   }) async {
-    final tempDir = await Directory.systemTemp.createTemp('video_segments_');
     final modelPredictor = largeModelService.getPredictor(modelName);
 
     try {
       final videoInfo = await VideoUtils.getVideoInfo(videoPath);
-      final videoSegmentInfos = <VideoSegmentInfo>[];
       final duration = videoInfo.duration;
       progressHandler?.startProcess(duration, perSecondFrames);
+
+      final futures = <Future<List<PredictedFrameInfo>>>[];
       double currentTime = 0;
 
-      // 分段处理视频
       while (currentTime < duration) {
         final nextTime = (currentTime + segmentDuration).clamp(0.0, duration);
-        final outputFile = path.join(
-          tempDir.path,
-          '${currentTime.toInt()}-${nextTime.toInt()}.mp4',
-        );
-
-        // 剪辑视频片段
-        await VideoUtils.clipVideoByTimes(
-          inputFile: videoPath,
+        final videoSegmentInfo = VideoSegmentInfo(
+          videoPath: videoPath,
           startTime: currentTime,
-          duration: nextTime - currentTime,
-          outputFile: outputFile,
+          endTime: nextTime,
         );
 
-        videoSegmentInfos.add(
-          VideoSegmentInfo(
-            videoPath: outputFile,
-            startTime: currentTime,
-            endTime: nextTime,
+        futures.add(
+          extractFramesV2(
+            videoSegmentInfo: videoSegmentInfo,
+            perSecondFrames: perSecondFrames,
+            maxWidth: inferenceWidth,
+            modelPredictor: modelPredictor,
+            classMappings: classMappings,
+            progressHandler: progressHandler,
           ),
         );
 
         currentTime += segmentDuration;
       }
 
-      final futures = <Future<List<PredictedFrameInfo>>>[];
-      final results = <PredictedFrameInfo>[];
-
-      for (int i = 0; i < videoSegmentInfos.length; i++) {
-        final videoSegmentInfo = videoSegmentInfos[i];
-
-        futures.add(
-          extractFramesV2(
-            videoSegmentInfo: videoSegmentInfo,
-            perSecondFrames: perSecondFrames,
-            modelPredictor: modelPredictor,
-            classMappings: classMappings,
-            progressHandler: progressHandler,
-          ),
-        );
-      }
-
       final predictions = await Future.wait(futures);
+      final results = <PredictedFrameInfo>[];
       results.addAll(predictions.expand((p) => p));
 
       // 按时间排序
@@ -271,7 +255,6 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
 
       return results;
     } finally {
-      await tempDir.delete(recursive: true);
       await modelPredictor.dispose();
     }
   }
@@ -314,35 +297,19 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         }
       }
 
-      final resizeTempDir = await Directory.systemTemp.createTemp('video_resize_');
-      try {
-        final stem = path.basenameWithoutExtension(videoPath);
-        final resizedPath = path.join(resizeTempDir.path, '${stem}_640.mp4');
-        _logger.i('缩放视频至 640 宽度: $resizedPath');
-        await VideoUtils.resizeVideoRatio(
-          inputFile: videoPath,
-          outputFile: resizedPath,
-          width: 640,
-        );
-        cleanableFileCollection.addFile(resizedPath);
+      final predictions = await _predictVideoActionPointsInternalV2(
+        videoPath: videoPath,
+        modelName: modelName,
+        classMappings: classMappings,
+        segmentDetectConfig: segmentDetectConfig,
+        progressHandler: progressHandler,
+      );
 
-        final predictions = await _predictVideoActionPointsInternalV2(
-          videoPath: resizedPath,
-          modelName: modelName,
-          classMappings: classMappings,
-          segmentDetectConfig: segmentDetectConfig,
-          progressHandler: progressHandler,
-        );
-
-        // 缓存预测结果
-        if (isUseCache) {
-          await _cachePredictInfos(predictions, videoPath);
-        }
-
-        return predictions;
-      } finally {
-        await resizeTempDir.delete(recursive: true);
+      if (isUseCache) {
+        await _cachePredictInfos(predictions, videoPath);
       }
+
+      return predictions;
     } catch (e, stackTrace) {
       _logger.e('预测视频动作点失败', error: e, stackTrace: stackTrace);
       rethrow;

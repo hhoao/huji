@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart' hide AppIconButton;
@@ -81,11 +82,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         final segments = r is EdittingVideoRecord
             ? r.allMatchSegments
             : <SegmentInfo>[];
+        final baseName = r.filePath != null
+            ? p.basenameWithoutExtension(r.filePath!)
+            : '';
         setState(() {
           _record = r;
           _segments = segments;
-          _fileName = r.filePath?.split('/').last.split('.').first ??
-              context.hujiL10n.defaultHighlightName;
+          _fileName = baseName.isNotEmpty
+              ? baseName
+              : context.hujiL10n.defaultHighlightName;
           _isLoading = false;
         });
         if (segments.isNotEmpty && r.filePath != null) {
@@ -218,14 +223,14 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     return BlocProvider.value(
       value: _playerBloc,
       child: DesktopPageShell(
-        currentRoute: '/clip/${widget.clipId}/preview',
+        currentRoute: DesktopRoutes.clipPreviewPath(widget.clipId),
         title: l10n.previewTitle,
         breadcrumbs: [l10n.desktopNavLibrary, videoName, l10n.previewTitle],
         actions: [
           OutlinedButton(onPressed: () => context.go('/'), child: Text(context.hujiL10n.taskStatusCancelledShort)),
           SizedBox(width: 8),
           OutlinedButton(
-            onPressed: () => context.go('/clip/${widget.clipId}/edit'),
+            onPressed: () => context.go(DesktopRoutes.clipEditPath(widget.clipId)),
             style: OutlinedButton.styleFrom(
               foregroundColor: cs.onPrimaryContainer,
               side: BorderSide(color: cs.primary.withAlpha(89)),

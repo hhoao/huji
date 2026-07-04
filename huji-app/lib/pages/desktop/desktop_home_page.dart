@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
@@ -221,7 +222,7 @@ class _VideoCard extends StatelessWidget {
     final styles = AppTextStyles.of(context);
     return InkWell(
       onTap: _isNavigable
-          ? () => context.go('/clip/${record.id}/preview')
+          ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
           : null,
       borderRadius: BorderRadius.circular(10),
       child: Container(
@@ -302,7 +303,7 @@ class _VideoListTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: _isNavigable
-            ? () => context.go('/clip/${record.id}/preview')
+            ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
             : null,
         child: Padding(
           padding: const EdgeInsets.all(12),

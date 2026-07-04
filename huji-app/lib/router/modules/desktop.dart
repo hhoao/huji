@@ -19,6 +19,12 @@ class DesktopRoutes {
   static const String tasks = '/tasks';
   static const String settings = '/settings';
 
+  static String clipPreviewPath(String clipId) =>
+      '/clip/${Uri.encodeComponent(clipId)}/preview';
+
+  static String clipEditPath(String clipId) =>
+      '/clip/${Uri.encodeComponent(clipId)}/edit';
+
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {
     return NoTransitionPage<void>(key: state.pageKey, child: child);
   }

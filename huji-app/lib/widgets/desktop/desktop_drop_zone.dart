@@ -6,6 +6,7 @@ import 'package:huji_app/constants/file_extensions.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -181,9 +182,9 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
     final file = widget.files[i];
-    final fileName = file.path.split('/').last;
-    final ext = fileName.split('.').last.toUpperCase();
-    final parentDir = file.parent.path.split('/').last;
+    final fileName = p.basename(file.path);
+    final ext = p.extension(fileName).replaceFirst('.', '').toUpperCase();
+    final parentDir = p.basename(file.parent.path);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:path/path.dart' as p;
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/utils/desktop_style.dart';
@@ -182,7 +183,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     for (final file in _selectedFiles) {
       try {
-        final fileName = file.path.split('/').last;
+        final fileName = p.basename(file.path);
 
         final uploadTask = await uploader.createUploadTask(
           filePath: file.path,
@@ -257,7 +258,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     for (final file in _selectedFiles) {
       final now = DateTime.now().millisecondsSinceEpoch;
-      final fileName = file.path.split('/').last;
+      final fileName = p.basename(file.path);
 
       // Create pending task
       final task = VideoClipTask(

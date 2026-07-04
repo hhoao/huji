@@ -509,7 +509,11 @@ class VideoUtils {
       outputFile,
     ];
 
-    final result = await FFmpegRunner.instance.execute(args);
+    final result = await _executeWithCodecFallback(
+      args: args,
+      baseCodec: videoInfo.codecName,
+      accCodec: accCodec,
+    );
 
     if (result.isSuccess) {
       final outputFileSize = await File(outputFile).length();
@@ -570,28 +574,35 @@ class VideoUtils {
       final gpu = await _detectHardwareAcceleration();
       String result;
 
+      String? hardwareEncoder;
       switch (gpu.toLowerCase()) {
         case 'mediacodec':
-          // Android原生硬件编码器，性能好且兼容性强
-          result = '${codec}_mediacodec';
+          hardwareEncoder = '${codec}_mediacodec';
           break;
         case 'cuda':
-          result = '${codec}_nvenc';
+          hardwareEncoder = '${codec}_nvenc';
           break;
         case 'amf':
-          result = '${codec}_amf';
+          hardwareEncoder = '${codec}_amf';
           break;
         case 'qsv':
-          result = '${codec}_qsv';
+          hardwareEncoder = '${codec}_qsv';
           break;
         default:
-          // 如果没有硬件加速，尝试使用软件编码器
-          if (codec == 'h264') {
-            // 尝试Android常见的软件编码器
-            result = await _tryAndroidSoftwareEncoders();
-          } else {
-            result = codec;
-          }
+          hardwareEncoder = null;
+      }
+
+      if (hardwareEncoder != null) {
+        if (await _probeVideoEncoder(hardwareEncoder)) {
+          result = hardwareEncoder;
+        } else {
+          _logger.w('硬件编码器不可用: $hardwareEncoder，回退软件编码');
+          result = await _resolveSoftwareCodec(codec);
+        }
+      } else if (codec == 'h264') {
+        result = await _tryAndroidSoftwareEncoders();
+      } else {
+        result = codec;
       }
 
       // 缓存结果
@@ -612,6 +623,99 @@ class VideoUtils {
       _codecCache[codec] = result;
       return result;
     }
+  }
+
+  static bool _isHardwareEncoder(String codec) {
+    return codec.contains('nvenc') ||
+        codec.contains('mediacodec') ||
+        codec.contains('_amf') ||
+        codec.contains('_qsv');
+  }
+
+  /// 用最小 lavfi 任务探测编码器是否可用（驱动/API 版本不兼容时会失败）。
+  static Future<bool> _probeVideoEncoder(String encoder) async {
+    if (!_isHardwareEncoder(encoder)) {
+      return true;
+    }
+
+    try {
+      final result = await FFmpegRunner.instance.execute([
+        '-hide_banner',
+        '-loglevel',
+        'error',
+        '-f',
+        'lavfi',
+        '-i',
+        'color=c=black:s=64x64:d=0.04',
+        '-frames:v',
+        '1',
+        '-c:v',
+        encoder,
+        '-f',
+        'null',
+        '-',
+      ]);
+      return result.isSuccess;
+    } catch (e) {
+      _logger.w('编码器探测失败: $encoder ($e)');
+      return false;
+    }
+  }
+
+  static Future<String> _resolveSoftwareCodec(String codec) async {
+    if (codec == 'h264') {
+      return _tryAndroidSoftwareEncoders();
+    }
+
+    final execResult = await FFmpegRunner.instance.execute([
+      '-hide_banner',
+      '-encoders',
+    ]);
+    final output = execResult.output ?? '';
+
+    if ((codec == 'hevc' || codec == 'h265') && output.contains('libx265')) {
+      return 'libx265';
+    }
+    if (output.contains('libx264')) {
+      return 'libx264';
+    }
+    return codec;
+  }
+
+  static Future<FFmpegResult> _executeWithCodecFallback({
+    required List<String> args,
+    required String baseCodec,
+    required String accCodec,
+    void Function(double progress)? onProgress,
+  }) async {
+    var result = await FFmpegRunner.instance.execute(
+      args,
+      onProgress: onProgress,
+    );
+    if (result.isSuccess || !_isHardwareEncoder(accCodec)) {
+      return result;
+    }
+
+    final fallback = await _resolveSoftwareCodec(baseCodec);
+    if (fallback == accCodec) {
+      return result;
+    }
+
+    _codecCache[baseCodec] = fallback;
+    _logger.w('硬件编码失败 ($accCodec)，回退至 $fallback');
+
+    final fallbackArgs = List<String>.from(args);
+    for (var i = 0; i < fallbackArgs.length - 1; i++) {
+      if (fallbackArgs[i] == '-c:v' && fallbackArgs[i + 1] == accCodec) {
+        fallbackArgs[i + 1] = fallback;
+        break;
+      }
+    }
+
+    return FFmpegRunner.instance.execute(
+      fallbackArgs,
+      onProgress: onProgress,
+    );
   }
 
   /// 尝试Android平台的软件编码器
@@ -774,8 +878,10 @@ class VideoUtils {
       outputFile,
     ];
 
-    final result = await FFmpegRunner.instance.execute(
-      args,
+    final result = await _executeWithCodecFallback(
+      args: args,
+      baseCodec: codec,
+      accCodec: accCodec,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -820,12 +926,18 @@ class VideoUtils {
       'scale=$width:-1',
       '-c:v',
       accCodec,
+      if (!_isHardwareEncoder(accCodec) && accCodec == 'libx264') ...[
+        '-preset',
+        'ultrafast',
+      ],
       '-y',
       outputFile,
     ];
 
-    final result = await FFmpegRunner.instance.execute(
-      args,
+    final result = await _executeWithCodecFallback(
+      args: args,
+      baseCodec: videoInfo.codecName,
+      accCodec: accCodec,
       onProgress: onProgress != null
           ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
           : null,
@@ -1095,22 +1207,35 @@ class VideoUtils {
     return controller.stream;
   }
 
-  /// 按指定的帧间隔提取视频帧
+  /// 按指定的帧间隔提取视频帧（可选时间段与缩放，直接输出 PNG，无需重编码）。
   static Future<void> intervalExtractFrames({
     required String videoPath,
     required int frameInterval,
     required String tempDir,
+    double? startTime,
+    double? duration,
+    int? maxWidth,
   }) async {
-    final args = [
-      '-loglevel',
-      logLevel,
-      '-i',
-      videoPath,
+    final filters = <String>[];
+    if (maxWidth != null) {
+      filters.add('scale=$maxWidth:-1');
+    }
+    filters.add('fps=$frameInterval');
+
+    final args = <String>['-loglevel', logLevel];
+    if (startTime != null && startTime > 0) {
+      args.addAll(['-ss', startTime.toString()]);
+    }
+    args.addAll(['-i', videoPath]);
+    if (duration != null && duration > 0) {
+      args.addAll(['-t', duration.toString()]);
+    }
+    args.addAll([
       '-vf',
-      'fps=$frameInterval',
+      filters.join(','),
       '-y',
       path.join(tempDir, '%d.png'),
-    ];
+    ]);
 
     final result = await FFmpegRunner.instance.execute(args);
 

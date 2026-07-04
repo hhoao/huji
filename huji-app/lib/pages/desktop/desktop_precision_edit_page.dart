@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -208,7 +209,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           final cs = context.desktopColors;
 
           return DesktopPageShell(
-            currentRoute: '/clip/${widget.clipId}/edit',
+            currentRoute: DesktopRoutes.clipEditPath(widget.clipId),
             title: context.hujiL10n.precisionEditTitle,
             breadcrumbs: [
               context.hujiL10n.desktopNavLibrary,
@@ -223,7 +224,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               SizedBox(width: 8),
               OutlinedButton(
                 onPressed: () =>
-                    context.go('/clip/${widget.clipId}/preview'),
+                    context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: cs.onPrimaryContainer,
                   side: BorderSide(color: cs.primary.withAlpha(89)),
@@ -234,7 +235,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               SizedBox(width: 8),
               ElevatedButton.icon(
                 onPressed: () =>
-                    context.go('/clip/${widget.clipId}/preview'),
+                    context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
                 icon: const Icon(Icons.arrow_forward, size: 16),
                 label: Text(context.hujiL10n.previewTitle),
               ),
