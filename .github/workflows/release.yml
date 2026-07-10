@@ -114,6 +114,7 @@ jobs:
           git config --global --add safe.directory "$HOME/flutter"
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           echo "$HOME/flutter/bin" >> "$GITHUB_PATH"
+          export PATH="$HOME/flutter/bin:$PATH"
           flutter config --enable-linux-desktop
           flutter --version
 
