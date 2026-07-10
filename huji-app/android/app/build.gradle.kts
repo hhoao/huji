@@ -17,10 +17,6 @@ android {
         targetCompatibility = JavaVersion.VERSION_11
     }
 
-    kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
-    }
-
     lint {
         abortOnError = false
         checkReleaseBuilds = false
@@ -63,10 +59,16 @@ android {
     
     
     // Ensure native libraries are included in the APK
-    packagingOptions {
-        pickFirst("**/libc++_shared.so")
-        pickFirst("**/libjsc.so")
-        pickFirst("**/libmpv.so")
+    packaging {
+        jniLibs {
+            pickFirsts += listOf("**/libc++_shared.so", "**/libjsc.so", "**/libmpv.so")
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_11)
     }
 }
 

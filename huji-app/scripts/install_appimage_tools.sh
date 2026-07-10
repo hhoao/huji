@@ -33,7 +33,7 @@ download() {
     -A "huji-appimage-builder/1.0 (+https://github.com/hhoao/huji)" \
     "$url" -o "$target"
   chmod +x "$target"
-  if command -v file >/dev/null 2>&1; then
+  if command -v file >/dev/null 2>&1 && [[ "$target" == *.AppImage ]]; then
     case "$ARCH" in
       x86_64)
         file "$target" | grep -qE 'x86-64|ELF 64-bit' || { echo "[error] wrong arch for $name: $(file "$target")"; exit 1; }

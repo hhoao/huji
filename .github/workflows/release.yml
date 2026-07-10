@@ -98,7 +98,7 @@ jobs:
             libjsoncpp-dev \
             file fuse libfuse2 \
             libasound2-dev libmpv-dev mpv \
-            wget
+            git wget curl xz-utils ca-certificates
 
       - name: Install appimagetool
         run: |
@@ -108,10 +108,14 @@ jobs:
           sudo mv /tmp/appimagetool /usr/local/bin/appimagetool
           appimagetool --version || true
 
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
+      - name: Install Flutter
+        run: |
+          git clone --depth 1 -b stable https://github.com/flutter/flutter.git "$HOME/flutter"
+          git config --global --add safe.directory "$HOME/flutter"
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          echo "$HOME/flutter/bin" >> "$GITHUB_PATH"
+          flutter config --enable-linux-desktop
+          flutter --version
 
       - name: Activate fastforge
         run: dart pub global activate fastforge
@@ -175,7 +179,7 @@ jobs:
 
   build-windows:
     name: Build Windows (MSIX + EXE + ZIP)
-    runs-on: windows-latest
+    runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
         with:
@@ -217,6 +221,12 @@ jobs:
       - name: Patch ffmpeg_kit Windows header path
         shell: pwsh
         run: ./scripts/patch_ffmpeg_kit_windows.ps1
+
+      - name: Clean stale Windows ephemeral symlinks
+        run: flutter clean
+
+      - name: Resolve Flutter packages (post-clean)
+        run: flutter pub get
 
       - name: Package Windows (ZIP + MSIX)
         run: fastforge package --platform windows --targets zip,msix
