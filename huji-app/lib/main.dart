@@ -18,6 +18,7 @@ import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:window_manager/window_manager.dart';
 
 void main(List<String> args) async {
   try {
@@ -25,13 +26,16 @@ void main(List<String> args) async {
     WidgetsFlutterBinding.ensureInitialized();
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
+      await preloadSharedUiFonts();
+      await windowManager.ensureInitialized();
     }
     await preInit();
     await postInit();
+    final appearanceCubit = await AppearanceCubit.load();
     if (PlatformCapability.isDesktop) {
-      runApp(const DesktopApp());
+      runApp(DesktopApp(appearanceCubit: appearanceCubit));
     } else {
-      runApp(const MyApp());
+      runApp(MyApp(appearanceCubit: appearanceCubit));
     }
   } catch (e, stack) {
     await ErrorLogService.instance.recordError(
@@ -44,19 +48,18 @@ void main(List<String> args) async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.appearanceCubit});
+
+  final AppearanceCubit appearanceCubit;
 
   @override
   State<MyApp> createState() => _MyAppState();
 }
 
 class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
-  late final AppearanceCubit _appearanceCubit;
-
   @override
   void initState() {
     super.initState();
-    _appearanceCubit = AppearanceCubit();
     WidgetsBinding.instance.addObserver(this);
 
     // 启动时清理旧清理目录
@@ -68,7 +71,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     WidgetsBinding.instance.removeObserver(this);
     // 应用退出时清理当前清理目录
     StorageService.instance.cleanCurrentCleanupDirectory();
-    _appearanceCubit.close();
+    widget.appearanceCubit.close();
     super.dispose();
   }
 
@@ -85,7 +88,7 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
     return MultiBlocProvider(
       providers: [
         BlocProvider<UserBloc>.value(value: UserBlocInstance.instance),
-        BlocProvider<AppearanceCubit>.value(value: _appearanceCubit),
+        BlocProvider<AppearanceCubit>.value(value: widget.appearanceCubit),
       ],
       child: BlocBuilder<AppearanceCubit, AppearancePreferences>(
         builder: (context, prefs) {
@@ -94,14 +97,15 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
           final systemMq = systemView == null
               ? const MediaQueryData()
               : MediaQueryData.fromView(systemView);
-          final locale = resolveAppearanceTheme(prefs, systemMq).locale;
+          final bundle = resolveAppearanceTheme(prefs, systemMq);
 
           return MaterialApp.router(
             title: context.hujiL10n.appTitle,
             routerConfig: appRouter,
             theme: AppTheme.themedLightTheme,
             darkTheme: AppTheme.themedDarkTheme,
-            locale: locale,
+            themeMode: bundle.themeMode,
+            locale: bundle.locale,
             localizationsDelegates:
                 HujiLocalizationsSetup.localizationsDelegates,
             supportedLocales: HujiLocalizationsSetup.supportedLocales,

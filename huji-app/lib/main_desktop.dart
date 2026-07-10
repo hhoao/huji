@@ -16,13 +16,14 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_ui/preferences/appearance_preferences_store.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopApp extends StatefulWidget {
-  const DesktopApp({super.key});
+  const DesktopApp({super.key, required this.appearanceCubit});
+
+  final AppearanceCubit appearanceCubit;
 
   @override
   State<DesktopApp> createState() => _DesktopAppState();
@@ -31,12 +32,10 @@ class DesktopApp extends StatefulWidget {
 class _DesktopAppState extends State<DesktopApp> {
   late final GoRouter _router;
   late final WindowListener _windowListener;
-  late final AppearanceCubit _appearanceCubit;
 
   @override
   void initState() {
     super.initState();
-    _appearanceCubit = AppearanceCubit();
     _router = GoRouter(
       initialLocation: '/',
       routes: DesktopRoutes.getRoutes(),
@@ -47,20 +46,32 @@ class _DesktopAppState extends State<DesktopApp> {
     NotificationManager().initialize();
 
     if (PlatformCapability.isDesktop) {
-      unawaited(preloadSharedUiFonts());
       _initWindowManager();
     }
   }
 
+  Color _windowBackgroundColor(AppearanceThemeBundle bundle) {
+    return switch (bundle.themeMode) {
+      ThemeMode.dark => bundle.darkTheme.scaffoldBackgroundColor,
+      ThemeMode.light => bundle.lightTheme.scaffoldBackgroundColor,
+      ThemeMode.system =>
+        WidgetsBinding.instance.platformDispatcher.platformBrightness ==
+                Brightness.dark
+            ? bundle.darkTheme.scaffoldBackgroundColor
+            : bundle.lightTheme.scaffoldBackgroundColor,
+    };
+  }
+
   Future<void> _initWindowManager() async {
-    await windowManager.ensureInitialized();
     await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
 
-    final appearance = await AppearancePreferencesStore().load();
-    final locale = appearance.locale == 'en'
-        ? const Locale('en')
-        : const Locale('zh');
-    final windowTitle = lookupHujiLocalizations(locale).appTitle;
+    final systemView = WidgetsBinding.instance.platformDispatcher.implicitView;
+    final systemMq = systemView == null
+        ? const MediaQueryData()
+        : MediaQueryData.fromView(systemView);
+    final bundle = resolveAppearanceTheme(widget.appearanceCubit.state, systemMq);
+    final windowTitle =
+        lookupHujiLocalizations(bundle.locale).appTitle;
 
     final prefs = await SharedPreferences.getInstance();
     final savedX = prefs.getDouble('window_x');
@@ -74,6 +85,7 @@ class _DesktopAppState extends State<DesktopApp> {
         size: Size(savedW, savedH),
         center: false,
         title: windowTitle,
+        backgroundColor: _windowBackgroundColor(bundle),
       );
       await windowManager.setPosition(Offset(savedX, savedY));
     } else {
@@ -81,6 +93,7 @@ class _DesktopAppState extends State<DesktopApp> {
         size: const Size(1280, 800),
         minimumSize: const Size(900, 600),
         title: windowTitle,
+        backgroundColor: _windowBackgroundColor(bundle),
       );
     }
 
@@ -98,7 +111,7 @@ class _DesktopAppState extends State<DesktopApp> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<UserBloc>.value(value: UserBlocInstance.instance),
-        BlocProvider<AppearanceCubit>.value(value: _appearanceCubit),
+        BlocProvider<AppearanceCubit>.value(value: widget.appearanceCubit),
       ],
       child: Shortcuts(
         shortcuts: desktopShortcuts(),
@@ -152,7 +165,7 @@ class _DesktopAppState extends State<DesktopApp> {
     if (PlatformCapability.isDesktop) {
       windowManager.removeListener(_windowListener);
     }
-    _appearanceCubit.close();
+    widget.appearanceCubit.close();
     super.dispose();
   }
 }
