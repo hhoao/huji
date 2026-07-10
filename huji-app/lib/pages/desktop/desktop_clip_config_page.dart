@@ -44,7 +44,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   static const _presetOfficial = 'official';
   static const _presetBadmintonDefault = 'badminton_default';
 
-  final List<File> _selectedFiles = [];
+  File? _selectedFile;
   String _sportType = _sportPingPong;
   String _selectedPreset = _presetDefault;
   String _detectionMode = 'cloud';
@@ -132,9 +132,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       if (!mounted) return;
       setState(() {
         _sportType = demo.sportTypeKey;
-        _selectedFiles
-          ..clear()
-          ..add(file);
+        _selectedFile = file;
       });
     } catch (e) {
       if (!mounted) return;
@@ -157,7 +155,8 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Future<void> _startDetection() async {
-    if (_selectedFiles.isEmpty) {
+    final file = _selectedFile;
+    if (file == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.hujiL10n.selectVideoFileFirst)),
       );
@@ -165,7 +164,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     }
 
     if (_detectionMode == 'local') {
-      await _startLocalDetection();
+      await _startLocalDetection(file);
       return;
     }
 
@@ -177,105 +176,31 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     final sportType = _sportTypeEnum;
     final clipConfig = _buildClipConfig(sportType);
 
-    int successCount = 0;
-    int failCount = 0;
-    String? lastSubmittedTaskId;
-
-    for (final file in _selectedFiles) {
-      try {
-        final fileName = p.basename(file.path);
-
-        final uploadTask = await uploader.createUploadTask(
-          filePath: file.path,
-          fileName: fileName,
-          chunkSize: 1 * 1024 * 1024, // 1MB to avoid 413 on reverse proxy
-        );
-
-        final task = VideoClipTask(
-          id: '${now}_$fileName',
-          name: l10n.cloudDetectionTaskName(fileName),
-          videoPath: file.path,
-          outputPath: '',
-          autoDownload: true,
-          sportType: sportType,
-          clipConfig: clipConfig,
-          uploadTaskId: uploadTask.id,
-          createdAt: now,
-          status: TaskStatusEnum.pending,
-        );
-
-        await taskStorage.addAndAsyncProcessTask(task);
-
-        // Create a ProcessVideoRecord so the video library tracks progress
-        final processRecord = ProcessVideoRecord(
-          id: '${now}_$fileName',
-          processStatus: LocalVideoProcessStatusEnum.processing,
-          sportType: sportType,
-          filePath: file.path,
-          clipMode: ClipMode.existingVideo,
-          videoClipConfigReqVo: clipConfig,
-          taskId: task.id,
-        );
-        await LocalVideoStorage().add(processRecord);
-
-        lastSubmittedTaskId = task.id;
-        successCount++;
-      } catch (e) {
-        failCount++;
-      }
-    }
-
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          l10n.tasksSubmitted(
-            successCount,
-            failCount > 0
-                ? l10n.tasksSubmittedFailSuffix(failCount)
-                : '',
-          ),
-        ),
-        action: SnackBarAction(
-          label: context.hujiL10n.viewTasks,
-          onPressed: () => _goToTasks(lastSubmittedTaskId),
-        ),
-      ),
-    );
-    setState(() => _selectedFiles.clear());
-  }
-
-  Future<void> _startLocalDetection() async {
-    final l10n = context.hujiL10n;
-    final sportTypeKey = _sportType;
-    final matchType = _isPingPong ? 'profession' : 'singles';
-    final sportType = _sportTypeEnum;
-    final clipConfig = _buildClipConfig(sportType);
-    final taskStorage = TaskStorage();
-    int submittedCount = 0;
-    String? lastSubmittedTaskId;
-
-    for (final file in _selectedFiles) {
-      final now = DateTime.now().millisecondsSinceEpoch;
+    try {
       final fileName = p.basename(file.path);
 
-      // Create pending task
+      final uploadTask = await uploader.createUploadTask(
+        filePath: file.path,
+        fileName: fileName,
+        chunkSize: 1 * 1024 * 1024, // 1MB to avoid 413 on reverse proxy
+      );
+
       final task = VideoClipTask(
         id: '${now}_$fileName',
-        name: l10n.localDetectionTaskName(fileName),
+        name: l10n.cloudDetectionTaskName(fileName),
         videoPath: file.path,
         outputPath: '',
-        autoDownload: false,
+        autoDownload: true,
         sportType: sportType,
+        clipConfig: clipConfig,
+        uploadTaskId: uploadTask.id,
         createdAt: now,
         status: TaskStatusEnum.pending,
       );
 
-      await taskStorage.addTask(task);
+      await taskStorage.addAndAsyncProcessTask(task);
 
-      // Create ProcessVideoRecord for library tracking
-      await LocalVideoStorage().add(ProcessVideoRecord(
+      final processRecord = ProcessVideoRecord(
         id: '${now}_$fileName',
         processStatus: LocalVideoProcessStatusEnum.processing,
         sportType: sportType,
@@ -283,130 +208,169 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         clipMode: ClipMode.existingVideo,
         videoClipConfigReqVo: clipConfig,
         taskId: task.id,
-      ));
-
-      submittedCount++;
-      lastSubmittedTaskId = task.id;
-
-      await taskStorage.updateTask(task.id, (oldTask) {
-        return oldTask.copyWith(
-          status: TaskStatusEnum.processing,
-          extraInfo: l10n.localDetecting,
-        );
-      });
-
-      // Inference runs asynchronously; progress is reported frame-by-frame.
-      final videoPath = file.path;
-      final progressThrottler = Throttler(
-        tag: 'local_progress_${task.id}',
-        duration: const Duration(milliseconds: 500),
       );
-      LocalDetectionService.runInferenceAsync(
-        videoPath: videoPath,
-        clipConfig: clipConfig,
-        sportTypeKey: sportTypeKey,
-        matchType: matchType,
-        onProgress: (progress, message) {
-          progressThrottler.call(() {
-            taskStorage.updateTask(task.id, (oldTask) {
-              return oldTask.copyWith(
-                status: TaskStatusEnum.processing,
-                progress: progress,
-                extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
-              );
-            });
+      await LocalVideoStorage().add(processRecord);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.clipTaskCreatedRedirecting)),
+      );
+      _goToTasks(task.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.createTaskFailedWithError(e.toString())),
+        ),
+      );
+    }
+  }
+
+  Future<void> _startLocalDetection(File file) async {
+    final l10n = context.hujiL10n;
+    final sportTypeKey = _sportType;
+    final matchType = _isPingPong ? 'profession' : 'singles';
+    final sportType = _sportTypeEnum;
+    final clipConfig = _buildClipConfig(sportType);
+    final taskStorage = TaskStorage();
+
+    final now = DateTime.now().millisecondsSinceEpoch;
+    final fileName = p.basename(file.path);
+
+    final task = VideoClipTask(
+      id: '${now}_$fileName',
+      name: l10n.localDetectionTaskName(fileName),
+      videoPath: file.path,
+      outputPath: '',
+      autoDownload: false,
+      sportType: sportType,
+      createdAt: now,
+      status: TaskStatusEnum.pending,
+    );
+
+    await taskStorage.addTask(task);
+
+    await LocalVideoStorage().add(ProcessVideoRecord(
+      id: '${now}_$fileName',
+      processStatus: LocalVideoProcessStatusEnum.processing,
+      sportType: sportType,
+      filePath: file.path,
+      clipMode: ClipMode.existingVideo,
+      videoClipConfigReqVo: clipConfig,
+      taskId: task.id,
+    ));
+
+    await taskStorage.updateTask(task.id, (oldTask) {
+      return oldTask.copyWith(
+        status: TaskStatusEnum.processing,
+        extraInfo: l10n.localDetecting,
+      );
+    });
+
+    final videoPath = file.path;
+    final progressThrottler = Throttler(
+      tag: 'local_progress_${task.id}',
+      duration: const Duration(milliseconds: 500),
+    );
+    LocalDetectionService.runInferenceAsync(
+      videoPath: videoPath,
+      clipConfig: clipConfig,
+      sportTypeKey: sportTypeKey,
+      matchType: matchType,
+      onProgress: (progress, message) {
+        progressThrottler.call(() {
+          taskStorage.updateTask(task.id, (oldTask) {
+            return oldTask.copyWith(
+              status: TaskStatusEnum.processing,
+              progress: progress,
+              extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
+            );
           });
-        },
-      ).then((result) async {
+        });
+      },
+    ).then((result) async {
+      try {
+        final output = result.clipOutput;
+        final allSegments = output.allMatchSegments
+            .map((segmentMap) => segmentMap.values.first)
+            .toList();
+        final greatSegments = output.greatMatchSegments
+            .map((segmentMap) => segmentMap.values.first)
+            .toList();
+        final processingTimeMs = result.processingTime.inMilliseconds;
+
+        String? thumbPath;
         try {
-          final output = result.clipOutput;
-          final allSegments = output.allMatchSegments
-              .map((segmentMap) => segmentMap.values.first)
-              .toList();
-          final greatSegments = output.greatMatchSegments
-              .map((segmentMap) => segmentMap.values.first)
-              .toList();
-          final processingTimeMs = result.processingTime.inMilliseconds;
-
-          // Generate thumbnail from source video
-          String? thumbPath;
-          try {
-            thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
-          } catch (e) {
-            AppLogger().w('Failed to generate thumbnail: $e');
-          }
-
-          await taskStorage.updateTask(task.id, (oldTask) {
-            return oldTask.copyWith(
-              status: TaskStatusEnum.completed,
-              progress: 1.0,
-              image: thumbPath,
-              extraInfo: l10n.segmentsDetectedResult(
-                allSegments.length,
-                (processingTimeMs / 1000).round(),
-              ),
-            );
-          });
-
-          await LocalVideoStorage().add(EdittingVideoRecord(
-            id: '${now}_$fileName',
-            processStatus: LocalVideoProcessStatusEnum.completed,
-            sportType: sportType,
-            filePath: videoPath,
-            thumbnailPath: thumbPath,
-            clipMode: ClipMode.existingVideo,
-            allMatchSegments: allSegments,
-            favoritesMatchSegments:
-                greatSegments.isNotEmpty ? greatSegments : allSegments,
-          ));
-
-          debugPrint(
-              '[local-detection] ${task.name}: done — ${allSegments.length} segments');
-        } catch (e, st) {
-          AppLogger().e(
-            'Local detection completion handler failed: $e',
-            st,
-            e,
-          );
-          await taskStorage.updateTask(task.id, (oldTask) {
-            return oldTask.copyWith(
-              status: TaskStatusEnum.failed,
-              extraInfo: l10n.processDetectionResultFailed(e.toString()),
-            );
-          });
+          thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
+        } catch (e) {
+          AppLogger().w('Failed to generate thumbnail: $e');
         }
-      }).catchError((e, st) async {
+
+        await taskStorage.updateTask(task.id, (oldTask) {
+          return oldTask.copyWith(
+            status: TaskStatusEnum.completed,
+            progress: 1.0,
+            image: thumbPath,
+            extraInfo: l10n.segmentsDetectedResult(
+              allSegments.length,
+              (processingTimeMs / 1000).round(),
+            ),
+          );
+        });
+
+        await LocalVideoStorage().add(EdittingVideoRecord(
+          id: '${now}_$fileName',
+          processStatus: LocalVideoProcessStatusEnum.completed,
+          sportType: sportType,
+          filePath: videoPath,
+          thumbnailPath: thumbPath,
+          clipMode: ClipMode.existingVideo,
+          allMatchSegments: allSegments,
+          favoritesMatchSegments:
+              greatSegments.isNotEmpty ? greatSegments : allSegments,
+        ));
+
+        debugPrint(
+            '[local-detection] ${task.name}: done — ${allSegments.length} segments');
+      } catch (e, st) {
         AppLogger().e(
-          'Local detection isolate failed: $e',
+          'Local detection completion handler failed: $e',
           st,
           e,
         );
-        debugPrint('[local-detection] ${task.name}: failed — $e');
-        try {
-          await taskStorage.updateTask(task.id, (oldTask) {
-            return oldTask.copyWith(
-              status: TaskStatusEnum.failed,
-              extraInfo: l10n.localDetectionFailed(e.toString()),
-            );
-          });
-        } catch (_) {
-          // Best effort — task update itself failing must not cause another unhandled error
-        }
-      });
-    }
+        await taskStorage.updateTask(task.id, (oldTask) {
+          return oldTask.copyWith(
+            status: TaskStatusEnum.failed,
+            extraInfo: l10n.processDetectionResultFailed(e.toString()),
+          );
+        });
+      }
+    }).catchError((e, st) async {
+      AppLogger().e(
+        'Local detection isolate failed: $e',
+        st,
+        e,
+      );
+      debugPrint('[local-detection] ${task.name}: failed — $e');
+      try {
+        await taskStorage.updateTask(task.id, (oldTask) {
+          return oldTask.copyWith(
+            status: TaskStatusEnum.failed,
+            extraInfo: l10n.localDetectionFailed(e.toString()),
+          );
+        });
+      } catch (_) {
+        // Best effort — task update itself failing must not cause another unhandled error
+      }
+    });
 
     if (!mounted) return;
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(l10n.localDetectionTasksSubmitted(submittedCount)),
-        action: SnackBarAction(
-          label: context.hujiL10n.viewTasks,
-          onPressed: () => _goToTasks(lastSubmittedTaskId),
-        ),
-      ),
+      SnackBar(content: Text(l10n.localClipTaskCreatedRedirecting)),
     );
-    setState(() => _selectedFiles.clear());
+    _goToTasks(task.id);
   }
 
   @override
@@ -715,23 +679,12 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildDropZone() {
     return DesktopDropZone(
-      files: _selectedFiles,
+      file: _selectedFile,
       demoLoading: _demoLoading,
       demoSportTypeKey: _sportType,
       onDemoVideoSelected: _useDemoVideo,
-      onFilesAdded: (newFiles) => setState(() {
-        final existing = _selectedFiles.map((f) => f.path).toSet();
-        for (final f in newFiles) {
-          if (!existing.contains(f.path)) {
-            _selectedFiles.add(f);
-          }
-        }
-      }),
-      onRemoveFile: (index) => setState(() {
-        if (index >= 0 && index < _selectedFiles.length) {
-          _selectedFiles.removeAt(index);
-        }
-      }),
+      onFileSelected: (file) => setState(() => _selectedFile = file),
+      onClearFile: () => setState(() => _selectedFile = null),
     );
   }
 

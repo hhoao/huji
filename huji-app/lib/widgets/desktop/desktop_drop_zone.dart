@@ -4,25 +4,28 @@ import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/file_extensions.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:media_kit/media_kit.dart' as media_kit;
+import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopDropZone extends StatefulWidget {
-  final List<File> files;
-  final ValueChanged<List<File>> onFilesAdded;
-  final ValueChanged<int> onRemoveFile;
+  final File? file;
+  final ValueChanged<File> onFileSelected;
+  final VoidCallback onClearFile;
   final DemoVideoTap? onDemoVideoSelected;
   final bool demoLoading;
   final String? demoSportTypeKey;
 
   const DesktopDropZone({
     super.key,
-    required this.files,
-    required this.onFilesAdded,
-    required this.onRemoveFile,
+    required this.file,
+    required this.onFileSelected,
+    required this.onClearFile,
     this.onDemoVideoSelected,
     this.demoLoading = false,
     this.demoSportTypeKey,
@@ -34,10 +37,105 @@ class DesktopDropZone extends StatefulWidget {
 
 class _DesktopDropZoneState extends State<DesktopDropZone> {
   bool _isDragging = false;
+  media_kit.Player? _player;
+  media_kit_video.VideoController? _videoController;
+  bool _isVideoLoading = false;
+  bool _isVideoReady = false;
+  String? _loadedPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _initPlayer(widget.file?.path);
+  }
+
+  @override
+  void didUpdateWidget(covariant DesktopDropZone oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.file?.path != oldWidget.file?.path) {
+      _initPlayer(widget.file?.path);
+    }
+  }
+
+  @override
+  void dispose() {
+    _player?.dispose();
+    _player = null;
+    _videoController = null;
+    super.dispose();
+  }
+
+  Future<void> _disposePlayer() async {
+    final player = _player;
+    _player = null;
+    _videoController = null;
+    _isVideoLoading = false;
+    _isVideoReady = false;
+    _loadedPath = null;
+    if (player != null) {
+      await player.dispose();
+    }
+  }
+
+  Future<void> _initPlayer(String? path) async {
+    await _disposePlayer();
+    if (path == null) {
+      if (mounted) setState(() {});
+      return;
+    }
+
+    if (mounted) {
+      setState(() {
+        _isVideoLoading = true;
+        _isVideoReady = false;
+        _loadedPath = path;
+      });
+    }
+
+    final player = media_kit.Player();
+    final videoController = media_kit_video.VideoController(player);
+    _player = player;
+    _videoController = videoController;
+
+    try {
+      await player.open(media_kit.Media(path), play: false);
+      if (!mounted || _loadedPath != path || _player != player) {
+        await player.dispose();
+        return;
+      }
+      setState(() {
+        _isVideoLoading = false;
+        _isVideoReady = true;
+      });
+    } catch (e, st) {
+      AppLogger().e('Failed to load desktop preview video: $e', st, e);
+      if (!mounted || _loadedPath != path) return;
+      setState(() {
+        _isVideoLoading = false;
+        _isVideoReady = false;
+      });
+    }
+  }
 
   bool _isVideoFile(String path) {
     final ext = '.${path.split('.').last.toLowerCase()}';
     return FileExtensions.videoExtensions.contains(ext);
+  }
+
+  void _handleDroppedFiles(List<File> files) {
+    final video = files.where((f) => _isVideoFile(f.path)).firstOrNull;
+    if (video != null) widget.onFileSelected(video);
+  }
+
+  Future<void> _pickVideoFile() async {
+    final result = await FileSelection.selectVideos(
+      context: context,
+      allowMultiple: false,
+      initialTab: TabType.fileSystem,
+    );
+    if (!mounted || result == null || result.isEmpty) return;
+    final file = result.whereType<File>().firstOrNull;
+    if (file != null) widget.onFileSelected(file);
   }
 
   @override
@@ -52,11 +150,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
       onDragExited: (_) => setState(() => _isDragging = false),
       onDragDone: (detail) {
         setState(() => _isDragging = false);
-        final newFiles = detail.files
-            .map((f) => File(f.path))
-            .where((f) => _isVideoFile(f.path))
-            .toList();
-        if (newFiles.isNotEmpty) widget.onFilesAdded(newFiles);
+        _handleDroppedFiles(detail.files.map((f) => File(f.path)).toList());
       },
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -67,9 +161,9 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
               ? cs.primary.withAlpha(15)
               : cs.primary.withAlpha(5),
         ),
-        child: widget.files.isEmpty
+        child: widget.file == null
             ? _buildEmptyState(context)
-            : _buildFileList(context),
+            : _buildPreviewState(context),
       ),
     );
   }
@@ -99,16 +193,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           ),
           const SizedBox(height: 8),
           ElevatedButton(
-            onPressed: () async {
-              final result = await FileSelection.selectVideos(
-                context: context,
-                allowMultiple: true,
-                initialTab: TabType.fileSystem,
-              );
-              if (result != null && context.mounted) {
-                widget.onFilesAdded(result.whereType<File>().toList());
-              }
-            },
+            onPressed: _pickVideoFile,
             style: ElevatedButton.styleFrom(
               backgroundColor: cs.primary.withAlpha(38),
               foregroundColor: cs.onPrimaryContainer,
@@ -135,115 +220,85 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
     );
   }
 
-  Widget _buildFileList(BuildContext context) {
-    final styles = AppTextStyles.of(context);
+  Widget _buildPreviewState(BuildContext context) {
     final cs = context.desktopColors;
+    final styles = AppTextStyles.of(context);
+    final file = widget.file!;
+    final fileName = p.basename(file.path);
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                context.hujiL10n.filesSelectedCount(widget.files.length),
-                style: styles.bodyStrong.copyWith(color: cs.onSurface),
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: ColoredBox(
+                color: cs.surfaceContainer,
+                child: _isVideoReady && _videoController != null
+                    ? media_kit_video.Video(
+                        controller: _videoController!,
+                        controls: media_kit_video.NoVideoControls,
+                        fit: BoxFit.contain,
+                      )
+                    : _buildVideoPlaceholder(context),
               ),
-              TextButton(
-                onPressed: () async {
-                  final result = await FileSelection.selectVideos(
-                    context: context,
-                    allowMultiple: true,
-                    initialTab: TabType.fileSystem,
-                  );
-                  if (result != null && context.mounted) {
-                    widget.onFilesAdded(result.whereType<File>().toList());
-                  }
-                },
-                child: Text(context.hujiL10n.addMoreFiles),
-              ),
-            ],
+            ),
           ),
           const SizedBox(height: 12),
-          Expanded(
-            child: ListView.builder(
-              itemCount: widget.files.length,
-              itemBuilder: (context, i) => _buildFileCard(context, i),
-            ),
+          Row(
+            children: [
+              Icon(Icons.video_file, size: 18, color: cs.onPrimaryContainer),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  fileName,
+                  style: styles.body.copyWith(color: cs.onSurface),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              TextButton(
+                onPressed: _pickVideoFile,
+                child: Text(context.hujiL10n.selectFiles),
+              ),
+              IconButton(
+                icon: Icon(Icons.close, size: 16, color: cs.onSurfaceVariant),
+                onPressed: widget.onClearFile,
+                splashRadius: 14,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                tooltip: context.hujiL10n.taskStatusCancelledShort,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFileCard(BuildContext context, int i) {
+  Widget _buildVideoPlaceholder(BuildContext context) {
     final cs = context.desktopColors;
     final styles = AppTextStyles.of(context);
-    final file = widget.files[i];
-    final fileName = p.basename(file.path);
-    final ext = p.extension(fileName).replaceFirst('.', '').toUpperCase();
-    final parentDir = p.basename(file.parent.path);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainer,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: context.desktopBorderLight),
-      ),
-      child: Row(
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 56,
-            height: 40,
-            decoration: BoxDecoration(
-              color: cs.primary.withAlpha(26),
-              borderRadius: BorderRadius.circular(5),
-            ),
-            child: Icon(Icons.video_file, color: cs.onPrimaryContainer, size: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  fileName,
-                  style: styles.body.copyWith(color: cs.onSurface),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Row(
-                  children: [
-                    Text(
-                      ext,
-                      style: styles.caption.copyWith(
-                        color: cs.primary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        parentDir,
-                        style: styles.caption.copyWith(color: cs.outline),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          IconButton(
-            icon: Icon(Icons.close, size: 16, color: cs.onSurfaceVariant),
-            onPressed: () => widget.onRemoveFile(i),
-            splashRadius: 14,
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          if (_isVideoLoading)
+            const SizedBox(
+              width: 28,
+              height: 28,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Icon(Icons.video_library, size: 48, color: cs.onSurfaceVariant),
+          const SizedBox(height: 8),
+          Text(
+            _isVideoLoading
+                ? context.hujiL10n.videoLoading
+                : context.hujiL10n.noVideo,
+            style: styles.bodySmall.copyWith(color: cs.outline),
           ),
         ],
       ),
