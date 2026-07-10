@@ -82,41 +82,56 @@ jobs:
 
   build-linux-aarch64:
     name: Build Linux AppImage aarch64
-    runs-on: ubuntu-22.04
-    continue-on-error: true
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.inputs.ref || github.ref }}
           submodules: recursive
 
-      - uses: docker/setup-qemu-action@v3
-        with:
-          platforms: arm64
-
-      - name: Build AppImage (cross aarch64 via Docker+QEMU)
+      - name: Install Linux build dependencies
         run: |
-          docker run --rm --platform linux/arm64 \
-            -v "${{ github.workspace }}":/workspace -w /workspace/huji-app \
-            ubuntu:22.04 bash -c '
-              set -e
-              apt-get update
-              apt-get install -y clang cmake ninja-build pkg-config \
-                libgtk-3-dev liblzma-dev libsecret-1-dev \
-                libjsoncpp-dev libstdc++-12-dev \
-                file fuse libfuse2 curl unzip xz-utils git ca-certificates \
-                libasound2-dev libmpv-dev mpv
-              git clone --depth 1 -b stable https://github.com/flutter/flutter.git /opt/flutter
-              git config --global --add safe.directory /opt/flutter
-              git config --global --add safe.directory /workspace
-              export PATH="/opt/flutter/bin:$PATH"
-              flutter config --enable-linux-desktop
-              flutter pub get
-              ARCH=aarch64 ./scripts/build_appimage.sh
-              mkdir -p release-staging/appimage
-              cp -v build/appimage/huji-*-aarch64.AppImage release-staging/appimage/
-              cp -v build/appimage/huji-*-aarch64.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
-            '
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential clang cmake ninja-build pkg-config \
+            libgtk-3-dev liblzma-dev libsecret-1-dev \
+            libjsoncpp-dev \
+            file fuse libfuse2 \
+            libasound2-dev libmpv-dev mpv \
+            wget
+
+      - name: Install appimagetool
+        run: |
+          wget -qO /tmp/appimagetool \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
+          chmod +x /tmp/appimagetool
+          sudo mv /tmp/appimagetool /usr/local/bin/appimagetool
+          appimagetool --version || true
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Activate fastforge
+        run: dart pub global activate fastforge
+
+      - name: Add pub-cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> "$GITHUB_PATH"
+
+      - name: Resolve Flutter packages
+        run: flutter pub get
+
+      - name: Build AppImage
+        env:
+          ARCH: aarch64
+        run: ./scripts/build_appimage.sh
+
+      - name: Stage AppImage artifacts
+        run: |
+          mkdir -p release-staging/appimage
+          cp -v build/appimage/huji-*-aarch64.AppImage release-staging/appimage/
+          cp -v build/appimage/huji-*-aarch64.AppImage.zsync release-staging/appimage/ 2>/dev/null || true
 
       - uses: actions/upload-artifact@v4
         with:
@@ -161,7 +176,6 @@ jobs:
   build-windows:
     name: Build Windows (MSIX + EXE + ZIP)
     runs-on: windows-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -187,7 +201,7 @@ jobs:
         run: |
           $langDir = Join-Path ${env:ProgramFiles(x86)} "Inno Setup 6\Languages"
           New-Item -ItemType Directory -Force -Path $langDir | Out-Null
-          $url = "https://raw.githubusercontent.com/jrsoftware/issrc/main/Files/Languages/Unofficial/ChineseSimplified.isl"
+          $url = "https://raw.githubusercontent.com/kira-96/Inno-Setup-Chinese-Simplified-Translation/main/ChineseSimplified.isl"
           $out = Join-Path $langDir "ChineseSimplified.isl"
           Invoke-WebRequest -Uri $url -OutFile $out -UseBasicParsing
           if (-not (Test-Path -LiteralPath $out)) { throw "Failed to download ChineseSimplified.isl" }
@@ -219,7 +233,6 @@ jobs:
   build-android:
     name: Build Android (APK + AAB)
     runs-on: ubuntu-22.04
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
         with:
@@ -284,7 +297,10 @@ jobs:
     needs: [build-linux-x64, build-linux-aarch64, build-macos, build-windows, build-android]
     if: |
       needs.build-linux-x64.result == 'success' &&
+      needs.build-linux-aarch64.result == 'success' &&
       needs.build-macos.result == 'success' &&
+      needs.build-windows.result == 'success' &&
+      needs.build-android.result == 'success' &&
       !contains(needs.*.result, 'cancelled') &&
       (startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-latest
@@ -350,14 +366,29 @@ jobs:
           print("Categories:", categories)
 
           ok = True
-          if categories["appimage"] < 1:
-              print(f"ERROR: expected >=1 AppImage, got {categories['appimage']}", file=sys.stderr)
+          if categories["appimage"] < 2:
+              print(f"ERROR: expected >=2 AppImage (x86_64 + aarch64), got {categories['appimage']}", file=sys.stderr)
               ok = False
           if categories["deb"] < 1:
               print(f"ERROR: expected >=1 .deb, got {categories['deb']}", file=sys.stderr)
               ok = False
           if categories["dmg"] < 1:
               print(f"ERROR: expected >=1 .dmg, got {categories['dmg']}", file=sys.stderr)
+              ok = False
+          if categories["msix"] < 1:
+              print(f"ERROR: expected >=1 .msix, got {categories['msix']}", file=sys.stderr)
+              ok = False
+          if categories["exe"] < 1:
+              print(f"ERROR: expected >=1 .exe, got {categories['exe']}", file=sys.stderr)
+              ok = False
+          if categories["zip"] < 1:
+              print(f"ERROR: expected >=1 .zip, got {categories['zip']}", file=sys.stderr)
+              ok = False
+          if categories["apk"] < 2:
+              print(f"ERROR: expected >=2 .apk (arm + arm64), got {categories['apk']}", file=sys.stderr)
+              ok = False
+          if categories["aab"] < 1:
+              print(f"ERROR: expected >=1 .aab, got {categories['aab']}", file=sys.stderr)
               ok = False
           if not ok:
               sys.exit(1)

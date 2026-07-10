@@ -29,8 +29,20 @@ download() {
     return 0
   fi
   echo "[download] $url -> $target"
-  curl -fL "$url" -o "$target"
+  curl -fL --retry 3 --retry-delay 2 \
+    -A "huji-appimage-builder/1.0 (+https://github.com/hhoao/huji)" \
+    "$url" -o "$target"
   chmod +x "$target"
+  if command -v file >/dev/null 2>&1; then
+    case "$ARCH" in
+      x86_64)
+        file "$target" | grep -qE 'x86-64|ELF 64-bit' || { echo "[error] wrong arch for $name: $(file "$target")"; exit 1; }
+        ;;
+      aarch64)
+        file "$target" | grep -qE 'aarch64|ARM aarch64' || { echo "[error] wrong arch for $name: $(file "$target")"; exit 1; }
+        ;;
+    esac
+  fi
 }
 
 download "linuxdeploy-${ARCH}" "$TOOLS_DIR/linuxdeploy-${ARCH}.AppImage"

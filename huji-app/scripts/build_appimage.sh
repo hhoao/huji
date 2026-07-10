@@ -111,16 +111,72 @@ cp "$APPIMAGE_RES/huji.svg" "$APPDIR/huji.svg"
 cp "$APPIMAGE_RES/huji.svg" "$APPDIR/usr/share/icons/hicolor/256x256/apps/huji.svg"
 
 # === 4. Bundle ffmpeg + ffprobe static binaries ===
+download_ffmpeg_static() {
+  local dest_dir="$1"
+  local -a urls=()
+  case "$ARCH" in
+    x86_64)
+      urls=(
+        "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz"
+        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linux64-gpl.tar.xz"
+      )
+      ;;
+    aarch64)
+      urls=(
+        "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz"
+        "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-linuxarm64-gpl.tar.xz"
+      )
+      ;;
+    *)
+      echo -e "${RED}Unsupported ARCH for ffmpeg download: $ARCH${NC}"
+      exit 1
+      ;;
+  esac
+
+  local archive="$dest_dir/ffmpeg.tar.xz"
+  local extracted="$dest_dir/extracted"
+  local downloaded=0
+
+  for url in "${urls[@]}"; do
+    echo "[try] $url"
+    if curl -fL --retry 3 --retry-delay 2 \
+         -A "huji-appimage-builder/1.0 (+https://github.com/hhoao/huji)" \
+         -H "Accept: application/octet-stream,*/*" \
+         "$url" -o "$archive"; then
+      downloaded=1
+      break
+    fi
+    echo "[warn] failed to download from $url"
+  done
+
+  if [[ "$downloaded" -ne 1 ]]; then
+    echo -e "${RED}All ffmpeg download URLs failed${NC}"
+    exit 1
+  fi
+
+  rm -rf "$extracted"
+  mkdir -p "$extracted"
+  tar -xJf "$archive" -C "$extracted"
+
+  local ffmpeg_bin ffprobe_bin
+  ffmpeg_bin=$(find "$extracted" -type f -name ffmpeg -executable | head -1)
+  ffprobe_bin=$(find "$extracted" -type f -name ffprobe -executable | head -1)
+  if [[ -z "$ffmpeg_bin" || -z "$ffprobe_bin" ]]; then
+    echo -e "${RED}ffmpeg/ffprobe not found in downloaded archive${NC}"
+    exit 1
+  fi
+
+  cp "$ffmpeg_bin" "$dest_dir/ffmpeg"
+  cp "$ffprobe_bin" "$dest_dir/ffprobe"
+  chmod +x "$dest_dir/ffmpeg" "$dest_dir/ffprobe"
+  rm -rf "$extracted" "$archive"
+}
+
 echo -e "${BLUE}[4/5] Downloading and bundling ffmpeg + ffprobe...${NC}"
 FFMPEG_DIR="$BUILD_DIR/ffmpeg"
 mkdir -p "$FFMPEG_DIR"
-case "$ARCH" in
-  x86_64)   FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz" ;;
-  aarch64)  FFMPEG_URL="https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-arm64-static.tar.xz" ;;
-esac
 if [[ ! -f "$FFMPEG_DIR/ffmpeg" ]] || [[ ! -f "$FFMPEG_DIR/ffprobe" ]]; then
-  curl -fL "$FFMPEG_URL" -o "$FFMPEG_DIR/ffmpeg.tar.xz"
-  tar -xJf "$FFMPEG_DIR/ffmpeg.tar.xz" -C "$FFMPEG_DIR" --strip-components=1
+  download_ffmpeg_static "$FFMPEG_DIR"
 fi
 cp "$FFMPEG_DIR/ffmpeg" "$APPDIR/usr/bin/ffmpeg"
 cp "$FFMPEG_DIR/ffprobe" "$APPDIR/usr/bin/ffprobe"
