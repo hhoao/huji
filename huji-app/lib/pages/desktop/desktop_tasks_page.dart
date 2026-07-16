@@ -16,6 +16,7 @@ import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/widgets/layout/workspace_identity_pane.dart';
 
 class DesktopTasksPage extends StatefulWidget {
   final String? clipTaskId;
@@ -190,8 +191,8 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
         children: [
           Icon(Icons.inbox_outlined, size: 64, color: cs.outline),
           SizedBox(height: 16),
-          Text(context.hujiL10n.noTasks, style: AppTextStyles.of(context)
-                .body
+          Text(context.hujiL10n.noTasks, style: TpTextStyles.of(context)
+                .md
                 .copyWith(color: cs.onSurfaceVariant),
           ),
         ],

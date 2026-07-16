@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:huji_app/theme/app_theme.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 
 class AppearancePreferences extends Equatable {
   const AppearancePreferences({

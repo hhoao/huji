@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/utils/context_menu_position.dart';
 import 'package:huji_app/widgets/controls/chrome_icon_button.dart';
 
@@ -12,7 +11,7 @@ abstract final class SidebarActionMenuMetrics {
   static const double itemHorizontalMargin = 6;
   static const double itemPaddingLeft = 6;
   static const double itemPaddingRight = 6;
-  static double iconSize(BuildContext context) => context.appIconSizes.md;
+  static double iconSize(BuildContext context) => context.tpIconSizes.md;
   static const double iconGap = 10;
   static const double panelPaddingTop = 12;
   static const double panelPaddingHorizontal = 8;
@@ -248,7 +247,7 @@ class _SidebarActionMenuItemState extends State<SidebarActionMenuItem> {
                       widget.label,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: dropdownFieldTextStyle(
+                      style: tpDropdownFieldTextStyle(
                         context,
                         fontWeight: FontWeight.w500,
                         color: textColor,
@@ -454,7 +453,7 @@ Widget _specToMenuItem({
   final trailing = spec.selected
       ? Icon(
           Icons.check,
-          size: context.appIconSizes.md,
+          size: context.tpIconSizes.md,
           color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
         )
       : spec.trailing;
@@ -534,7 +533,7 @@ class SidebarActionMenuButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final anchor = SidebarActionMenuIconAnchor(
       icon: triggerBuilder == null
-          ? (icon ?? Icon(Icons.more_horiz, size: context.appIconSizes.md))
+          ? (icon ?? Icon(Icons.more_horiz, size: context.tpIconSizes.md))
           : null,
       triggerBuilder: triggerBuilder,
       size: size,

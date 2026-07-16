@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
 import 'package:huji_app/theme/app_theme.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 
 const _kPrefix = 'shared_ui.appearance.';
 

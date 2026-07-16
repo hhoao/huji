@@ -6,7 +6,7 @@ import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 enum DesktopNav {
@@ -71,7 +71,7 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return SizedBox(
       width: HujiDesktopSidebar.width,
       child: DecoratedBox(
@@ -93,7 +93,7 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
                 padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
                 child: Text(
                   l10n.desktopWorkspaceSection,
-                  style: styles.caption.copyWith(
+                  style: styles.xs.copyWith(
                     color: cs.onSurfaceVariant,
                     letterSpacing: 0.6,
                   ),
@@ -156,7 +156,7 @@ class _NavTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final fg = active
         ? cs.primary
         : muted
@@ -181,7 +181,7 @@ class _NavTile extends StatelessWidget {
                 Expanded(
                   child: Text(
                     label,
-                    style: styles.body.copyWith(
+                    style: styles.md.copyWith(
                       color: fg,
                       fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                     ),
@@ -197,7 +197,7 @@ class _NavTile extends StatelessWidget {
                     ),
                     child: Text(
                       badge!,
-                      style: styles.caption.copyWith(color: cs.onPrimary),
+                      style: styles.xs.copyWith(color: cs.onPrimary),
                     ),
                   ),
               ],
@@ -247,7 +247,7 @@ class _AccountAreaState extends State<_AccountArea> {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final account = Padding(
       padding: EdgeInsets.zero,
       child: InkWell(
@@ -270,7 +270,7 @@ class _AccountAreaState extends State<_AccountArea> {
                 alignment: Alignment.center,
                 child: Text(
                   '弧',
-                  style: styles.bodyStrong.copyWith(color: cs.onPrimary),
+                  style: styles.mdSemibold.copyWith(color: cs.onPrimary),
                 ),
               ),
               SizedBox(width: 10),
@@ -280,12 +280,12 @@ class _AccountAreaState extends State<_AccountArea> {
                   children: [
                     Text(
                       _displayName(l10n),
-                      style: styles.bodyStrong,
+                      style: styles.mdSemibold,
                       overflow: TextOverflow.ellipsis,
                     ),
                     Text(
                       _isLoggedIn ? l10n.accountLoggedIn : l10n.accountTapToLogin,
-                      style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+                      style: styles.xs.copyWith(color: cs.onSurfaceVariant),
                     ),
                   ],
                 ),

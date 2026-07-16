@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Toolbar row for the video library — Teampilot [WorkspacesToolbar] pattern.
 class DesktopLibraryToolbar extends StatelessWidget {
@@ -22,7 +21,7 @@ class DesktopLibraryToolbar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Row(
       children: [
@@ -31,7 +30,7 @@ class DesktopLibraryToolbar extends StatelessWidget {
           SizedBox(width: 12),
           Text(
             l10n.desktopLibraryItemCount(itemCount!),
-            style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+            style: styles.xs.copyWith(color: cs.onSurfaceVariant),
           ),
         ],
         const Spacer(),
@@ -108,7 +107,7 @@ class _ToggleCell extends StatelessWidget {
         ),
         child: Icon(
           icon,
-          size: context.appIconSizes.md,
+          size: context.tpIconSizes.md,
           color: active ? cs.primary : cs.onSurfaceVariant,
         ),
       ),
@@ -130,7 +129,7 @@ class _PrimaryAction extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
@@ -143,9 +142,9 @@ class _PrimaryAction extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: context.appIconSizes.md, color: cs.onPrimary),
+            Icon(icon, size: context.tpIconSizes.md, color: cs.onPrimary),
             SizedBox(width: 7),
-            Text(label, style: styles.body.copyWith(color: cs.onPrimary)),
+            Text(label, style: styles.md.copyWith(color: cs.onPrimary)),
           ],
         ),
       ),

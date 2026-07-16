@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 import 'package:huji_app/widgets/settings/workspace_settings_toggle_strip.dart';
 
 /// Typography scale preset strip; shows a percent field when [scaleId] is `custom`.

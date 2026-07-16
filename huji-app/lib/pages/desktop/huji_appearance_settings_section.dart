@@ -8,7 +8,7 @@ import 'package:huji_app/widgets/settings/theme_color_preset_picker.dart';
 import 'package:huji_app/widgets/settings/typography_scale_setting.dart';
 import 'package:huji_app/widgets/settings/workspace_settings_toggle_strip.dart';
 import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 
 /// Huji appearance settings — Teampilot [LayoutAppearanceInLayoutSection] subset.
 class HujiAppearanceSettingsSection extends StatelessWidget {

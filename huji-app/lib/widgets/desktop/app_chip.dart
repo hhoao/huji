@@ -21,7 +21,7 @@ class AppChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final Color bg;
     final Color fg;
     final Color border;
@@ -54,7 +54,7 @@ class AppChip extends StatelessWidget {
               Icon(icon, size: 13, color: fg),
               const SizedBox(width: 4),
             ],
-            Text(label, style: styles.caption.copyWith(color: fg)),
+            Text(label, style: styles.xs.copyWith(color: fg)),
           ],
         ),
       ),

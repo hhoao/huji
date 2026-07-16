@@ -118,7 +118,7 @@ class AppButton extends StatelessWidget {
     final effectivePadding =
         padding ?? const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
     final effectiveTextStyle =
-        textStyle ?? AppTextStyles.of(context).bodySmall;
+        textStyle ?? TpTextStyles.of(context).sm;
 
     final child = Row(
       mainAxisSize: mainAxisSize,

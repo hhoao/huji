@@ -10,8 +10,7 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
 import 'package:path/path.dart' as p;
-import 'package:shared_ui/theme/app_icon_sizes.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 /// Video library — Teampilot [HomeAllWorkspacesPane] layout in the main right pane.
@@ -128,24 +127,24 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   Widget _buildEmptyState(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.video_library_outlined,
-            size: context.appIconSizes.md,
+            size: context.tpIconSizes.md,
             color: cs.onSurfaceVariant.withValues(alpha: 0.5),
           ),
           SizedBox(height: 14),
           Text(
             l10n.desktopLibraryEmptyTitle,
-            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+            style: styles.md.copyWith(color: cs.onSurfaceVariant),
           ),
           Text(
             l10n.desktopLibraryEmptyHint,
-            style: styles.bodySmall.copyWith(
+            style: styles.sm.copyWith(
               color: cs.onSurfaceVariant.withValues(alpha: 0.75),
             ),
           ),
@@ -157,20 +156,20 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   Widget _buildErrorState(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             Icons.error_outline,
-            size: context.appIconSizes.md,
+            size: context.tpIconSizes.md,
             color: cs.outline,
           ),
           SizedBox(height: 14),
           Text(
             l10n.desktopLibraryLoadFailed(_error!),
-            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+            style: styles.md.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 16),
           FilledButton.icon(
@@ -219,7 +218,7 @@ class _VideoCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return InkWell(
       onTap: _isNavigable
           ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
@@ -257,14 +256,14 @@ class _VideoCard extends StatelessWidget {
                       record.filePath != null
                           ? p.basename(record.filePath!)
                           : context.hujiL10n.untitledName,
-                      style: styles.bodyStrong.copyWith(color: cs.onSurface),
+                      style: styles.mdSemibold.copyWith(color: cs.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
                     Text(
                       record.sportType.title,
-                      style: styles.caption.copyWith(
+                      style: styles.xs.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
                       maxLines: 1,
@@ -296,7 +295,7 @@ class _VideoListTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Material(
       color: cs.surfaceContainer,
       borderRadius: BorderRadius.circular(10),
@@ -326,14 +325,14 @@ class _VideoListTile extends StatelessWidget {
                       record.filePath != null
                           ? p.basename(record.filePath!)
                           : context.hujiL10n.untitledName,
-                      style: styles.bodyStrong.copyWith(color: cs.onSurface),
+                      style: styles.mdSemibold.copyWith(color: cs.onSurface),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
                     Text(
                       record.sportType.title,
-                      style: styles.caption.copyWith(
+                      style: styles.xs.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
                     ),
@@ -408,7 +407,7 @@ class _StatusBadge extends StatelessWidget {
       ),
       child: Text(
         label,
-        style: AppTextStyles.of(context).caption.copyWith(color: cs.onPrimary),
+        style: TpTextStyles.of(context).xs.copyWith(color: cs.onPrimary),
       ),
     );
   }

@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
+import 'package:shared_ui/shared_ui.dart';
 
-import 'package:shared_ui/theme/app_typography_scale.dart';
-
-/// Central **font family** names and [ThemeExtension] for TeamPilot UI.
+/// Central **font family** names and [ThemeExtension] for Huji UI.
 ///
 /// **Font sizes** are configured in [AppTypographyScale] (`app_typography_scale.dart`)
 /// — edit `*Base` constants or `standard` / `compact` / `comfortable` multipliers.
@@ -135,6 +135,16 @@ TextTheme buildAppUiPrimaryTextTheme(TextTheme base) {
 
 AppFontTheme buildAppFontTheme({required TextStyle uiFont}) {
   return AppFontTheme(
+    uiFontFamily: uiFont.fontFamily,
+    uiFontFamilyFallback: uiFont.fontFamilyFallback,
+    monoFontFamily: AppFonts.monoFamily,
+    monoFontFamilyFallback: AppFonts.monoFamilyFallback,
+  );
+}
+
+/// Publishes the same faces on [TpFontTheme] for [TpTextStyles.mono] / warmup.
+TpFontTheme buildTpFontTheme({required TextStyle uiFont}) {
+  return TpFontTheme(
     uiFontFamily: uiFont.fontFamily,
     uiFontFamilyFallback: uiFont.fontFamilyFallback,
     monoFontFamily: AppFonts.monoFamily,

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/calendar/calendar_date_utils.dart';
 import 'package:huji_app/widgets/controls/hover_widget.dart';
 
@@ -122,7 +122,7 @@ class _AppRangeCalendarState extends State<AppRangeCalendar> {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final locale = Localizations.localeOf(context);
     final firstWeekday = CalendarDateUtils.firstWeekdayForLocale(
       locale.languageCode,
@@ -154,7 +154,7 @@ class _AppRangeCalendarState extends State<AppRangeCalendar> {
                   child: Center(
                     child: Text(
                       label,
-                      style: styles.caption.copyWith(
+                      style: styles.xs.copyWith(
                         color: cs.onSurfaceVariant,
                       ),
                     ),
@@ -193,7 +193,7 @@ class _AppRangeCalendarState extends State<AppRangeCalendar> {
             alignment: Alignment.centerRight,
             child: TextButton(
               onPressed: _clear,
-              child: Text('清除', style: styles.caption),
+              child: Text('清除', style: styles.xs),
             ),
           ),
         ],
@@ -228,7 +228,7 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Row(
       children: [
@@ -237,7 +237,7 @@ class _CalendarHeader extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: styles.bodyStrong.copyWith(color: cs.onSurface),
+            style: styles.mdSemibold.copyWith(color: cs.onSurface),
           ),
         ),
         _NavButton(icon: Icons.chevron_right, onTap: onNext),
@@ -291,7 +291,7 @@ class _DayCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final selected = isStart || isEnd;
 
     Color? bg;
@@ -320,7 +320,7 @@ class _DayCell extends StatelessWidget {
       ),
       child: Text(
         '${date.day}',
-        style: styles.caption.copyWith(
+        style: styles.xs.copyWith(
           color: textColor,
           fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
         ),

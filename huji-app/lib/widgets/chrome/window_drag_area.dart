@@ -6,7 +6,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/platform/desktop_window_actions.dart';
 import 'package:huji_app/platform/platform_utils.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Wraps [child] in the window-move area and restores the interactions a native
 /// title bar would provide on a frameless window:
@@ -122,7 +122,7 @@ class _MenuRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: context.appIconSizes.md),
+        Icon(icon, size: context.tpIconSizes.md),
         const SizedBox(width: 12),
         Text(label),
       ],

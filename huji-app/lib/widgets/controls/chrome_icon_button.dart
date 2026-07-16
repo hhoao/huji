@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Compact icon control for toolbars and list rows: square hit target, rounded
 /// ink splash (AppFlowy-style).
@@ -42,10 +42,10 @@ class ChromeIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sizes = context.appIconSizes;
+    final sizes = context.tpIconSizes;
     final resolvedIconSize =
         iconSize ?? (compact ? sizes.sm : sizes.md);
-    final effectiveColor = color ?? context.appIconColor;
+    final effectiveColor = color ?? Theme.of(context).colorScheme.tpIcon;
     final radius = BorderRadius.circular(borderRadius);
 
     Widget iconChild = iconWidget ??

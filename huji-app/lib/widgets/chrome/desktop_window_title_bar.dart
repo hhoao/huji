@@ -7,7 +7,7 @@ import 'package:window_manager/window_manager.dart';
 import 'package:huji_app/platform/desktop_window_actions.dart';
 import 'package:huji_app/platform/platform_utils.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/chrome/window_chrome_controls.dart';
 import 'package:huji_app/widgets/chrome/window_drag_area.dart';
 
@@ -105,7 +105,7 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
         widget.title,
         maxLines: 1,
         overflow: TextOverflow.ellipsis,
-        style: AppTextStyles.of(context).bodyStrong.copyWith(
+        style: TpTextStyles.of(context).mdSemibold.copyWith(
           color: titleColor.withValues(alpha: 0.9),
         ),
       ),

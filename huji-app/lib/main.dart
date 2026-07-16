@@ -22,6 +22,9 @@ import 'package:huji_app/appearance/appearance_app_builder.dart';
 import 'package:huji_app/appearance/appearance_cubit.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
 import 'package:huji_app/appearance/appearance_theme_bundle.dart';
+import 'package:huji_app/theme/huji_toast_config.dart';
+import 'package:huji_app/theme/workspace_surface_layers.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 void main(List<String> args) async {
   try {
@@ -102,16 +105,35 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               : MediaQueryData.fromView(systemView);
           final bundle = resolveAppearanceTheme(prefs, systemMq);
 
-          return MaterialApp.router(
-            title: context.hujiL10n.appTitle,
-            routerConfig: appRouter,
-            theme: AppTheme.themedLightTheme,
-            darkTheme: AppTheme.themedDarkTheme,
-            themeMode: bundle.themeMode,
-            locale: bundle.locale,
-            localizationsDelegates:
-                HujiLocalizationsSetup.localizationsDelegates,
-            supportedLocales: HujiLocalizationsSetup.supportedLocales,
+          return TpToastWrapper(
+            config: buildHujiToastConfig(),
+            child: MaterialApp.router(
+              title: context.hujiL10n.appTitle,
+              routerConfig: appRouter,
+              theme: AppTheme.themedLightTheme,
+              darkTheme: AppTheme.themedDarkTheme,
+              themeMode: bundle.themeMode,
+              locale: bundle.locale,
+              localizationsDelegates:
+                  HujiLocalizationsSetup.localizationsDelegates,
+              supportedLocales: HujiLocalizationsSetup.supportedLocales,
+              builder: (context, child) {
+                final scheme = Theme.of(context).colorScheme;
+                return TpTheme(
+                  data: TpThemeData.fromColorScheme(
+                    scheme,
+                    scale: 1.0,
+                    controlScale: bundle.textScaleMultiplier,
+                    iconScale: bundle.iconScaleMultiplier,
+                    toast: TpToastTheme.fromColorScheme(
+                      scheme,
+                      backgroundColor: scheme.workspaceCard,
+                    ),
+                  ),
+                  child: child ?? const SizedBox.shrink(),
+                );
+              },
+            ),
           );
         },
       ),

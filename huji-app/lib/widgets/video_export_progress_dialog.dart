@@ -149,7 +149,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
   Widget build(BuildContext context) {
     final isDesktop = PlatformCapability.isDesktop;
     final cs = isDesktop ? context.desktopColors : Theme.of(context).colorScheme;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final onSurface = isDesktop ? cs.onSurface : Colors.white;
     final onSurfaceVariant =
         isDesktop ? cs.onSurfaceVariant : Colors.white70;
@@ -181,7 +181,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               _errorMessage != null
                   ? context.hujiL10n.exportFailedTitle
                   : widget.title,
-              style: (isDesktop ? styles.dialogTitle : const TextStyle())
+              style: (isDesktop ? styles.xl : const TextStyle())
                   .copyWith(color: onSurface),
             ),
           ),
@@ -194,7 +194,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
           if (widget.subtitle != null) ...[
             Text(
               widget.subtitle!,
-              style: styles.body.copyWith(
+              style: styles.md.copyWith(
                 color: onSurface,
                 fontWeight: FontWeight.w600,
               ),
@@ -218,7 +218,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: styles.bodySmall.copyWith(color: cs.error),
+                      style: styles.sm.copyWith(color: cs.error),
                     ),
                   ),
                 ],
@@ -238,7 +238,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               children: [
                 Text(
                   '${(_progress * 100).toStringAsFixed(0)}%',
-                  style: styles.body.copyWith(
+                  style: styles.md.copyWith(
                     color: onSurface,
                     fontWeight: FontWeight.w600,
                   ),
@@ -246,7 +246,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                 Flexible(
                   child: Text(
                     _status,
-                    style: styles.bodySmall.copyWith(color: onSurfaceVariant),
+                    style: styles.sm.copyWith(color: onSurfaceVariant),
                     textAlign: TextAlign.right,
                   ),
                 ),
@@ -274,13 +274,13 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                       children: [
                         Text(
                           context.hujiL10n.labelSize,
-                          style: styles.bodySmall
+                          style: styles.sm
                               .copyWith(color: onSurfaceVariant),
                         ),
                         Text(
                           _formattedFileSize,
                           style:
-                              styles.bodySmall.copyWith(color: onSurface),
+                              styles.sm.copyWith(color: onSurface),
                         ),
                       ],
                     ),
@@ -288,11 +288,11 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                     Text(
                       context.hujiL10n.saveLocationLabel,
                       style:
-                          styles.bodySmall.copyWith(color: onSurfaceVariant),
+                          styles.sm.copyWith(color: onSurfaceVariant),
                     ),
                     Text(
                       path.dirname(_outputPath!),
-                      style: styles.bodySmall.copyWith(color: onSurface),
+                      style: styles.sm.copyWith(color: onSurface),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),

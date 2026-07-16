@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 enum WorkspaceHubNavDensity { standard, relaxed, subItem }
 
@@ -65,19 +64,19 @@ class WorkspaceHubNavItem extends StatelessWidget {
     final (height, iconSize, horizontalPadding, leftIndent) = switch (density) {
       WorkspaceHubNavDensity.standard => (
         hubStyle ? 56.0 : 48.0,
-        context.appIconSizes.md,
+        context.tpIconSizes.md,
         hubStyle ? 16.0 : 18.0,
         0.0,
       ),
       WorkspaceHubNavDensity.relaxed => (
         54.0,
-        context.appIconSizes.md,
+        context.tpIconSizes.md,
         18.0,
         0.0,
       ),
       WorkspaceHubNavDensity.subItem => (
         44.0,
-        context.appIconSizes.md,
+        context.tpIconSizes.md,
         14.0,
         14.0,
       ),
@@ -119,8 +118,8 @@ class WorkspaceHubNavItem extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style:
                           (hubStyle
-                                  ? AppTextStyles.of(context).sectionTitle
-                                  : AppTextStyles.of(context).body)
+                                  ? TpTextStyles.of(context).lgSemibold
+                                  : TpTextStyles.of(context).md)
                               .copyWith(
                                 fontWeight: hubStyle
                                     ? FontWeight.w600

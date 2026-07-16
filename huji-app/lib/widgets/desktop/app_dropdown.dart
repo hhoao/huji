@@ -49,7 +49,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     Widget trigger = Container(
       constraints: BoxConstraints(minWidth: widget.minWidth!),
@@ -65,7 +65,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
           Flexible(
             child: Text(
               _labelFor(widget.value),
-              style: styles.body.copyWith(color: cs.onSurface),
+              style: styles.md.copyWith(color: cs.onSurface),
             ),
           ),
           const SizedBox(width: 8),
@@ -90,7 +90,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
           },
           child: Text(
             _labelFor(item),
-            style: styles.bodySmall.copyWith(
+            style: styles.sm.copyWith(
               color: isActive ? cs.primary : cs.onSurface,
             ),
           ),

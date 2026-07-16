@@ -13,7 +13,7 @@ class DesktopTimelineEditor extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Column(
       children: [
@@ -54,7 +54,7 @@ class DesktopTimelineEditor extends StatelessWidget {
                 child: Center(
                   child: Text(
                     segment.actionType.name,
-                    style: styles.caption.copyWith(
+                    style: styles.xs.copyWith(
                       color: cs.primary.withAlpha(200),
                       fontWeight: FontWeight.w600,
                     ),

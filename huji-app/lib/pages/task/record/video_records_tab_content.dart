@@ -282,7 +282,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
     String buttonKey,
     VideoRecordsTabState state,
   ) {
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     // 如果有活跃的筛选条件，按钮不高亮
     final bool isSelected =
         !state.hasActiveFilters && state.selectedStatButton == buttonKey;
@@ -307,7 +307,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
             SizedBox(width: 4),
             Text(
               label,
-              style: styles.bodySmall.copyWith(
+              style: styles.sm.copyWith(
                 color: isSelected ? Colors.white : Colors.black,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
@@ -321,7 +321,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
               ),
               child: Text(
                 count,
-                style: styles.bodySmall.copyWith(
+                style: styles.sm.copyWith(
                   color: isSelected ? color : Colors.grey[800],
                   fontWeight: FontWeight.bold,
                 ),
@@ -335,7 +335,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
 
   Widget _buildRecordCard(BuildContext context, VideoProcessRecordVO record) {
     final l10n = context.hujiL10n;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final cs = Theme.of(context).colorScheme;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -356,7 +356,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                       children: [
                         Text(
                           record.videoName,
-                          style: styles.bodyStrong,
+                          style: styles.mdSemibold,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -374,7 +374,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                               ),
                               child: Text(
                                 l10n.processStatusLabel(record.status),
-                                style: styles.caption.copyWith(
+                                style: styles.xs.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -392,7 +392,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                               ),
                               child: Text(
                                 l10n.sportTypeLabel(record.sportType),
-                                style: styles.caption.copyWith(
+                                style: styles.xs.copyWith(
                                   color: cs.onSurfaceVariant,
                                   fontWeight: FontWeight.w500,
                                 ),
@@ -410,7 +410,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                     children: [
                       Text(
                         '${record.progress.toStringAsFixed(1)}%',
-                        style: styles.prominent.copyWith(
+                        style: styles.lg.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -418,7 +418,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                         l10n.durationLabel(
                           _formatDuration(record.videoDuration),
                         ),
-                        style: styles.mutedBodySmall,
+                        style: styles.mutedSm,
                       ),
                     ],
                   ),
@@ -444,7 +444,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 children: [
                   Text(
                     l10n.createdAt(_formatDate(record.createTime)),
-                    style: styles.mutedBodySmall,
+                    style: styles.mutedSm,
                   ),
                   if (record.extraInfo != null && record.extraInfo!.isNotEmpty)
                     Container(
@@ -455,7 +455,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                       constraints: const BoxConstraints(maxWidth: 100),
                       child: Text(
                         l10n.remark(record.extraInfo!),
-                        style: styles.mutedBodySmall,
+                        style: styles.mutedSm,
 
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -531,7 +531,7 @@ class _FilterDialogState extends State<_FilterDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -541,7 +541,7 @@ class _FilterDialogState extends State<_FilterDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(context.hujiL10n.filterConditions, style: styles.dialogTitle,
+              Text(context.hujiL10n.filterConditions, style: styles.xl,
               ),
               TextButton(
                 onPressed: () {
@@ -670,7 +670,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                 backgroundColor: Colors.deepPurple,
                 padding: const EdgeInsets.symmetric(vertical: 16),
               ),
-              child: Text(context.hujiL10n.applyFilter, style: styles.subtitle.copyWith(color: Colors.white),
+              child: Text(context.hujiL10n.applyFilter, style: styles.mdMedium.copyWith(color: Colors.white),
               ),
             ),
           ),

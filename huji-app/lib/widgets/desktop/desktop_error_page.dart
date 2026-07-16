@@ -13,7 +13,7 @@ class DesktopErrorPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Scaffold(
       backgroundColor: cs.surface,
@@ -25,12 +25,12 @@ class DesktopErrorPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               l10n.pageLoadFailed,
-              style: styles.subtitle.copyWith(color: cs.onSurfaceVariant),
+              style: styles.mdMedium.copyWith(color: cs.onSurfaceVariant),
             ),
             const SizedBox(height: 8),
             Text(
               error?.toString() ?? l10n.unknownError,
-              style: styles.mutedBodySmall,
+              style: styles.mutedSm,
             ),
             const SizedBox(height: 24),
             ElevatedButton(

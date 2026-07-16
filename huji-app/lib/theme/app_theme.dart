@@ -3,15 +3,14 @@ import 'dart:io' show Platform;
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 import 'app_dialog_theme.dart';
 import 'app_list_tile_theme.dart';
 import 'app_tooltip_theme.dart';
 import 'app_fonts.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
 import 'app_outline_input_theme.dart';
-import 'package:shared_ui/theme/app_spacing.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'app_typography_scale.dart';
 
 /// Persisted preset ids (order = settings UI order).
 const List<String> kThemeColorPresetIds = [
@@ -225,7 +224,7 @@ ThemeData _applyTypography(
   flexTheme = _withSoftenedForeground(flexTheme);
   final resolvedIconScale = iconScale ??
       AppTypographyScale(
-        multiplier: AppIconSizes.resolveIconMultiplier(
+        multiplier: TpIconSizes.resolveIconMultiplier(
           effectiveTextMultiplier: typographyScale.multiplier,
           textBaseline: 1.0,
         ),
@@ -258,13 +257,15 @@ ThemeData _applyTypography(
     return flexTheme.copyWith(
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      iconTheme: AppIconSizes.iconTheme(scheme, scale: resolvedIconScale),
+      iconTheme: TpIconSizes.iconTheme(
+        scheme,
+        scale: resolvedIconScale.multiplier,
+      ),
       textTheme: textTheme,
       extensions: [
         AppFontTheme.fallback,
+        buildTpFontTheme(uiFont: const TextStyle()),
         typographyTheme,
-        AppSpacingTheme.fromScale(AppTypographyScale.standard),
-        AppIconSizeTheme.fromScale(resolvedIconScale),
       ],
       dialogTheme: buildAppDialogTheme(colorScheme: scheme, textTheme: textTheme),
       tooltipTheme: buildAppTooltipTheme(
@@ -303,14 +304,16 @@ ThemeData _applyTypography(
   return flexTheme.copyWith(
     visualDensity: VisualDensity.compact,
     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-    iconTheme: AppIconSizes.iconTheme(scheme, scale: resolvedIconScale),
+    iconTheme: TpIconSizes.iconTheme(
+      scheme,
+      scale: resolvedIconScale.multiplier,
+    ),
     textTheme: mergedTextTheme,
     primaryTextTheme: primaryTextTheme,
     extensions: [
       buildAppFontTheme(uiFont: appUiFont),
+      buildTpFontTheme(uiFont: appUiFont),
       typographyTheme,
-      AppSpacingTheme.fromScale(AppTypographyScale.standard),
-      AppIconSizeTheme.fromScale(resolvedIconScale),
     ],
     dialogTheme: buildAppDialogTheme(
       colorScheme: scheme,

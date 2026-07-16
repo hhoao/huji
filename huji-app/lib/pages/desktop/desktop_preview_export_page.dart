@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:shared_ui/shared_ui.dart' hide AppIconButton;
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
@@ -254,7 +254,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   void _showExportModal(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
@@ -267,7 +267,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         title: Text(
           l10n.confirmExportTitle,
-          style: styles.dialogTitle.copyWith(color: cs.onSurface),
+          style: styles.xl.copyWith(color: cs.onSurface),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -293,7 +293,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             onPressed: () => Navigator.of(ctx).pop(),
             child: Text(
               l10n.taskStatusCancelledShort,
-              style: styles.body.copyWith(color: cs.onSurfaceVariant),
+              style: styles.md.copyWith(color: cs.onSurfaceVariant),
             ),
           ),
           ElevatedButton.icon(
@@ -316,15 +316,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Widget _exportInfoRow(BuildContext context, String label, String value) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: styles.body.copyWith(color: cs.onSurfaceVariant)),
+        Text(label, style: styles.md.copyWith(color: cs.onSurfaceVariant)),
         Flexible(
           child: Text(
             value,
-            style: styles.body.copyWith(color: cs.onSurface),
+            style: styles.md.copyWith(color: cs.onSurface),
             textAlign: TextAlign.right,
           ),
         ),
@@ -358,7 +358,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Widget _buildFileName() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return _ExSection(
       label: context.hujiL10n.fileName,
       child: Container(
@@ -370,7 +370,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         ),
         child: Text(
           _fileName,
-          style: styles.body.copyWith(color: cs.onSurface),
+          style: styles.md.copyWith(color: cs.onSurface),
         ),
       ),
     );
@@ -433,7 +433,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Widget _buildSavePath() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return _ExSection(
       label: context.hujiL10n.saveToLabel,
       child: Row(
@@ -448,7 +448,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               ),
               child: Text(
                 _savePath,
-                style: styles.body.copyWith(color: cs.onSurfaceVariant),
+                style: styles.md.copyWith(color: cs.onSurfaceVariant),
               ),
             ),
           ),
@@ -466,7 +466,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Widget _buildConfigFooter() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
@@ -484,11 +484,11 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             children: [
               Text(
                 l10n.roundCountLabel,
-                style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant),
+                style: styles.sm.copyWith(color: cs.onSurfaceVariant),
               ),
               Text(
                 l10n.roundCountDurationSummary(segCount, durationStr),
-                style: styles.bodySmall.copyWith(
+                style: styles.sm.copyWith(
                   color: cs.primary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -501,11 +501,11 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             children: [
               Text(
                 l10n.outputQualityLabel,
-                style: styles.bodySmall.copyWith(color: cs.onSurfaceVariant),
+                style: styles.sm.copyWith(color: cs.onSurfaceVariant),
               ),
               Text(
                 _qualityLabel(l10n),
-                style: styles.bodySmall.copyWith(
+                style: styles.sm.copyWith(
                   color: cs.primary,
                   fontWeight: FontWeight.w600,
                 ),
@@ -582,21 +582,21 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     if (_segments.isEmpty) return const SizedBox.shrink();
 
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     final l10n = context.hujiL10n;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
         Text(
           l10n.roundOrder,
-          style: styles.body.copyWith(
+          style: styles.md.copyWith(
             color: cs.onSurfaceVariant,
             fontWeight: FontWeight.w500,
           ),
         ),
         Text(
           l10n.roundCountShort(_segments.length),
-          style: styles.caption.copyWith(color: cs.outline),
+          style: styles.xs.copyWith(color: cs.outline),
         ),
       ]),
       SizedBox(height: 8),
@@ -657,7 +657,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                               Center(
                                 child: Text(
                                   '🏓',
-                                  style: styles.sectionTitle,
+                                  style: styles.lgSemibold,
                                 ),
                               ),
                               Positioned(
@@ -674,7 +674,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                                   ),
                                   child: Text(
                                     '#${i + 1}',
-                                    style: styles.caption.copyWith(
+                                    style: styles.xs.copyWith(
                                       color: cs.onSurface,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -687,7 +687,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                                   left: 4,
                                   child: Text(
                                     l10n.playingNow,
-                                    style: styles.caption.copyWith(
+                                    style: styles.xs.copyWith(
                                       color: cs.onSurface,
                                     ),
                                   ),
@@ -705,13 +705,13 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                             children: [
                               Text(
                                 startStr,
-                                style: styles.caption.copyWith(
+                                style: styles.xs.copyWith(
                                   color: cs.onSurfaceVariant,
                                 ),
                               ),
                               Text(
                                 durStr,
-                                style: styles.caption.copyWith(
+                                style: styles.xs.copyWith(
                                   color: cs.onSurfaceVariant,
                                 ),
                               ),
@@ -755,12 +755,12 @@ class _ConfigTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Row(
       children: [
         Text(
           title,
-          style: styles.sectionTitle.copyWith(color: cs.onSurface),
+          style: styles.lgSemibold.copyWith(color: cs.onSurface),
         ),
       ],
     );
@@ -775,13 +775,13 @@ class _ExSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: styles.caption.copyWith(
+          style: styles.xs.copyWith(
             color: cs.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
@@ -803,7 +803,7 @@ class _RadioOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return AppHoverBox(
       onTap: onTap,
       borderRadius: desktopRadiusMd,
@@ -842,10 +842,10 @@ class _RadioOption extends StatelessWidget {
                   : null,
             ),
             SizedBox(width: 10),
-            Text(label, style: styles.body.copyWith(color: cs.onSurface)),
+            Text(label, style: styles.md.copyWith(color: cs.onSurface)),
             const Spacer(),
             if (meta != null)
-              Text(meta!, style: styles.caption.copyWith(color: cs.outline)),
+              Text(meta!, style: styles.xs.copyWith(color: cs.outline)),
           ],
         ),
       ),
@@ -861,19 +861,19 @@ class _SummaryStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           num,
-          style: styles.body.copyWith(
+          style: styles.md.copyWith(
             color: cs.primary,
             fontWeight: FontWeight.w600,
           ),
         ),
         SizedBox(width: 4),
-        Text(label, style: styles.caption.copyWith(color: cs.outline)),
+        Text(label, style: styles.xs.copyWith(color: cs.outline)),
       ],
     );
   }

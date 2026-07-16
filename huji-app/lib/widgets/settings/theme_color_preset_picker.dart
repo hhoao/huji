@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/theme/app_theme.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 
@@ -101,7 +101,7 @@ class ThemeColorPresetChip extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 label,
-                style: AppTextStyles.of(context).bodySmall.copyWith(
+                style: TpTextStyles.of(context).sm.copyWith(
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
                   color: textBase.withValues(alpha: selected ? 1 : 0.78),
                 ),

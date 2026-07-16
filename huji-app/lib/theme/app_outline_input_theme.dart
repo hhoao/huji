@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 /// Fills null [TextStyle.fontSize] from [AppTypographyScale]; keeps explicit

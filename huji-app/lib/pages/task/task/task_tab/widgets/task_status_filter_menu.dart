@@ -6,8 +6,7 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_filter_menu_trigger.dart';
 import 'package:huji_app/widgets/menu/sidebar_action_menu.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class _StatusOption {
   const _StatusOption({
@@ -98,7 +97,7 @@ class TaskStatusFilterMenu extends StatelessWidget {
           },
           buildMenuChildren: (context, controller) {
             final cs = Theme.of(context).colorScheme;
-            final iconSizes = context.appIconSizes;
+            final iconSizes = context.tpIconSizes;
 
             return [
               for (final option in options)
@@ -113,7 +112,7 @@ class TaskStatusFilterMenu extends StatelessWidget {
                         )
                       : Text(
                           '${option.count}',
-                          style: AppTextStyles.of(context).caption.copyWith(
+                          style: TpTextStyles.of(context).xs.copyWith(
                             color: cs.onSurfaceVariant,
                           ),
                         ),

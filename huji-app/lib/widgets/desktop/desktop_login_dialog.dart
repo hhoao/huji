@@ -124,7 +124,7 @@ class _LoginDialogState extends State<LoginDialog> {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return AlertDialog(
       backgroundColor: cs.surfaceContainer,
@@ -134,7 +134,7 @@ class _LoginDialogState extends State<LoginDialog> {
       actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
       title: Row(
         children: [
-          Text(context.hujiL10n.loginTitle, style: styles.dialogTitle.copyWith(color: cs.onSurface)),
+          Text(context.hujiL10n.loginTitle, style: styles.xl.copyWith(color: cs.onSurface)),
           const Spacer(),
           IconButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -175,7 +175,7 @@ class _LoginDialogState extends State<LoginDialog> {
                 SizedBox(height: 20),
                 TextFormField(
                   controller: _identifierController,
-                  style: styles.body.copyWith(color: cs.onSurface),
+                  style: styles.md.copyWith(color: cs.onSurface),
                   decoration: _inputDecoration(
                     context,
                     context.hujiL10n.loginIdentifierLabelOr,
@@ -190,7 +190,7 @@ class _LoginDialogState extends State<LoginDialog> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    style: styles.body.copyWith(color: cs.onSurface),
+                    style: styles.md.copyWith(color: cs.onSurface),
                     decoration: _inputDecoration(
                       context,
                       context.hujiL10n.loginPasswordLabel,
@@ -220,7 +220,7 @@ class _LoginDialogState extends State<LoginDialog> {
                       Expanded(
                         child: TextFormField(
                           controller: _codeController,
-                          style: styles.body.copyWith(color: cs.onSurface),
+                          style: styles.md.copyWith(color: cs.onSurface),
                           decoration: _inputDecoration(
                             context,
                             context.hujiL10n.loginAuthCodeLabel,
@@ -251,7 +251,7 @@ class _LoginDialogState extends State<LoginDialog> {
                                     _countdown,
                                   )
                                 : context.hujiL10n.actionSendVerificationCode,
-                            style: styles.bodySmall.copyWith(
+                            style: styles.sm.copyWith(
                               color: cs.onPrimary,
                             ),
                           ),
@@ -285,7 +285,7 @@ class _LoginDialogState extends State<LoginDialog> {
                       strokeWidth: 2,
                     ),
                   )
-                : Text(context.hujiL10n.loginTitle, style: styles.sectionTitle.copyWith(color: cs.onPrimary),
+                : Text(context.hujiL10n.loginTitle, style: styles.lgSemibold.copyWith(color: cs.onPrimary),
                   ),
           ),
         ),
@@ -299,11 +299,11 @@ class _LoginDialogState extends State<LoginDialog> {
     IconData icon,
   ) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: styles.mutedBody,
+      hintStyle: styles.mutedMd,
       prefixIcon: Icon(icon, color: cs.outline, size: 18),
       filled: true,
       fillColor: cs.surfaceContainerHigh,
@@ -330,7 +330,7 @@ class _ModeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Expanded(
       child: GestureDetector(
@@ -344,7 +344,7 @@ class _ModeTab extends StatelessWidget {
           child: Text(
             label,
             textAlign: TextAlign.center,
-            style: styles.body.copyWith(
+            style: styles.md.copyWith(
               color: active ? cs.onPrimary : cs.outline,
               fontWeight: FontWeight.w500,
             ),

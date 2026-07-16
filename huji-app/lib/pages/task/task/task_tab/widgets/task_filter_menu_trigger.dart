@@ -48,7 +48,7 @@ class TaskFilterMenuTrigger extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: AppTextStyles.of(context).caption.copyWith(
+            style: TpTextStyles.of(context).xs.copyWith(
               color: isActive ? cs.primary : cs.onSurfaceVariant,
             ),
           ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Section header for workspace content / settings panes (Teampilot style).
 class WorkspaceSectionHeader extends StatelessWidget {
@@ -18,7 +18,7 @@ class WorkspaceSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textBase = isDark ? Colors.white : const Color(0xFF111827);
 
@@ -34,7 +34,7 @@ class WorkspaceSectionHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: styles.subtitle.copyWith(
+                style: styles.mdMedium.copyWith(
                   fontWeight: FontWeight.w800,
                   color: textBase,
                   height: 1.05,

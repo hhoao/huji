@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
-import 'package:shared_ui/theme/app_icon_sizes.dart';
 import 'package:huji_app/theme/app_theme.dart';
-import 'package:shared_ui/theme/app_typography_scale.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Resolved theme + zoom values for [MaterialApp].
 class AppearanceThemeBundle {
@@ -12,6 +12,8 @@ class AppearanceThemeBundle {
     required this.themeMode,
     required this.locale,
     required this.uiZoom,
+    required this.textScaleMultiplier,
+    required this.iconScaleMultiplier,
   });
 
   final ThemeData lightTheme;
@@ -19,6 +21,12 @@ class AppearanceThemeBundle {
   final ThemeMode themeMode;
   final Locale locale;
   final double uiZoom;
+
+  /// Effective text multiplier (includes OS auto baseline).
+  final double textScaleMultiplier;
+
+  /// Damped icon multiplier for [TpThemeData.iconScale].
+  final double iconScaleMultiplier;
 }
 
 AppearanceThemeBundle resolveAppearanceTheme(
@@ -35,12 +43,11 @@ AppearanceThemeBundle resolveAppearanceTheme(
     baseline: textBaseline,
   );
   final textScale = AppTypographyScale(multiplier: effectiveTextMult);
-  final iconScale = AppTypographyScale(
-    multiplier: AppIconSizes.resolveIconMultiplier(
-      effectiveTextMultiplier: effectiveTextMult,
-      textBaseline: textBaseline,
-    ),
+  final iconMult = TpIconSizes.resolveIconMultiplier(
+    effectiveTextMultiplier: effectiveTextMult,
+    textBaseline: textBaseline,
   );
+  final iconScale = AppTypographyScale(multiplier: iconMult);
 
   final themeMode = switch (prefs.themeMode) {
     'light' => ThemeMode.light,
@@ -68,5 +75,7 @@ AppearanceThemeBundle resolveAppearanceTheme(
     themeMode: themeMode,
     locale: locale,
     uiZoom: effectiveZoom,
+    textScaleMultiplier: effectiveTextMult,
+    iconScaleMultiplier: iconMult,
   );
 }

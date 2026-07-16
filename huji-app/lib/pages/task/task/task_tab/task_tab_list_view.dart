@@ -173,7 +173,7 @@ class TaskTabLoadMoreIndicator {
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Center(
-        child: Text(context.hujiL10n.noMoreData, style: AppTextStyles.of(context).mutedBodySmall.copyWith(
+        child: Text(context.hujiL10n.noMoreData, style: TpTextStyles.of(context).mutedSm.copyWith(
                 color: cs.outline,
               ),
         ),

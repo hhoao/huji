@@ -71,7 +71,7 @@ class TaskBatchToolbar extends StatelessWidget {
     bool allSelected,
   ) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -84,7 +84,7 @@ class TaskBatchToolbar extends StatelessWidget {
         children: [
           Text(
             context.hujiL10n.selectedItemsCount(state.selectedTaskIds.length),
-            style: styles.body.copyWith(color: cs.primary),
+            style: styles.md.copyWith(color: cs.primary),
           ),
           const Spacer(),
           TextButton(
@@ -93,7 +93,7 @@ class TaskBatchToolbar extends StatelessWidget {
               allSelected
                   ? context.hujiL10n.deselectAll
                   : context.hujiL10n.selectAll,
-              style: styles.bodySmall,
+              style: styles.sm,
             ),
           ),
           SizedBox(width: 8),
@@ -102,7 +102,7 @@ class TaskBatchToolbar extends StatelessWidget {
                 ? null
                 : () => onBatchDelete(state.selectedTaskIds),
             icon: const Icon(Icons.delete, size: 14),
-            label: Text(context.hujiL10n.actionDelete, style: styles.bodySmall),
+            label: Text(context.hujiL10n.actionDelete, style: styles.sm),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,

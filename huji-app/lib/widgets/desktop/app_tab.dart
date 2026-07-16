@@ -23,7 +23,7 @@ class AppTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Row(
       children: List.generate(tabs.length, (i) {
@@ -50,7 +50,7 @@ class AppTab extends StatelessWidget {
                 children: [
                   Text(
                     tabs[i],
-                    style: styles.body.copyWith(
+                    style: styles.md.copyWith(
                       color: active ? cs.onSurface : cs.onSurfaceVariant,
                     ),
                   ),
@@ -67,7 +67,7 @@ class AppTab extends StatelessWidget {
                       ),
                       child: Text(
                         badge,
-                        style: styles.caption.copyWith(color: cs.primary),
+                        style: styles.xs.copyWith(color: cs.primary),
                       ),
                     ),
                   ],
@@ -99,7 +99,7 @@ class AppTabNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -122,7 +122,7 @@ class AppTabNav extends StatelessWidget {
               const SizedBox(width: 10),
               Text(
                 labels[i],
-                style: styles.body.copyWith(
+                style: styles.md.copyWith(
                   color: active ? cs.primary : cs.onSurfaceVariant,
                 ),
               ),

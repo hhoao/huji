@@ -267,7 +267,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   Widget _buildRoundList(BuildContext context, RoundClipState state,
       List<SegmentInfo> segments) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return SizedBox(
       width: 240,
       child: ColoredBox(
@@ -286,14 +286,14 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                 children: [
                   Text(
                     context.hujiL10n.roundList,
-                    style: styles.body.copyWith(
+                    style: styles.md.copyWith(
                       color: cs.onSurface,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   Text(
                     context.hujiL10n.roundCountBadge(segments.length),
-                    style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+                    style: styles.xs.copyWith(color: cs.onSurfaceVariant),
                   ),
                 ],
               ),
@@ -306,7 +306,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                           padding: const EdgeInsets.all(16),
                           child: Text(
                             state.errorMessage!,
-                            style: styles.bodySmall.copyWith(color: Colors.red),
+                            style: styles.sm.copyWith(color: Colors.red),
                             textAlign: TextAlign.center,
                           ),
                         )
@@ -314,7 +314,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                           ? Center(
                               child: Text(
                                 context.hujiL10n.noRoundSegments,
-                                style: styles.body.copyWith(
+                                style: styles.md.copyWith(
                                   color: cs.onSurfaceVariant,
                                 ),
                               ),
@@ -329,7 +329,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                                   ),
                                   child: Text(
                                     context.hujiL10n.selectedRounds,
-                                    style: styles.caption.copyWith(
+                                    style: styles.xs.copyWith(
                                       color: cs.outline,
                                       letterSpacing: 0.6,
                                     ),
@@ -356,7 +356,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   Widget _buildRoundItem(
       BuildContext context, SegmentInfo segment, int index, bool isActive) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final duration = segment.endSeconds - segment.startSeconds;
     final actionLabel = _formatActionType(context, segment.actionType);
     final actionColor = _actionTypeColor(segment.actionType);
@@ -390,7 +390,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                 ),
               ),
               alignment: Alignment.center,
-              child: Text('\u{1F3D3}', style: styles.prominent),
+              child: Text('\u{1F3D3}', style: styles.lg),
             ),
             SizedBox(width: 10),
             Expanded(
@@ -401,7 +401,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                     children: [
                       Text(
                         '#$index',
-                        style: styles.bodySmall.copyWith(
+                        style: styles.sm.copyWith(
                           color: cs.onSurface,
                           fontWeight: FontWeight.w500,
                         ),
@@ -418,7 +418,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                         ),
                         child: Text(
                           actionLabel,
-                          style: styles.caption.copyWith(color: actionColor),
+                          style: styles.xs.copyWith(color: actionColor),
                         ),
                       ),
                     ],
@@ -447,7 +447,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       return Center(
         child: Text(
           context.hujiL10n.selectRoundFromLeft,
-          style: AppTextStyles.of(context).body.copyWith(
+          style: TpTextStyles.of(context).md.copyWith(
                 color: context.desktopOnSurfaceVariant,
               ),
         ),
@@ -465,7 +465,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           children: [
             Text(
               context.hujiL10n.cannotLoadVideo,
-              style: AppTextStyles.of(context).body.copyWith(
+              style: TpTextStyles.of(context).md.copyWith(
                     color: context.desktopOnSurfaceVariant,
                   ),
             ),
@@ -504,7 +504,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   Widget _buildInfoRow(SegmentInfo segment, List<SegmentInfo> segments) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final segmentIndex = segments.indexWhere((s) => s == segment);
     final indexLabel = segmentIndex >= 0 ? '#${segmentIndex + 1}' : '#?';
     final duration = segment.endSeconds - segment.startSeconds;
@@ -520,7 +520,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               children: [
                 Text(
                   context.hujiL10n.currentEditingRound(indexLabel),
-                  style: styles.subtitle.copyWith(
+                  style: styles.mdMedium.copyWith(
                     color: cs.onSurface,
                     fontWeight: FontWeight.w600,
                   ),
@@ -535,7 +535,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                   ),
                   child: Text(
                     _formatActionType(context, segment.actionType),
-                    style: styles.caption.copyWith(
+                    style: styles.xs.copyWith(
                       color: _actionTypeColor(segment.actionType),
                       fontWeight: FontWeight.w500,
                     ),

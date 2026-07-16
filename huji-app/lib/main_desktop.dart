@@ -22,8 +22,11 @@ import 'package:huji_app/appearance/appearance_app_builder.dart';
 import 'package:huji_app/appearance/appearance_cubit.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
 import 'package:huji_app/appearance/appearance_theme_bundle.dart';
+import 'package:huji_app/theme/huji_toast_config.dart';
+import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/widgets/layout/app_text_scale_boundary.dart';
 import 'package:huji_app/widgets/layout/ui_zoom.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class DesktopApp extends StatefulWidget {
   const DesktopApp({super.key, required this.appearanceCubit});
@@ -138,25 +141,41 @@ class _DesktopAppState extends State<DesktopApp> {
 
               final l10n = lookupHujiLocalizations(bundle.locale);
 
-              return MaterialApp.router(
-                title: l10n.appTitle,
-                debugShowCheckedModeBanner: false,
-                routerConfig: _router,
-                theme: withTrimmerTheme(bundle.lightTheme),
-                darkTheme: withTrimmerTheme(bundle.darkTheme),
-                themeMode: bundle.themeMode,
-                locale: bundle.locale,
-                localizationsDelegates:
-                    HujiLocalizationsSetup.localizationsDelegates,
-                supportedLocales: HujiLocalizationsSetup.supportedLocales,
-                builder: (context, child) {
-                  Widget content = AppTextScaleBoundary(
-                    child: child ?? const SizedBox.shrink(),
-                  );
-                  content = UiZoom(scale: bundle.uiZoom, child: content);
-                  content = DragToResizeWrapper(child: content);
-                  return content;
-                },
+              return TpToastWrapper(
+                config: buildHujiToastConfig(),
+                child: MaterialApp.router(
+                  title: l10n.appTitle,
+                  debugShowCheckedModeBanner: false,
+                  routerConfig: _router,
+                  theme: withTrimmerTheme(bundle.lightTheme),
+                  darkTheme: withTrimmerTheme(bundle.darkTheme),
+                  themeMode: bundle.themeMode,
+                  locale: bundle.locale,
+                  localizationsDelegates:
+                      HujiLocalizationsSetup.localizationsDelegates,
+                  supportedLocales: HujiLocalizationsSetup.supportedLocales,
+                  builder: (context, child) {
+                    Widget content = AppTextScaleBoundary(
+                      child: child ?? const SizedBox.shrink(),
+                    );
+                    content = UiZoom(scale: bundle.uiZoom, child: content);
+                    content = DragToResizeWrapper(child: content);
+                    final scheme = Theme.of(context).colorScheme;
+                    return TpTheme(
+                      data: TpThemeData.fromColorScheme(
+                        scheme,
+                        scale: 1.0,
+                        controlScale: bundle.textScaleMultiplier,
+                        iconScale: bundle.iconScaleMultiplier,
+                        toast: TpToastTheme.fromColorScheme(
+                          scheme,
+                          backgroundColor: scheme.workspaceCard,
+                        ),
+                      ),
+                      child: content,
+                    );
+                  },
+                ),
               );
             },
           ),

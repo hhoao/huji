@@ -170,7 +170,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
 
   Widget _buildEmptyState(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Center(
       child: Column(
@@ -184,12 +184,12 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           const SizedBox(height: 14),
           Text(
             context.hujiL10n.dragVideoHere,
-            style: styles.sectionTitle.copyWith(color: cs.onSurfaceVariant),
+            style: styles.lgSemibold.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Text(
             context.hujiL10n.orLabel,
-            style: styles.mutedBodySmall.copyWith(color: cs.outline),
+            style: styles.mutedSm.copyWith(color: cs.outline),
           ),
           const SizedBox(height: 8),
           ElevatedButton(
@@ -204,7 +204,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           const SizedBox(height: 8),
           Text(
             context.hujiL10n.supportedVideoFormats,
-            style: styles.caption.copyWith(color: cs.outline),
+            style: styles.xs.copyWith(color: cs.outline),
           ),
           if (widget.onDemoVideoSelected != null) ...[
             const SizedBox(height: 20),
@@ -222,7 +222,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
 
   Widget _buildPreviewState(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final file = widget.file!;
     final fileName = p.basename(file.path);
 
@@ -254,7 +254,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
               Expanded(
                 child: Text(
                   fileName,
-                  style: styles.body.copyWith(color: cs.onSurface),
+                  style: styles.md.copyWith(color: cs.onSurface),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -279,7 +279,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
 
   Widget _buildVideoPlaceholder(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Center(
       child: Column(
@@ -298,7 +298,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             _isVideoLoading
                 ? context.hujiL10n.videoLoading
                 : context.hujiL10n.noVideo,
-            style: styles.bodySmall.copyWith(color: cs.outline),
+            style: styles.sm.copyWith(color: cs.outline),
           ),
         ],
       ),

@@ -1,8 +1,7 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:toggle_switch/toggle_switch.dart';
 
-import 'package:shared_ui/theme/app_icon_sizes.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 /// Default icon size for [AppToggleSwitch] — resolved from theme in [build].
@@ -91,8 +90,8 @@ class AppToggleSwitch extends StatelessWidget {
     final resolvedMinWidth = minWidth ?? (n == 2 ? 112.0 : 100.0);
     final fontSize =
         Theme.of(context).textTheme.bodyMedium?.fontSize ??
-        AppTextStyles.of(context).body.fontSize!;
-    final iconSize = context.appIconSizes.md;
+        TpTextStyles.of(context).md.fontSize!;
+    final iconSize = context.tpIconSizes.md;
     final resolvedCustomWidths =
         customWidths ??
         computeToggleSegmentWidths(

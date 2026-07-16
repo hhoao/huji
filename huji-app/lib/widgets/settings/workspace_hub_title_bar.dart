@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Page header for hub / settings right panes (Teampilot [WorkspaceHubTitleBar]).
 class WorkspaceHubTitleBar extends StatelessWidget {
@@ -37,7 +37,7 @@ class WorkspaceHubTitleBar extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTextStyles.of(context).subtitle.copyWith(
+            style: TpTextStyles.of(context).mdMedium.copyWith(
               color: textBase,
               fontWeight: FontWeight.w800,
               height: 1.05,

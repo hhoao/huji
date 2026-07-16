@@ -433,13 +433,13 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                     _isPingPong
                         ? context.hujiL10n.pingPongMatchVideoClip
                         : context.hujiL10n.badmintonMatchVideoClip,
-                    style: AppTextStyles.of(context).subtitle.copyWith(
+                    style: TpTextStyles.of(context).mdMedium.copyWith(
                           color: context.desktopOnSurface,
                           fontWeight: FontWeight.w600,
                         ),
                   ),
                   SizedBox(height: 4),
-                  Text(context.hujiL10n.uploadVideoHint, style: AppTextStyles.of(context).mutedBody,
+                  Text(context.hujiL10n.uploadVideoHint, style: TpTextStyles.of(context).mutedMd,
                   ),
                   SizedBox(height: 16),
                   _buildWarning(),
@@ -456,7 +456,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildConfigHeader() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -464,7 +464,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           children: [
             Icon(Icons.tune, size: 16, color: cs.onSurface),
             SizedBox(width: 8),
-            Text(context.hujiL10n.clipConfig, style: styles.sectionTitle.copyWith(color: cs.onSurface),
+            Text(context.hujiL10n.clipConfig, style: styles.lgSemibold.copyWith(color: cs.onSurface),
             ),
           ],
         ),
@@ -502,7 +502,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildDetectionMode() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final localAvailable = _localModelStatus == LocalModelStatus.available;
     return _ConfigSection(
       label: context.hujiL10n.detectionMode,
@@ -533,7 +533,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                     ? context.hujiL10n.localOnnxDetectionHint
                     : context.hujiL10n.cloudDetectionHint
                 : context.hujiL10n.localModelNotFoundFallback,
-            style: styles.caption.copyWith(color: cs.outline),
+            style: styles.xs.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -570,7 +570,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildMinDuration() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return _ConfigSection(
       label: context.hujiL10n.minHighlightDuration,
       child: Column(
@@ -599,12 +599,12 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 width: 40,
                 child: Text(
                   context.hujiL10n.durationSeconds(_minDuration.round()),
-                  style: styles.bodySmall.copyWith(color: cs.primary),
+                  style: styles.sm.copyWith(color: cs.primary),
                 ),
               ),
             ],
           ),
-          Text(context.hujiL10n.minDurationHint, style: styles.caption.copyWith(color: cs.outline),
+          Text(context.hujiL10n.minDurationHint, style: styles.xs.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -613,7 +613,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildConfigFooter() {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
@@ -628,7 +628,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               4,
               context.hujiL10n.defaultPreset,
             ),
-            style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+            style: styles.xs.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 10),
           OutlinedButton.icon(
@@ -652,7 +652,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildWarning() {
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -663,10 +663,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('⚠️', style: styles.body),
+          Text('⚠️', style: styles.md),
           SizedBox(width: 10),
           Expanded(
-            child: Text(context.hujiL10n.videoQualityWarning, style: styles.bodySmall.copyWith(
+            child: Text(context.hujiL10n.videoQualityWarning, style: styles.sm.copyWith(
                 color: const Color(0xFFFDE68A),
                 height: 1.6,
               ),
@@ -698,13 +698,13 @@ class _ConfigSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           label,
-          style: styles.caption.copyWith(
+          style: styles.xs.copyWith(
             color: cs.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
@@ -734,7 +734,7 @@ class _DetectionOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return AppHoverBox(
       onTap: onTap,
       borderRadius: desktopRadiusMd,
@@ -763,7 +763,7 @@ class _DetectionOption extends StatelessWidget {
               ),
             ),
             SizedBox(width: 10),
-            Text(emoji, style: styles.body),
+            Text(emoji, style: styles.md),
             SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -771,10 +771,10 @@ class _DetectionOption extends StatelessWidget {
                 children: [
                   Text(
                     label,
-                    style: styles.body.copyWith(color: cs.onSurface),
+                    style: styles.md.copyWith(color: cs.onSurface),
                   ),
                   SizedBox(height: 2),
-                  Text(help, style: styles.caption.copyWith(color: cs.outline)),
+                  Text(help, style: styles.xs.copyWith(color: cs.outline)),
                 ],
               ),
             ),
@@ -796,7 +796,7 @@ class _CheckOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(10),
@@ -834,10 +834,10 @@ class _CheckOption extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: styles.body.copyWith(color: cs.onSurface),
+                  style: styles.md.copyWith(color: cs.onSurface),
                 ),
                 SizedBox(height: 2),
-                Text(help, style: styles.caption.copyWith(color: cs.outline)),
+                Text(help, style: styles.xs.copyWith(color: cs.outline)),
               ],
             ),
           ),

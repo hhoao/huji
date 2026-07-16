@@ -104,7 +104,7 @@ class TaskRowDesktop extends StatelessWidget {
         label: label,
         onTap: onPressed,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        textStyle: AppTextStyles.of(context).caption,
+        textStyle: TpTextStyles.of(context).xs,
         foregroundColor: cs.onSurfaceVariant,
         backgroundColor: cs.surfaceContainer,
         borderColor: cs.outlineVariant.withValues(alpha: 0.55),
@@ -140,7 +140,7 @@ class TaskRowDesktop extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return RepaintBoundary(
       child: BlocBuilder<TaskTabBloc, TaskTabState>(
@@ -222,7 +222,7 @@ class TaskRowDesktop extends StatelessWidget {
                       children: [
                         Text(
                           currentTask.name,
-                          style: styles.bodyStrong.copyWith(
+                          style: styles.mdSemibold.copyWith(
                             color: cs.onSurface,
                           ),
                         ),
@@ -232,14 +232,14 @@ class TaskRowDesktop extends StatelessWidget {
                             context.hujiL10n,
                             currentTask,
                           ),
-                          style: styles.mutedCaption,
+                          style: styles.mutedXs,
                         ),
                         if (showProgress)
                           _TaskRowProgressDesktop(taskId: currentTask.id),
                         const SizedBox(height: 4),
                         Text(
                           timeStampToTimeAgo(currentTask.createdAt),
-                          style: styles.caption.copyWith(color: cs.outline),
+                          style: styles.xs.copyWith(color: cs.outline),
                         ),
                       ],
                     ),
@@ -254,7 +254,7 @@ class TaskRowDesktop extends StatelessWidget {
                     ),
                     child: Text(
                       _statusLabel(context.hujiL10n, status),
-                      style: styles.bodySmall.copyWith(
+                      style: styles.sm.copyWith(
                         fontWeight: FontWeight.w500,
                         color: statusColor,
                       ),
@@ -326,7 +326,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
     if (task == null) return const SizedBox.shrink();
 
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final taskStatus = task.status;
     final progressValue = task.progress;
     final progressColor = _progressColor(taskStatus, cs.primary);
@@ -354,7 +354,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
             children: [
               Text(
                 '${(progressValue * 100).toStringAsFixed(0)}%',
-                style: styles.caption.copyWith(color: cs.onSurfaceVariant),
+                style: styles.xs.copyWith(color: cs.onSurfaceVariant),
               ),
               const SizedBox(width: 8),
               Expanded(
@@ -362,7 +362,7 @@ class _TaskRowProgressDesktopState extends State<_TaskRowProgressDesktop> {
                   taskStatusText,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: styles.caption.copyWith(color: progressColor),
+                  style: styles.xs.copyWith(color: progressColor),
                 ),
               ),
             ],

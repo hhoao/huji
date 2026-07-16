@@ -225,7 +225,7 @@ class DesktopLoginPlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
 
     return Center(
       child: Column(
@@ -235,10 +235,10 @@ class DesktopLoginPlaceholder extends StatelessWidget {
           SizedBox(height: 16),
           Text(
             context.hujiL10n.loginRequiredForClipHistory,
-            style: styles.body.copyWith(color: cs.onSurfaceVariant),
+            style: styles.md.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 8),
-          Text(context.hujiL10n.loginNeedLoginSubtitle, style: styles.mutedBodySmall,
+          Text(context.hujiL10n.loginNeedLoginSubtitle, style: styles.mutedSm,
           ),
           SizedBox(height: 24),
           AppButton(

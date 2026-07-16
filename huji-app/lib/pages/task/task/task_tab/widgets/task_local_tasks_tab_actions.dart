@@ -77,8 +77,8 @@ class TaskLocalTasksTabActions extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
               child: Text(
                 l10n.clearFilters,
-                style: AppTextStyles.of(context)
-                    .caption
+                style: TpTextStyles.of(context)
+                    .xs
                     .copyWith(color: Colors.redAccent),
               ),
             ),
@@ -96,7 +96,7 @@ class TaskLocalTasksTabActions extends StatelessWidget {
   Widget _buildBatchControls(BuildContext context, TaskTabState state) {
     final l10n = context.hujiL10n;
     final cs = context.desktopColors;
-    final styles = AppTextStyles.of(context);
+    final styles = TpTextStyles.of(context);
     final allSelected =
         state.filteredTasks.isNotEmpty &&
         state.selectedTaskIds.length == state.filteredTasks.length;
@@ -113,7 +113,7 @@ class TaskLocalTasksTabActions extends StatelessWidget {
         children: [
           Text(
             l10n.batchSelectedCount(state.selectedTaskIds.length),
-            style: styles.caption.copyWith(color: cs.primary),
+            style: styles.xs.copyWith(color: cs.primary),
           ),
           SizedBox(width: 8),
           AppHoverBox(
@@ -123,7 +123,7 @@ class TaskLocalTasksTabActions extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               child: Text(
                 allSelected ? l10n.deselectAll : l10n.selectAll,
-                style: styles.caption,
+                style: styles.xs,
               ),
             ),
           ),
@@ -135,7 +135,7 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             borderRadius: 4,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              child: Text(context.hujiL10n.actionDelete, style: styles.caption.copyWith(color: Colors.redAccent),
+              child: Text(context.hujiL10n.actionDelete, style: styles.xs.copyWith(color: Colors.redAccent),
               ),
             ),
           ),
