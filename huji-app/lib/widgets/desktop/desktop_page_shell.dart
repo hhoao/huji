@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_ui/widgets/settings/workspace_content_page.dart';
+import 'package:huji_app/widgets/settings/workspace_content_page.dart';
 
 /// Right-side workspace page shell — Teampilot [WorkspaceContentPage] layout.
 class DesktopPageShell extends StatelessWidget {

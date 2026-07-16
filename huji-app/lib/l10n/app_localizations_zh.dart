@@ -16,6 +16,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get aboutChangelogTitle => '关于更新日志';
 
   @override
+  String get account => '账户';
+
+  @override
   String get accountAndSecurity => '账号与安全';
 
   @override
@@ -29,6 +32,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get accountNotLoggedIn => '未登录';
+
+  @override
+  String get accountPageSubtitle => '登录状态与账户信息';
 
   @override
   String get accountTapToLogin => '点击登录';
@@ -179,6 +185,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get appVersionLabel => '应用版本';
+
+  @override
+  String get appearance => '外观';
+
+  @override
+  String get appearancePageSubtitle => '主题、文字大小与界面语言';
 
   @override
   String get applyFilter => '应用筛选';
@@ -1241,6 +1253,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get gender => '性别';
 
   @override
+  String get general => '常规';
+
+  @override
+  String get generalPageSubtitle => '启动、存储与隐私相关选项';
+
+  @override
   String generateThumbnailFailed(String path, String error) {
     return '生成缩略图失败: $path: $error';
   }
@@ -1476,6 +1494,18 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get labelUnknown => '未知';
+
+  @override
+  String get language => '语言';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageDescription => '菜单、按钮与标签所使用的语言';
+
+  @override
+  String get languageEnglish => 'English';
 
   @override
   String get latestVersion => '最新版本';
@@ -1910,10 +1940,16 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get navVideos => '视频';
 
   @override
+  String get network => '网络';
+
+  @override
   String get networkDebugSubtitle => '网络请求调试';
 
   @override
   String get networkDebugTitle => '网络调试';
+
+  @override
+  String get networkPageSubtitle => 'API 环境与下载设置';
 
   @override
   String get newClip => '新建剪辑';
@@ -1987,6 +2023,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get noTasks => '暂无任务';
+
+  @override
+  String get noValidSegments => '没有有效的片段';
 
   @override
   String get noVideo => '暂无视频';
@@ -2379,9 +2418,6 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get processVideoFailed => '处理视频失败';
-
-  @override
-  String get noValidSegments => '没有有效的片段';
 
   @override
   String processedTimeLabel(int seconds) {
@@ -2924,6 +2960,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   }
 
   @override
+  String get settings => '设置';
+
+  @override
   String get settingsAllDownloadFiles => '所有下载文件';
 
   @override
@@ -2951,6 +2990,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get settingsAppData => '应用数据';
+
+  @override
+  String get settingsAppearance => '外观';
 
   @override
   String get settingsCacheCleanupDone => '缓存文件清理完成';
@@ -3062,6 +3104,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get settingsNotificationsUpdated => '通知设置已更新';
+
+  @override
+  String get settingsPageSubtitle => '个性化你的弧迹桌面体验';
 
   @override
   String get settingsPermissions => '权限管理';
@@ -3428,6 +3473,51 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get testPageTitle => '测试页';
 
   @override
+  String get themeColorPresetDescription => '用于按钮、开关与高亮的主色与强调色';
+
+  @override
+  String get themeColorPresetTitle => '主题色';
+
+  @override
+  String get themeDark => '深色';
+
+  @override
+  String get themeLight => '浅色';
+
+  @override
+  String get themeModeDark => '深色';
+
+  @override
+  String get themeModeDescription => '选择默认外观，或跟随系统设置';
+
+  @override
+  String get themeModeLight => '浅色';
+
+  @override
+  String get themeModeSystem => '跟随系统';
+
+  @override
+  String get themeModeTitle => '主题模式';
+
+  @override
+  String get themePresetAmber => '琥珀';
+
+  @override
+  String get themePresetForest => '森林';
+
+  @override
+  String get themePresetGraphite => '石墨';
+
+  @override
+  String get themePresetOcean => '海洋';
+
+  @override
+  String get themePresetViolet => '紫罗兰';
+
+  @override
+  String get themeSystem => '跟随系统';
+
+  @override
   String thumbnailFileNotGenerated(String path) {
     return '缩略图文件生成失败: $path';
   }
@@ -3468,6 +3558,33 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get tryModifySearchConditions => '尝试修改搜索条件';
+
+  @override
+  String get typographyScaleComfortable => '宽松';
+
+  @override
+  String get typographyScaleCompact => '紧凑';
+
+  @override
+  String get typographyScaleCustom => '自定义';
+
+  @override
+  String get typographyScaleCustomHint => '50–200';
+
+  @override
+  String get typographyScaleDescription => '界面文字大小。「标准」跟随系统';
+
+  @override
+  String get typographyScaleStandard => '标准';
+
+  @override
+  String get typographyScaleTitle => '文字大小';
+
+  @override
+  String get uiZoomDescription => '整体缩放界面——文字、图标与间距一起';
+
+  @override
+  String get uiZoomTitle => '界面缩放';
 
   @override
   String get unfavorite => '取消收藏';
@@ -3757,6 +3874,21 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String waitingProcessTime(int seconds) {
     return '等待处理时间: $seconds s';
   }
+
+  @override
+  String get windowControlAlwaysOnTop => '置顶';
+
+  @override
+  String get windowControlClose => '关闭';
+
+  @override
+  String get windowControlMaximize => '最大化';
+
+  @override
+  String get windowControlMinimize => '最小化';
+
+  @override
+  String get windowControlRestore => '还原';
 
   @override
   String get wrapLinesLabel => '换行显示';

@@ -10,9 +10,9 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
 import 'package:path/path.dart' as p;
-import 'package:shared_ui/shell/workspace_surface_layers.dart';
 import 'package:shared_ui/theme/app_icon_sizes.dart';
 import 'package:shared_ui/theme/app_text_styles.dart';
+import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 /// Video library — Teampilot [HomeAllWorkspacesPane] layout in the main right pane.
 class DesktopHomePage extends StatefulWidget {

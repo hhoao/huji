@@ -11,7 +11,8 @@ import 'package:huji_app/services/storage_manager.dart';
 import 'package:huji_app/settings/settings_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/app_update_dialog.dart';
-import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/appearance/appearance_preferences.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -30,7 +31,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    final sharedL10n = context.sharedL10n;
 
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
@@ -90,8 +90,8 @@ class _SettingsPageState extends State<SettingsPage> {
               trailing: BlocBuilder<AppearanceCubit, AppearancePreferences>(
                 builder: (context, prefs) {
                   final label = prefs.locale == 'en'
-                      ? sharedL10n.languageEnglish
-                      : sharedL10n.languageChinese;
+                      ? l10n.languageEnglish
+                      : l10n.languageChinese;
                   return Text(label, style: const TextStyle(color: Colors.grey));
                 },
               ),
@@ -232,7 +232,7 @@ class _SettingsPageState extends State<SettingsPage> {
 
   void _showLanguageDialog(BuildContext context) {
     final l10n = context.hujiL10n;
-    final sharedL10n = context.sharedL10n;
+    
     final cubit = context.read<AppearanceCubit>();
     final selected = cubit.state.locale.startsWith('en') ? 'en' : 'zh';
 
@@ -244,7 +244,7 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             RadioListTile<String>(
-              title: Text(sharedL10n.languageChinese),
+              title: Text(l10n.languageChinese),
               value: 'zh',
               groupValue: selected,
               onChanged: (value) async {
@@ -255,7 +255,7 @@ class _SettingsPageState extends State<SettingsPage> {
               },
             ),
             RadioListTile<String>(
-              title: Text(sharedL10n.languageEnglish),
+              title: Text(l10n.languageEnglish),
               value: 'en',
               groupValue: selected,
               onChanged: (value) async {

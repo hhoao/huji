@@ -16,6 +16,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get aboutChangelogTitle => 'About changelog';
 
   @override
+  String get account => 'Account';
+
+  @override
   String get accountAndSecurity => 'Account & security';
 
   @override
@@ -30,6 +33,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get accountNotLoggedIn => 'Not signed in';
+
+  @override
+  String get accountPageSubtitle => 'Sign-in status and profile';
 
   @override
   String get accountTapToLogin => 'Tap to sign in';
@@ -180,6 +186,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get appVersionLabel => 'App version';
+
+  @override
+  String get appearance => 'Appearance';
+
+  @override
+  String get appearancePageSubtitle => 'Theme, text size, and language';
 
   @override
   String get applyFilter => 'Apply filters';
@@ -1275,6 +1287,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get gender => 'Gender';
 
   @override
+  String get general => 'General';
+
+  @override
+  String get generalPageSubtitle => 'Startup, storage, and privacy';
+
+  @override
   String generateThumbnailFailed(String path, String error) {
     return 'Failed to generate thumbnail: $path: $error';
   }
@@ -1513,6 +1531,18 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get labelUnknown => 'Unknown';
+
+  @override
+  String get language => 'Language';
+
+  @override
+  String get languageChinese => '中文';
+
+  @override
+  String get languageDescription => 'Language for menus, buttons, and labels';
+
+  @override
+  String get languageEnglish => 'English';
 
   @override
   String get latestVersion => 'Latest version';
@@ -1963,10 +1993,16 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get navVideos => 'Videos';
 
   @override
+  String get network => 'Network';
+
+  @override
   String get networkDebugSubtitle => 'Debug network requests';
 
   @override
   String get networkDebugTitle => 'Network debug';
+
+  @override
+  String get networkPageSubtitle => 'API environment and downloads';
 
   @override
   String get newClip => 'New clip';
@@ -2040,6 +2076,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get noTasks => 'No tasks';
+
+  @override
+  String get noValidSegments => 'No valid segments found';
 
   @override
   String get noVideo => 'No video';
@@ -2445,9 +2484,6 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get processVideoFailed => 'Failed to process video';
-
-  @override
-  String get noValidSegments => 'No valid segments found';
 
   @override
   String processedTimeLabel(int seconds) {
@@ -3000,6 +3036,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   }
 
   @override
+  String get settings => 'Settings';
+
+  @override
   String get settingsAllDownloadFiles => 'All downloaded files';
 
   @override
@@ -3028,6 +3067,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get settingsAppData => 'App data';
+
+  @override
+  String get settingsAppearance => 'Appearance';
 
   @override
   String get settingsCacheCleanupDone => 'Cache cleaned';
@@ -3141,6 +3183,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get settingsNotificationsUpdated => 'Notification settings updated';
+
+  @override
+  String get settingsPageSubtitle => 'Customize your Huji desktop experience';
 
   @override
   String get settingsPermissions => 'Permissions';
@@ -3514,6 +3559,52 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get testPageTitle => 'Test page';
 
   @override
+  String get themeColorPresetDescription =>
+      'Primary and accent colors for controls';
+
+  @override
+  String get themeColorPresetTitle => 'Theme colors';
+
+  @override
+  String get themeDark => 'Dark';
+
+  @override
+  String get themeLight => 'Light';
+
+  @override
+  String get themeModeDark => 'Dark';
+
+  @override
+  String get themeModeDescription => 'Default appearance or follow the system';
+
+  @override
+  String get themeModeLight => 'Light';
+
+  @override
+  String get themeModeSystem => 'System';
+
+  @override
+  String get themeModeTitle => 'Theme mode';
+
+  @override
+  String get themePresetAmber => 'Amber';
+
+  @override
+  String get themePresetForest => 'Forest';
+
+  @override
+  String get themePresetGraphite => 'Graphite';
+
+  @override
+  String get themePresetOcean => 'Ocean';
+
+  @override
+  String get themePresetViolet => 'Violet';
+
+  @override
+  String get themeSystem => 'System';
+
+  @override
   String thumbnailFileNotGenerated(String path) {
     return 'Thumbnail file was not generated: $path';
   }
@@ -3554,6 +3645,34 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get tryModifySearchConditions => 'Try changing your search';
+
+  @override
+  String get typographyScaleComfortable => 'Comfortable';
+
+  @override
+  String get typographyScaleCompact => 'Compact';
+
+  @override
+  String get typographyScaleCustom => 'Custom';
+
+  @override
+  String get typographyScaleCustomHint => '50–200';
+
+  @override
+  String get typographyScaleDescription =>
+      'UI text size. Standard follows the system';
+
+  @override
+  String get typographyScaleStandard => 'Standard';
+
+  @override
+  String get typographyScaleTitle => 'Text size';
+
+  @override
+  String get uiZoomDescription => 'Scale text, icons, and spacing together';
+
+  @override
+  String get uiZoomTitle => 'Interface zoom';
 
   @override
   String get unfavorite => 'Remove from favorites';
@@ -3846,6 +3965,21 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String waitingProcessTime(int seconds) {
     return 'Waiting time: $seconds s';
   }
+
+  @override
+  String get windowControlAlwaysOnTop => 'Always on top';
+
+  @override
+  String get windowControlClose => 'Close';
+
+  @override
+  String get windowControlMaximize => 'Maximize';
+
+  @override
+  String get windowControlMinimize => 'Minimize';
+
+  @override
+  String get windowControlRestore => 'Restore';
 
   @override
   String get wrapLinesLabel => 'Wrap lines';

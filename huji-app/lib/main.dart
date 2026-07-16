@@ -17,8 +17,11 @@ import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
-import 'package:shared_ui/shared_ui.dart';
 import 'package:window_manager/window_manager.dart';
+import 'package:huji_app/appearance/appearance_app_builder.dart';
+import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/appearance/appearance_theme_bundle.dart';
 
 void main(List<String> args) async {
   try {

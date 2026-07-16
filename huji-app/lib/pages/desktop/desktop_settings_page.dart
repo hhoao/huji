@@ -5,7 +5,9 @@ import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
-import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
+import 'package:huji_app/widgets/settings/workspace_section_layout.dart';
+import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
 
 enum _SettingsSection { general, appearance, account, network }
 
@@ -26,7 +28,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.sharedL10n;
+    final l10n = context.hujiL10n;
 
     return WorkspaceSectionLayout(
       title: l10n.settings,

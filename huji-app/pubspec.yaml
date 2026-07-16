@@ -56,6 +56,7 @@ dependencies:
     path: packages/shared_ui
   flex_color_scheme: ^8.4.0
   google_fonts: ^8.1.0
+  toggle_switch: ^2.3.0
   flutter_animate: 4.5.2
   intl: ^0.20.2
 
@@ -110,6 +111,7 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/google_fonts/
     - assets/svg/
     - assets/icons/
     - assets/models/ping_pong/normal/

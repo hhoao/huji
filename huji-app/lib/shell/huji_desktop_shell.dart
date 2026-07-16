@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shell/huji_desktop_sidebar.dart';
-import 'package:shared_ui/shell/workspace_surface_layers.dart';
-import 'package:shared_ui/widgets/chrome/desktop_window_title_bar.dart';
-import 'package:shared_ui/widgets/layout/workspace_right_pane.dart';
+import 'package:huji_app/theme/workspace_surface_layers.dart';
+import 'package:huji_app/widgets/chrome/desktop_window_title_bar.dart';
+import 'package:huji_app/widgets/layout/workspace_right_pane.dart';
 
 /// Teampilot-style desktop chrome: custom title bar + wide sidebar + card body.
 class HujiDesktopShell extends StatelessWidget {

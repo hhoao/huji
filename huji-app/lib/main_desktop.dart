@@ -16,9 +16,14 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shared_ui/shared_ui.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/appearance/appearance_app_builder.dart';
+import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/appearance/appearance_theme_bundle.dart';
+import 'package:huji_app/widgets/layout/app_text_scale_boundary.dart';
+import 'package:huji_app/widgets/layout/ui_zoom.dart';
 
 class DesktopApp extends StatefulWidget {
   const DesktopApp({super.key, required this.appearanceCubit});

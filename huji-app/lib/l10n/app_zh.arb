@@ -2,21 +2,21 @@
   "@@locale": "zh",
   "aboutChangelogDescription": "我们致力于为用户提供最好的视频剪辑体验。每次更新都会带来新的功能和改进，感谢您的支持！",
   "aboutChangelogTitle": "关于更新日志",
+  "account": "账户",
   "accountAndSecurity": "账号与安全",
   "accountLoggedIn": "已登录",
   "accountLogout": "退出登录",
   "accountMismatch": "输入的账号与当前账号不一致",
   "accountNotLoggedIn": "未登录",
+  "accountPageSubtitle": "登录状态与账户信息",
   "accountTapToLogin": "点击登录",
   "actionCancel": "取消",
   "actionClear": "清除",
   "actionClose": "关闭",
   "actionConfirm": "确定",
   "actionConfirmWithCount": "确定 ({count})",
-  "@actionConfirmWithCount": {"placeholders": {"count": {"type": "int"}}},
   "actionContinue": "继续",
   "actionCountdownSeconds": "{countdown}s",
-  "@actionCountdownSeconds": {"placeholders": {"countdown": {"type": "int"}}},
   "actionCreate": "创建",
   "actionDelete": "删除",
   "actionDone": "完成",
@@ -29,7 +29,6 @@
   "actionReload": "重新加载",
   "actionRename": "重命名",
   "actionResendCodeCountdown": "{countdown}s后重新获取",
-  "@actionResendCodeCountdown": {"placeholders": {"countdown": {"type": "int"}}},
   "actionReset": "重置",
   "actionResume": "恢复",
   "actionRetry": "重试",
@@ -47,11 +46,8 @@
   "addClipSegmentLabel": "添加片段",
   "addMoreFiles": "+ 添加更多",
   "addSelectedFiles": "添加 {count} 个文件",
-  "@addSelectedFiles": {"placeholders": {"count": {"type": "int"}}},
   "albumAllMediaSubtitle": "所有{mediaType}文件",
-  "@albumAllMediaSubtitle": {"placeholders": {"mediaType": {"type": "String"}}},
   "albumCount": "共 {count} 个相册",
-  "@albumCount": {"placeholders": {"count": {"type": "int"}}},
   "allRounds": "全部回合",
   "analyzingVideoContent": "正在分析视频内容...",
   "androidVersionLabel": "Android版本",
@@ -59,11 +55,12 @@
   "appNameLabel": "应用名称",
   "appTitle": "弧迹",
   "appVersionLabel": "应用版本",
+  "appearance": "外观",
+  "appearancePageSubtitle": "主题、文字大小与界面语言",
   "applyFilter": "应用筛选",
   "architectureLabel": "架构",
   "authorize": "授权",
   "avatarUploadFailed": "上传头像失败: {error}",
-  "@avatarUploadFailed": {"placeholders": {"error": {"type": "String"}}},
   "avatarUploadSuccess": "头像上传成功",
   "backToPreview": "↩ 返回预览",
   "backendClip": "后台剪辑",
@@ -80,9 +77,7 @@
   "basicInfo": "基本信息",
   "batchSelect": "选择",
   "batchSelectedCount": "已选 {count}",
-  "@batchSelectedCount": {"placeholders": {"count": {"type": "int"}}},
   "batchTasksDeleted": "已删除 {count} 个任务",
-  "@batchTasksDeleted": {"placeholders": {"count": {"type": "int"}}},
   "booleanNo": "否",
   "booleanYes": "是",
   "browserDownload": "浏览器下载",
@@ -94,13 +89,11 @@
   "calculatingFileSize": "计算大小中...",
   "cancelTask": "取消任务",
   "cannotAccessDirectory": "无法访问此目录: {error}",
-  "@cannotAccessDirectory": {"placeholders": {"error": {"type": "String"}}},
   "cannotGenerateThumbnail": "无法生成缩略图",
   "cannotLoadVideo": "无法加载视频",
   "cannotOpenDownloadLink": "无法打开下载链接",
   "cannotOpenLink": "无法打开链接",
   "cannotOpenLogViewer": "无法打开日志查看器: {error}",
-  "@cannotOpenLogViewer": {"placeholders": {"error": {"type": "String"}}},
   "cannotOpenLogViewerNavigatorNotInitialized": "无法打开日志查看器: Navigator未初始化",
   "changeAvatar": "更换头像",
   "changePassword": "修改密码",
@@ -110,11 +103,9 @@
   "clearAllFilters": "清除全部",
   "clearAppCacheSubtitle": "清除应用缓存",
   "clearCacheFailed": "清除缓存失败: {error}",
-  "@clearCacheFailed": {"placeholders": {"error": {"type": "String"}}},
   "clearCacheTitle": "清除缓存",
   "clearFilters": "清除筛选",
   "clearLogsFailed": "清理日志失败: {error}",
-  "@clearLogsFailed": {"placeholders": {"error": {"type": "String"}}},
   "clearSearch": "清除搜索",
   "clearSelection": "取消勾选",
   "clearTypeFilter": "清除类型筛选",
@@ -133,58 +124,44 @@
   "cloudDetectionHelp": "需要联网，精度更高",
   "cloudDetectionHint": "使用云端服务进行检测，需要联网",
   "cloudDetectionTaskName": "云端检测：{fileName}",
-  "@cloudDetectionTaskName": {"placeholders": {"fileName": {"type": "String"}}},
   "compressedSize": "压缩后大小",
   "compressionRatio": "压缩率",
   "compressionResults": "压缩结果 ({count}张)",
-  "@compressionResults": {"placeholders": {"count": {"type": "int"}}},
   "computerNameLabel": "计算机名称",
   "configPresetMismatch": "已设置 {count} 项参数 · 与\"{presetName}\" 不一致",
-  "@configPresetMismatch": {"placeholders": {"count": {"type": "int"}, "presetName": {"type": "String"}}},
   "confirmBatchDeleteMessage": "确定要删除选中的 {count} 个任务吗？此操作不可撤销。",
-  "@confirmBatchDeleteMessage": {"placeholders": {"count": {"type": "int"}}},
   "confirmCancel": "确认取消",
   "confirmCancelTaskMessage": "确定要取消任务\"{taskName}\"吗？此操作不可撤销。",
-  "@confirmCancelTaskMessage": {"placeholders": {"taskName": {"type": "String"}}},
   "confirmClearCacheMessage": "确定要清除该视频的缓存吗？",
   "confirmDelete": "确认删除",
   "confirmDeleteCurrentPlayingRound": "确定要删除当前正在播放的回合吗？此操作不可撤销。",
   "confirmDeleteFileMessage": "确定要删除该文件吗？此操作不可恢复。",
   "confirmDeleteLocalVideoMessage": "确定要删除这个本地视频吗？",
   "confirmDeleteTaskMessage": "确定要删除任务\"{taskName}\"吗？此操作不可撤销。",
-  "@confirmDeleteTaskMessage": {"placeholders": {"taskName": {"type": "String"}}},
   "confirmExportTitle": "确认导出",
   "confirmLogoutMessage": "确定要退出登录吗？",
   "confirmPassword": "确认密码",
   "confirmPurchase": "确认购买",
   "confirmSubscription": "确认订阅",
   "contactInfoPrefix": "联系方式: {contact}",
-  "@contactInfoPrefix": {"placeholders": {"contact": {"type": "String"}}},
   "contactOptionalHint": "联系方式（可选）",
   "contactUs": "联系我们",
   "copyPath": "复制路径",
   "countdownSeconds": "{seconds}s",
-  "@countdownSeconds": {"placeholders": {"seconds": {"type": "int"}}},
   "createFolderFailedWithError": "创建文件夹失败: {error}",
-  "@createFolderFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "createFolderHere": "在此处新建文件夹",
   "createTaskFailed": "创建任务失败",
   "createTaskFailedWithError": "创建任务失败: {error}",
-  "@createTaskFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "createTimeLabel": "创建时间",
   "createdAt": "创建时间: {time}",
-  "@createdAt": {"placeholders": {"time": {"type": "String"}}},
   "createdAtWithValue": "创建时间: {time}",
-  "@createdAtWithValue": {"placeholders": {"time": {"type": "String"}}},
   "createdTimeRange": "创建时间范围",
   "creatingTask": "正在创建任务...",
   "current": "当前",
   "currentDirectoryLabel": "当前目录",
   "currentDuration": "当前时长",
   "currentEditingRound": "当前编辑：{label}",
-  "@currentEditingRound": {"placeholders": {"label": {"type": "String"}}},
   "currentFile": "当前文件: {path}",
-  "@currentFile": {"placeholders": {"path": {"type": "String"}}},
   "currentPlanLabel": "当前方案",
   "currentVersion": "当前版本",
   "customClip": "自定义剪辑",
@@ -199,7 +176,6 @@
   "defaultPreset": "默认预设",
   "deleteCurrentRound": "删除当前回合",
   "deleteFailedWithError": "删除失败: {error}",
-  "@deleteFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "deleteFile": "删除文件",
   "deleteTask": "删除任务",
   "demoBadmintonSubtitle": "约 51 秒 · 算法样例视频",
@@ -211,9 +187,7 @@
   "desktopLibraryEmptyHint": "点击「新建剪辑」上传比赛视频",
   "desktopLibraryEmptyTitle": "暂无视频",
   "desktopLibraryItemCount": "共 {count} 个",
-  "@desktopLibraryItemCount": {"placeholders": {"count": {"type": "int"}}},
   "desktopLibraryLoadFailed": "加载失败：{error}",
-  "@desktopLibraryLoadFailed": {"placeholders": {"error": {"type": "String"}}},
   "desktopLibraryTitle": "视频库",
   "desktopNavLibrary": "视频库",
   "desktopNavSettings": "设置",
@@ -235,7 +209,6 @@
   "deviceIdentifierLabel": "设备标识符",
   "deviceInfoFetchFailed": "获取失败",
   "deviceInfoFetchFailedWithError": "获取设备信息失败: {error}",
-  "@deviceInfoFetchFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "deviceInfoFetching": "获取中...",
   "deviceInfoLabel": "设备信息",
   "deviceLabel": "设备",
@@ -247,7 +220,6 @@
   "downloadCompleted": "下载完成",
   "downloadError": "下载错误",
   "downloadErrorWithDetails": "下载过程中发生错误: {error}",
-  "@downloadErrorWithDetails": {"placeholders": {"error": {"type": "String"}}},
   "downloadFailed": "下载失败",
   "downloadInBackground": "后台下载",
   "downloadInBrowser": "浏览器下载",
@@ -262,11 +234,9 @@
   "dragToReorderHint": "长按拖动可调整顺序",
   "dragVideoHere": "拖拽视频到这里",
   "durationLabel": "时长: {duration}",
-  "@durationLabel": {"placeholders": {"duration": {"type": "String"}}},
   "durationPackages": "时长套餐",
   "durationPlans": "时长方案",
   "durationSeconds": "{seconds} 秒",
-  "@durationSeconds": {"placeholders": {"seconds": {"type": "int"}}},
   "durationShortenedLabel": "时长缩短",
   "editBreadcrumb": "编辑",
   "editFeatureUnavailable": "无法使用编辑功能",
@@ -295,7 +265,6 @@
   "enterSearchKeyword": "请输入搜索关键词",
   "enterVerificationCode": "请输入验证码",
   "entityInfoDateAndItemCount": "{date} {count}项",
-  "@entityInfoDateAndItemCount": {"placeholders": {"date": {"type": "String"}, "count": {"type": "int"}}},
   "errorGalleryReadFailed": "读取相册失败，请重试或检查系统相册权限",
   "errorImageLoadFailed": "图片加载失败，可能是图片损坏或当前设备暂不支持该格式",
   "errorLoginExpired": "登录已失效，请重新登录",
@@ -304,9 +273,7 @@
   "errorStorageFull": "存储空间不足或应用数据不可写，请清理空间后重试",
   "errorVideoNotSupported": "当前设备暂不支持播放该视频，请尝试转码或压缩后再试",
   "estimatedRemainingTime": "预计剩余时间: {duration}",
-  "@estimatedRemainingTime": {"placeholders": {"duration": {"type": "String"}}},
   "estimatedRemainingTimeSeconds": "预计剩余时间：{seconds} s",
-  "@estimatedRemainingTimeSeconds": {"placeholders": {"seconds": {"type": "int"}}},
   "exceptionDetailsLabel": "详细信息",
   "existingVideoClip": "已有视频剪辑",
   "existingVideoClipDescription": "选择本地视频文件进行自动剪辑和片段提取",
@@ -329,7 +296,6 @@
   "exportLogsTitle": "导出日志",
   "exportPreparing": "准备导出...",
   "exportProgressPercent": "正在导出... {percent}%",
-  "@exportProgressPercent": {"placeholders": {"percent": {"type": "String"}}},
   "exportQualityMobileShare": "移动分享",
   "exportQualityOriginal": "原画",
   "exportQualityOriginalMeta": "原始分辨率",
@@ -368,39 +334,26 @@
   "female": "女",
   "fetchingDownloadLink": "正在获取下载链接...",
   "ffmpegConvertFailed": "FFmpeg转换失败: {output}",
-  "@ffmpegConvertFailed": {"placeholders": {"output": {"type": "String"}}},
   "ffmpegExecuteException": "执行异常: {error}",
-  "@ffmpegExecuteException": {"placeholders": {"error": {"type": "String"}}},
   "ffmpegExecuteFailed": "执行失败: {logs}",
-  "@ffmpegExecuteFailed": {"placeholders": {"logs": {"type": "String"}}},
   "ffmpegExitCode": "ffmpeg 退出码 {code}",
-  "@ffmpegExitCode": {"placeholders": {"code": {"type": "String"}}},
   "ffmpegNotInitialized": "FFmpeg未初始化",
   "ffmpegOperationCancelled": "FFmpeg操作已取消",
   "fileDeleted": "文件已删除",
   "fileDetailsTitle": "详细信息",
   "fileDoesNotExist": "文件不存在",
   "fileInfoAccessedAt": "访问时间: {time}",
-  "@fileInfoAccessedAt": {"placeholders": {"time": {"type": "String"}}},
   "fileInfoCachePath": "缓存路径: {path}",
-  "@fileInfoCachePath": {"placeholders": {"path": {"type": "String"}}},
   "fileInfoCreatedAt": "创建时间: {time}",
-  "@fileInfoCreatedAt": {"placeholders": {"time": {"type": "String"}}},
   "fileInfoFileName": "文件名: {name}",
-  "@fileInfoFileName": {"placeholders": {"name": {"type": "String"}}},
   "fileInfoLabel": "文件信息:",
   "fileInfoModifiedAt": "修改时间: {time}",
-  "@fileInfoModifiedAt": {"placeholders": {"time": {"type": "String"}}},
   "fileInfoSize": "大小: {size}",
-  "@fileInfoSize": {"placeholders": {"size": {"type": "String"}}},
   "fileName": "文件名",
   "fileNameAlreadyExists": "文件名已存在",
   "fileNameWithSegmentCount": "{fileName} ({count}个片段)",
-  "@fileNameWithSegmentCount": {"placeholders": {"fileName": {"type": "String"}, "count": {"type": "int"}}},
   "fileSizeLabel": "大小: {size}",
-  "@fileSizeLabel": {"placeholders": {"size": {"type": "String"}}},
   "filesSelectedCount": "已选择 {count} 个文件",
-  "@filesSelectedCount": {"placeholders": {"count": {"type": "int"}}},
   "filterAll": "全部",
   "filterConditions": "筛选条件",
   "filterLocal": "本地",
@@ -415,11 +368,8 @@
   "folderNameHint": "输入文件夹名称",
   "formatLabel": "格式",
   "foundFileCount": "找到 {count} 个文件",
-  "@foundFileCount": {"placeholders": {"count": {"type": "int"}}},
   "frameExtractionFailed": "帧提取失败: {output}",
-  "@frameExtractionFailed": {"placeholders": {"output": {"type": "String"}}},
   "frameOutOfRange": "帧数超出范围: 0-{maxFrames}",
-  "@frameOutOfRange": {"placeholders": {"maxFrames": {"type": "String"}}},
   "freeBadge": "限免",
   "fullDiskSearchTab": "全盘搜索",
   "fullscreenPlayback": "全屏播放",
@@ -427,12 +377,12 @@
   "galleryPermissionMessage": "为了选择照片和视频，请在设置中授予相册访问权限。",
   "galleryPermissionRequired": "需要相册权限",
   "gender": "性别",
+  "general": "常规",
+  "generalPageSubtitle": "启动、存储与隐私相关选项",
   "generateThumbnailFailed": "生成缩略图失败: {path}: {error}",
-  "@generateThumbnailFailed": {"placeholders": {"path": {"type": "String"}, "error": {"type": "String"}}},
   "generatingFinalVideo": "正在生成最终视频...",
   "generatingThumbnail": "生成缩略图中...",
   "getFolderInfoFailed": "获取文件夹信息失败: {error}",
-  "@getFolderInfoFailed": {"placeholders": {"error": {"type": "String"}}},
   "getMatchSegments": "获取比赛片段",
   "getxVersionLabel": "GetX版本",
   "goToFeature": "前往功能",
@@ -462,19 +412,15 @@
   "homeVideoCompressDesc": "压缩视频文件",
   "homeVideoNoMoreRecords": "暂无更多记录",
   "homeVideoProcessingProgress": "处理中 {progress}%",
-  "@homeVideoProcessingProgress": {"placeholders": {"progress": {"type": "int"}}},
   "homeVideoSubtitleCompleted": "已完成",
   "homeVideoSubtitlePending": "待处理 | 原始文件",
   "homeVideoSubtitleProcessing": "处理中 | 处理记录ID: {taskId}",
-  "@homeVideoSubtitleProcessing": {"placeholders": {"taskId": {"type": "String"}}},
   "homeVideoTitleEditing": "编辑视频",
   "homeVideoTitleProcessing": "处理中记录Id #{taskId}",
-  "@homeVideoTitleProcessing": {"placeholders": {"taskId": {"type": "String"}}},
   "homeVideoTitleRaw": "原始视频",
   "homeVideoTitleUnknown": "未知视频",
   "hostNameLabel": "主机名",
   "imageCompressResultsTitle": "压缩结果 ({count}张)",
-  "@imageCompressResultsTitle": {"placeholders": {"count": {"type": "int"}}},
   "imageDetails": "图片详情",
   "imageFileLabel": "图片文件",
   "imageLabel": "图片",
@@ -485,10 +431,8 @@
   "infoPath": "路径",
   "infoTotalItems": "总项目",
   "infoUpdateFailed": "信息更新失败: {error}",
-  "@infoUpdateFailed": {"placeholders": {"error": {"type": "String"}}},
   "infoUpdatedSuccessfully": "信息更新成功",
   "initFailedWithError": "初始化失败: {error}",
-  "@initFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "inputFileNameHint": "输入文件名...",
   "inputFileNameKeywordHint": "输入文件名关键词...",
   "inputKeywordHint": "输入关键词...",
@@ -500,7 +444,6 @@
   "issueTypeBug": "功能异常",
   "issueTypeSuggestion": "建议",
   "itemCountUnit": "{count} 个",
-  "@itemCountUnit": {"placeholders": {"count": {"type": "int"}}},
   "itemTypeDirectory": "目录",
   "itemTypeFile": "文件",
   "itemTypeItem": "项目",
@@ -509,46 +452,37 @@
   "labelSize": "大小",
   "labelType": "类型",
   "labelUnknown": "未知",
+  "language": "语言",
+  "languageChinese": "中文",
+  "languageDescription": "菜单、按钮与标签所使用的语言",
+  "languageEnglish": "English",
   "latestVersion": "最新版本",
   "leavePageProcessingNotification": "你可以离开页面，视频处理完后将会通过消息通知您。",
   "linkRequiresBrowserDownload": "该链接需要在浏览器中下载",
   "loadAlbumFailed": "加载相册失败",
   "loadAlbumFailedWithError": "加载相册失败: {error}",
-  "@loadAlbumFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "loadChangelogFailed": "加载更新日志失败: {error}",
-  "@loadChangelogFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadDemoVideoFailed": "加载演示视频失败：{error}",
-  "@loadDemoVideoFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadFailed": "加载失败: {error}",
-  "@loadFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadFailedShort": "加载失败",
   "loadLogFilesFailed": "加载日志文件失败: {error}",
-  "@loadLogFilesFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadMore": "加载更多...",
   "loadMoreFailedWithError": "加载更多失败: {error}",
-  "@loadMoreFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "loadSubscriptionFailed": "加载订阅信息失败: {error}",
-  "@loadSubscriptionFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadUserInfoFailed": "加载用户信息失败: {error}",
-  "@loadUserInfoFailed": {"placeholders": {"error": {"type": "String"}}},
   "loadVideoDataFailed": "加载视频数据失败",
   "loadVideoDetailFailed": "加载视频详情失败: {error}",
-  "@loadVideoDetailFailed": {"placeholders": {"error": {"type": "String"}}},
   "loading": "加载中...",
   "loadingChangelog": "正在加载更新日志...",
   "localClip": "本地剪辑",
   "localClipFailed": "本地视频剪辑失败: {error}",
-  "@localClipFailed": {"placeholders": {"error": {"type": "String"}}},
   "localClipTaskCreatedRedirecting": "本地视频剪辑任务已创建，正在跳转到任务页面...",
   "localDetecting": "正在本地检测…",
   "localDetection": "本地检测",
   "localDetectionFailed": "本地检测失败: {error}",
-  "@localDetectionFailed": {"placeholders": {"error": {"type": "String"}}},
   "localDetectionHelp": "离线使用，无需联网",
   "localDetectionTaskName": "本地检测：{fileName}",
-  "@localDetectionTaskName": {"placeholders": {"fileName": {"type": "String"}}},
   "localDetectionTasksSubmitted": "已提交 {count} 个本地检测任务，可离开页面查看任务列表",
-  "@localDetectionTasksSubmitted": {"placeholders": {"count": {"type": "int"}}},
   "localModelNotFoundFallback": "未找到本地模型，已回退为云端检测",
   "localOnnxDetectionHint": "使用本地 ONNX 模型进行离线检测",
   "localTasks": "本地任务",
@@ -569,7 +503,6 @@
   "loginConfirmNewPassword": "确认新密码",
   "loginConfirmNewPasswordHint": "请确认新密码",
   "loginFailed": "登录失败: {error}",
-  "@loginFailed": {"placeholders": {"error": {"type": "String"}}},
   "loginForgotPassword": "忘记密码？",
   "loginIdentifierHint": "请输入手机号或邮箱",
   "loginIdentifierLabel": "手机号/邮箱",
@@ -587,7 +520,6 @@
   "loginPasswordTab": "账号密码登录",
   "loginRegisterAccount": "注册账户",
   "loginRegisterFailed": "注册失败: {error}",
-  "@loginRegisterFailed": {"placeholders": {"error": {"type": "String"}}},
   "loginRegisterNow": "立即注册",
   "loginRegisterSuccess": "注册成功",
   "loginRegisterTitle": "用户注册",
@@ -596,13 +528,10 @@
   "loginRememberedPassword": "想起密码了？ ",
   "loginRequiredForClipHistory": "需要登录才能查看剪辑记录",
   "loginResetPasswordFailed": "密码重置失败: {error}",
-  "@loginResetPasswordFailed": {"placeholders": {"error": {"type": "String"}}},
   "loginResetPasswordSuccess": "密码重置成功",
   "loginResetPasswordTitle": "重置密码",
   "loginSendAuthCodeFailed": "发送验证码失败: {error}",
-  "@loginSendAuthCodeFailed": {"placeholders": {"error": {"type": "String"}}},
   "loginSendFailed": "发送失败: {error}",
-  "@loginSendFailed": {"placeholders": {"error": {"type": "String"}}},
   "loginSubtitle": "请登录您的账户",
   "loginSuccess": "登录成功",
   "loginTitle": "登录",
@@ -614,7 +543,6 @@
   "loginValidationPasswordRequired": "请输入密码",
   "loginWelcome": "欢迎使用",
   "logoutFailed": "退出登录失败: {error}",
-  "@logoutFailed": {"placeholders": {"error": {"type": "String"}}},
   "male": "男",
   "manufacturerLabel": "制造商",
   "markAllReadSuccess": "已全部标记为已读",
@@ -623,13 +551,10 @@
   "matchTypeDoubles": "双打比赛",
   "matchTypeSingles": "单打比赛",
   "maxSelectionCountReached": "最多只能选择 {count} 个文件",
-  "@maxSelectionCountReached": {"placeholders": {"count": {"type": "int"}}},
   "maxSelectionCountReachedFor": "最多只能选择 {count} 个{itemType}",
-  "@maxSelectionCountReachedFor": {"placeholders": {"count": {"type": "int"}, "itemType": {"type": "String"}}},
   "maxServeDuration": "最大发球时长",
   "maxServeDurationTooltip": "限制发球时长(秒)",
   "mediaItemCount": "{count} 个{mediaType}",
-  "@mediaItemCount": {"placeholders": {"count": {"type": "int"}, "mediaType": {"type": "String"}}},
   "mediaTypeAll": "媒体",
   "mediaTypeImage": "图片",
   "mediaTypeVideo": "视频",
@@ -639,7 +564,6 @@
   "mergeServeAndHit": "合并发球和击球",
   "mergeServeAndHitTooltip": "勾选后，只有发球的回合（发球下网和失误）以及练球片段也会被剪辑进去",
   "messageTimeLabel": "时间: {time}",
-  "@messageTimeLabel": {"placeholders": {"time": {"type": "String"}}},
   "messagesTitle": "消息",
   "minDurationHint": "小于此时长的回合不会被保留",
   "minHighlightDuration": "精彩球最小时长",
@@ -648,22 +572,20 @@
   "minRoundDuration": "单回合最小时长(秒)",
   "minRoundDurationTooltip": "单回合最小时长（秒）",
   "minutesDecimalValue": "{value}分钟",
-  "@minutesDecimalValue": {"placeholders": {"value": {"type": "String"}}},
   "minutesValue": "{minutes}分钟",
-  "@minutesValue": {"placeholders": {"minutes": {"type": "int"}}},
   "mobileDevice": "移动设备",
   "modelNotFound": "模型不存在: {modelName}",
-  "@modelNotFound": {"placeholders": {"modelName": {"type": "String"}}},
   "monthlyBilledLabel": "/ 每月",
   "name": "名字",
   "namedFeatureInDevelopment": "{featureName}开发中...",
-  "@namedFeatureInDevelopment": {"placeholders": {"featureName": {"type": "String"}}},
   "navHome": "主页",
   "navProfile": "我的",
   "navTasks": "任务",
   "navVideos": "视频",
+  "network": "网络",
   "networkDebugSubtitle": "网络请求调试",
   "networkDebugTitle": "网络调试",
+  "networkPageSubtitle": "API 环境与下载设置",
   "newClip": "新建剪辑",
   "newFileNameLabel": "新文件名",
   "newFolder": "新建文件夹",
@@ -676,9 +598,7 @@
   "noLogFilesFound": "没有找到日志文件",
   "noMatchingFiles": "没有找到匹配的文件",
   "noMatchingMediaFiles": "没有找到匹配的{mediaType}文件",
-  "@noMatchingMediaFiles": {"placeholders": {"mediaType": {"type": "String"}}},
   "noMediaFiles": "没有找到{mediaType}文件",
-  "@noMediaFiles": {"placeholders": {"mediaType": {"type": "String"}}},
   "noMessages": "暂无消息",
   "noMoreData": "没有更多数据了",
   "noPlayableVideos": "没有可播放的视频",
@@ -689,6 +609,7 @@
   "noSegmentsToSave": "没有可保存的片段",
   "noSegmentsYet": "暂无片段",
   "noTasks": "暂无任务",
+  "noValidSegments": "没有有效的片段",
   "noVideo": "暂无视频",
   "noVideoData": "暂无视频数据",
   "noVideoDataAvailable": "没有可用的视频数据",
@@ -698,48 +619,37 @@
   "officialMatchPreset": "正式比赛配置",
   "officialWebsite": "官方网站",
   "openBrowserFailed": "打开浏览器失败: {error}",
-  "@openBrowserFailed": {"placeholders": {"error": {"type": "String"}}},
   "openCloudClipFailed": "打开云端剪辑功能失败: {error}",
-  "@openCloudClipFailed": {"placeholders": {"error": {"type": "String"}}},
   "openEditFeatureFailed": "打开编辑功能失败",
   "openFile": "打开文件",
   "openFileFailed": "打开文件失败: {error}",
-  "@openFileFailed": {"placeholders": {"error": {"type": "String"}}},
   "openFolder": "打开文件夹",
   "openFolderFailed": "打开文件夹失败: {error}",
-  "@openFolderFailed": {"placeholders": {"error": {"type": "String"}}},
   "openThisFolder": "打开此文件夹",
   "operationCancelled": "操作已被取消",
   "operationFailed": "操作失败",
   "operationFailedWithError": "操作失败: {error}",
-  "@operationFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "orLabel": "或者",
   "originalSize": "原始大小",
   "outputQualityLabel": "输出清晰度",
   "outputVideoLabel": "输出视频",
   "packageDurationValidity": "{minutes}分钟 · {validity}有效期",
-  "@packageDurationValidity": {"placeholders": {"minutes": {"type": "int"}, "validity": {"type": "String"}}},
   "pageLoadFailed": "页面加载失败",
   "passwordChangeFailed": "密码修改失败: {error}",
-  "@passwordChangeFailed": {"placeholders": {"error": {"type": "String"}}},
   "passwordChangedSuccessfully": "密码修改成功",
   "passwordMinLength": "密码长度不能少于6位",
   "pathCopiedToClipboard": "路径已复制到剪贴板",
   "pathNotFound": "路径不存在: {path}",
-  "@pathNotFound": {"placeholders": {"path": {"type": "String"}}},
   "pauseTask": "暂停任务",
   "pendingLogsTitle": "待处理日志",
   "pendingLogsWithCount": "待处理日志 ({count} 条)",
-  "@pendingLogsWithCount": {"placeholders": {"count": {"type": "int"}}},
   "performanceMonitorSubtitle": "监控应用性能",
   "performanceMonitorTitle": "性能监控",
   "permanent": "永久",
   "permissionCheckTitle": "权限检查",
   "permissionChecking": "正在检查: {permissionName}",
-  "@permissionChecking": {"placeholders": {"permissionName": {"type": "String"}}},
   "permissionDenied": "权限被拒绝",
   "permissionDeniedRetry": "{permissionName} 被拒绝，请重试",
-  "@permissionDeniedRetry": {"placeholders": {"permissionName": {"type": "String"}}},
   "permissionDescriptionBody": "应用需要以下权限才能正常运行。如果权限被拒绝，相关功能可能无法使用。",
   "permissionDescriptionTitle": "权限说明",
   "permissionDetailAudio": "用于播放视频和音频内容，确保媒体播放功能正常",
@@ -751,25 +661,17 @@
   "permissionDetailStorage": "用于保存剪辑后的视频文件到设备存储，以及读取现有视频",
   "permissionDetailVideos": "用于访问设备存储中的视频文件，支持各种视频格式",
   "permissionDiagnosticDenied": "  已拒绝: {count}",
-  "@permissionDiagnosticDenied": {"placeholders": {"count": {"type": "int"}}},
   "permissionDiagnosticDetailStatus": "详细状态:",
   "permissionDiagnosticFetchFailed": "获取诊断信息失败: {error}",
-  "@permissionDiagnosticFetchFailed": {"placeholders": {"error": {"type": "String"}}},
   "permissionDiagnosticGranted": "  已授权: {count}",
-  "@permissionDiagnosticGranted": {"placeholders": {"count": {"type": "int"}}},
   "permissionDiagnosticGrantedRate": "  授权率: {percent}%",
-  "@permissionDiagnosticGrantedRate": {"placeholders": {"percent": {"type": "String"}}},
   "permissionDiagnosticPermanentlyDenied": "  永久拒绝: {count}",
-  "@permissionDiagnosticPermanentlyDenied": {"placeholders": {"count": {"type": "int"}}},
   "permissionDiagnosticStats": "权限统计:",
   "permissionDiagnosticTime": "诊断时间: {timestamp}",
-  "@permissionDiagnosticTime": {"placeholders": {"timestamp": {"type": "String"}}},
   "permissionDiagnosticTitle": "权限诊断信息",
   "permissionDiagnosticTotal": "  总数: {count}",
-  "@permissionDiagnosticTotal": {"placeholders": {"count": {"type": "int"}}},
   "permissionExplanation": "此权限对于应用正常运行是必要的。请在接下来的系统对话框中点击\"允许\"。",
   "permissionGrantedSuccess": "{permissionName} 已成功授权",
-  "@permissionGrantedSuccess": {"placeholders": {"permissionName": {"type": "String"}}},
   "permissionManagement": "权限管理",
   "permissionNameAudio": "音频权限",
   "permissionNameCamera": "相机权限",
@@ -780,12 +682,10 @@
   "permissionNameUnknown": "未知权限",
   "permissionNameVideos": "视频权限",
   "permissionPermanentlyDenied": "{permissionName} 被永久拒绝，请在设置中手动开启。",
-  "@permissionPermanentlyDenied": {"placeholders": {"permissionName": {"type": "String"}}},
   "permissionStatusDenied": "已拒绝",
   "permissionStatusGranted": "已授权",
   "permissionStatusLimited": "有限权限",
   "permissionStatusMessage": "{permissionName} 状态: {status}",
-  "@permissionStatusMessage": {"placeholders": {"permissionName": {"type": "String"}, "status": {"type": "String"}}},
   "permissionStatusPermanentlyDenied": "永久拒绝",
   "permissionStatusRestricted": "受限制",
   "permissionStatusUnknown": "未知",
@@ -799,13 +699,11 @@
   "phoneStorageTab": "手机存储",
   "pickFromGallery": "从相册选择",
   "pickImageFailed": "选择图片失败: {error}",
-  "@pickImageFailed": {"placeholders": {"error": {"type": "String"}}},
   "pingPongAutoClipSubtitle": "乒乓球比赛视频自动剪辑",
   "pingPongMatchVideoClip": "乒乓球比赛视频剪辑",
   "pingPongVideoAutoClip": "乒乓球视频自动剪辑",
   "platformLabel": "平台",
   "playSegmentFailedWithError": "播放片段失败: {error}",
-  "@playSegmentFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "playSelectedSegmentOnly": "只播放片段",
   "playSpeed": "播放速度",
   "playVideo": "播放视频",
@@ -820,38 +718,29 @@
   "precisionEditTitle": "精修编辑",
   "prepareDownload": "准备下载",
   "prepareVideoFailed": "准备视频失败：{error}",
-  "@prepareVideoFailed": {"placeholders": {"error": {"type": "String"}}},
   "presetComingSoon": "预设功能即将推出",
   "previewTitle": "预览",
   "processDetectionResultFailed": "处理检测结果失败: {error}",
-  "@processDetectionResultFailed": {"placeholders": {"error": {"type": "String"}}},
   "processFailedRetry": "处理失败，请重试",
   "processStatusPreparing": "准备中",
   "processVideoFailed": "处理视频失败",
-  "noValidSegments": "没有有效的片段",
   "processedTimeLabel": "已处理时间：{seconds} s",
-  "@processedTimeLabel": {"placeholders": {"seconds": {"type": "int"}}},
   "processingEffectLabel": "处理效果",
   "processingHistory": "处理记录",
   "processingNow": "正在处理",
   "processingSpeed": "处理速度: {speed} 秒/分钟",
-  "@processingSpeed": {"placeholders": {"speed": {"type": "String"}}},
   "processingSpeedPerSecond": "处理速度：{speed} s/s",
-  "@processingSpeedPerSecond": {"placeholders": {"speed": {"type": "String"}}},
   "productNameLabel": "产品名称",
   "profileDefaultUsername": "用户名",
   "progressPercentLabel": "进度: {percent}%",
-  "@progressPercentLabel": {"placeholders": {"percent": {"type": "String"}}},
   "progressTaskCancelled": "任务已取消",
   "progressTaskCompleted": "任务完成",
   "purchase": "购买",
   "purchaseConfirm": "购买确认",
   "purchaseConfirmMessage": "确定要购买 {packageName} 吗？\n时长：{minutes}分钟\n价格：¥{price}",
-  "@purchaseConfirmMessage": {"placeholders": {"packageName": {"type": "String"}, "minutes": {"type": "int"}, "price": {"type": "String"}}},
   "purchaseFeatureInDevelopment": "购买功能开发中...",
   "qualityLabel": "清晰度",
   "queuePosition": "队列位置: {position}",
-  "@queuePosition": {"placeholders": {"position": {"type": "String"}}},
   "quickAccessCamera": "相机",
   "quickAccessDocuments": "文档",
   "quickAccessDownload": "下载",
@@ -860,7 +749,6 @@
   "quickTry": "快速体验",
   "quickTryHint": "无需自备视频，使用内置样例立即体验剪辑流程",
   "readLogContentFailed": "读取日志内容失败: {error}",
-  "@readLogContentFailed": {"placeholders": {"error": {"type": "String"}}},
   "realtimeDetecting": "实时检测中",
   "recommended": "推荐",
   "recordAndClip": "边拍边剪辑",
@@ -875,7 +763,6 @@
   "registryOwnerLabel": "注册表所有者",
   "remainingDuration": "剩余时长",
   "remark": "备注: {info}",
-  "@remark": {"placeholders": {"info": {"type": "String"}}},
   "remarkInfoSection": "备注信息",
   "removeFromFavorites": "从收藏中移除",
   "removeReplay": "移除回放",
@@ -886,14 +773,11 @@
   "renameSucceeded": "重命名成功",
   "renew": "续费",
   "reorderFailedWithError": "重新排序失败: {error}",
-  "@reorderFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "reprocessButton": "重新处理",
   "requestAllPermissions": "请求所有权限",
   "requestPermission": "请求权限",
   "requestPermissionError": "请求权限时发生错误: {error}",
-  "@requestPermissionError": {"placeholders": {"error": {"type": "String"}}},
   "requestPermissionTitle": "请求 {permissionName}",
-  "@requestPermissionTitle": {"placeholders": {"permissionName": {"type": "String"}}},
   "reserveAfterRound": "单回合后保留时长(秒)",
   "reserveAfterRoundTooltip": "单回合比赛结束后预留的时间（秒）",
   "reserveBeforeRound": "单回合前保留时间",
@@ -903,16 +787,12 @@
   "resetAppTitle": "重置应用",
   "resumeTask": "恢复任务",
   "retryFailed": "重试失败: {error}",
-  "@retryFailed": {"placeholders": {"error": {"type": "String"}}},
   "returnToHome": "返回首页",
   "roundClip": "回合剪辑",
   "roundCountBadge": "{count} 个",
-  "@roundCountBadge": {"placeholders": {"count": {"type": "int"}}},
   "roundCountDurationSummary": "{count} 个 · 合计 {duration}",
-  "@roundCountDurationSummary": {"placeholders": {"count": {"type": "int"}, "duration": {"type": "String"}}},
   "roundCountLabel": "回合数",
   "roundCountShort": "{count}个回合",
-  "@roundCountShort": {"placeholders": {"count": {"type": "int"}}},
   "roundCountUnit": "个回合",
   "roundDeletedSuccess": "已删除当前回合",
   "roundFavoritedSuccess": "已收藏当前回合",
@@ -925,7 +805,6 @@
   "saveCleaningTempFiles": "正在清理临时文件...",
   "saveComplete": "保存完成！",
   "saveFailed": "保存失败: {error}",
-  "@saveFailed": {"placeholders": {"error": {"type": "String"}}},
   "saveFailedShort": "保存失败",
   "saveLocationLabel": "保存位置:",
   "saveMergingSegments": "正在合并视频片段...",
@@ -936,18 +815,14 @@
   "saveSavingMetadata": "正在保存元数据...",
   "saveSavingToGallery": "正在保存到相册...",
   "saveSegmentFailedWithError": "保存片段失败: {error}",
-  "@saveSegmentFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "saveToGallery": "保存到相册",
   "saveToLabel": "保存到",
   "saveTrimmingSegment": "正在裁剪片段",
   "saveTrimmingSegments": "正在裁剪视频片段...",
   "saveTrimmingSegmentsProgress": "正在裁剪视频片段... {percent}%",
-  "@saveTrimmingSegmentsProgress": {"placeholders": {"percent": {"type": "String"}}},
   "savedImagesCount": "成功保存 {count} 张图片到相册",
-  "@savedImagesCount": {"placeholders": {"count": {"type": "int"}}},
   "savedToGallery": "已保存到相册",
   "screenshotCaptureFailedWithLogs": "截图失败: {logs}",
-  "@screenshotCaptureFailedWithLogs": {"placeholders": {"logs": {"type": "String"}}},
   "screenshotCapturing": "正在截图...",
   "screenshotCompleted": "截图完成",
   "screenshotFailedTitle": "截图失败",
@@ -958,7 +833,6 @@
   "screenshotSavingToGallery": "正在保存到相册...",
   "sdkVersionLabel": "SDK版本",
   "searchFailedWithError": "搜索失败: {error}",
-  "@searchFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "searchFilesTitle": "搜索文件",
   "searchLogsHint": "搜索日志...",
   "searchMediaTitle": "搜索媒体文件",
@@ -970,7 +844,6 @@
   "searchPathMusic": "音乐文件夹",
   "searchPathPictures": "图片文件夹",
   "searchResultsAdded": "已添加 {count} 个搜索结果到选择列表",
-  "@searchResultsAdded": {"placeholders": {"count": {"type": "int"}}},
   "searchScope": "搜索范围",
   "searching": "搜索中...",
   "searchingFiles": "正在搜索文件...",
@@ -980,7 +853,6 @@
   "seekForward5s": "+5秒",
   "segmentNotFound": "找不到对应的片段",
   "segmentsDetectedResult": "检测到 {count} 个比赛片段 ({seconds}s)",
-  "@segmentsDetectedResult": {"placeholders": {"count": {"type": "int"}, "seconds": {"type": "int"}}},
   "selectAlbum": "选择相册",
   "selectAll": "全选",
   "selectClipMode": "选择剪辑方式",
@@ -1005,33 +877,26 @@
   "selectVideoFileFirstError": "请先选择视频文件",
   "selectVideosTitle": "选择视频",
   "selectedCountShort": "已选: {count}",
-  "@selectedCountShort": {"placeholders": {"count": {"type": "int"}}},
   "selectedFirstNItems": "已选择前 {count} 个项目",
-  "@selectedFirstNItems": {"placeholders": {"count": {"type": "int"}}},
   "selectedItemsCount": "已选择 {count} 项",
-  "@selectedItemsCount": {"placeholders": {"count": {"type": "int"}}},
   "selectedRounds": "已选回合",
   "selectionSummaryDirsOnly": " ({dirCount}个目录)",
-  "@selectionSummaryDirsOnly": {"placeholders": {"dirCount": {"type": "String"}}},
   "selectionSummaryFilesAndDirs": " ({fileCount}个文件, {dirCount}个目录)",
-  "@selectionSummaryFilesAndDirs": {"placeholders": {"fileCount": {"type": "String"}, "dirCount": {"type": "String"}}},
   "selectionSummaryFilesOnly": " ({fileCount}个文件)",
-  "@selectionSummaryFilesOnly": {"placeholders": {"fileCount": {"type": "String"}}},
   "selectionSummaryItems": "{count}个项目",
-  "@selectionSummaryItems": {"placeholders": {"count": {"type": "int"}}},
+  "settings": "设置",
   "settingsAllDownloadFiles": "所有下载文件",
   "settingsAllFilesCleanupDone": "全部文件清理完成",
   "settingsAllFilesCleanupFailed": "全部文件清理失败: {error}",
-  "@settingsAllFilesCleanupFailed": {"placeholders": {"error": {"type": "String"}}},
   "settingsAlreadyLatestVersion": "当前已是最新版本",
   "settingsApiServer": "API 服务器",
   "settingsApiServerDefault": "默认",
   "settingsApiServerDesc": "选择连接的 API 环境",
   "settingsApiServerSandbox": "Sandbox",
   "settingsAppData": "应用数据",
+  "settingsAppearance": "外观",
   "settingsCacheCleanupDone": "缓存文件清理完成",
   "settingsCacheCleanupFailed": "缓存文件清理失败: {error}",
-  "@settingsCacheCleanupFailed": {"placeholders": {"error": {"type": "String"}}},
   "settingsCacheFiles": "缓存文件",
   "settingsCheckUpdate": "检查更新",
   "settingsCheckUpdateOnStart": "启动时检查更新",
@@ -1044,30 +909,26 @@
   "settingsConfirmCleanup": "确认清理",
   "settingsConfirmCleanupAction": "确定清理",
   "settingsConfirmCleanupMessage": "确定要清理{title}吗？此操作不可撤销。",
-  "@settingsConfirmCleanupMessage": {"placeholders": {"title": {"type": "String"}}},
   "settingsConfirmDeleteAction": "确定删除",
   "settingsConfirmDeleteFileMessage": "确定要删除文件 \"{fileName}\" 吗？此操作不可撤销。",
-  "@settingsConfirmDeleteFileMessage": {"placeholders": {"fileName": {"type": "String"}}},
   "settingsDarkMode": "深色模式",
   "settingsDefaultSavePath": "默认保存路径",
   "settingsDefaultSavePathValue": "~/Videos/弧迹",
   "settingsDownloadCleanupDone": "下载文件清理完成",
   "settingsDownloadCleanupFailed": "下载文件清理失败: {error}",
-  "@settingsDownloadCleanupFailed": {"placeholders": {"error": {"type": "String"}}},
   "settingsDownloadConcurrency": "下载并发数",
   "settingsDownloadConcurrencyDesc": "同时下载的视频数量",
   "settingsDownloadFileList": "下载文件列表",
   "settingsDownloadFiles": "下载文件",
   "settingsDownloadListFailed": "获取下载文件列表失败: {error}",
-  "@settingsDownloadListFailed": {"placeholders": {"error": {"type": "String"}}},
   "settingsExternalStorage": "外部存储",
   "settingsFileDeleteFailed": "文件删除失败: {error}",
-  "@settingsFileDeleteFailed": {"placeholders": {"error": {"type": "String"}}},
   "settingsFileDeleteSuccess": "文件删除成功",
   "settingsLanguage": "语言",
   "settingsLanguageUpdated": "语言设置已更新",
   "settingsNoDownloadFiles": "暂无下载文件",
   "settingsNotificationsUpdated": "通知设置已更新",
+  "settingsPageSubtitle": "个性化你的弧迹桌面体验",
   "settingsPermissions": "权限管理",
   "settingsPrivacyPolicy": "隐私政策",
   "settingsPushNotifications": "推送通知",
@@ -1077,7 +938,6 @@
   "settingsThemeChanged": "主题切换成功",
   "settingsTitle": "设置",
   "settingsTotalUsedSpace": "总使用空间: {size}",
-  "@settingsTotalUsedSpace": {"placeholders": {"size": {"type": "String"}}},
   "settingsUserAgreement": "用户协议",
   "settingsUsername": "用户名",
   "settingsVersionInfo": "版本信息",
@@ -1085,12 +945,10 @@
   "setupLater": "稍后设置",
   "shareFeatureInDevelopment": "分享功能开发中...",
   "shareLogsFailed": "分享日志失败: {error}",
-  "@shareLogsFailed": {"placeholders": {"error": {"type": "String"}}},
   "showSystemLogsLabel": "显示系统日志",
   "sizeReducedLabel": "大小减少",
   "slowMotion": "慢放",
   "softwareEncoderDetectFailed": "软件编码器检测失败: {error}",
-  "@softwareEncoderDetectFailed": {"placeholders": {"error": {"type": "String"}}},
   "softwareEncoderNotFound": "未找到合适的软件编码器",
   "sortByFileSize": "按文件大小排序",
   "sortByFileType": "按文件类型排序",
@@ -1117,22 +975,17 @@
   "statusPreparing": "准备中",
   "statusProcessing": "处理中",
   "storageCategoryWithSize": "{label}: {size}",
-  "@storageCategoryWithSize": {"placeholders": {"label": {"type": "String"}, "size": {"type": "String"}}},
   "storageInfoCalculating": "正在计算存储信息...",
   "storageInfoFetchFailedWithError": "无法获取存储信息: {error}",
-  "@storageInfoFetchFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "storagePermissionRequired": "需要存储权限才能访问文件",
   "submitFailedRetryLater": "提交失败，请稍后重试",
   "submitFeedback": "提交反馈",
   "subscribe": "订阅",
   "subscriptionConfirm": "订阅确认",
   "subscriptionConfirmMessage": "确定要订阅 {planName} 方案吗？\n月费：¥{price}",
-  "@subscriptionConfirmMessage": {"placeholders": {"planName": {"type": "String"}, "price": {"type": "String"}}},
   "subscriptionFailed": "订阅失败: {error}",
-  "@subscriptionFailed": {"placeholders": {"error": {"type": "String"}}},
   "subscriptionPlans": "订阅方案",
   "subscriptionSuccess": "成功订阅 {planName} 方案！",
-  "@subscriptionSuccess": {"placeholders": {"planName": {"type": "String"}}},
   "supportedVideoFormats": "支持常见视频格式",
   "switchTabClearSelectionMessage": "切换到其他标签会清空当前选择，是否继续？",
   "switchTabTitle": "切换标签",
@@ -1146,15 +999,10 @@
   "tabPhotoGallery": "相册",
   "takePhoto": "拍照",
   "taskCancelled": "已取消任务\"{taskName}\"",
-  "@taskCancelled": {"placeholders": {"taskName": {"type": "String"}}},
   "taskDeleted": "已删除任务\"{taskName}\"",
-  "@taskDeleted": {"placeholders": {"taskName": {"type": "String"}}},
   "taskPauseNotSupported": "{taskType}任务不支持暂停",
-  "@taskPauseNotSupported": {"placeholders": {"taskType": {"type": "String"}}},
   "taskPauseNotSupportedWithCancel": "{taskType}任务不支持暂停，请使用取消按钮",
-  "@taskPauseNotSupportedWithCancel": {"placeholders": {"taskType": {"type": "String"}}},
   "taskPaused": "已暂停任务\"{taskName}\"",
-  "@taskPaused": {"placeholders": {"taskName": {"type": "String"}}},
   "taskPhaseAnalyzing": "正在分析视频内容…",
   "taskPhaseClipping": "正在剪辑视频…",
   "taskPhaseDownloading": "正在下载结果…",
@@ -1166,7 +1014,6 @@
   "taskPhaseUploading": "正在上传视频…",
   "taskRecords": "任务记录",
   "taskResumed": "已恢复任务\"{taskName}\"",
-  "@taskResumed": {"placeholders": {"taskName": {"type": "String"}}},
   "taskStatusCancelled": "已取消",
   "taskStatusCancelledShort": "取消",
   "taskStatusCompleted": "已完成",
@@ -1180,7 +1027,6 @@
   "taskTypeDownload": "文件下载",
   "taskTypeFilter": "任务类型",
   "taskTypeFilterSelected": "任务类型 · {count}",
-  "@taskTypeFilterSelected": {"placeholders": {"count": {"type": "int"}}},
   "taskTypeImageCompress": "图片压缩",
   "taskTypeSegmentDetectShort": "实时检测",
   "taskTypeVideoClip": "视频剪辑",
@@ -1188,19 +1034,29 @@
   "taskTypeVideoSegmentDetect": "实时视频片段检测",
   "taskTypeVideoUpload": "视频上传",
   "tasksSubmitted": "已提交 {successCount} 个任务{failSuffix}",
-  "@tasksSubmitted": {"placeholders": {"successCount": {"type": "int"}, "failSuffix": {"type": "String"}}},
   "tasksSubmittedFailSuffix": "，{failCount} 个失败",
-  "@tasksSubmittedFailSuffix": {"placeholders": {"failCount": {"type": "int"}}},
   "testEnvironmentSubtitle": "测试环境",
   "testPageAccessSubtitle": "访问测试页面",
   "testPageForFeaturesSubtitle": "用于测试各种功能",
   "testPageTitle": "测试页",
+  "themeColorPresetDescription": "用于按钮、开关与高亮的主色与强调色",
+  "themeColorPresetTitle": "主题色",
+  "themeDark": "深色",
+  "themeLight": "浅色",
+  "themeModeDark": "深色",
+  "themeModeDescription": "选择默认外观，或跟随系统设置",
+  "themeModeLight": "浅色",
+  "themeModeSystem": "跟随系统",
+  "themeModeTitle": "主题模式",
+  "themePresetAmber": "琥珀",
+  "themePresetForest": "森林",
+  "themePresetGraphite": "石墨",
+  "themePresetOcean": "海洋",
+  "themePresetViolet": "紫罗兰",
+  "themeSystem": "跟随系统",
   "thumbnailFileNotGenerated": "缩略图文件生成失败: {path}",
-  "@thumbnailFileNotGenerated": {"placeholders": {"path": {"type": "String"}}},
   "thumbnailGenerateFailed": "生成缩略图失败: {path}: {error}",
-  "@thumbnailGenerateFailed": {"placeholders": {"path": {"type": "String"}, "error": {"type": "String"}}},
   "thumbnailGenerationFailed": "生成缩略图失败: {detail}",
-  "@thumbnailGenerationFailed": {"placeholders": {"detail": {"type": "String"}}},
   "timeRangeFilter": "时间范围",
   "totalDurationLabel": "合计时长",
   "totalUsage": "总使用",
@@ -1210,6 +1066,15 @@
   "transitionSlide": "滑动",
   "trimSplitLabel": "分割",
   "tryModifySearchConditions": "尝试修改搜索条件",
+  "typographyScaleComfortable": "宽松",
+  "typographyScaleCompact": "紧凑",
+  "typographyScaleCustom": "自定义",
+  "typographyScaleCustomHint": "50–200",
+  "typographyScaleDescription": "界面文字大小。「标准」跟随系统",
+  "typographyScaleStandard": "标准",
+  "typographyScaleTitle": "文字大小",
+  "uiZoomDescription": "整体缩放界面——文字、图标与间距一起",
+  "uiZoomTitle": "界面缩放",
   "unfavorite": "取消收藏",
   "unfavoriteCurrentRound": "取消收藏当前回合",
   "unknownDevice": "未知设备",
@@ -1222,7 +1087,6 @@
   "updateContent": "更新内容",
   "updateLater": "以后更新",
   "updatePlaybackListFailedWithError": "更新播放项列表失败: {error}",
-  "@updatePlaybackListFailedWithError": {"placeholders": {"error": {"type": "String"}}},
   "updateTime": "更新时间",
   "uploadVideoHint": "上传你收集的视频，自动裁剪掉休息片段。视频处理期间可离开页面，处理完后会有桌面通知。",
   "uploading": "上传中...",
@@ -1233,7 +1097,6 @@
   "userNameLabel": "用户名",
   "usernameLabel": "用户名",
   "validityDays": "{days}天",
-  "@validityDays": {"placeholders": {"days": {"type": "int"}}},
   "versionCodenameLabel": "版本代号",
   "versionIdLabel": "版本ID",
   "versionInfo": "版本信息",
@@ -1241,33 +1104,23 @@
   "videoClipProgressTitle": "视频剪辑进度",
   "videoComparisonSection": "视频对比",
   "videoCompressException": "压缩异常: {error}",
-  "@videoCompressException": {"placeholders": {"error": {"type": "String"}}},
   "videoCompressFailed": "压缩失败: {logs}",
-  "@videoCompressFailed": {"placeholders": {"logs": {"type": "String"}}},
   "videoCompressInfoUnavailable": "无法获取视频信息",
   "videoCompressInputNotFound": "输入文件不存在: {path}",
-  "@videoCompressInputNotFound": {"placeholders": {"path": {"type": "String"}}},
   "videoCompressOutputNotGenerated": "输出文件未生成",
   "videoCropFailed": "视频裁剪失败",
   "videoDuration": "视频时长: {duration}",
-  "@videoDuration": {"placeholders": {"duration": {"type": "String"}}},
   "videoDurationAndSize": "时长: {duration} | 大小: {size}",
-  "@videoDurationAndSize": {"placeholders": {"duration": {"type": "String"}, "size": {"type": "String"}}},
   "videoDurationSeconds": "视频时长：{seconds} s",
-  "@videoDurationSeconds": {"placeholders": {"seconds": {"type": "int"}}},
   "videoEditTitle": "视频编辑",
   "videoExpiresAt": "{date} | {timeAgo}过期",
-  "@videoExpiresAt": {"placeholders": {"date": {"type": "String"}, "timeAgo": {"type": "String"}}},
   "videoFileLabel": "视频文件",
   "videoFileNotExist": "视频文件不存在",
   "videoFileNotFound": "视频文件不存在: {path}",
-  "@videoFileNotFound": {"placeholders": {"path": {"type": "String"}}},
   "videoFileNotFoundWithPath": "视频文件不存在: {path}",
-  "@videoFileNotFoundWithPath": {"placeholders": {"path": {"type": "String"}}},
   "videoFileNotGenerated": "视频文件未生成",
   "videoFormatConvertFailed": "视频格式转换失败",
   "videoInfoFetchFailed": "获取视频信息失败: {output}",
-  "@videoInfoFetchFailed": {"placeholders": {"output": {"type": "String"}}},
   "videoLabel": "视频",
   "videoListTitle": "视频列表",
   "videoLoading": "视频加载中...",
@@ -1275,14 +1128,11 @@
   "videoNameLabel": "视频名称",
   "videoPathEmpty": "视频文件路径为空",
   "videoPlayerFileMovedOrDeleted": "文件已被移动或删除：\n{path}",
-  "@videoPlayerFileMovedOrDeleted": {"placeholders": {"path": {"type": "String"}}},
   "videoPlayerFileNotFound": "文件不存在",
   "videoPlayerInitFailed": "初始化播放器失败: {error}",
-  "@videoPlayerInitFailed": {"placeholders": {"error": {"type": "String"}}},
   "videoPlayerInitializing": "正在初始化播放器...",
   "videoPlayerLoadingVideo": "正在加载视频...",
   "videoPlayerNetworkInitFailed": "初始化网络播放器失败: {error}",
-  "@videoPlayerNetworkInitFailed": {"placeholders": {"error": {"type": "String"}}},
   "videoProcessType": "视频处理类型",
   "videoProcessTypeAllMatchMerged": "全部回合",
   "videoProcessTypeGreatMatch": "精彩回合",
@@ -1294,14 +1144,12 @@
   "videoQualityWarning": "视频的角度、大小、分辨率会影响检测效果。建议水平拍摄，分辨率 ≥ 720p，不要过度压缩。",
   "videoSaveFailed": "视频保存失败",
   "videoSavedTo": "视频已保存到{path}",
-  "@videoSavedTo": {"placeholders": {"path": {"type": "String"}}},
   "videoScaleFailed": "视频缩放失败",
   "videoSegmentDetection": "视频片段检测",
   "videoStillProcessingTryLater": "视频还在处理中，请稍后再试",
   "videoStreamNotFound": "未找到视频流",
   "videoWaitingProcessing": "视频等待处理中...",
   "videoWaitingWithQueue": "视频等待处理中...前方有 {count} 个视频在排队",
-  "@videoWaitingWithQueue": {"placeholders": {"count": {"type": "int"}}},
   "videosFolderName": "弧迹",
   "viewAppLogsSubtitle": "查看应用日志",
   "viewChangelogHistory": "查看历史版本",
@@ -1311,6 +1159,1411 @@
   "viewTasks": "查看任务",
   "viewVideoButton": "查看视频",
   "waitingProcessTime": "等待处理时间: {seconds} s",
-  "@waitingProcessTime": {"placeholders": {"seconds": {"type": "int"}}},
-  "wrapLinesLabel": "换行显示"
+  "windowControlAlwaysOnTop": "置顶",
+  "windowControlClose": "关闭",
+  "windowControlMaximize": "最大化",
+  "windowControlMinimize": "最小化",
+  "windowControlRestore": "还原",
+  "wrapLinesLabel": "换行显示",
+  "@actionConfirmWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@actionCountdownSeconds": {
+    "placeholders": {
+      "countdown": {
+        "type": "int"
+      }
+    }
+  },
+  "@actionResendCodeCountdown": {
+    "placeholders": {
+      "countdown": {
+        "type": "int"
+      }
+    }
+  },
+  "@addSelectedFiles": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@albumAllMediaSubtitle": {
+    "placeholders": {
+      "mediaType": {
+        "type": "String"
+      }
+    }
+  },
+  "@albumCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@avatarUploadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@batchSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@batchTasksDeleted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@cannotAccessDirectory": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@cannotOpenLogViewer": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@clearCacheFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@clearLogsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@cloudDetectionTaskName": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "@compressionResults": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@configPresetMismatch": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "presetName": {
+        "type": "String"
+      }
+    }
+  },
+  "@confirmBatchDeleteMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@confirmCancelTaskMessage": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@confirmDeleteTaskMessage": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@contactInfoPrefix": {
+    "placeholders": {
+      "contact": {
+        "type": "String"
+      }
+    }
+  },
+  "@countdownSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@createFolderFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createTaskFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@createdAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@createdAtWithValue": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@currentEditingRound": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "@currentFile": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@deleteFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@desktopLibraryItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@desktopLibraryLoadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@deviceInfoFetchFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@downloadErrorWithDetails": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@durationLabel": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@durationSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@entityInfoDateAndItemCount": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@estimatedRemainingTime": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@estimatedRemainingTimeSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@exportProgressPercent": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "@ffmpegConvertFailed": {
+    "placeholders": {
+      "output": {
+        "type": "String"
+      }
+    }
+  },
+  "@ffmpegExecuteException": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@ffmpegExecuteFailed": {
+    "placeholders": {
+      "logs": {
+        "type": "String"
+      }
+    }
+  },
+  "@ffmpegExitCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoAccessedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoCachePath": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoCreatedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoFileName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoModifiedAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileInfoSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@fileNameWithSegmentCount": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@fileSizeLabel": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@filesSelectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@foundFileCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@frameExtractionFailed": {
+    "placeholders": {
+      "output": {
+        "type": "String"
+      }
+    }
+  },
+  "@frameOutOfRange": {
+    "placeholders": {
+      "maxFrames": {
+        "type": "String"
+      }
+    }
+  },
+  "@generateThumbnailFailed": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@getFolderInfoFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@homeVideoProcessingProgress": {
+    "placeholders": {
+      "progress": {
+        "type": "int"
+      }
+    }
+  },
+  "@homeVideoSubtitleProcessing": {
+    "placeholders": {
+      "taskId": {
+        "type": "String"
+      }
+    }
+  },
+  "@homeVideoTitleProcessing": {
+    "placeholders": {
+      "taskId": {
+        "type": "String"
+      }
+    }
+  },
+  "@imageCompressResultsTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@infoUpdateFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@initFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@itemCountUnit": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@loadAlbumFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadChangelogFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadDemoVideoFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadLogFilesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadMoreFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadSubscriptionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadUserInfoFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loadVideoDetailFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@localClipFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@localDetectionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@localDetectionTaskName": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "@localDetectionTasksSubmitted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@loginFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loginRegisterFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loginResetPasswordFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loginSendAuthCodeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@loginSendFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@logoutFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@maxSelectionCountReached": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@maxSelectionCountReachedFor": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "itemType": {
+        "type": "String"
+      }
+    }
+  },
+  "@mediaItemCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "mediaType": {
+        "type": "String"
+      }
+    }
+  },
+  "@messageTimeLabel": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@minutesDecimalValue": {
+    "placeholders": {
+      "value": {
+        "type": "String"
+      }
+    }
+  },
+  "@minutesValue": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "@modelNotFound": {
+    "placeholders": {
+      "modelName": {
+        "type": "String"
+      }
+    }
+  },
+  "@namedFeatureInDevelopment": {
+    "placeholders": {
+      "featureName": {
+        "type": "String"
+      }
+    }
+  },
+  "@noMatchingMediaFiles": {
+    "placeholders": {
+      "mediaType": {
+        "type": "String"
+      }
+    }
+  },
+  "@noMediaFiles": {
+    "placeholders": {
+      "mediaType": {
+        "type": "String"
+      }
+    }
+  },
+  "@openBrowserFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@openCloudClipFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@openFileFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@openFolderFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@operationFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@packageDurationValidity": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "validity": {
+        "type": "String"
+      }
+    }
+  },
+  "@passwordChangeFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@pathNotFound": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@pendingLogsWithCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@permissionChecking": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionDeniedRetry": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionDiagnosticDenied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@permissionDiagnosticFetchFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionDiagnosticGranted": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@permissionDiagnosticGrantedRate": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionDiagnosticPermanentlyDenied": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@permissionDiagnosticTime": {
+    "placeholders": {
+      "timestamp": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionDiagnosticTotal": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@permissionGrantedSuccess": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionPermanentlyDenied": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      }
+    }
+  },
+  "@permissionStatusMessage": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "@pickImageFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@playSegmentFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@prepareVideoFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@processDetectionResultFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@processedTimeLabel": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@processingSpeed": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "@processingSpeedPerSecond": {
+    "placeholders": {
+      "speed": {
+        "type": "String"
+      }
+    }
+  },
+  "@progressPercentLabel": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "@purchaseConfirmMessage": {
+    "placeholders": {
+      "packageName": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "int"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "@queuePosition": {
+    "placeholders": {
+      "position": {
+        "type": "String"
+      }
+    }
+  },
+  "@readLogContentFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@remark": {
+    "placeholders": {
+      "info": {
+        "type": "String"
+      }
+    }
+  },
+  "@reorderFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@requestPermissionError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@requestPermissionTitle": {
+    "placeholders": {
+      "permissionName": {
+        "type": "String"
+      }
+    }
+  },
+  "@retryFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@roundCountBadge": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@roundCountDurationSummary": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@roundCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@saveFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@saveSegmentFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@saveTrimmingSegmentsProgress": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "@savedImagesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@screenshotCaptureFailedWithLogs": {
+    "placeholders": {
+      "logs": {
+        "type": "String"
+      }
+    }
+  },
+  "@searchFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@searchResultsAdded": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@segmentsDetectedResult": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectedCountShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectedFirstNItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectedItemsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@selectionSummaryDirsOnly": {
+    "placeholders": {
+      "dirCount": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectionSummaryFilesAndDirs": {
+    "placeholders": {
+      "fileCount": {
+        "type": "String"
+      },
+      "dirCount": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectionSummaryFilesOnly": {
+    "placeholders": {
+      "fileCount": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectionSummaryItems": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@settingsAllFilesCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsCacheCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsConfirmCleanupMessage": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsConfirmDeleteFileMessage": {
+    "placeholders": {
+      "fileName": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsDownloadCleanupFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsDownloadListFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsFileDeleteFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@settingsTotalUsedSpace": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@shareLogsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@softwareEncoderDetectFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@storageCategoryWithSize": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@storageInfoFetchFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@subscriptionConfirmMessage": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      },
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "@subscriptionFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@subscriptionSuccess": {
+    "placeholders": {
+      "planName": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskCancelled": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskDeleted": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskPauseNotSupported": {
+    "placeholders": {
+      "taskType": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskPauseNotSupportedWithCancel": {
+    "placeholders": {
+      "taskType": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskPaused": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskResumed": {
+    "placeholders": {
+      "taskName": {
+        "type": "String"
+      }
+    }
+  },
+  "@taskTypeFilterSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@tasksSubmitted": {
+    "placeholders": {
+      "successCount": {
+        "type": "int"
+      },
+      "failSuffix": {
+        "type": "String"
+      }
+    }
+  },
+  "@tasksSubmittedFailSuffix": {
+    "placeholders": {
+      "failCount": {
+        "type": "int"
+      }
+    }
+  },
+  "@thumbnailFileNotGenerated": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@thumbnailGenerateFailed": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@thumbnailGenerationFailed": {
+    "placeholders": {
+      "detail": {
+        "type": "String"
+      }
+    }
+  },
+  "@updatePlaybackListFailedWithError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@validityDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "@videoCompressException": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoCompressFailed": {
+    "placeholders": {
+      "logs": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoCompressInputNotFound": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoDuration": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoDurationAndSize": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      },
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoDurationSeconds": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "@videoExpiresAt": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      },
+      "timeAgo": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoFileNotFound": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoFileNotFoundWithPath": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoInfoFetchFailed": {
+    "placeholders": {
+      "output": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoPlayerFileMovedOrDeleted": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoPlayerInitFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoPlayerNetworkInitFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoSavedTo": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "@videoWaitingWithQueue": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@waitingProcessTime": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  }
 }

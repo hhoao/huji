@@ -1818,7 +1818,7 @@ packages:
     source: hosted
     version: "1.0.2"
   toggle_switch:
-    dependency: transitive
+    dependency: "direct main"
     description:
       name: toggle_switch
       sha256: dca04512d7c23ed320d6c5ede1211a404f177d54d353bf785b07d15546a86ce5

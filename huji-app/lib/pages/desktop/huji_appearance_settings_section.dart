@@ -1,6 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/app_theme.dart';
+import 'package:huji_app/widgets/settings/theme_color_preset_picker.dart';
+import 'package:huji_app/widgets/settings/typography_scale_setting.dart';
+import 'package:huji_app/widgets/settings/workspace_settings_toggle_strip.dart';
+import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
+import 'package:shared_ui/theme/app_typography_scale.dart';
 
 /// Huji appearance settings — Teampilot [LayoutAppearanceInLayoutSection] subset.
 class HujiAppearanceSettingsSection extends StatelessWidget {
@@ -8,7 +16,7 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.sharedL10n;
+    final l10n = context.hujiL10n;
     final cubit = context.read<AppearanceCubit>();
 
     return BlocBuilder<AppearanceCubit, AppearancePreferences>(
