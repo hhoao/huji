@@ -1349,6 +1349,14 @@ packages:
       url: "https://pub.flutter-io.cn"
     source: hosted
     version: "2.3.0"
+  pausable_timer:
+    dependency: transitive
+    description:
+      name: pausable_timer
+      sha256: "6ef1a95441ec3439de6fb63f39a011b67e693198e7dae14e20675c3c00e86074"
+      url: "https://pub.flutter-io.cn"
+    source: hosted
+    version: "3.1.0+3"
   permission_handler:
     dependency: "direct main"
     description:
@@ -1635,7 +1643,7 @@ packages:
       path: "packages/shared_ui"
       relative: true
     source: path
-    version: "0.1.0"
+    version: "0.3.0"
   shelf:
     dependency: transitive
     description:
