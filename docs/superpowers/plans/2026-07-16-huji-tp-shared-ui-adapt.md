@@ -229,9 +229,19 @@ rg "package:shared_ui/theme/(app_text_styles|app_icon_sizes|app_spacing|app_typo
 # Also: no relative import 'app_icon_sizes.dart' / 'app_spacing.dart' / 'app_typography_scale.dart' under lib/theme/
 ```
 
-- [ ] **Step 3: Point huji app imports at local modules**
+- [ ] **Step 3: Point huji app imports at local modules (avoid barrel ambiguity)**
 
-Update inventory consumers to import `package:huji_app/appearance/...`, `package:huji_app/theme/...`, chrome/layout/settings, etc. for vendored symbols. App call sites may keep `AppTextStyles` / `AppIconSizes` / `sharedL10n` on `package:shared_ui` until Steps 4–5 / Task 5.
+Update inventory consumers to import `package:huji_app/appearance/...`, `package:huji_app/theme/...`, chrome/layout/settings, etc. for vendored symbols.
+
+**Required:** after vendoring, `package:shared_ui/shared_ui.dart` still exports the same names (`AppearanceCubit`, `SettingsSurfaceCard`, `ThemeColorPresetPicker`, `DesktopWindowTitleBar`, `UiZoom`, …). Call sites that keep the barrel **and** add huji imports will fail with ambiguous-import errors.
+
+For each touched file, either:
+1. Prefer explicit imports: `package:huji_app/...` for vendored symbols + `package:shared_ui/theme/app_text_styles.dart` (and icon sizes / l10n) for tokens still on the pin — drop the barrel; or
+2. Keep the barrel with `hide AppearanceCubit, SettingsSurfaceCard, …` listing every vendored name imported from huji.
+
+Hot spots: `main.dart`, `main_desktop.dart`, `desktop_settings_page.dart`, `settings_page.dart`, `huji_appearance_settings_section.dart`, `huji_desktop_shell.dart`.
+
+App call sites may keep `AppTextStyles` / `AppIconSizes` / `sharedL10n` on `package:shared_ui` until Steps 4–5 / Task 5.
 
 - [ ] **Step 4: l10n audit + remap (app + vendored chrome)**
 
@@ -242,9 +252,10 @@ rg "SharedUiLocalizations|sharedL10n|shared_ui\.l10n|context\.l10n" --glob '*.da
 1. List keys from app (`context.sharedL10n`) **and** vendored chrome/settings (`context.l10n` in title-bar controls, `ThemeColorPresetPicker`, `TypographyScaleSetting`, …).
 2. Add those strings to huji ARB (`app_en.arb` / `app_zh.arb`) and regenerate l10n.
 3. Remap: `context.sharedL10n.foo` / vendored `context.l10n.foo` → `context.hujiL10n.foo` (or existing getters).
-4. Remove `SharedUiLocalizations.delegate` from `huji_localizations_setup.dart`.
-5. Drop remaining `package:shared_ui/l10n/` imports from vendored trees after remap.
-6. Do **not** leave any shared_ui l10n dependency before Task 4 pin bump.
+4. **Port non-ARB helpers:** `ThemeColorPresetPicker` calls `l10n.themeColorPresetName(id)` (`SharedUiL10nTheme` extension — not a generated getter). Add an equivalent on huji l10n (extension/`switch` over preset ids) before dropping the shared_ui l10n import.
+5. Remove `SharedUiLocalizations.delegate` from `huji_localizations_setup.dart`.
+6. Drop remaining `package:shared_ui/l10n/` imports from vendored trees after remap.
+7. Do **not** leave any shared_ui l10n dependency before Task 4 pin bump.
 
 - [ ] **Step 4b: Fonts decision (lock now)**
 
