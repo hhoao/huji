@@ -5,7 +5,6 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_filter_menu_trigger.dart';
-import 'package:huji_app/widgets/menu/sidebar_action_menu.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class _StatusOption {
@@ -78,7 +77,7 @@ class TaskStatusFilterMenu extends StatelessWidget {
         );
         final isFiltered = activeIdx != 0;
 
-        return SidebarActionMenuIconAnchor(
+        return TpActionMenuIconAnchor(
           minWidth: 200,
           triggerBuilder: (context, controller) {
             return TaskFilterMenuTrigger(
@@ -101,7 +100,7 @@ class TaskStatusFilterMenu extends StatelessWidget {
 
             return [
               for (final option in options)
-                SidebarActionMenuItem(
+                TpActionMenuItem(
                   icon: option.icon,
                   label: option.label,
                   trailing: option.index == activeIdx

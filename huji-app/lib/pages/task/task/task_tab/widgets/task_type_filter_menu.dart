@@ -8,10 +8,9 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_content_filter_dialog.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_filter_menu_trigger.dart';
-import 'package:huji_app/widgets/menu/sidebar_action_menu.dart';
 import 'package:shared_ui/shared_ui.dart';
 
-/// Multi-select task type filter using [SidebarActionMenuIconAnchor].
+/// Multi-select task type filter using [TpActionMenuIconAnchor].
 class TaskTypeFilterMenu extends StatelessWidget {
   const TaskTypeFilterMenu({super.key, required this.bloc});
 
@@ -49,7 +48,7 @@ class TaskTypeFilterMenu extends StatelessWidget {
         final selected = filter.selectedTypes;
         final hasSelection = selected.isNotEmpty;
 
-        return SidebarActionMenuIconAnchor(
+        return TpActionMenuIconAnchor(
           minWidth: 200,
           triggerBuilder: (context, controller) {
             return TaskFilterMenuTrigger(
@@ -72,7 +71,7 @@ class TaskTypeFilterMenu extends StatelessWidget {
 
             final items = <Widget>[
               for (final type in TaskTypeEnum.values)
-                SidebarActionMenuItem(
+                TpActionMenuItem(
                   icon: TaskTabListUtils.taskTypeIcon(type),
                   label: TaskTabListUtils.taskTypeLabel(context.hujiL10n, type),
                   menuController: null,
@@ -97,8 +96,8 @@ class TaskTypeFilterMenu extends StatelessWidget {
 
             if (hasSelection) {
               items.addAll([
-                const SidebarActionMenuDivider(),
-                SidebarActionMenuItem(
+                const TpActionMenuDivider(),
+                TpActionMenuItem(
                   icon: Icons.clear_all,
                   label: context.hujiL10n.clearTypeFilter,
                   menuController: controller,
