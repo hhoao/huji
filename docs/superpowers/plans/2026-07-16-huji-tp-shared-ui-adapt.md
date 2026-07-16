@@ -155,7 +155,7 @@ git commit -m "docs: inventory shared_ui imports for Tp* migration"
 **Work from:** `/home/hhoa/git/hhoa/huji`  
 **Source tree:** `huji-app/packages/shared_ui/lib/` at pin `c847581` (do not bump yet)
 
-**Compile rule for this task:** After Step 5, vendored trees must compile while **still** importing `package:shared_ui/theme/app_text_styles.dart`, `package:shared_ui/theme/app_icon_sizes.dart`, and (until Step 4 finishes) `package:shared_ui/l10n/...`. Do **not** rewrite those three families to `package:huji_app/` — they are intentionally not copied.
+**Compile rule for this task:** After Step 5, vendored trees must compile while **still** importing the old-pin **token** modules as `package:shared_ui/theme/{app_text_styles,app_icon_sizes,app_spacing,app_typography_scale}.dart`, plus (until Step 4 finishes) `package:shared_ui/l10n/...`. Do **not** copy or rewrite those token modules into `package:huji_app/` — copying only a subset forks types (`AppTypographyScale` vs `AppIconSizes.fromScale`).
 
 - [ ] **Step 1: Copy proven modules + transitive closure**
 
@@ -171,7 +171,6 @@ cp -a $SRC/preferences/. $HUJI/lib/appearance/
 cp -a $SRC/platform/. $HUJI/lib/platform/
 cp -a $SRC/widgets/chrome/. $HUJI/lib/widgets/chrome/
 cp $SRC/shell/workspace_surface_layers.dart $HUJI/lib/theme/
-cp $SRC/theme/app_typography_scale.dart $HUJI/lib/theme/
 cp $SRC/widgets/layout/ui_zoom.dart $SRC/widgets/layout/app_text_scale_boundary.dart \
    $SRC/widgets/layout/workspace_right_pane.dart $HUJI/lib/widgets/layout/
 cp $SRC/widgets/settings/workspace_content_page.dart \
@@ -184,7 +183,9 @@ cp $SRC/widgets/settings/workspace_content_page.dart \
 cp $SRC/widgets/controls/app_toggle_switch.dart $HUJI/lib/widgets/controls/
 ```
 
-Also copy `theme/app_theme.dart` and **only** Material helper files it needs (`app_fonts.dart`, outline/button/list/tooltip themes, etc.) — **not** `app_text_styles.dart` / `app_icon_sizes.dart` / `app_spacing.dart`.
+Also copy `theme/app_theme.dart` and **only** Material helper files it needs (`app_fonts.dart`, outline/button/list/tooltip themes, etc.) — **not** `app_text_styles.dart` / `app_icon_sizes.dart` / `app_spacing.dart` / `app_typography_scale.dart`.
+
+After copying `app_theme.dart` (and any Material helpers with relative `import 'app_*.dart'`), rewrite those relative token imports to `package:shared_ui/theme/...` so they resolve on the old pin.
 
 Add `toggle_switch: ^2.3.0` to `huji-app/pubspec.yaml` (used by `AppToggleSwitch`).
 
@@ -204,27 +205,28 @@ Vendored path rewrites (apply carefully — not one global sed):
   package:shared_ui/widgets/controls/ → package:huji_app/widgets/controls/
   package:shared_ui/shell/workspace_surface_layers.dart
                                       → package:huji_app/theme/workspace_surface_layers.dart
-  package:shared_ui/theme/app_theme.dart (+ Material helpers you copied)
+  package:shared_ui/theme/app_theme.dart (+ Material helpers you copied, not tokens)
                                       → package:huji_app/theme/...
-  package:shared_ui/theme/app_typography_scale.dart
-                                      → package:huji_app/theme/app_typography_scale.dart
 
-KEEP on package:shared_ui until Task 5 (text/icon) / until Step 4 (l10n):
+KEEP on package:shared_ui until Task 5 (text/icon/scale tokens) / until Step 4 (l10n):
   package:shared_ui/theme/app_text_styles.dart
   package:shared_ui/theme/app_icon_sizes.dart
+  package:shared_ui/theme/app_spacing.dart
+  package:shared_ui/theme/app_typography_scale.dart
   package:shared_ui/l10n/...
 ```
 
-If a mistaken blanket `s|package:shared_ui/|package:huji_app/|g` is run, immediately restore the three KEEP families above.
+If a mistaken blanket `s|package:shared_ui/|package:huji_app/|g` is run, immediately restore the KEEP families above.
 
 Verify:
 
 ```bash
-rg "package:huji_app/(theme/app_text_styles|theme/app_icon_sizes|l10n/)" lib || true
+rg "package:huji_app/theme/(app_text_styles|app_icon_sizes|app_spacing|app_typography_scale)|package:huji_app/l10n/" lib || true
 # Expected: empty
-rg "package:shared_ui/(theme/app_text_styles|theme/app_icon_sizes|l10n/)" \
+rg "package:shared_ui/theme/(app_text_styles|app_icon_sizes|app_spacing|app_typography_scale)|package:shared_ui/l10n/" \
   lib/appearance lib/widgets/chrome lib/widgets/controls lib/widgets/settings lib/theme || true
 # Expected: still present where those symbols are used
+# Also: no relative import 'app_icon_sizes.dart' / 'app_spacing.dart' / 'app_typography_scale.dart' under lib/theme/
 ```
 
 - [ ] **Step 3: Point huji app imports at local modules**
@@ -254,7 +256,7 @@ Copy legacy `preloadSharedUiFonts` (from `appearance_app_builder.dart`) into `li
 cd huji-app && flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | rg "error •" | head -40
 ```
 
-Expected: no errors. Still depends on old pin for `AppTextStyles` / `AppIconSizes` only (and not for settings dropdowns / package ARB).
+Expected: no errors. Still depends on old pin for token modules (`AppTextStyles` / `AppIconSizes` / `AppSpacing` / `AppTypographyScale`) only — not for settings dropdowns, and not for package ARB after Step 4.
 
 - [ ] **Step 6: Commit**
 
