@@ -1,6 +1,6 @@
 # Huji adapt to Tp* `shared_ui`
 
-**Status:** Draft  
+**Status:** Approved  
 **Date:** 2026-07-16  
 **Related:** [2026-06-22-desktop-shared-ui-design.md](./2026-06-22-desktop-shared-ui-design.md) (original shared package for huji + teampilot — **superseded for package surface**)
 
@@ -82,13 +82,20 @@ Copy from current pin (`c847581`) into `huji-app/lib/`, rewrite imports to `pack
 | `theme/app_theme.dart` (+ related Material helpers huji needs) | `lib/theme/` |
 | Needed l10n strings from package ARB | huji ARB / local l10n |
 
+**AppTheme rewrite rule:** When vendoring `app_theme.dart`, **do not** copy `AppTextStyles` / `AppIconSizes` / `AppSpacing` as parallel token sources. Rewrite the vendored theme builder to:
+1. Keep FlexColorScheme / `ThemeData` assembly in huji.
+2. Read semantic text via `TpTextStyles` (or Material `TextTheme` sizes that `TpTextStyles` wraps) once `TpTheme` is in the tree; during Phase 1 before pin bump, temporarily keep inlined sizes only inside `app_theme.dart` if needed for compile, then switch in Phase 2.
+3. Geometric spacing/icons at call sites use `context.tpSpacing` / `tpIconSizes` after Phase 2 — not reintroduced `App*` token classes.
+
+**Phase 1 copy scope:** First step of implementation is an **import inventory** (`rg package:shared_ui` + symbol usage). Only copy layout/settings/chrome modules that inventory proves are used; do not wholesale-copy the legacy package tree.
+
 Do **not** copy obsolete design tokens that Tp* already owns (`AppTextStyles`, `AppIconSizes`, `AppSpacing` as package APIs) — call sites move to `Tp*`.
 
 ### Phase 2 — Bump pin + Tp wiring
 
 1. Update submodule to new `main` SHA; `flutter pub get`.
 2. Replace `AppTextStyles` → `TpTextStyles` (and icon/spacing accessors → `context.tpIconSizes` / `tpSpacing`).
-3. Wrap apps with `TpToastWrapper` + `TpTheme`; keep `AppearanceCubit` driving theme selection / text scale → `controlScale` / `iconScale` policy as appropriate.
+3. Wrap apps with `TpToastWrapper` + `TpTheme`; keep `AppearanceCubit` driving theme selection / text scale. Map appearance multipliers into `TpThemeData` the same way TeamPilot does at app entry: layout `scale` fixed at `1.0` when UI zoom is separate, `controlScale` tracks effective text multiplier, `iconScale` uses `TpIconSizes.resolveIconMultiplier` (or huji-equivalent damped mapping). Supply toast theme background from `workspaceCard` when surface layers are vendored.
 4. Remove deep imports of `package:shared_ui/theme/...` and other legacy paths; only `package:shared_ui/shared_ui.dart` (or documented public exports).
 5. Drop deps that existed only for the old package if unused by huji itself.
 
