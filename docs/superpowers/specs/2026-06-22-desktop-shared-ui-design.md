@@ -226,3 +226,9 @@ dependencies:
 ## 4. 方案选择记录
 
 采用 **方案 1：基础设施包 + huji 自写壳层**（见 brainstorming 记录）。未采用可配置 `DesktopHomeScaffold`（方案 2）与分阶段仅换皮（方案 3），以降低首轮抽象成本。
+
+---
+
+## Amendment (2026-07-16)
+
+Package surface superseded by the Tp\* design-system line. See [2026-07-16-huji-tp-shared-ui-adapt-design.md](./2026-07-16-huji-tp-shared-ui-adapt-design.md): bump to Tp\* `shared_ui` `main`, vend appearance/chrome into huji, wire `TpTheme` / `TpToast`.
