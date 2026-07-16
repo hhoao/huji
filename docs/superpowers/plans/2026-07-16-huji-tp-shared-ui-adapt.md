@@ -155,82 +155,113 @@ git commit -m "docs: inventory shared_ui imports for Tp* migration"
 **Work from:** `/home/hhoa/git/hhoa/huji`  
 **Source tree:** `huji-app/packages/shared_ui/lib/` at pin `c847581` (do not bump yet)
 
-- [ ] **Step 1: Copy proven modules**
+**Compile rule for this task:** After Step 5, vendored trees must compile while **still** importing `package:shared_ui/theme/app_text_styles.dart`, `package:shared_ui/theme/app_icon_sizes.dart`, and (until Step 4 finishes) `package:shared_ui/l10n/...`. Do **not** rewrite those three families to `package:huji_app/` — they are intentionally not copied.
+
+- [ ] **Step 1: Copy proven modules + transitive closure**
 
 ```bash
 HUJI=/home/hhoa/git/hhoa/huji/huji-app
 SRC=$HUJI/packages/shared_ui/lib
 
 mkdir -p $HUJI/lib/appearance $HUJI/lib/platform $HUJI/lib/widgets/chrome \
-  $HUJI/lib/widgets/layout $HUJI/lib/widgets/settings $HUJI/lib/theme
+  $HUJI/lib/widgets/layout $HUJI/lib/widgets/settings $HUJI/lib/widgets/controls \
+  $HUJI/lib/theme
 
 cp -a $SRC/preferences/. $HUJI/lib/appearance/
 cp -a $SRC/platform/. $HUJI/lib/platform/
 cp -a $SRC/widgets/chrome/. $HUJI/lib/widgets/chrome/
 cp $SRC/shell/workspace_surface_layers.dart $HUJI/lib/theme/
+cp $SRC/theme/app_typography_scale.dart $HUJI/lib/theme/
 cp $SRC/widgets/layout/ui_zoom.dart $SRC/widgets/layout/app_text_scale_boundary.dart \
    $SRC/widgets/layout/workspace_right_pane.dart $HUJI/lib/widgets/layout/
-cp $SRC/widgets/settings/workspace_content_page.dart $HUJI/lib/widgets/settings/
-# Settings preference chrome used by appearance + desktop/mobile settings pages
-# (copy from OLD pin — these types are NOT on Tp* main; keep as huji-local widgets)
-cp $SRC/widgets/settings/workspace_settings_widgets.dart \
+cp $SRC/widgets/settings/workspace_content_page.dart \
+   $SRC/widgets/settings/workspace_section_header.dart \
+   $SRC/widgets/settings/workspace_settings_widgets.dart \
    $SRC/widgets/settings/workspace_settings_toggle_strip.dart \
    $SRC/widgets/settings/theme_color_preset_picker.dart \
    $SRC/widgets/settings/typography_scale_setting.dart \
    $HUJI/lib/widgets/settings/
-# If workspace_settings_widgets imports other settings files, copy those too after analyze.
+cp $SRC/widgets/controls/app_toggle_switch.dart $HUJI/lib/widgets/controls/
 ```
 
-Also copy `theme/app_theme.dart` and **only** Material helper files it needs (`app_fonts.dart`, outline/button themes, etc.) — **not** `app_text_styles.dart` / `app_icon_sizes.dart` / `app_spacing.dart`.
+Also copy `theme/app_theme.dart` and **only** Material helper files it needs (`app_fonts.dart`, outline/button/list/tooltip themes, etc.) — **not** `app_text_styles.dart` / `app_icon_sizes.dart` / `app_spacing.dart`.
 
-Copy `preloadSharedUiFonts` / font asset wiring into huji (or call sites that today use package assets — ensure `pubspec.yaml` assets still resolve; may need to copy `packages/shared_ui/assets/google_fonts/` into huji assets or keep fonts loading via google_fonts package).
+Add `toggle_switch: ^2.3.0` to `huji-app/pubspec.yaml` (used by `AppToggleSwitch`).
 
-- [ ] **Step 2: Rewrite package imports inside vendored files**
+**Slim `workspace_settings_widgets.dart` before import rewrite (required):** huji only needs `SettingsSurfaceCard` + `SettingsLabeledRow` (+ tiny private helpers / `SettingsGroupHeader` if kept). Delete `SettingsCompactDropdown`, `SettingsConfiguredBadge`, `ManagementCardHeader`, `CardHeaderActionRow`, `SettingsAdvancedExpansion`, `SettingsLabeledStackedRow` if unused, and drop their imports (`widgets/dropdown/*`, `theme/app_text_styles.dart`, `l10n/l10n_extensions.dart`). Do **not** copy the dropdown/popover tree.
+
+- [ ] **Step 2: Selective import rewrite (never blanket-sed tokens)**
+
+Rewrite only imports that point at **vendored** paths. Leave token/l10n imports on the old pin:
+
+```text
+Vendored path rewrites (apply carefully — not one global sed):
+  package:shared_ui/preferences/      → package:huji_app/appearance/
+  package:shared_ui/platform/         → package:huji_app/platform/
+  package:shared_ui/widgets/chrome/   → package:huji_app/widgets/chrome/
+  package:shared_ui/widgets/layout/   → package:huji_app/widgets/layout/
+  package:shared_ui/widgets/settings/ → package:huji_app/widgets/settings/
+  package:shared_ui/widgets/controls/ → package:huji_app/widgets/controls/
+  package:shared_ui/shell/workspace_surface_layers.dart
+                                      → package:huji_app/theme/workspace_surface_layers.dart
+  package:shared_ui/theme/app_theme.dart (+ Material helpers you copied)
+                                      → package:huji_app/theme/...
+  package:shared_ui/theme/app_typography_scale.dart
+                                      → package:huji_app/theme/app_typography_scale.dart
+
+KEEP on package:shared_ui until Task 5 (text/icon) / until Step 4 (l10n):
+  package:shared_ui/theme/app_text_styles.dart
+  package:shared_ui/theme/app_icon_sizes.dart
+  package:shared_ui/l10n/...
+```
+
+If a mistaken blanket `s|package:shared_ui/|package:huji_app/|g` is run, immediately restore the three KEEP families above.
+
+Verify:
 
 ```bash
-# Example: package:shared_ui/... → package:huji_app/...
-find lib/appearance lib/platform lib/widgets/chrome lib/widgets/layout \
-  lib/widgets/settings lib/theme -name '*.dart' -print0 | xargs -0 sed -i \
-  's|package:shared_ui/|package:huji_app/|g'
+rg "package:huji_app/(theme/app_text_styles|theme/app_icon_sizes|l10n/)" lib || true
+# Expected: empty
+rg "package:shared_ui/(theme/app_text_styles|theme/app_icon_sizes|l10n/)" \
+  lib/appearance lib/widgets/chrome lib/widgets/controls lib/widgets/settings lib/theme || true
+# Expected: still present where those symbols are used
 ```
-
-Fix path segments (`preferences/` → `appearance/`, `shell/workspace_surface` → `theme/workspace_surface`, etc.) by hand where sed is insufficient.
 
 - [ ] **Step 3: Point huji app imports at local modules**
 
-Update files from inventory to import `package:huji_app/appearance/...`, `package:huji_app/theme/...`, etc., instead of `package:shared_ui/...` for vendored symbols. Leave `AppTextStyles` / `AppIconSizes` temporarily importing from submodule until Task 5 (or introduce a **temporary** compile bridge only inside vendored `app_theme.dart` with inlined sizes — do not add a public `AppTextStyles` alias class).
+Update inventory consumers to import `package:huji_app/appearance/...`, `package:huji_app/theme/...`, chrome/layout/settings, etc. for vendored symbols. App call sites may keep `AppTextStyles` / `AppIconSizes` / `sharedL10n` on `package:shared_ui` until Steps 4–5 / Task 5.
 
-- [ ] **Step 4: l10n audit + remap `sharedL10n`**
+- [ ] **Step 4: l10n audit + remap (app + vendored chrome)**
 
 ```bash
-rg "SharedUiLocalizations|sharedL10n|shared_ui\.l10n" --glob '*.dart' lib
+rg "SharedUiLocalizations|sharedL10n|shared_ui\.l10n|context\.l10n" --glob '*.dart' lib
 ```
 
-1. List keys used via `context.sharedL10n` (at least language labels in `settings_page.dart` / `desktop_settings_page.dart` / `huji_appearance_settings_section.dart`).
+1. List keys from app (`context.sharedL10n`) **and** vendored chrome/settings (`context.l10n` in title-bar controls, `ThemeColorPresetPicker`, `TypographyScaleSetting`, …).
 2. Add those strings to huji ARB (`app_en.arb` / `app_zh.arb`) and regenerate l10n.
-3. Remap call sites: `context.sharedL10n.foo` → `context.hujiL10n.foo` (or existing huji getters).
+3. Remap: `context.sharedL10n.foo` / vendored `context.l10n.foo` → `context.hujiL10n.foo` (or existing getters).
 4. Remove `SharedUiLocalizations.delegate` from `huji_localizations_setup.dart`.
-5. Do **not** leave any `sharedL10n` accessors depending on the package after Task 4 pin bump.
+5. Drop remaining `package:shared_ui/l10n/` imports from vendored trees after remap.
+6. Do **not** leave any shared_ui l10n dependency before Task 4 pin bump.
 
 - [ ] **Step 4b: Fonts decision (lock now)**
 
 Copy legacy `preloadSharedUiFonts` (from `appearance_app_builder.dart`) into `lib/appearance/` **and** copy `packages/shared_ui/assets/google_fonts/` into `huji-app/assets/google_fonts/` (update `pubspec.yaml` assets). Do not switch to a google_fonts-network-only path in this migration.
+
 - [ ] **Step 5: Analyze (still on old pin)**
 
 ```bash
 cd huji-app && flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | rg "error •" | head -40
 ```
 
-Expected: no errors (may still depend on old pin for `AppTextStyles`).
+Expected: no errors. Still depends on old pin for `AppTextStyles` / `AppIconSizes` only (and not for settings dropdowns / package ARB).
 
 - [ ] **Step 6: Commit**
 
 ```bash
-git add huji-app/lib
+git add huji-app/lib huji-app/pubspec.yaml huji-app/assets
 git commit -m "refactor: vend shared_ui chrome and appearance into huji"
 ```
-
----
 
 ### Task 4: Bump submodule to published `main`
 
