@@ -102,6 +102,8 @@ git rev-parse origin/main   # → SHARED_UI_MAIN_SHA
 
 Write `SHARED_UI_MAIN_SHA` into the huji PR description / this plan checkbox when executing Task 4.
 
+**Recorded:** `SHARED_UI_MAIN_SHA=7aabdb366d424181e9f2f4f725d99b3d34ceaa6d`
+
 - [ ] **Step 5 (optional same wave): Bump TeamPilot submodule**
 
 In teampilot: update `client/packages/shared_ui` gitlink to `SHARED_UI_MAIN_SHA`, commit.
@@ -394,7 +396,7 @@ git commit -m "feat(ui): wire TpTheme/TpToast and remap styles onto shared_ui"
 
 ### Task 6: Verify + docs
 
-- [ ] **Step 1: Tests / analyze**
+- [x] **Step 1: Tests / analyze**
 
 ```bash
 cd huji-app/packages/shared_ui && flutter test
@@ -404,21 +406,25 @@ cd ../.. && flutter analyze --no-fatal-infos --no-fatal-warnings
 # flutter run -d <android>  # cold start
 ```
 
-- [ ] **Step 2: Acceptance grep**
+`flutter test` (shared_ui): all passed. `flutter analyze`: exit 0 (warnings/infos only; no errors). Optional smoke: **skipped** (no interactive device/display run).
+
+- [x] **Step 2: Acceptance grep**
 
 ```bash
 rg "AppTextStyles|AppearanceCubit" --glob '*.dart' lib | rg "package:shared_ui" || true
 rg "package:shared_ui/" --glob '*.dart' lib | rg -v "shared_ui.dart" || true
 ```
 
-Expected: empty (or only `package:shared_ui/shared_ui.dart`).
+Expected: empty (or only `package:shared_ui/shared_ui.dart`). **Result:** empty / barrel-only.
 
-- [ ] **Step 3: Doc touch-ups**
+- [x] **Step 3: Doc touch-ups**
 
 - Update `CLAUDE.md` / README if they describe legacy shared_ui contents.
 - Ensure adapt spec status remains Approved; note landed SHA in PR body.
 
-- [ ] **Step 4: Final commit if needed**
+`CLAUDE.md` / README had no legacy `AppTextStyles` / package-`AppearanceCubit` claims. Spec + this plan note `SHARED_UI_MAIN_SHA=7aabdb366d424181e9f2f4f725d99b3d34ceaa6d`.
+
+- [x] **Step 4: Final commit if needed**
 
 ```bash
 git commit -m "docs: note Tp* shared_ui adaptation landed"
@@ -428,13 +434,13 @@ git commit -m "docs: note Tp* shared_ui adaptation landed"
 
 ## Acceptance checklist (from spec)
 
-- [ ] `shared_ui` `main` has Tp theme consolidation + `TpToast`
-- [ ] huji submodule SHA matches that `main`
-- [ ] Appearance / chrome / surfaces live under `huji-app/lib`
-- [ ] Entry points use `TpTheme` (+ `TpToastWrapper`)
-- [ ] `flutter analyze` has no errors
-- [ ] Desktop shell + mobile launch smoke OK
-- [ ] No dual legacy+Tp package dependency
+- [x] `shared_ui` `main` has Tp theme consolidation + `TpToast`
+- [x] huji submodule SHA matches that `main` (`7aabdb366d424181e9f2f4f725d99b3d34ceaa6d`)
+- [x] Appearance / chrome / surfaces live under `huji-app/lib`
+- [x] Entry points use `TpTheme` (+ `TpToastWrapper`)
+- [x] `flutter analyze` has no errors
+- [ ] Desktop shell + mobile launch smoke OK (skipped in verify)
+- [x] No dual legacy+Tp package dependency
 
 ## Notes for implementers
 

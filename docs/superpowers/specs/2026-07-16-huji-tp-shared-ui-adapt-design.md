@@ -1,12 +1,13 @@
 # Huji adapt to Tp* `shared_ui`
 
-**Status:** Approved  
+**Status:** Landed  
 **Date:** 2026-07-16  
+**Landed SHA:** `SHARED_UI_MAIN_SHA=7aabdb366d424181e9f2f4f725d99b3d34ceaa6d` (`hhoao/shared_ui` `main`, Tp* theme + `TpToast`)  
 **Related:** [2026-06-22-desktop-shared-ui-design.md](./2026-06-22-desktop-shared-ui-design.md) (original shared package for huji + teampilot — **superseded for package surface**)
 
 ## Problem
 
-Huji already depends on `huji-app/packages/shared_ui` (submodule `hhoao/shared_ui`), but the pin is the **legacy** package surface (`main` @ ~`c847581`): `AppTheme` / `AppTextStyles` / `AppearanceCubit` / desktop chrome / settings shell / package l10n.
+Huji already depends on `huji-app/packages/shared_ui` (submodule `hhoao/shared_ui`), but the pin was the **legacy** package surface (`main` @ ~`c847581`): `AppTheme` / `AppTextStyles` / `AppearanceCubit` / desktop chrome / settings shell / package l10n.
 
 TeamPilot evolved the same repo into a **Tp\* design system** (tokens, `TpTheme`, primitives, preference layouts, `TpToast`). The two surfaces are incompatible. Huji must move onto the Tp* line so both products share one design-system package.
 
@@ -108,13 +109,13 @@ Do **not** copy obsolete design tokens that Tp* already owns (`AppTextStyles`, `
 
 ## Testing & acceptance
 
-- [ ] `shared_ui` `main` contains Tp theme consolidation + toast public API
-- [ ] huji submodule SHA matches that `main`
-- [ ] Appearance / chrome / surface layers live under `huji-app/lib`, not in the package
-- [ ] Entry points use `TpTheme` (and toast wrapper if enabled)
-- [ ] `flutter analyze` clean of errors on `huji-app`
-- [ ] Desktop + mobile smoke paths OK
-- [ ] No dual legacy+Tp package dependency
+- [x] `shared_ui` `main` contains Tp theme consolidation + toast public API (`7aabdb3…`)
+- [x] huji submodule SHA matches that `main`
+- [x] Appearance / chrome / surface layers live under `huji-app/lib`, not in the package
+- [x] Entry points use `TpTheme` (and toast wrapper if enabled)
+- [x] `flutter analyze` clean of errors on `huji-app`
+- [ ] Desktop + mobile smoke paths OK (skipped in Task 6 verify — no interactive device run)
+- [x] No dual legacy+Tp package dependency
 
 ## Risks
 

@@ -1,8 +1,10 @@
 # 弧迹桌面端 UI 重构设计（shared_ui + Teampilot 壳层）
 
 **日期:** 2026-06-22  
-**状态:** 已批准（用户授权全权决策，不再逐项确认）  
+**状态:** 已批准（用户授权全权决策，不再逐项确认） — **package 表面已被 supersede**  
 **范围:** 仅 `huji-app` 桌面端；`teampilot` 本轮不迁移
+
+> **2026-07-16 update:** `shared_ui` is now the **Tp\*** design system only (`TpTheme` / `TpToast` / …). Appearance, chrome, and surfaces live in `huji-app/lib/`. See [2026-07-16-huji-tp-shared-ui-adapt-design.md](./2026-07-16-huji-tp-shared-ui-adapt-design.md). Landed pin: `7aabdb366d424181e9f2f4f725d99b3d34ceaa6d`.
 
 ---
 
