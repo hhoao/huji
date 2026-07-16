@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shared_ui/theme/app_icon_sizes.dart';
 import 'package:shared_ui/theme/app_text_styles.dart';
 import 'package:huji_app/utils/context_menu_position.dart';
-import 'package:huji_app/widgets/controls/app_icon_button.dart';
+import 'package:huji_app/widgets/controls/chrome_icon_button.dart';
 
 /// AppFlowy-inspired action menu: rounded panel, icon rows, hover highlight,
 /// optional dividers. Used in the context sidebar and other compact surfaces.
@@ -285,7 +285,7 @@ class SidebarActionMenuIconAnchor extends StatelessWidget {
     required this.buildMenuChildren,
     this.onOpen,
     this.onClose,
-    this.size = AppIconButton.kDefaultSize,
+    this.size = ChromeIconButton.kDefaultSize,
     this.minWidth = SidebarActionMenuMetrics.minWidth,
   }) : assert(icon != null || triggerBuilder != null);
 
@@ -312,7 +312,7 @@ class SidebarActionMenuIconAnchor extends StatelessWidget {
         if (triggerBuilder != null) {
           return triggerBuilder!(context, controller);
         }
-        return AppIconButton(
+        return ChromeIconButton(
           iconWidget: icon,
           size: size,
           onTap: () {
@@ -514,7 +514,7 @@ class SidebarActionMenuButton extends StatelessWidget {
     this.triggerBuilder,
     this.onOpen,
     this.onClose,
-    this.size = AppIconButton.kDefaultSize,
+    this.size = ChromeIconButton.kDefaultSize,
     this.minWidth = SidebarActionMenuMetrics.minWidth,
     this.tooltip,
   });
