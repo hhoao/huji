@@ -9,10 +9,8 @@ import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/services/desktop_shortcuts.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/platform_capability.dart';
-import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
-import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,8 +47,7 @@ class _DesktopAppState extends State<DesktopApp> {
       routes: DesktopRoutes.getRoutes(),
       errorBuilder: (context, state) => DesktopErrorPage(state.error),
     );
-    LocalVideoStorage().init();
-    TaskStorage().init();
+    // TaskStorage / LocalVideoStorage are already initialized in postInit().
     NotificationManager().initialize();
 
     if (PlatformCapability.isDesktop) {

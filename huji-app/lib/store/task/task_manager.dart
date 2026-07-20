@@ -322,6 +322,7 @@ class TaskStorage extends ChangeNotifier
         await dbFile.delete();
       }
 
+      _tasks.clear();
       _database = await _initDatabase();
     });
   }
@@ -741,7 +742,11 @@ class TaskStorage extends ChangeNotifier
     await lock.synchronized(() async {
       await database;
       final tasks = await loadTasks([], []);
-      _tasks.addAll(tasks);
+      // Replace, don't append — init may be called more than once (e.g. desktop
+      // bootstrap + widget mount) and must stay idempotent.
+      _tasks
+        ..clear()
+        ..addAll(tasks);
       notifyListeners();
     });
 
