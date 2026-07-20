@@ -37,7 +37,8 @@ class HujiDesktopShell extends StatelessWidget {
                   HujiDesktopSidebar(currentRoute: currentRoute),
                   Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(0, 0, 16, 16),
+                      // Keep a small gap so inset card breathes against the rail.
+                      padding: const EdgeInsets.fromLTRB(0, 0, 12, 12),
                       child: TpSidebarInset(
                         child: WorkspaceRightPane(
                           contentKey: currentRoute,

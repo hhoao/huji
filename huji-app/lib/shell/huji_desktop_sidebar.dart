@@ -7,7 +7,6 @@ import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:shared_ui/shared_ui.dart';
-import 'package:huji_app/theme/workspace_surface_layers.dart';
 
 enum DesktopNav {
   library(icon: Icons.video_library_outlined, route: '/'),
@@ -184,18 +183,27 @@ class _AccountAreaState extends State<_AccountArea> {
         config.collapsible == TpSidebarCollapsible.icon &&
         scope.state == TpSidebarDesktopState.collapsed;
     final displayName = _displayName(l10n);
+    final subtitle = _isLoggedIn
+        ? l10n.accountLoggedIn
+        : l10n.accountTapToLogin;
 
-    final avatar = Container(
-      width: 32,
-      height: 32,
+    // Brand-tinted mark (shadcn header icon slot) using product primary.
+    final mark = Container(
+      width: iconCollapsed ? 28 : 32,
+      height: iconCollapsed ? 28 : 32,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(colors: [cs.primary, cs.secondary]),
+        borderRadius: BorderRadius.circular(8),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [cs.primary, cs.secondary],
+        ),
       ),
       alignment: Alignment.center,
       child: Text(
         '弧',
-        style: styles.mdSemibold.copyWith(color: cs.onPrimary),
+        style: (iconCollapsed ? styles.smSemibold : styles.mdSemibold)
+            .copyWith(color: cs.onPrimary),
       ),
     );
 
@@ -205,49 +213,52 @@ class _AccountAreaState extends State<_AccountArea> {
         message: displayName,
         child: TpHover(
           onTap: _handleTap,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(8),
           pressScale: 0.97,
-          child: Container(
-            padding: const EdgeInsets.all(6),
-            decoration: workspaceInsetDecoration(cs, radius: 10),
-            alignment: Alignment.center,
-            child: avatar,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: Center(child: mark),
           ),
         ),
       );
     } else {
       account = TpHover(
         onTap: _handleTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(8),
         pressScale: 0.97,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: workspaceInsetDecoration(cs, radius: 10),
-          child: Row(
-            children: [
-              avatar,
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      displayName,
-                      style: styles.mdSemibold,
-                      overflow: TextOverflow.ellipsis,
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          children: [
+            mark,
+            const SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    displayName,
+                    style: styles.smSemibold,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                  Text(
+                    subtitle,
+                    style: styles.xs.copyWith(
+                      color: cs.onSurfaceVariant.withValues(alpha: 0.9),
                     ),
-                    Text(
-                      _isLoggedIn
-                          ? l10n.accountLoggedIn
-                          : l10n.accountTapToLogin,
-                      style: styles.xs.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                  ],
-                ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ],
               ),
-              Icon(Icons.expand_more, size: 18, color: cs.onSurfaceVariant),
-            ],
-          ),
+            ),
+            Icon(
+              Icons.unfold_more,
+              size: 16,
+              color: cs.onSurfaceVariant.withValues(alpha: 0.85),
+            ),
+          ],
         ),
       );
     }
