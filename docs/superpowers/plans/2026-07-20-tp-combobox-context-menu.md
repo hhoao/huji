@@ -656,6 +656,7 @@ In `## Component categories`, add/adjust:
 | ContextMenuItem | `TpActionMenuItem` / `TpActionMenuSpec.item` |
 | ContextMenuSeparator | `TpActionMenuDivider` |
 | Destructive | `destructive: true` |
+| Checkbox / selected | `selected: true` (+ trailing check) |
 | Shortcut | `TpActionMenuShortcut` or custom `trailing` |
 | Submenu / Radio | Not yet — extend `TpActionMenu` when needed |
 
