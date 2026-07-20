@@ -16,6 +16,8 @@ import 'bloc/task_tab_bloc.dart';
 import 'bloc/task_tab_state.dart';
 import '../video_records_tab/video_clip_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Opens the shared video clip progress dialog for a task.
@@ -452,7 +454,12 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
   }
 
   Future<void> openVideoIfExists(String path, String fileName) async {
-    if (path.isEmpty || !await File(path).exists()) {
+    if (path.isEmpty) {
+      showMissingFile();
+      return;
+    }
+    if (!TaskTabListUtils.isNetworkMediaPath(path) &&
+        !await File(path).exists()) {
       showMissingFile();
       return;
     }
@@ -460,6 +467,26 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
     context.push(
       '/video/player?videoUrl=${Uri.encodeComponent(path)}&fileName=${Uri.encodeComponent(fileName)}',
     );
+  }
+
+  Future<bool> openEditingRecord(String recordId) async {
+    final record = await LocalVideoStorage().findById(recordId);
+    if (!context.mounted) return true;
+    if (record == null) return false;
+
+    // Desktop uses the preview/export shell (same as video library cards).
+    if (PlatformCapability.isDesktop) {
+      context.go(DesktopRoutes.clipPreviewPath(recordId));
+      return true;
+    }
+
+    if (record is! EdittingVideoRecord) return false;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RoundClipPage(videoRecord: record),
+      ),
+    );
+    return true;
   }
 
   if (task is VideoCompressTask && task.status == TaskStatusEnum.completed) {
@@ -471,6 +498,11 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
         task.status == TaskStatusEnum.pending ||
         task.status == TaskStatusEnum.failed) {
       showVideoClipProgressDialog(context, task);
+    } else if (task.status == TaskStatusEnum.completed) {
+      // Desktop local detection stores segments on EdittingVideoRecord(id == task.id).
+      if (!await openEditingRecord(task.id)) {
+        showMissingResult();
+      }
     } else {
       showMissingResult();
     }
@@ -504,18 +536,8 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
       showMissingResult();
       return;
     }
-    final edittingRecord =
-        await LocalVideoStorage().findById(task.edittingRecordId!)
-            as EdittingVideoRecord?;
-    if (!context.mounted) return;
-    if (edittingRecord == null) {
+    if (!await openEditingRecord(task.edittingRecordId!)) {
       showMissingResult();
-      return;
     }
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => RoundClipPage(videoRecord: edittingRecord),
-      ),
-    );
   }
 }
