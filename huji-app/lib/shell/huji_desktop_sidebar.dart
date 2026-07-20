@@ -25,13 +25,11 @@ enum DesktopNav {
   };
 }
 
-/// Wide left rail styled like Teampilot [HomeSidebar], with huji navigation.
+/// Left rail assembled from [TpSidebar] primitives with huji navigation.
 class HujiDesktopSidebar extends StatefulWidget {
   const HujiDesktopSidebar({required this.currentRoute, super.key});
 
   final String currentRoute;
-
-  static const double width = 280;
 
   @override
   State<HujiDesktopSidebar> createState() => _HujiDesktopSidebarState();
@@ -71,135 +69,71 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
-    return SizedBox(
-      width: HujiDesktopSidebar.width,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: cs.workspaceCard,
-          border: Border(
-            right: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.6)),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 48, 24, 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return TpSidebar(
+      variant: TpSidebarVariant.inset,
+      collapsible: TpSidebarCollapsible.icon,
+      themeOverride: TpTheme.of(context).sidebarTheme.copyWith(width: 280),
+      child: Stack(
+        children: [
+          Column(
             children: [
-              const _AccountArea(),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(0, 16, 0, 8),
-                child: Text(
-                  l10n.desktopWorkspaceSection,
-                  style: styles.xs.copyWith(
-                    color: cs.onSurfaceVariant,
-                    letterSpacing: 0.6,
+              const TpSidebarHeader(child: _AccountArea()),
+              TpSidebarContent(
+                child: TpSidebarGroup(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      TpSidebarGroupLabel(label: l10n.desktopWorkspaceSection),
+                      TpSidebarMenu(
+                        children: [
+                          TpSidebarMenuItem(
+                            children: [
+                              TpSidebarMenuButton(
+                                icon: Icon(DesktopNav.library.icon),
+                                label: DesktopNav.library.label(l10n),
+                                isActive: _isActive('/'),
+                                onPressed: () => context.go('/'),
+                              ),
+                            ],
+                          ),
+                          TpSidebarMenuItem(
+                            children: [
+                              TpSidebarMenuButton(
+                                icon: Icon(DesktopNav.tasks.icon),
+                                label: DesktopNav.tasks.label(l10n),
+                                isActive: _isActive('/tasks'),
+                                onPressed: () => context.go('/tasks'),
+                              ),
+                              if (_processingCount > 0)
+                                TpSidebarMenuBadge(label: '$_processingCount'),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ),
-              _NavTile(
-                label: DesktopNav.library.label(l10n),
-                icon: DesktopNav.library.icon,
-                active: _isActive('/'),
-                onTap: () => context.go('/'),
+              TpSidebarFooter(
+                child: TpSidebarMenu(
+                  children: [
+                    TpSidebarMenuItem(
+                      children: [
+                        TpSidebarMenuButton(
+                          icon: Icon(DesktopNav.settings.icon),
+                          label: DesktopNav.settings.label(l10n),
+                          isActive: _isActive('/settings'),
+                          onPressed: () => context.go('/settings'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-              _NavTile(
-                label: DesktopNav.tasks.label(l10n),
-                icon: DesktopNav.tasks.icon,
-                active: _isActive('/tasks'),
-                badge: _processingCount > 0 ? '$_processingCount' : null,
-                onTap: () => context.go('/tasks'),
-              ),
-              const Spacer(),
-              Divider(
-                height: 1,
-                color: cs.outlineVariant.withValues(alpha: 0.45),
-                indent: 16,
-                endIndent: 16,
-              ),
-              SizedBox(height: 8),
-              _NavTile(
-                label: DesktopNav.settings.label(l10n),
-                icon: DesktopNav.settings.icon,
-                active: _isActive('/settings'),
-                muted: true,
-                onTap: () => context.go('/settings'),
-              ),
-              SizedBox(height: 12),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _NavTile extends StatelessWidget {
-  const _NavTile({
-    required this.label,
-    required this.icon,
-    required this.active,
-    required this.onTap,
-    this.badge,
-    this.muted = false,
-  });
-
-  final String label;
-  final IconData icon;
-  final bool active;
-  final VoidCallback onTap;
-  final String? badge;
-  final bool muted;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
-    final fg = active
-        ? cs.primary
-        : muted
-        ? cs.onSurfaceVariant.withValues(alpha: 0.75)
-        : cs.onSurfaceVariant;
-    final bg = active ? cs.primaryContainer.withValues(alpha: 0.35) : null;
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: TpHover(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        backgroundColor: bg ?? Colors.transparent,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: fg),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: styles.md.copyWith(
-                  color: fg,
-                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                ),
-              ),
-            ),
-            if (badge != null)
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 7,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: cs.primary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  badge!,
-                  style: styles.xs.copyWith(color: cs.onPrimary),
-                ),
-              ),
-          ],
-        ),
+          const TpSidebarRail(),
+        ],
       ),
     );
   }

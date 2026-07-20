@@ -22,10 +22,14 @@ const double kDesktopWindowTitleBarHeight = 40;
 class DesktopWindowTitleBar extends StatefulWidget {
   const DesktopWindowTitleBar({
     this.title = 'TeamPilot',
+    this.leading,
     super.key,
   });
 
   final String title;
+
+  /// Optional control before the title (e.g. [TpSidebarTrigger]).
+  final Widget? leading;
 
   @override
   State<DesktopWindowTitleBar> createState() => _DesktopWindowTitleBarState();
@@ -100,7 +104,11 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
     final titleColor = isDark ? Colors.white : const Color(0xFF111827);
 
     final title = Padding(
-      padding: EdgeInsets.only(left: useMacWindowChromeStyle ? 8 : 16),
+      padding: EdgeInsets.only(
+        left: widget.leading != null
+            ? 8
+            : (useMacWindowChromeStyle ? 8 : 16),
+      ),
       child: Text(
         widget.title,
         maxLines: 1,
@@ -108,6 +116,16 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
         style: TpTextStyles.of(context).mdSemibold.copyWith(
           color: titleColor.withValues(alpha: 0.9),
         ),
+      ),
+    );
+
+    final dragChild = Align(
+      alignment: Alignment.centerLeft,
+      child: Row(
+        children: [
+          if (widget.leading != null) widget.leading!,
+          Flexible(child: title),
+        ],
       ),
     );
 
@@ -119,12 +137,7 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
           children: [
             if (useMacWindowChromeStyle) _buildWindowControls(),
             Expanded(
-              child: WindowDragArea(
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: title,
-                ),
-              ),
+              child: WindowDragArea(child: dragChild),
             ),
             if (!useMacWindowChromeStyle) _buildWindowControls(),
           ],
