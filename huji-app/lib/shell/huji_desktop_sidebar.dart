@@ -178,52 +178,79 @@ class _AccountAreaState extends State<_AccountArea> {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final account = TpHover(
-      onTap: _handleTap,
-      borderRadius: BorderRadius.circular(10),
-      pressScale: 0.97,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-        decoration: workspaceInsetDecoration(cs, radius: 10),
-        child: Row(
-          children: [
-            Container(
-              width: 32,
-              height: 32,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(colors: [cs.primary, cs.secondary]),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                '弧',
-                style: styles.mdSemibold.copyWith(color: cs.onPrimary),
-              ),
-            ),
-            SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _displayName(l10n),
-                    style: styles.mdSemibold,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  Text(
-                    _isLoggedIn
-                        ? l10n.accountLoggedIn
-                        : l10n.accountTapToLogin,
-                    style: styles.xs.copyWith(color: cs.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-            Icon(Icons.expand_more, size: 18, color: cs.onSurfaceVariant),
-          ],
-        ),
+    final scope = TpSidebarScope.of(context);
+    final config = TpSidebarConfig.of(context);
+    final iconCollapsed = !scope.isMobile &&
+        config.collapsible == TpSidebarCollapsible.icon &&
+        scope.state == TpSidebarDesktopState.collapsed;
+    final displayName = _displayName(l10n);
+
+    final avatar = Container(
+      width: 32,
+      height: 32,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(colors: [cs.primary, cs.secondary]),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        '弧',
+        style: styles.mdSemibold.copyWith(color: cs.onPrimary),
       ),
     );
+
+    final Widget account;
+    if (iconCollapsed) {
+      account = TpTooltip(
+        message: displayName,
+        child: TpHover(
+          onTap: _handleTap,
+          borderRadius: BorderRadius.circular(10),
+          pressScale: 0.97,
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: workspaceInsetDecoration(cs, radius: 10),
+            alignment: Alignment.center,
+            child: avatar,
+          ),
+        ),
+      );
+    } else {
+      account = TpHover(
+        onTap: _handleTap,
+        borderRadius: BorderRadius.circular(10),
+        pressScale: 0.97,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: workspaceInsetDecoration(cs, radius: 10),
+          child: Row(
+            children: [
+              avatar,
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      displayName,
+                      style: styles.mdSemibold,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    Text(
+                      _isLoggedIn
+                          ? l10n.accountLoggedIn
+                          : l10n.accountTapToLogin,
+                      style: styles.xs.copyWith(color: cs.onSurfaceVariant),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.expand_more, size: 18, color: cs.onSurfaceVariant),
+            ],
+          ),
+        ),
+      );
+    }
 
     if (!_isLoggedIn) return account;
 
