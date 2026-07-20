@@ -18,7 +18,7 @@ The real gap is **inline-filter autocomplete**. A parallel `TpContextMenu` would
 ## Goals
 
 1. Add **`TpCombobox`**: editable input filters a suggestion list (single-select v1).
-2. Extract a shared **suggestion list core** used by Combobox (and optionally Select later).
+2. Extract a shared **suggestion list core** for Combobox. Adopting it inside `TpSelect` is **optional / follow-up**, not required in the same PR.
 3. Treat **`TpActionMenu` as the Context Menu**; document the shadcn → Tp mapping; optional small `TpActionMenuShortcut` helper only.
 4. Keep architecture extensible for multi-select chips, groups, and custom triggers without rewriting the core.
 
@@ -80,9 +80,12 @@ TpCombobox<T extends Object>({
   String Function(T item)? itemSearchText,
   bool Function(T item, String query)? filterPredicate,
   String? emptyText,
-  // decoration aligned with TpSelect / TpInput
+  double? overlayHeight, // default: kTpSelectDefaultOverlayHeight
+  TpSelectDecoration? decoration, // same family as TpSelect trigger/list chrome
 })
 ```
+
+Require `itemLabel` and/or `itemBuilder` (same assert pattern as `TpSelect`) so every item has a display path.
 
 ### Behavior
 
@@ -129,7 +132,8 @@ lib/shared_ui.dart               # export TpCombobox (+ TpSuggestionList if publ
 
 - `tp_suggestion_list_test.dart` — empty state, highlight index, item rendering
 - `tp_combobox_test.dart` — open, filter, select, clear, Enter/Esc, `value` sync
-- Existing `TpSelect` / `TpActionMenu` tests stay green; if Select adopts `TpSuggestionList` in the same PR, add regression coverage
+- Existing `TpSelect` / `TpActionMenu` tests stay green
+- Prefer Combobox + suggestion core first; only refactor `TpSelect` onto `TpSuggestionList` in the same PR if it is cheap and covered by regression tests
 
 ## Extension points (not in v1)
 
