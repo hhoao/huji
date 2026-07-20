@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop tab bar with animated underline indicator.
@@ -32,10 +31,11 @@ class AppTab extends StatelessWidget {
 
         return Padding(
           padding: EdgeInsets.only(right: spacing),
-          child: AppHoverBox(
+          child: TpHover(
             onTap: () => onChanged?.call(i),
-            borderRadius: 0,
+            borderRadius: BorderRadius.zero,
             padding: const EdgeInsets.only(bottom: 10),
+            pressScale: 0.97,
             child: Container(
               decoration: BoxDecoration(
                 border: Border(
@@ -105,13 +105,14 @@ class AppTabNav extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: List.generate(labels.length, (i) {
         final active = i == activeIndex;
-        return AppHoverBox(
+        return TpHover(
           onTap: () => onChanged?.call(i),
-          borderRadius: 6,
+          borderRadius: BorderRadius.circular(6),
           backgroundColor: active
               ? cs.primaryContainer.withValues(alpha: 0.35)
               : Colors.transparent,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          pressScale: 0.97,
           child: Row(
             children: [
               Icon(

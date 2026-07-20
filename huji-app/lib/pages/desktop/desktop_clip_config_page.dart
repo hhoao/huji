@@ -8,7 +8,6 @@ import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
@@ -110,7 +109,8 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         minimumDurationGreatBall: 10.0,
         reserveTimeBeforeSingleRound: 0.0,
         reserveTimeAfterSingleRound: 1.0,
-        mergeFireBallAndPlayBall: AutoclipConstants.defaultMergeFireBallAndPlayBall,
+        mergeFireBallAndPlayBall:
+            AutoclipConstants.defaultMergeFireBallAndPlayBall,
       );
     } else {
       return BadmintonVideoClipConfigReqVo(
@@ -213,16 +213,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.clipTaskCreatedRedirecting)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.clipTaskCreatedRedirecting)));
       _goToTasks(task.id);
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(l10n.createTaskFailedWithError(e.toString())),
-        ),
+        SnackBar(content: Text(l10n.createTaskFailedWithError(e.toString()))),
       );
     }
   }
@@ -251,15 +249,17 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     await taskStorage.addTask(task);
 
-    await LocalVideoStorage().add(ProcessVideoRecord(
-      id: '${now}_$fileName',
-      processStatus: LocalVideoProcessStatusEnum.processing,
-      sportType: sportType,
-      filePath: file.path,
-      clipMode: ClipMode.existingVideo,
-      videoClipConfigReqVo: clipConfig,
-      taskId: task.id,
-    ));
+    await LocalVideoStorage().add(
+      ProcessVideoRecord(
+        id: '${now}_$fileName',
+        processStatus: LocalVideoProcessStatusEnum.processing,
+        sportType: sportType,
+        filePath: file.path,
+        clipMode: ClipMode.existingVideo,
+        videoClipConfigReqVo: clipConfig,
+        taskId: task.id,
+      ),
+    );
 
     await taskStorage.updateTask(task.id, (oldTask) {
       return oldTask.copyWith(
@@ -274,96 +274,98 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       duration: const Duration(milliseconds: 500),
     );
     LocalDetectionService.runInferenceAsync(
-      videoPath: videoPath,
-      clipConfig: clipConfig,
-      sportTypeKey: sportTypeKey,
-      matchType: matchType,
-      onProgress: (progress, message) {
-        progressThrottler.call(() {
-          taskStorage.updateTask(task.id, (oldTask) {
-            return oldTask.copyWith(
-              status: TaskStatusEnum.processing,
-              progress: progress,
-              extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
+          videoPath: videoPath,
+          clipConfig: clipConfig,
+          sportTypeKey: sportTypeKey,
+          matchType: matchType,
+          onProgress: (progress, message) {
+            progressThrottler.call(() {
+              taskStorage.updateTask(task.id, (oldTask) {
+                return oldTask.copyWith(
+                  status: TaskStatusEnum.processing,
+                  progress: progress,
+                  extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
+                );
+              });
+            });
+          },
+        )
+        .then((result) async {
+          try {
+            final output = result.clipOutput;
+            final allSegments = output.allMatchSegments
+                .map((segmentMap) => segmentMap.values.first)
+                .toList();
+            final greatSegments = output.greatMatchSegments
+                .map((segmentMap) => segmentMap.values.first)
+                .toList();
+            final processingTimeMs = result.processingTime.inMilliseconds;
+
+            String? thumbPath;
+            try {
+              thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
+            } catch (e) {
+              AppLogger().w('Failed to generate thumbnail: $e');
+            }
+
+            await taskStorage.updateTask(task.id, (oldTask) {
+              return oldTask.copyWith(
+                status: TaskStatusEnum.completed,
+                progress: 1.0,
+                image: thumbPath,
+                extraInfo: l10n.segmentsDetectedResult(
+                  allSegments.length,
+                  (processingTimeMs / 1000).round(),
+                ),
+              );
+            });
+
+            await LocalVideoStorage().add(
+              EdittingVideoRecord(
+                id: '${now}_$fileName',
+                processStatus: LocalVideoProcessStatusEnum.completed,
+                sportType: sportType,
+                filePath: videoPath,
+                thumbnailPath: thumbPath,
+                clipMode: ClipMode.existingVideo,
+                allMatchSegments: allSegments,
+                favoritesMatchSegments: greatSegments.isNotEmpty
+                    ? greatSegments
+                    : allSegments,
+              ),
             );
-          });
-        });
-      },
-    ).then((result) async {
-      try {
-        final output = result.clipOutput;
-        final allSegments = output.allMatchSegments
-            .map((segmentMap) => segmentMap.values.first)
-            .toList();
-        final greatSegments = output.greatMatchSegments
-            .map((segmentMap) => segmentMap.values.first)
-            .toList();
-        final processingTimeMs = result.processingTime.inMilliseconds;
 
-        String? thumbPath;
-        try {
-          thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
-        } catch (e) {
-          AppLogger().w('Failed to generate thumbnail: $e');
-        }
-
-        await taskStorage.updateTask(task.id, (oldTask) {
-          return oldTask.copyWith(
-            status: TaskStatusEnum.completed,
-            progress: 1.0,
-            image: thumbPath,
-            extraInfo: l10n.segmentsDetectedResult(
-              allSegments.length,
-              (processingTimeMs / 1000).round(),
-            ),
-          );
+            debugPrint(
+              '[local-detection] ${task.name}: done — ${allSegments.length} segments',
+            );
+          } catch (e, st) {
+            AppLogger().e(
+              'Local detection completion handler failed: $e',
+              st,
+              e,
+            );
+            await taskStorage.updateTask(task.id, (oldTask) {
+              return oldTask.copyWith(
+                status: TaskStatusEnum.failed,
+                extraInfo: l10n.processDetectionResultFailed(e.toString()),
+              );
+            });
+          }
+        })
+        .catchError((e, st) async {
+          AppLogger().e('Local detection isolate failed: $e', st, e);
+          debugPrint('[local-detection] ${task.name}: failed — $e');
+          try {
+            await taskStorage.updateTask(task.id, (oldTask) {
+              return oldTask.copyWith(
+                status: TaskStatusEnum.failed,
+                extraInfo: l10n.localDetectionFailed(e.toString()),
+              );
+            });
+          } catch (_) {
+            // Best effort — task update itself failing must not cause another unhandled error
+          }
         });
-
-        await LocalVideoStorage().add(EdittingVideoRecord(
-          id: '${now}_$fileName',
-          processStatus: LocalVideoProcessStatusEnum.completed,
-          sportType: sportType,
-          filePath: videoPath,
-          thumbnailPath: thumbPath,
-          clipMode: ClipMode.existingVideo,
-          allMatchSegments: allSegments,
-          favoritesMatchSegments:
-              greatSegments.isNotEmpty ? greatSegments : allSegments,
-        ));
-
-        debugPrint(
-            '[local-detection] ${task.name}: done — ${allSegments.length} segments');
-      } catch (e, st) {
-        AppLogger().e(
-          'Local detection completion handler failed: $e',
-          st,
-          e,
-        );
-        await taskStorage.updateTask(task.id, (oldTask) {
-          return oldTask.copyWith(
-            status: TaskStatusEnum.failed,
-            extraInfo: l10n.processDetectionResultFailed(e.toString()),
-          );
-        });
-      }
-    }).catchError((e, st) async {
-      AppLogger().e(
-        'Local detection isolate failed: $e',
-        st,
-        e,
-      );
-      debugPrint('[local-detection] ${task.name}: failed — $e');
-      try {
-        await taskStorage.updateTask(task.id, (oldTask) {
-          return oldTask.copyWith(
-            status: TaskStatusEnum.failed,
-            extraInfo: l10n.localDetectionFailed(e.toString()),
-          );
-        });
-      } catch (_) {
-        // Best effort — task update itself failing must not cause another unhandled error
-      }
-    });
 
     if (!mounted) return;
 
@@ -434,12 +436,14 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                         ? context.hujiL10n.pingPongMatchVideoClip
                         : context.hujiL10n.badmintonMatchVideoClip,
                     style: TpTextStyles.of(context).mdMedium.copyWith(
-                          color: context.desktopOnSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: context.desktopOnSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                   SizedBox(height: 4),
-                  Text(context.hujiL10n.uploadVideoHint, style: TpTextStyles.of(context).mutedMd,
+                  Text(
+                    context.hujiL10n.uploadVideoHint,
+                    style: TpTextStyles.of(context).mutedMd,
                   ),
                   SizedBox(height: 16),
                   _buildWarning(),
@@ -464,7 +468,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           children: [
             Icon(Icons.tune, size: 16, color: cs.onSurface),
             SizedBox(width: 8),
-            Text(context.hujiL10n.clipConfig, style: styles.lgSemibold.copyWith(color: cs.onSurface),
+            Text(
+              context.hujiL10n.clipConfig,
+              style: styles.lgSemibold.copyWith(color: cs.onSurface),
             ),
           ],
         ),
@@ -491,8 +497,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         labelBuilder: (v) {
           final l10n = context.hujiL10n;
           final emoji = v == _sportPingPong ? '🏓' : '🏸';
-          final label =
-              v == _sportPingPong ? l10n.sportPingPong : l10n.sportBadminton;
+          final label = v == _sportPingPong
+              ? l10n.sportPingPong
+              : l10n.sportBadminton;
           return '$emoji  $label';
         },
         onChanged: (v) => setState(() => _sportType = v),
@@ -530,8 +537,8 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           Text(
             localAvailable
                 ? _detectionMode == 'local'
-                    ? context.hujiL10n.localOnnxDetectionHint
-                    : context.hujiL10n.cloudDetectionHint
+                      ? context.hujiL10n.localOnnxDetectionHint
+                      : context.hujiL10n.cloudDetectionHint
                 : context.hujiL10n.localModelNotFoundFallback,
             style: styles.xs.copyWith(color: cs.outline),
           ),
@@ -604,7 +611,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               ),
             ],
           ),
-          Text(context.hujiL10n.minDurationHint, style: styles.xs.copyWith(color: cs.outline),
+          Text(
+            context.hujiL10n.minDurationHint,
+            style: styles.xs.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -639,12 +648,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             },
             icon: const Icon(Icons.save_outlined, size: 14),
             label: Text(context.hujiL10n.saveAsPreset),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: cs.onPrimaryContainer,
-              side: BorderSide(color: cs.primary.withAlpha(64)),
-              backgroundColor: cs.primary.withAlpha(31),
-              padding: const EdgeInsets.symmetric(vertical: 9),
-          ),
           ),
         ],
       ),
@@ -666,7 +669,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           Text('⚠️', style: styles.md),
           SizedBox(width: 10),
           Expanded(
-            child: Text(context.hujiL10n.videoQualityWarning, style: styles.sm.copyWith(
+            child: Text(
+              context.hujiL10n.videoQualityWarning,
+              style: styles.sm.copyWith(
                 color: const Color(0xFFFDE68A),
                 height: 1.6,
               ),
@@ -687,7 +692,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       onClearFile: () => setState(() => _selectedFile = null),
     );
   }
-
 }
 
 class _ConfigSection extends StatelessWidget {
@@ -735,9 +739,10 @@ class _DetectionOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: desktopRadiusMd,
+      borderRadius: BorderRadius.circular(desktopRadiusMd),
+      pressScale: 0.97,
       child: Container(
         padding: const EdgeInsets.all(10),
         decoration: BoxDecoration(
@@ -769,10 +774,7 @@ class _DetectionOption extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    label,
-                    style: styles.md.copyWith(color: cs.onSurface),
-                  ),
+                  Text(label, style: styles.md.copyWith(color: cs.onSurface)),
                   SizedBox(height: 2),
                   Text(help, style: styles.xs.copyWith(color: cs.outline)),
                 ],
@@ -791,7 +793,12 @@ class _CheckOption extends StatelessWidget {
   final bool value;
   final ValueChanged<bool?> onChanged;
 
-  const _CheckOption({required this.label, required this.help, required this.value, required this.onChanged});
+  const _CheckOption({
+    required this.label,
+    required this.help,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -832,10 +839,7 @@ class _CheckOption extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: styles.md.copyWith(color: cs.onSurface),
-                ),
+                Text(label, style: styles.md.copyWith(color: cs.onSurface)),
                 SizedBox(height: 2),
                 Text(help, style: styles.xs.copyWith(color: cs.outline)),
               ],
@@ -846,6 +850,3 @@ class _CheckOption extends StatelessWidget {
     );
   }
 }
-
-
-

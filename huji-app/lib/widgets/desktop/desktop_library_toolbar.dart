@@ -96,20 +96,16 @@ class _ToggleCell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
-    return InkWell(
+    return TpHover(
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-        decoration: BoxDecoration(
-          color: active ? cs.primary.withValues(alpha: 0.16) : Colors.transparent,
-          borderRadius: BorderRadius.circular(6),
-        ),
-        child: Icon(
-          icon,
-          size: context.tpIconSizes.md,
-          color: active ? cs.primary : cs.onSurfaceVariant,
-        ),
+      backgroundColor:
+          active ? cs.primary.withValues(alpha: 0.16) : Colors.transparent,
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+      child: Icon(
+        icon,
+        size: context.tpIconSizes.md,
+        color: active ? cs.primary : cs.onSurfaceVariant,
       ),
     );
   }
@@ -130,23 +126,19 @@ class _PrimaryAction extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    return InkWell(
+    return TpHover(
       onTap: onTap,
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
-        decoration: BoxDecoration(
-          color: cs.primary,
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: context.tpIconSizes.md, color: cs.onPrimary),
-            SizedBox(width: 7),
-            Text(label, style: styles.md.copyWith(color: cs.onPrimary)),
-          ],
-        ),
+      backgroundColor: cs.primary,
+      pressScale: 0.97,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 11),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: context.tpIconSizes.md, color: cs.onPrimary),
+          SizedBox(width: 7),
+          Text(label, style: styles.md.copyWith(color: cs.onPrimary)),
+        ],
       ),
     );
   }

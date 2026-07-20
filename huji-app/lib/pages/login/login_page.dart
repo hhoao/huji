@@ -4,6 +4,7 @@ import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -188,45 +189,43 @@ class _LoginPageState extends State<LoginPage> {
                   child: Row(
                     children: [
                       Expanded(
-                        child: GestureDetector(
+                        child: TpHover(
                           onTap: () => setState(() => _isPasswordLogin = true),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          backgroundColor: _isPasswordLogin
+                              ? Colors.deepPurple
+                              : Colors.transparent,
+                          hoverColor: _isPasswordLogin
+                              ? Colors.deepPurple
+                              : Colors.black.withValues(alpha: 0.04),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(context.hujiL10n.loginPasswordMode, textAlign: TextAlign.center,
+                            style: TextStyle(
                               color: _isPasswordLogin
-                                  ? Colors.deepPurple
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(context.hujiL10n.loginPasswordMode, textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: _isPasswordLogin
-                                    ? Colors.white
-                                    : Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
+                                  ? Colors.white
+                                  : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),
                       ),
                       Expanded(
-                        child: GestureDetector(
+                        child: TpHover(
                           onTap: () => setState(() => _isPasswordLogin = false),
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          backgroundColor: !_isPasswordLogin
+                              ? Colors.deepPurple
+                              : Colors.transparent,
+                          hoverColor: !_isPasswordLogin
+                              ? Colors.deepPurple
+                              : Colors.black.withValues(alpha: 0.04),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: Text(context.hujiL10n.loginAuthCodeMode, textAlign: TextAlign.center,
+                            style: TextStyle(
                               color: !_isPasswordLogin
-                                  ? Colors.deepPurple
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(context.hujiL10n.loginAuthCodeMode, textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: !_isPasswordLogin
-                                    ? Colors.white
-                                    : Colors.grey[600],
-                                fontWeight: FontWeight.w500,
-                              ),
+                                  ? Colors.white
+                                  : Colors.grey[600],
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
                         ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
@@ -168,17 +169,19 @@ class _PlaybackControlsRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GestureDetector(
+        TpHover(
           onTap: state.canGoToPrevious
               ? () => bloc.add(const GoToPreviousEvent())
               : null,
+          borderRadius: BorderRadius.circular(4),
+          pressScale: 0.97,
           child: const SizedBox(
             width: 24,
             height: 24,
             child: Icon(Icons.skip_previous, color: Colors.white, size: 16),
           ),
         ),
-        GestureDetector(
+        TpHover(
           onTap: () {
             if (state.isPlaying) {
               bloc.add(const PauseEvent());
@@ -186,6 +189,8 @@ class _PlaybackControlsRow extends StatelessWidget {
               bloc.add(const PlayEvent());
             }
           },
+          borderRadius: BorderRadius.circular(4),
+          pressScale: 0.97,
           child: SizedBox(
             width: 26,
             height: 26,
@@ -196,10 +201,12 @@ class _PlaybackControlsRow extends StatelessWidget {
             ),
           ),
         ),
-        GestureDetector(
+        TpHover(
           onTap: state.canGoToNext
               ? () => bloc.add(const GoToNextEvent())
               : null,
+          borderRadius: BorderRadius.circular(4),
+          pressScale: 0.97,
           child: const SizedBox(
             width: 24,
             height: 24,
@@ -232,11 +239,13 @@ class _PlaybackControlsRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
         ],
-        GestureDetector(
+        TpHover(
           onTap: () {
             final newVolume = state.volume > 0 ? 0.0 : 1.0;
             bloc.add(SetVolumeEvent(newVolume));
           },
+          borderRadius: BorderRadius.circular(4),
+          pressScale: 0.97,
           child: SizedBox(
             width: 24,
             height: 24,
@@ -248,13 +257,15 @@ class _PlaybackControlsRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 8),
-        GestureDetector(
+        TpHover(
           onTap: () => Navigator.of(context).push(
             MaterialPageRoute(
               builder: (context) => FullscreenVideoPage(bloc: bloc),
               fullscreenDialog: true,
             ),
           ),
+          borderRadius: BorderRadius.circular(4),
+          pressScale: 0.97,
           child: const SizedBox(
             width: 24,
             height: 24,

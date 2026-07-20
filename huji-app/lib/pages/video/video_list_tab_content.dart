@@ -12,6 +12,7 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoListTabContent extends StatefulWidget {
   final TabController? tabController;
@@ -608,8 +609,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
     final l10n = context.hujiL10n;
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
+      child: TpHover(
         onTap: () => _navigateToPlayer(item),
+        borderRadius: BorderRadius.circular(12),
+        pressScale: 0.97,
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Column(
@@ -771,8 +774,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   // feed模式卡片
   Widget _buildFeedCard(VideoDisplayItem item) {
-    return GestureDetector(
+    return TpHover(
       onTap: () => _navigateToPlayer(item),
+      borderRadius: BorderRadius.circular(12),
+      pressScale: 0.97,
       child: Card(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(12)),

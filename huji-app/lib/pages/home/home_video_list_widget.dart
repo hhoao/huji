@@ -14,6 +14,7 @@ import 'package:huji_app/router/modules/clip.dart';
 import 'package:huji_app/router/modules/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart' as time_utils;
+import 'package:shared_ui/shared_ui.dart';
 
 class HomeVideoListWidget extends StatelessWidget {
   const HomeVideoListWidget({super.key});
@@ -224,7 +225,7 @@ class _HomeVideoListWidget extends StatelessWidget {
     String? time,
     String? category,
   }) {
-    return GestureDetector(
+    return TpHover(
       onTap: () {
         Throttles.throttle(
           'home_video_tap',
@@ -232,6 +233,8 @@ class _HomeVideoListWidget extends StatelessWidget {
           () => onTap(),
         );
       },
+      borderRadius: BorderRadius.circular(12),
+      pressScale: 0.97,
       child: AspectRatio(
         aspectRatio: 1,
         child:
@@ -334,7 +337,7 @@ class _HomeVideoListWidget extends StatelessWidget {
                     Positioned(
                       top: 4,
                       right: 4,
-                      child: GestureDetector(
+                      child: TpHover(
                         onTap: () {
                           Throttles.throttle(
                             'home_video_delete',
@@ -342,6 +345,7 @@ class _HomeVideoListWidget extends StatelessWidget {
                             () => onDelete(),
                           );
                         },
+                        borderRadius: BorderRadius.circular(12),
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(

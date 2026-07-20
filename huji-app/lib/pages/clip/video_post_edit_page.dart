@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoPostEditPage extends StatefulWidget {
   final String videoUrl;
@@ -38,8 +39,10 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
     VoidCallback? onTap,
     bool highlight = false,
   }) {
-    return GestureDetector(
+    return TpHover(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      pressScale: 0.97,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -103,8 +106,10 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
                       children: [
                         VideoPlayer(_controller),
                         if (!_isPlaying)
-                          GestureDetector(
+                          TpHover(
                             onTap: () => _controller.play(),
+                            borderRadius: BorderRadius.circular(8),
+                            pressScale: 0.97,
                             child: Container(
                               color: Colors.black26,
                               child: const Icon(

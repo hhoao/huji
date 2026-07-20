@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 
 /// macOS-style toggle switch.
 class AppSwitch extends StatelessWidget {
@@ -13,9 +13,10 @@ class AppSwitch extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
 
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: 10,
+      borderRadius: BorderRadius.circular(10),
+      pressScale: 0.97,
       child: AnimatedContainer(
         width: 36,
         height: 20,

@@ -8,6 +8,7 @@ import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/video_player/video_player_page.dart';
 import 'file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 Future<File?> resolveAssetFile(AssetEntity asset) async {
   try {
@@ -125,8 +126,10 @@ class _AssetItemState extends State<_AssetItem>
   Widget build(BuildContext context) {
     super.build(context); // 必须调用以支持 AutomaticKeepAliveClientMixin
 
-    return GestureDetector(
+    return TpHover(
       onTap: widget.onTap,
+      borderRadius: BorderRadius.circular(8),
+      pressScale: 0.97,
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
@@ -195,7 +198,7 @@ class _AssetItemState extends State<_AssetItem>
               Positioned(
                 top: 8,
                 right: 8,
-                child: GestureDetector(
+                child: TpHover(
                   onTap: () async {
                     final file = await resolveAssetFile(widget.asset);
                     if (file != null && context.mounted) {
@@ -206,6 +209,8 @@ class _AssetItemState extends State<_AssetItem>
                       );
                     }
                   },
+                  borderRadius: BorderRadius.circular(999),
+                  pressScale: 0.97,
                   child: Container(
                     width: 16,
                     height: 16,
@@ -1181,8 +1186,10 @@ class _PhotoGalleryTabState extends State<PhotoGalleryTab> {
           child: Row(
             children: [
               // 筛选按钮
-              GestureDetector(
+              TpHover(
                 onTap: _showFilterOptions,
+                borderRadius: BorderRadius.circular(16),
+                pressScale: 0.97,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -1549,7 +1556,7 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                             );
                           },
                         ),
-                        GestureDetector(
+                        TpHover(
                           onTap: () async {
                             final file = await resolveAssetFile(asset);
                             if (file != null && context.mounted) {
@@ -1560,6 +1567,8 @@ class _MediaPreviewPageState extends State<_MediaPreviewPage> {
                               );
                             }
                           },
+                          borderRadius: BorderRadius.circular(999),
+                          pressScale: 0.97,
                           child: Container(
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.5),

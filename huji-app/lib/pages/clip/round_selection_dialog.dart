@@ -8,6 +8,7 @@ import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// 通用回合选择弹窗
 class RoundsSelectionDialog extends StatelessWidget {
@@ -78,7 +79,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                       ),
                       const Spacer(),
                       // 删除当前回合按钮
-                      GestureDetector(
+                      TpHover(
                         onTap: () {
                           Throttles.throttle(
                             'round_delete_current',
@@ -86,20 +87,20 @@ class RoundsSelectionDialog extends StatelessWidget {
                             () => _deleteCurrentRound(context, state),
                           );
                         },
+                        borderRadius: BorderRadius.circular(8),
+                        pressScale: 0.97,
+                        padding: const EdgeInsets.all(8.0),
                         child: Tooltip(
                           message: l10n.deleteCurrentRound,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(
-                              Icons.delete_outline,
-                              color: Colors.red,
-                              size: 20,
-                            ),
+                          child: const Icon(
+                            Icons.delete_outline,
+                            color: Colors.red,
+                            size: 20,
                           ),
                         ),
                       ),
                       // 收藏当前回合按钮
-                      GestureDetector(
+                      TpHover(
                         onTap: () {
                           Throttles.throttle(
                             'round_toggle_favorite',
@@ -107,34 +108,34 @@ class RoundsSelectionDialog extends StatelessWidget {
                             () => _toggleCurrentFavorite(context),
                           );
                         },
+                        borderRadius: BorderRadius.circular(8),
+                        pressScale: 0.97,
+                        padding: const EdgeInsets.all(8.0),
                         child: Tooltip(
                           message: _isCurrentFavorite(state)
                               ? l10n.unfavoriteCurrentRound
                               : l10n.favoriteCurrentRound,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Icon(
-                              _isCurrentFavorite(state)
-                                  ? Icons.star
-                                  : Icons.star_border,
-                              color: _isCurrentFavorite(state)
-                                  ? Colors.orange
-                                  : Colors.grey,
-                              size: 20,
-                            ),
+                          child: Icon(
+                            _isCurrentFavorite(state)
+                                ? Icons.star
+                                : Icons.star_border,
+                            color: _isCurrentFavorite(state)
+                                ? Colors.orange
+                                : Colors.grey,
+                            size: 20,
                           ),
                         ),
                       ),
 
                       // 关闭按钮
-                      GestureDetector(
+                      TpHover(
                         onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(8),
+                        pressScale: 0.97,
+                        padding: const EdgeInsets.all(8.0),
                         child: Tooltip(
                           message: context.hujiL10n.actionClose,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(Icons.close, size: 20),
-                          ),
+                          child: const Icon(Icons.close, size: 20),
                         ),
                       ),
                     ],
@@ -164,7 +165,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                             state.currentPlayingSegment == segment;
                         final isFavorite = state.isSegmentFavorite(segment);
 
-                        return GestureDetector(
+                        return TpHover(
                           onTap: () {
                             Throttles.throttle(
                               'round_play_segment_$index',
@@ -181,6 +182,8 @@ class RoundsSelectionDialog extends StatelessWidget {
                               ToggleFavoriteEvent(segment),
                             );
                           },
+                          borderRadius: BorderRadius.circular(12),
+                          pressScale: 0.97,
                           child: Container(
                             decoration: BoxDecoration(
                               color: isCurrentSegment
@@ -522,14 +525,14 @@ class SimpleSegmentsDialog extends StatelessWidget {
                       ),
                       const Spacer(),
                       // 关闭按钮
-                      GestureDetector(
+                      TpHover(
                         onTap: () => Navigator.of(context).pop(),
+                        borderRadius: BorderRadius.circular(8),
+                        pressScale: 0.97,
+                        padding: const EdgeInsets.all(8.0),
                         child: Tooltip(
                           message: context.hujiL10n.actionClose,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(Icons.close, size: 20),
-                          ),
+                          child: const Icon(Icons.close, size: 20),
                         ),
                       ),
                     ],

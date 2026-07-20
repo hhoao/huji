@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:gal/gal.dart';
@@ -1120,11 +1121,13 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   Widget _buildSpeedMenuItem(String label, double speed) {
     final isSelected = _playbackSpeed == speed;
-    return GestureDetector(
+    return TpHover(
       onTap: () {
         _setPlaybackSpeed(speed);
         Navigator.of(context).pop(); // 关闭菜单
       },
+      borderRadius: BorderRadius.circular(16),
+      pressScale: 0.97,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
         decoration: BoxDecoration(
@@ -1155,8 +1158,9 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     VoidCallback onTap, {
     bool isMain = false,
   }) {
-    return GestureDetector(
+    return TpHover(
       onTap: onTap,
+      pressScale: 0.97,
       child: Column(
         children: [
           Container(

@@ -10,7 +10,6 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_bloc.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_event.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_state.dart';
 import 'package:huji_app/store/video.dart';
@@ -362,12 +361,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final actionColor = _actionTypeColor(segment.actionType);
     final actionBgColor = _actionTypeBgColor(segment.actionType);
 
-    return AppHoverBox(
+    return TpHover(
       onTap: () {
         setState(() => _activeSegment = segment);
         _seekToSegmentInTrimmer(segment);
       },
-      borderRadius: desktopRadiusMd,
+      borderRadius: BorderRadius.circular(desktopRadiusMd),
+      pressScale: 0.97,
       child: Container(
         margin: const EdgeInsets.only(bottom: 4),
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),

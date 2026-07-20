@@ -12,6 +12,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class SportSelectionPage extends StatefulWidget {
   final String? videoPath;
@@ -269,7 +270,7 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
     required Color color,
     required String description,
   }) {
-    return GestureDetector(
+    return TpHover(
       onTap: () {
         Throttles.throttle(
           'sport_select_$sportType',
@@ -277,6 +278,8 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
           () => _selectSport(sportType),
         );
       },
+      borderRadius: BorderRadius.circular(16),
+      pressScale: 0.97,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(

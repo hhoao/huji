@@ -14,6 +14,7 @@ import 'package:huji_app/router/modules/profile.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/store/message.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 import '../../widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -282,7 +283,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildStartClipWidget() {
-    return GestureDetector(
+    return TpHover(
       onTap: () {
         Throttles.throttle(
           'start_clip',
@@ -290,6 +291,8 @@ class _HomePageState extends State<HomePage> {
           () => _pickVideoAndGoToConfig(null),
         );
       },
+      borderRadius: BorderRadius.circular(16),
+      pressScale: 0.97,
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
@@ -465,8 +468,10 @@ class _HomePageState extends State<HomePage> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return GestureDetector(
+    return TpHover(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      pressScale: 0.97,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(

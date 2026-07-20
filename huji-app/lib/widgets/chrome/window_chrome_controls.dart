@@ -468,9 +468,10 @@ class _TrafficLightButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Tooltip(
       message: tooltip,
-      child: GestureDetector(
+      child: TpHover(
         onTap: () => onPressed(),
-        behavior: HitTestBehavior.opaque,
+        borderRadius: BorderRadius.circular(diameter / 2),
+        pressScale: 0.97,
         child: Container(
           width: diameter,
           height: diameter,

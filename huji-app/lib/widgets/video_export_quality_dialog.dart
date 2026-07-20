@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import '../models/ffmpeg.dart';
 import '../api/api_manager.dart';
 import '../api/models/autoclip/permission_models.dart';
@@ -159,9 +160,11 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
   }) {
     final isSelected = quality == selectedQuality;
 
-    return InkWell(
+    return TpHover(
       onTap: enabled ? () => onTap(quality) : null,
+      enabled: enabled,
       borderRadius: BorderRadius.circular(8),
+      pressScale: 0.97,
       child: Opacity(
         opacity: enabled ? 1.0 : 0.5,
         child: Container(

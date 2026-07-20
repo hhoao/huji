@@ -219,11 +219,12 @@ class _VideoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    return InkWell(
+    return TpHover(
       onTap: _isNavigable
           ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
           : null,
       borderRadius: BorderRadius.circular(10),
+      pressScale: 0.97,
       child: Container(
         decoration: workspaceCardDecoration(cs, radius: 10),
         clipBehavior: Clip.antiAlias,
@@ -296,17 +297,15 @@ class _VideoListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    return Material(
-      color: cs.surfaceContainer,
+    return TpHover(
+      onTap: _isNavigable
+          ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
+          : null,
       borderRadius: BorderRadius.circular(10),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: _isNavigable
-            ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
-            : null,
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
+      backgroundColor: cs.surfaceContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -344,7 +343,6 @@ class _VideoListTile extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

@@ -25,6 +25,7 @@ import 'package:uuid/uuid.dart';
 
 import 'round_selection_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// 边拍边剪辑页面
 class RecordAndClipPage extends StatefulWidget {
@@ -323,8 +324,10 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
                         valueListenable: _edittingRecord,
                         builder: (context, value, child) {
                           final segments = value?.allMatchSegments ?? [];
-                          return GestureDetector(
+                          return TpHover(
                             onTap: () => _showSegmentsDialog(context),
+                            borderRadius: BorderRadius.circular(16),
+                            pressScale: 0.97,
                             child: Container(
                               margin: const EdgeInsets.only(left: 8),
                               padding: const EdgeInsets.symmetric(

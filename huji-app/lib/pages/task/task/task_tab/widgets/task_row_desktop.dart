@@ -154,8 +154,9 @@ class TaskRowDesktop extends StatelessWidget {
           final showProgress =
               TaskTabListUtils.shouldShowInlineProgress(currentTask);
 
-          return GestureDetector(
+          return TpHover(
             onTap: isBatchMode ? onToggleSelect : onTap,
+            borderRadius: BorderRadius.circular(8),
             child: Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(

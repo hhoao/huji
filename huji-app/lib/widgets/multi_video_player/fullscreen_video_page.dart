@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:video_player/video_player.dart';
@@ -287,10 +288,12 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               SizedBox(width: 8),
 
               // 上一个按钮
-              GestureDetector(
+              TpHover(
                 onTap: state.canGoToPrevious
                     ? () => widget.bloc.add(const GoToPreviousEvent())
                     : null,
+                borderRadius: BorderRadius.circular(14),
+                pressScale: 0.97,
                 child: Container(
                   width: 28,
                   height: 28,
@@ -313,7 +316,7 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               SizedBox(width: 12),
 
               // 播放/暂停按钮
-              GestureDetector(
+              TpHover(
                 onTap: () {
                   if (state.isPlaying) {
                     widget.bloc.add(const PauseEvent());
@@ -321,6 +324,8 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                     widget.bloc.add(const PlayEvent());
                   }
                 },
+                borderRadius: BorderRadius.circular(14),
+                pressScale: 0.97,
                 child: Container(
                   width: 40,
                   height: 40,
@@ -339,10 +344,12 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               SizedBox(width: 12),
 
               // 下一个按钮
-              GestureDetector(
+              TpHover(
                 onTap: state.canGoToNext
                     ? () => widget.bloc.add(const GoToNextEvent())
                     : null,
+                borderRadius: BorderRadius.circular(14),
+                pressScale: 0.97,
                 child: Container(
                   width: 28,
                   height: 28,
@@ -386,11 +393,13 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               SizedBox(width: 6),
 
               // 音量控制
-              GestureDetector(
+              TpHover(
                 onTap: () {
                   final newVolume = state.volume > 0 ? 0.0 : 1.0;
                   widget.bloc.add(SetVolumeEvent(newVolume));
                 },
+                borderRadius: BorderRadius.circular(14),
+                pressScale: 0.97,
                 child: Container(
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(

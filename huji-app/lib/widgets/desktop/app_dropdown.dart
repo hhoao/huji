@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Desktop dropdown using MenuAnchor for proper overlay behavior.
@@ -107,7 +106,7 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
         ),
         padding: WidgetStateProperty.all(const EdgeInsets.all(4)),
       ),
-      child: AppHoverBox(
+      child: TpHover(
         onTap: () {
           if (_controller.isOpen) {
             _controller.close();
@@ -115,7 +114,8 @@ class _AppDropdownState<T> extends State<AppDropdown<T>> {
             _controller.open();
           }
         },
-        borderRadius: desktopRadiusMd,
+        borderRadius: BorderRadius.circular(desktopRadiusMd),
+        pressScale: 0.97,
         child: trigger,
       ),
     );

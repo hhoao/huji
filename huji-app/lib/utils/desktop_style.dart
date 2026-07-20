@@ -32,6 +32,4 @@ const desktopDefaultCurve = Curves.easeOut;
 const desktopRadiusMd = 6.0;
 const desktopRadiusLg = 8.0;
 
-const desktopClickCursor = SystemMouseCursors.click;
-const desktopDefaultCursor = SystemMouseCursors.basic;
 

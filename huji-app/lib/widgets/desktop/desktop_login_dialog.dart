@@ -333,21 +333,18 @@ class _ModeTab extends StatelessWidget {
     final styles = TpTextStyles.of(context);
 
     return Expanded(
-      child: GestureDetector(
+      child: TpHover(
         onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            color: active ? cs.primary : Colors.transparent,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: styles.md.copyWith(
-              color: active ? cs.onPrimary : cs.outline,
-              fontWeight: FontWeight.w500,
-            ),
+        borderRadius: BorderRadius.circular(8),
+        backgroundColor: active ? cs.primary : Colors.transparent,
+        hoverColor: active ? cs.primary : TpHover.defaultHoverColor(context),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: styles.md.copyWith(
+            color: active ? cs.onPrimary : cs.outline,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Toggle chip with selected/unselected visual states and hover feedback.
@@ -36,11 +35,12 @@ class AppChip extends StatelessWidget {
       border = cs.outlineVariant.withValues(alpha: 0.55);
     }
 
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: 6,
+      borderRadius: BorderRadius.circular(6),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       backgroundColor: bg,
+      pressScale: 0.97,
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: border),

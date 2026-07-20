@@ -116,44 +116,35 @@ class _WorkspaceContentTabItemState extends State<WorkspaceContentTabItem> {
     final styles = TpTextStyles.of(context);
     final selected = widget.selected;
 
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => _hovered = true),
-      onExit: (_) => setState(() => _hovered = false),
-      child: GestureDetector(
-        onTap: widget.onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 10),
-          decoration: BoxDecoration(
-            border: Border(
-              bottom: BorderSide(
-                color: selected ? cs.primary : Colors.transparent,
-                width: 2.5,
-              ),
-            ),
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(
+            color: selected ? cs.primary : Colors.transparent,
+            width: 2.5,
           ),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: selected || !_hovered
-                  ? Colors.transparent
-                  : cs.onSurface.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              widget.label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: styles.lg.copyWith(
-                color: selected
-                    ? cs.primary
-                    : _hovered
-                    ? cs.onSurface
-                    : cs.onSurfaceVariant,
-                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
+        ),
+      ),
+      child: TpHover(
+        onTap: widget.onTap,
+        borderRadius: BorderRadius.circular(6),
+        hoverColor: selected
+            ? Colors.transparent
+            : cs.onSurface.withValues(alpha: 0.05),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        onHoverChanged: (value) => setState(() => _hovered = value),
+        child: Text(
+          widget.label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: styles.lg.copyWith(
+            color: selected
+                ? cs.primary
+                : _hovered
+                ? cs.onSurface
+                : cs.onSurfaceVariant,
+            fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           ),
         ),
       ),

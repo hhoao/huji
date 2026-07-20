@@ -13,7 +13,6 @@ import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/desktop/app_dropdown.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:huji_app/widgets/desktop/app_icon_button.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
@@ -618,7 +617,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                 final durStr = '${duration.toStringAsFixed(0)}s';
                 final startStr = _formatSeconds(seg.startSeconds);
 
-                return GestureDetector(
+                return TpHover(
                   onTap: () {
                     final item = playerState.getItemByIndex(i);
                     if (item == null) return;
@@ -627,6 +626,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                     );
                     _playerBloc.add(const PlayEvent());
                   },
+                  borderRadius: BorderRadius.circular(6),
+                  pressScale: 0.97,
                   child: Container(
                     width: 120,
                     decoration: BoxDecoration(
@@ -804,9 +805,10 @@ class _RadioOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: desktopRadiusMd,
+      borderRadius: BorderRadius.circular(desktopRadiusMd),
+      pressScale: 0.97,
       child: Container(
         margin: const EdgeInsets.only(bottom: 6),
         padding: const EdgeInsets.all(10),

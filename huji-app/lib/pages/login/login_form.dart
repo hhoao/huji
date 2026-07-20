@@ -9,6 +9,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 
 import 'login_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 enum LoginType { password, authCode }
 
@@ -172,54 +173,52 @@ class _LoginFormState extends State<LoginForm> {
                 child: Row(
                   children: [
                     Expanded(
-                      child: GestureDetector(
+                      child: TpHover(
                         onTap: () {
                           _resetForm();
                           _switchLoginType(LoginType.password);
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        backgroundColor: _loginType == LoginType.password
+                            ? Colors.blue
+                            : Colors.transparent,
+                        hoverColor: _loginType == LoginType.password
+                            ? Colors.blue
+                            : Colors.black.withValues(alpha: 0.04),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(context.hujiL10n.loginPasswordTab, style: TextStyle(
                             color: _loginType == LoginType.password
-                                ? Colors.blue
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
+                                ? Colors.white
+                                : Colors.black87,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
                           ),
-                          child: Text(context.hujiL10n.loginPasswordTab, style: TextStyle(
-                              color: _loginType == LoginType.password
-                                  ? Colors.white
-                                  : Colors.black87,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),
                     Expanded(
-                      child: GestureDetector(
+                      child: TpHover(
                         onTap: () {
                           _resetForm();
                           _switchLoginType(LoginType.authCode);
                         },
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        backgroundColor: _loginType == LoginType.authCode
+                            ? Colors.blue
+                            : Colors.transparent,
+                        hoverColor: _loginType == LoginType.authCode
+                            ? Colors.blue
+                            : Colors.black.withValues(alpha: 0.04),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        child: Text(context.hujiL10n.loginAuthCodeMode, style: TextStyle(
                             color: _loginType == LoginType.authCode
-                                ? Colors.blue
-                                : Colors.transparent,
-                            borderRadius: BorderRadius.circular(8),
+                                ? Colors.white
+                                : Colors.black87,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 14,
                           ),
-                          child: Text(context.hujiL10n.loginAuthCodeMode, style: TextStyle(
-                              color: _loginType == LoginType.authCode
-                                  ? Colors.white
-                                  : Colors.black87,
-                              fontWeight: FontWeight.w500,
-                              fontSize: 14,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
+                          textAlign: TextAlign.center,
                         ),
                       ),
                     ),

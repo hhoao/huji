@@ -9,7 +9,6 @@ import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter_men
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_type_filter_menu.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/app_button.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -70,9 +69,10 @@ class TaskLocalTasksTabActions extends StatelessWidget {
         TaskDateRangeFilterMenu(bloc: bloc),
         if (hasActiveFilters) ...[
           SizedBox(width: 6),
-          AppHoverBox(
+          TpHover(
             onTap: _clearFilters,
-            borderRadius: 6,
+            borderRadius: BorderRadius.circular(6),
+            pressScale: 0.97,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
               child: Text(
@@ -116,9 +116,10 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             style: styles.xs.copyWith(color: cs.primary),
           ),
           SizedBox(width: 8),
-          AppHoverBox(
+          TpHover(
             onTap: allSelected ? onDeselectAll : onSelectAll,
-            borderRadius: 4,
+            borderRadius: BorderRadius.circular(4),
+            pressScale: 0.97,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               child: Text(
@@ -128,11 +129,12 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             ),
           ),
           SizedBox(width: 6),
-          AppHoverBox(
+          TpHover(
             onTap: state.selectedTaskIds.isEmpty
                 ? null
                 : () => onBatchDelete(state.selectedTaskIds),
-            borderRadius: 4,
+            borderRadius: BorderRadius.circular(4),
+            pressScale: 0.97,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
               child: Text(context.hujiL10n.actionDelete, style: styles.xs.copyWith(color: Colors.redAccent),
@@ -140,10 +142,11 @@ class TaskLocalTasksTabActions extends StatelessWidget {
             ),
           ),
           SizedBox(width: 4),
-          AppHoverBox(
+          TpHover(
             onTap: onExitBatchMode,
-            borderRadius: 4,
+            borderRadius: BorderRadius.circular(4),
             padding: const EdgeInsets.all(4),
+            pressScale: 0.97,
             child: Icon(Icons.close, size: 16, color: cs.onSurfaceVariant),
           ),
         ],

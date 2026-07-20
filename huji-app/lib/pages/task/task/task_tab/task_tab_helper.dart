@@ -16,6 +16,7 @@ import 'bloc/task_tab_bloc.dart';
 import 'bloc/task_tab_state.dart';
 import '../video_records_tab/video_clip_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Opens the shared video clip progress dialog for a task.
 void showVideoClipProgressDialog(BuildContext context, Task task) {
@@ -146,9 +147,11 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                 final originalFile = File(originalPath);
                 final compressedFile = File(imagePath);
 
-                return GestureDetector(
+                return TpHover(
                   onTap: () =>
                       _showImageDetail(context, imagePath, originalPath),
+                  borderRadius: BorderRadius.circular(12),
+                  pressScale: 0.97,
                   child: Card(
                     elevation: 2,
                     shape: RoundedRectangleBorder(

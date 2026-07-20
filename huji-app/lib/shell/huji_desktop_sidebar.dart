@@ -56,7 +56,8 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
   void _updateBadge() {
     if (!mounted) return;
     final counts = TaskStorage().getTaskCounts();
-    final next = (counts[TaskStatusEnum.processing] ?? 0) +
+    final next =
+        (counts[TaskStatusEnum.processing] ?? 0) +
         (counts[TaskStatusEnum.pending] ?? 0);
     if (next == _processingCount) return;
     setState(() => _processingCount = next);
@@ -78,9 +79,7 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
         decoration: BoxDecoration(
           color: cs.workspaceCard,
           border: Border(
-            right: BorderSide(
-              color: cs.outlineVariant.withValues(alpha: 0.6),
-            ),
+            right: BorderSide(color: cs.outlineVariant.withValues(alpha: 0.6)),
           ),
         ),
         child: Padding(
@@ -99,35 +98,35 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
                   ),
                 ),
               ),
-            _NavTile(
-              label: DesktopNav.library.label(l10n),
-              icon: DesktopNav.library.icon,
-              active: _isActive('/'),
-              onTap: () => context.go('/'),
-            ),
-            _NavTile(
-              label: DesktopNav.tasks.label(l10n),
-              icon: DesktopNav.tasks.icon,
-              active: _isActive('/tasks'),
-              badge: _processingCount > 0 ? '$_processingCount' : null,
-              onTap: () => context.go('/tasks'),
-            ),
-            const Spacer(),
-            Divider(
-              height: 1,
-              color: cs.outlineVariant.withValues(alpha: 0.45),
-              indent: 16,
-              endIndent: 16,
-            ),
-            SizedBox(height: 8),
-            _NavTile(
-              label: DesktopNav.settings.label(l10n),
-              icon: DesktopNav.settings.icon,
-              active: _isActive('/settings'),
-              muted: true,
-              onTap: () => context.go('/settings'),
-            ),
-            SizedBox(height: 12),
+              _NavTile(
+                label: DesktopNav.library.label(l10n),
+                icon: DesktopNav.library.icon,
+                active: _isActive('/'),
+                onTap: () => context.go('/'),
+              ),
+              _NavTile(
+                label: DesktopNav.tasks.label(l10n),
+                icon: DesktopNav.tasks.icon,
+                active: _isActive('/tasks'),
+                badge: _processingCount > 0 ? '$_processingCount' : null,
+                onTap: () => context.go('/tasks'),
+              ),
+              const Spacer(),
+              Divider(
+                height: 1,
+                color: cs.outlineVariant.withValues(alpha: 0.45),
+                indent: 16,
+                endIndent: 16,
+              ),
+              SizedBox(height: 8),
+              _NavTile(
+                label: DesktopNav.settings.label(l10n),
+                icon: DesktopNav.settings.icon,
+                active: _isActive('/settings'),
+                muted: true,
+                onTap: () => context.go('/settings'),
+              ),
+              SizedBox(height: 12),
             ],
           ),
         ),
@@ -166,43 +165,40 @@ class _NavTile extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-      child: Material(
-        color: bg ?? Colors.transparent,
+      child: TpHover(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(8),
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            child: Row(
-              children: [
-                Icon(icon, size: 18, color: fg),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    label,
-                    style: styles.md.copyWith(
-                      color: fg,
-                      fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                    ),
-                  ),
+        backgroundColor: bg ?? Colors.transparent,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        child: Row(
+          children: [
+            Icon(icon, size: 18, color: fg),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: styles.md.copyWith(
+                  color: fg,
+                  fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                 ),
-                if (badge != null)
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: cs.primary,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      badge!,
-                      style: styles.xs.copyWith(color: cs.onPrimary),
-                    ),
-                  ),
-              ],
+              ),
             ),
-          ),
+            if (badge != null)
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 7,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: cs.primary,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  badge!,
+                  style: styles.xs.copyWith(color: cs.onPrimary),
+                ),
+              ),
+          ],
         ),
       ),
     );
@@ -248,51 +244,49 @@ class _AccountAreaState extends State<_AccountArea> {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final account = Padding(
-      padding: EdgeInsets.zero,
-      child: InkWell(
-        onTap: _handleTap,
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: workspaceInsetDecoration(cs, radius: 10),
-          child: Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: LinearGradient(
-                    colors: [cs.primary, cs.secondary],
+    final account = TpHover(
+      onTap: _handleTap,
+      borderRadius: BorderRadius.circular(10),
+      pressScale: 0.97,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: workspaceInsetDecoration(cs, radius: 10),
+        child: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: LinearGradient(colors: [cs.primary, cs.secondary]),
+              ),
+              alignment: Alignment.center,
+              child: Text(
+                '弧',
+                style: styles.mdSemibold.copyWith(color: cs.onPrimary),
+              ),
+            ),
+            SizedBox(width: 10),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _displayName(l10n),
+                    style: styles.mdSemibold,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '弧',
-                  style: styles.mdSemibold.copyWith(color: cs.onPrimary),
-                ),
+                  Text(
+                    _isLoggedIn
+                        ? l10n.accountLoggedIn
+                        : l10n.accountTapToLogin,
+                    style: styles.xs.copyWith(color: cs.onSurfaceVariant),
+                  ),
+                ],
               ),
-              SizedBox(width: 10),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _displayName(l10n),
-                      style: styles.mdSemibold,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    Text(
-                      _isLoggedIn ? l10n.accountLoggedIn : l10n.accountTapToLogin,
-                      style: styles.xs.copyWith(color: cs.onSurfaceVariant),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.expand_more, size: 18, color: cs.onSurfaceVariant),
-            ],
-          ),
+            ),
+            Icon(Icons.expand_more, size: 18, color: cs.onSurfaceVariant),
+          ],
         ),
       ),
     );

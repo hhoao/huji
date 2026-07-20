@@ -89,53 +89,50 @@ class WorkspaceHubNavItem extends StatelessWidget {
 
     return Padding(
       padding: EdgeInsets.only(left: leftIndent, bottom: 8),
-      child: Material(
-        color: selected
+      child: TpHover(
+        onTap: onTap,
+        borderRadius: borderRadius,
+        backgroundColor: selected
             ? selectedColor
             : hubStyle
             ? cs.workspaceSubtleSurface
             : Colors.transparent,
-        borderRadius: borderRadius,
-        child: InkWell(
-          borderRadius: borderRadius,
-          onTap: onTap,
-          child: SizedBox(
-            height: height,
-            child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-              child: Row(
-                children: [
+        child: SizedBox(
+          height: height,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+            child: Row(
+              children: [
+                Icon(
+                  leadingIcon,
+                  color: selected ? selectedFg : muted,
+                  size: iconSize,
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        (hubStyle
+                                ? TpTextStyles.of(context).lgSemibold
+                                : TpTextStyles.of(context).md)
+                            .copyWith(
+                              fontWeight: hubStyle
+                                  ? FontWeight.w600
+                                  : FontWeight.w500,
+                              color: selected ? selectedFg : normalFg,
+                            ),
+                  ),
+                ),
+                if (trailing != null)
                   Icon(
-                    leadingIcon,
+                    trailing,
+                    size: hubStyle ? 22 : 18,
                     color: selected ? selectedFg : muted,
-                    size: iconSize,
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Text(
-                      title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style:
-                          (hubStyle
-                                  ? TpTextStyles.of(context).lgSemibold
-                                  : TpTextStyles.of(context).md)
-                              .copyWith(
-                                fontWeight: hubStyle
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
-                                color: selected ? selectedFg : normalFg,
-                              ),
-                    ),
-                  ),
-                  if (trailing != null)
-                    Icon(
-                      trailing,
-                      size: hubStyle ? 22 : 18,
-                      color: selected ? selectedFg : muted,
-                    ),
-                ],
-              ),
+              ],
             ),
           ),
         ),

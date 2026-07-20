@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/services/user_service.dart';
 
@@ -137,8 +138,11 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
+    return TpHover(
       onTap: _isUploading ? null : () => _showImageSourceDialog(context),
+      enabled: !_isUploading,
+      borderRadius: BorderRadius.circular(widget.size / 2),
+      pressScale: 0.97,
       child: Stack(
         children: [
           widget.currentAvatar != null &&

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 enum _AppButtonVariant { custom, primary, outlined, text }
@@ -137,11 +136,12 @@ class AppButton extends StatelessWidget {
       ],
     );
 
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: effectiveRadius,
+      borderRadius: BorderRadius.circular(effectiveRadius),
       padding: effectivePadding,
       backgroundColor: effectiveBg,
+      pressScale: 0.97,
       child: Container(
         decoration: BoxDecoration(
           border: Border.all(color: effectiveBorder),

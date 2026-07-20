@@ -26,6 +26,7 @@ import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// 回合编辑页面
 class RoundClipPage extends StatefulWidget {
@@ -709,8 +710,10 @@ class _RoundClipPageState extends State<RoundClipPage>
           key: key,
           width: 60,
           margin: const EdgeInsets.only(right: 8),
-          child: GestureDetector(
+          child: TpHover(
             onTap: () => _playSegment(segment),
+            borderRadius: BorderRadius.circular(8),
+            pressScale: 0.97,
             child: Container(
               decoration: BoxDecoration(
                 color: isCurrentSegment
@@ -892,8 +895,9 @@ class _RoundClipPageState extends State<RoundClipPage>
           child: Row(
             children: [
               Expanded(
-                child: GestureDetector(
+                child: TpHover(
                   onTap: onTapTitle,
+                  borderRadius: BorderRadius.circular(8),
                   child: Row(
                     children: [
                       Text(
@@ -928,8 +932,11 @@ class _RoundClipPageState extends State<RoundClipPage>
               ),
               if (actionButton != null) actionButton,
               if (actionButton != null) SizedBox(width: 8),
-              GestureDetector(
+              TpHover(
                 onTap: onTapTitle,
+                borderRadius: BorderRadius.circular(8),
+                pressScale: 0.97,
+                padding: const EdgeInsets.all(4),
                 child: Icon(
                   Icons.open_in_full,
                   size: 20,

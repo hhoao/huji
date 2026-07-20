@@ -64,12 +64,13 @@ class ThemeColorPresetChip extends StatelessWidget {
     final textBase = isDark ? Colors.white : const Color(0xFF111827);
     final primary = themePresetSwatchPrimary(id);
     final secondary = themePresetSwatchSecondary(id);
-    return InkWell(
-      borderRadius: BorderRadius.circular(999),
+    return TpHover(
       onTap: onTap,
+      borderRadius: BorderRadius.circular(999),
+      backgroundColor: cs.workspaceInset,
+      pressScale: 0.97,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: cs.workspaceInset,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
             color: selected ? cs.primary : cs.outlineVariant,

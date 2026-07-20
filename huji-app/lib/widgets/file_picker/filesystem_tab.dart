@@ -11,6 +11,7 @@ import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/utils/file_utils.dart' as file_utils;
 import 'file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class FilesystemTab extends StatefulWidget {
   final bool allowMultiple;
@@ -528,10 +529,13 @@ class _FilesystemTabState extends State<FilesystemTab>
             final tab = entry.value;
             final isSelected = index == _selectedTopTabIndex;
 
-            return GestureDetector(
+            return TpHover(
               onTap: () {
                 _topTabController.animateTo(index);
               },
+              borderRadius: BorderRadius.circular(8),
+              backgroundColor: isSelected ? Colors.black : Colors.grey[100],
+              pressScale: 0.97,
               child: Container(
                 margin: const EdgeInsets.only(right: 16),
                 padding: const EdgeInsets.symmetric(
@@ -539,7 +543,6 @@ class _FilesystemTabState extends State<FilesystemTab>
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: isSelected ? Colors.black : Colors.grey[100],
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -658,17 +661,12 @@ class _FilesystemTabState extends State<FilesystemTab>
 
       // 添加路径段
       widgets.add(
-        GestureDetector(
+        TpHover(
           onTap: isLast ? null : () => _navigateToPath(segment['path']!),
           onLongPress: () => _showPathOptions(segment),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
+          borderRadius: BorderRadius.circular(6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (isFirst) ...[
@@ -685,7 +683,6 @@ class _FilesystemTabState extends State<FilesystemTab>
                 ),
               ],
             ),
-          ),
         ),
       );
 
@@ -1028,8 +1025,10 @@ class _FilesystemTabState extends State<FilesystemTab>
     Color color,
     String count,
   ) {
-    return GestureDetector(
+    return TpHover(
       onTap: () => _navigateToDirectory(Directory(path)),
+      borderRadius: BorderRadius.circular(8),
+      pressScale: 0.97,
       child: Column(
         children: [
           Container(

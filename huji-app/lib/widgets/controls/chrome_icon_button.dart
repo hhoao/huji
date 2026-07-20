@@ -57,30 +57,21 @@ class ChromeIconButton extends StatelessWidget {
       );
     }
 
-    Widget ink = Ink(
+    Widget button = TpHover(
+      onTap: enabled ? onTap : null,
+      enabled: enabled,
+      borderRadius: radius,
+      backgroundColor: backgroundColor,
       width: size,
       height: size,
-      decoration: BoxDecoration(
-        borderRadius: radius,
-        color: backgroundColor,
-      ),
-      child: InkWell(
-        borderRadius: radius,
-        hoverColor: effectiveColor.withValues(alpha: 0.12),
-        splashColor: effectiveColor.withValues(alpha: 0.2),
-        onTap: enabled ? onTap : null,
-        child: Center(child: iconChild),
-      ),
+      pressScale: 0.97,
+      child: Center(child: iconChild),
     );
 
     if (tooltip != null && tooltip!.isNotEmpty) {
-      ink = Tooltip(message: tooltip!, child: ink);
+      button = Tooltip(message: tooltip!, child: button);
     }
 
-    return Material(
-      color: Colors.transparent,
-      borderRadius: radius,
-      child: ink,
-    );
+    return button;
   }
 }

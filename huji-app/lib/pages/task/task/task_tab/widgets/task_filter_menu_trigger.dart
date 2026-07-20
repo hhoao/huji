@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_hover_box.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Compact filter dropdown trigger shared by task list filter menus.
@@ -64,9 +63,10 @@ class TaskFilterMenuTrigger extends StatelessWidget {
 
     if (onTap == null) return face;
 
-    return AppHoverBox(
+    return TpHover(
       onTap: onTap,
-      borderRadius: 6,
+      borderRadius: BorderRadius.circular(6),
+      pressScale: 0.97,
       child: face,
     );
   }
