@@ -342,6 +342,7 @@
   "fileDeleted": "文件已删除",
   "fileDetailsTitle": "详细信息",
   "fileDoesNotExist": "文件不存在",
+  "taskResultUnavailable": "无法查看任务结果",
   "fileInfoAccessedAt": "访问时间: {time}",
   "fileInfoCachePath": "缓存路径: {path}",
   "fileInfoCreatedAt": "创建时间: {time}",

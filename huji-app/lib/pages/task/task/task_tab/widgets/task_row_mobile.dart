@@ -8,7 +8,6 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_callbacks.dart';
-import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
 
@@ -63,54 +62,70 @@ class TaskRowMobile extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButton(BuildContext context, Task currentTask) {
-    final supportsPause = TaskStorage().supportsPause(currentTask);
+  Widget _buildActionButtons(BuildContext context, Task currentTask) {
+    final actions = TaskTabListUtils.resolveTaskActions(currentTask);
+    if (actions.isEmpty) return const SizedBox.shrink();
 
-    if (currentTask.status == TaskStatusEnum.processing ||
-        currentTask.status == TaskStatusEnum.pending ||
-        currentTask.status == TaskStatusEnum.paused) {
-      if (supportsPause) {
-        final isPaused = currentTask.status == TaskStatusEnum.paused;
-        return IconButton(
-          icon: Icon(
-            isPaused ? Icons.play_arrow : Icons.pause,
-            color: isPaused ? Colors.green : Colors.orange,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: actions.map((action) {
+        final (icon, color, tooltip, onPressed) = switch (action) {
+          TaskRowAction.viewProgress => (
+            Icons.visibility,
+            Colors.deepPurple,
+            context.hujiL10n.viewProgress,
+            () => callbacks.onTap(currentTask),
           ),
+          TaskRowAction.pause => (
+            Icons.pause,
+            Colors.orange,
+            context.hujiL10n.pauseTask,
+            () => callbacks.onPauseResume(currentTask),
+          ),
+          TaskRowAction.resume => (
+            Icons.play_arrow,
+            Colors.green,
+            context.hujiL10n.resumeTask,
+            () => callbacks.onPauseResume(currentTask),
+          ),
+          TaskRowAction.cancel => (
+            Icons.stop,
+            Colors.red,
+            context.hujiL10n.cancelTask,
+            () => callbacks.onCancel(currentTask),
+          ),
+          TaskRowAction.retry => (
+            Icons.refresh,
+            Colors.blue,
+            context.hujiL10n.actionRetry,
+            () => callbacks.onRetry(currentTask),
+          ),
+          TaskRowAction.view => (
+            Icons.visibility,
+            Colors.deepPurple,
+            context.hujiL10n.actionView,
+            () => callbacks.onTap(currentTask),
+          ),
+          TaskRowAction.delete => (
+            Icons.close,
+            Colors.grey,
+            context.hujiL10n.deleteTask,
+            () => callbacks.onDelete(currentTask),
+          ),
+        };
+
+        return IconButton(
+          icon: Icon(icon, color: color),
+          tooltip: tooltip,
           onPressed: () {
             Throttles.throttle(
-              'toggle_task_status_${currentTask.id}',
+              'task_action_${action.name}_${currentTask.id}',
               const Duration(milliseconds: 500),
-              () => callbacks.onPauseResume(currentTask),
+              onPressed,
             );
           },
-          tooltip: isPaused
-              ? context.hujiL10n.resumeTask
-              : context.hujiL10n.pauseTask,
         );
-      }
-      return IconButton(
-        icon: const Icon(Icons.stop, color: Colors.red),
-        onPressed: () {
-          Throttles.throttle(
-            'cancel_task_${currentTask.id}',
-            const Duration(milliseconds: 500),
-            () => callbacks.onCancel(currentTask),
-          );
-        },
-        tooltip: context.hujiL10n.cancelTask,
-      );
-    }
-
-    return IconButton(
-      icon: const Icon(Icons.close, color: Colors.grey),
-      onPressed: () {
-        Throttles.throttle(
-          'delete_task_${currentTask.id}',
-          const Duration(milliseconds: 500),
-          () => callbacks.onDelete(currentTask),
-        );
-      },
-      tooltip: context.hujiL10n.deleteTask,
+      }).toList(),
     );
   }
 
@@ -337,7 +352,7 @@ class TaskRowMobile extends StatelessWidget {
                       },
                     )
                   else
-                    _buildActionButton(context, currentTask),
+                    _buildActionButtons(context, currentTask),
                 ],
               ),
             ),

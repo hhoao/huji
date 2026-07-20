@@ -342,6 +342,7 @@
   "fileDeleted": "File deleted",
   "fileDetailsTitle": "Details",
   "fileDoesNotExist": "File does not exist",
+  "taskResultUnavailable": "Unable to view task result",
   "fileInfoAccessedAt": "Accessed: {time}",
   "fileInfoCachePath": "Cache path: {path}",
   "fileInfoCreatedAt": "Created: {time}",

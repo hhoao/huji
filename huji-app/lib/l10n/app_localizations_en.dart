@@ -1156,6 +1156,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get fileDoesNotExist => 'File does not exist';
 
   @override
+  String get taskResultUnavailable => 'Unable to view task result';
+
+  @override
   String fileInfoAccessedAt(String time) {
     return 'Accessed: $time';
   }

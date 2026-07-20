@@ -9,6 +9,7 @@ import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/file_utils.dart';
+import 'package:open_file/open_file.dart';
 
 import '../../../../models/task.dart';
 import 'bloc/task_tab_bloc.dart';
@@ -430,41 +431,88 @@ Widget _buildDetailRow(String label, String value) {
 
 /// Shared click-to-enter handler for task items. Used by both mobile and desktop.
 Future<void> handleTaskTap(BuildContext context, Task task) async {
-  if (task is VideoCompressTask &&
-      task.outputPath.isNotEmpty &&
-      task.status == TaskStatusEnum.completed) {
-    context.push(
-      '/video/player?videoUrl=${Uri.encodeComponent(task.outputPath)}&fileName=${Uri.encodeComponent(task.name)}',
+  void showMissingResult() {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(context.hujiL10n.taskResultUnavailable)),
     );
+  }
+
+  void showMissingFile() {
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(context.hujiL10n.fileDoesNotExist),
+        backgroundColor: Colors.red,
+      ),
+    );
+  }
+
+  Future<void> openVideoIfExists(String path, String fileName) async {
+    if (path.isEmpty || !await File(path).exists()) {
+      showMissingFile();
+      return;
+    }
+    if (!context.mounted) return;
+    context.push(
+      '/video/player?videoUrl=${Uri.encodeComponent(path)}&fileName=${Uri.encodeComponent(fileName)}',
+    );
+  }
+
+  if (task is VideoCompressTask && task.status == TaskStatusEnum.completed) {
+    await openVideoIfExists(task.outputPath, task.name);
   } else if (task is VideoClipTask) {
     if (task.outputPath.isNotEmpty) {
-      context.push(
-        '/video/player?videoUrl=${Uri.encodeComponent(task.outputPath)}&fileName=${Uri.encodeComponent(task.name)}',
-      );
-    } else if ((task.status == TaskStatusEnum.processing ||
-        task.status == TaskStatusEnum.pending)) {
+      await openVideoIfExists(task.outputPath, task.name);
+    } else if (task.status == TaskStatusEnum.processing ||
+        task.status == TaskStatusEnum.pending ||
+        task.status == TaskStatusEnum.failed) {
       showVideoClipProgressDialog(context, task);
-    } else if (task.status == TaskStatusEnum.failed) {
-      showVideoClipProgressDialog(context, task);
+    } else {
+      showMissingResult();
     }
   } else if (task is ImageCompressTask &&
       task.outputList.isNotEmpty &&
       task.status == TaskStatusEnum.completed) {
     showImageCompressResults(context, task);
+  } else if (task is DownloadTask &&
+      task.status == TaskStatusEnum.completed &&
+      task.savePath.isNotEmpty) {
+    try {
+      final file = File(task.savePath);
+      if (!await file.exists()) {
+        showMissingFile();
+        return;
+      }
+      await OpenFile.open(task.savePath);
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.hujiL10n.openFileFailed('$e')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   } else if (task is VideoSegmentDetectTask &&
       task.status == TaskStatusEnum.completed) {
-    if (task.edittingRecordId == null) {
+    if (task.edittingRecordId == null || task.edittingRecordId!.isEmpty) {
+      showMissingResult();
       return;
     }
     final edittingRecord =
         await LocalVideoStorage().findById(task.edittingRecordId!)
             as EdittingVideoRecord?;
-    if (context.mounted) {
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => RoundClipPage(videoRecord: edittingRecord),
-        ),
-      );
+    if (!context.mounted) return;
+    if (edittingRecord == null) {
+      showMissingResult();
+      return;
     }
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => RoundClipPage(videoRecord: edittingRecord),
+      ),
+    );
   }
 }

@@ -221,6 +221,20 @@ class TaskTabListUtils {
         task.status == TaskStatusEnum.paused;
   }
 
+  /// Whether a completed task has a result that 「查看」 can open.
+  static bool canViewTaskResult(Task task) {
+    if (task.status != TaskStatusEnum.completed) return false;
+
+    if (task is VideoCompressTask) return task.outputPath.isNotEmpty;
+    if (task is VideoClipTask) return task.outputPath.isNotEmpty;
+    if (task is ImageCompressTask) return task.outputList.isNotEmpty;
+    if (task is DownloadTask) return task.savePath.isNotEmpty;
+    if (task is VideoSegmentDetectTask) {
+      return task.edittingRecordId != null && task.edittingRecordId!.isNotEmpty;
+    }
+    return false;
+  }
+
   static List<TaskRowAction> resolveTaskActions(Task task) {
     final actions = <TaskRowAction>[];
     final status = task.status;
@@ -243,7 +257,9 @@ class TaskTabListUtils {
     }
 
     if (status == TaskStatusEnum.completed) {
-      actions.add(TaskRowAction.view);
+      if (canViewTaskResult(task)) {
+        actions.add(TaskRowAction.view);
+      }
       actions.add(TaskRowAction.delete);
     }
 

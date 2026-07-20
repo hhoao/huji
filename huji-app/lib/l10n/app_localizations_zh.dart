@@ -1124,6 +1124,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get fileDoesNotExist => '文件不存在';
 
   @override
+  String get taskResultUnavailable => '无法查看任务结果';
+
+  @override
   String fileInfoAccessedAt(String time) {
     return '访问时间: $time';
   }

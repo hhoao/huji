@@ -2150,6 +2150,12 @@ abstract class HujiLocalizations {
   /// **'File does not exist'**
   String get fileDoesNotExist;
 
+  /// No description provided for @taskResultUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'Unable to view task result'**
+  String get taskResultUnavailable;
+
   /// No description provided for @fileInfoAccessedAt.
   ///
   /// In en, this message translates to:
