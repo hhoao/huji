@@ -2,12 +2,13 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart' as fp;
 import 'package:huji_app/constants/file_extensions.dart' as fe;
+import 'package:path/path.dart' as path;
+import 'package:shared_ui/shared_ui.dart';
 
-/// Native OS file/directory dialogs for Linux, macOS, and Windows.
-class DesktopFilePicker {
-  DesktopFilePicker._();
-
-  static Future<List<FileSystemEntity>?> pickFiles({
+/// [TpDesktopPickerPort] backed by the native file_picker plugin.
+class DesktopFilePickerPort implements TpDesktopPickerPort {
+  @override
+  Future<List<TpPickedEntry>?> pickFiles({
     bool allowMultiple = false,
     List<String>? allowedExtensions,
     String? dialogTitle,
@@ -25,39 +26,69 @@ class DesktopFilePicker {
       lockParentWindow: true,
     );
 
-    if (result == null || result.files.isEmpty) return null;
+    if (result == null || result.files.isEmpty) {
+      return null;
+    }
 
     var files = result.files
-        .where((f) => f.path != null)
-        .map((f) => File(f.path!))
+        .where((file) => file.path != null)
+        .map((file) => file.path!)
         .toList();
 
     if (maxSelectionCount != null && files.length > maxSelectionCount) {
       files = files.take(maxSelectionCount).toList();
     }
 
-    return files;
+    return files
+        .map(
+          (filePath) => TpPickedEntry(
+            path: filePath,
+            kind: TpPickedKind.file,
+            displayName: path.basename(filePath),
+          ),
+        )
+        .toList();
   }
 
-  static Future<List<FileSystemEntity>?> pickDirectory({
+  @override
+  Future<List<TpPickedEntry>?> pickDirectory({
     String? dialogTitle,
     String? initialDirectory,
   }) async {
-    final path = await fp.FilePicker.platform.getDirectoryPath(
-      dialogTitle: dialogTitle ?? '选择目录',
+    final selectedPath = await fp.FilePicker.platform.getDirectoryPath(
+      dialogTitle: dialogTitle,
       initialDirectory: _resolveInitialDirectory(initialDirectory),
       lockParentWindow: true,
     );
-    if (path == null) return null;
-    return [Directory(path)];
+
+    if (selectedPath == null) {
+      return null;
+    }
+
+    return [
+      TpPickedEntry(
+        path: selectedPath,
+        kind: TpPickedKind.directory,
+        displayName: path.basename(selectedPath),
+      ),
+    ];
   }
 
-  static String? _resolveInitialDirectory(String? path) {
-    if (path == null || path.isEmpty) return null;
-    final dir = Directory(path);
-    if (dir.existsSync()) return dir.path;
-    final parent = Directory(path).parent;
-    if (parent.existsSync()) return parent.path;
+  static String? _resolveInitialDirectory(String? dirPath) {
+    if (dirPath == null || dirPath.isEmpty) {
+      return null;
+    }
+
+    final dir = Directory(dirPath);
+    if (dir.existsSync()) {
+      return dir.path;
+    }
+
+    final parent = Directory(dirPath).parent;
+    if (parent.existsSync()) {
+      return parent.path;
+    }
+
     return null;
   }
 
@@ -69,14 +100,14 @@ class DesktopFilePicker {
     }
 
     final normalized = allowedExtensions
-        .map((e) => e.toLowerCase().replaceFirst('.', ''))
+        .map((ext) => ext.toLowerCase().replaceFirst('.', ''))
         .toSet();
 
     final videoExts = fe.FileExtensions.videoExtensions
-        .map((e) => e.substring(1))
+        .map((ext) => ext.substring(1))
         .toSet();
     final imageExts = fe.FileExtensions.imageExtensions
-        .map((e) => e.substring(1))
+        .map((ext) => ext.substring(1))
         .toSet();
 
     if (normalized.every(videoExts.contains)) {
@@ -85,7 +116,9 @@ class DesktopFilePicker {
     if (normalized.every(imageExts.contains)) {
       return (fp.FileType.image, null);
     }
-    if (normalized.every((e) => videoExts.contains(e) || imageExts.contains(e))) {
+    if (normalized.every(
+      (ext) => videoExts.contains(ext) || imageExts.contains(ext),
+    )) {
       return (fp.FileType.media, null);
     }
 
