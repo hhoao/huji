@@ -32,7 +32,7 @@ void main() {
       expect(TaskTabListUtils.canViewTaskResult(task), isFalse);
     });
 
-    test('false for completed clip with empty outputPath', () {
+    test('true for completed clip with empty outputPath (local detection)', () {
       final task = VideoClipTask(
         id: 'c1',
         name: 'clip',
@@ -42,7 +42,7 @@ void main() {
         outputPath: '',
         autoDownload: false,
       );
-      expect(TaskTabListUtils.canViewTaskResult(task), isFalse);
+      expect(TaskTabListUtils.canViewTaskResult(task), isTrue);
     });
 
     test('true for completed clip with outputPath', () {
@@ -56,6 +56,22 @@ void main() {
         autoDownload: false,
       );
       expect(TaskTabListUtils.canViewTaskResult(task), isTrue);
+    });
+
+    test('completed clip without output still includes view action', () {
+      final task = VideoClipTask(
+        id: 'c3',
+        name: 'local detect',
+        createdAt: createdAt,
+        status: TaskStatusEnum.completed,
+        videoPath: '/in.mp4',
+        outputPath: '',
+        autoDownload: false,
+      );
+      expect(
+        TaskTabListUtils.resolveTaskActions(task),
+        [TaskRowAction.view, TaskRowAction.delete],
+      );
     });
 
     test('true for completed compress with outputPath', () {

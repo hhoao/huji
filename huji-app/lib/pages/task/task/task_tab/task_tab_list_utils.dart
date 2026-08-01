@@ -226,13 +226,23 @@ class TaskTabListUtils {
     if (task.status != TaskStatusEnum.completed) return false;
 
     if (task is VideoCompressTask) return task.outputPath.isNotEmpty;
-    if (task is VideoClipTask) return task.outputPath.isNotEmpty;
+    // Local detection finishes as VideoClipTask with empty outputPath and an
+    // EdittingVideoRecord keyed by task.id — still viewable.
+    if (task is VideoClipTask) return true;
     if (task is ImageCompressTask) return task.outputList.isNotEmpty;
     if (task is DownloadTask) return task.savePath.isNotEmpty;
     if (task is VideoSegmentDetectTask) {
       return task.edittingRecordId != null && task.edittingRecordId!.isNotEmpty;
     }
     return false;
+  }
+
+  static bool isNetworkMediaPath(String path) {
+    return path.startsWith('http://') ||
+        path.startsWith('https://') ||
+        path.startsWith('ftp://') ||
+        path.startsWith('rtmp://') ||
+        path.startsWith('rtsp://');
   }
 
   static List<TaskRowAction> resolveTaskActions(Task task) {
