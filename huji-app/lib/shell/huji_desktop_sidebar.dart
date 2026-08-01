@@ -71,7 +71,6 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
     return TpSidebar(
       variant: TpSidebarVariant.inset,
       collapsible: TpSidebarCollapsible.icon,
-      themeOverride: TpTheme.of(context).sidebarTheme.copyWith(width: 280),
       child: Stack(
         children: [
           Column(

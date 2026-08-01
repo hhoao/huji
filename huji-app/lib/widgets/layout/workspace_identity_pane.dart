@@ -177,9 +177,7 @@ class WorkspaceIdentityPane extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
 
-    return ColoredBox(
-      color: cs.workspaceCard,
-      child: Column(
+    return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           header,
@@ -204,7 +202,6 @@ class WorkspaceIdentityPane extends StatelessWidget {
                 ),
           ),
         ],
-      ),
     );
   }
 }

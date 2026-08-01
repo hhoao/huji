@@ -75,23 +75,20 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
 
-    return ColoredBox(
-      color: cs.workspaceCard,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            l10n.desktopLibraryTitle,
-            style: Theme.of(
-              context,
-            ).textTheme.titleLarge?.copyWith(color: cs.onSurface),
-          ),
-          SizedBox(height: 16),
-          Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
-          SizedBox(height: 16),
-          Expanded(child: _buildBody(context)),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          l10n.desktopLibraryTitle,
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(color: cs.onSurface),
+        ),
+        SizedBox(height: 16),
+        Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
+        SizedBox(height: 16),
+        Expanded(child: _buildBody(context)),
+      ],
     );
   }
 

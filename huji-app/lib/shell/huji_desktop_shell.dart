@@ -24,6 +24,9 @@ class HujiDesktopShell extends StatelessWidget {
       backgroundColor: cs.workspacePage,
       body: TpSidebarProvider(
         defaultOpen: true,
+        defaultWidth: 280,
+        minWidth: 200,
+        maxWidth: 420,
         child: Column(
           children: [
             DesktopWindowTitleBar(
