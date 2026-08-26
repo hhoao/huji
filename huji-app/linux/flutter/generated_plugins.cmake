@@ -4,6 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
+  ffmpeg_kit_flutter_new
   file_selector_linux
   flutter_onnxruntime
   media_kit_libs_linux
