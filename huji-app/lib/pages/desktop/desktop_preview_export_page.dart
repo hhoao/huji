@@ -12,8 +12,6 @@ import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
-import 'package:huji_app/widgets/desktop/app_dropdown.dart';
-import 'package:huji_app/widgets/desktop/app_icon_button.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_state.dart';
@@ -379,9 +377,13 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final l10n = context.hujiL10n;
     return _ExSection(
       label: l10n.formatLabel,
-      child: AppDropdown<String>(
+      child: TpCompactSelect<String>(
         value: l10n.exportFormatMp4H264,
-        items: [l10n.exportFormatMp4H264, 'MOV'],
+        entries: [
+          (l10n.exportFormatMp4H264, l10n.exportFormatMp4H264),
+          ('MOV', 'MOV'),
+        ],
+        onChanged: (v) {},
       ),
     );
   }
@@ -390,9 +392,14 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final l10n = context.hujiL10n;
     return _ExSection(
       label: l10n.roundTransitionLabel,
-      child: AppDropdown<String>(
+      child: TpCompactSelect<String>(
         value: l10n.transitionNone,
-        items: [l10n.transitionNone, l10n.transitionCrossfade, l10n.transitionSlide],
+        entries: [
+          (l10n.transitionNone, l10n.transitionNone),
+          (l10n.transitionCrossfade, l10n.transitionCrossfade),
+          (l10n.transitionSlide, l10n.transitionSlide),
+        ],
+        onChanged: (v) {},
       ),
     );
   }
@@ -452,8 +459,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             ),
           ),
           SizedBox(width: 8),
-          AppIconButton(
+          TpIconButton(
             icon: Icons.folder_open,
+            onTap: null,
             size: 32,
             iconSize: 16,
             color: cs.onSurfaceVariant,

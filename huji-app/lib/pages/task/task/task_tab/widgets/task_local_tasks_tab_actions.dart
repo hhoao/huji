@@ -8,7 +8,6 @@ import 'package:huji_app/pages/task/task/task_tab/widgets/task_date_range_filter
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter_menu.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_type_filter_menu.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -85,9 +84,10 @@ class TaskLocalTasksTabActions extends StatelessWidget {
           ),
         ],
         SizedBox(width: 8),
-        AppButton.outlined(
-          label: l10n.batchSelect,
-          onTap: onEnterBatchMode,
+        TpButton(
+          variant: TpButtonVariant.outline,
+          onPressed: onEnterBatchMode,
+          child: Text(l10n.batchSelect),
         ),
       ],
     );

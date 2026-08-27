@@ -3,11 +3,11 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
-import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
 import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
 import 'package:huji_app/widgets/settings/workspace_section_layout.dart';
 import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 enum _SettingsSection { general, appearance, account, network }
 
@@ -179,20 +179,27 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
             SettingsLabeledRow(
               title: l10n.settingsApiServer,
               subtitle: l10n.settingsApiServerDesc,
-              trailing: AppDropdown<String>(
+              trailing: TpCompactSelect<String>(
                 value: _apiServerKey,
-                items: apiServers.keys.toList(),
-                labelBuilder: (key) => apiServers[key]!,
-                onChanged: (v) => setState(() => _apiServerKey = v),
+                entries: apiServers.entries
+                    .map((e) => (e.key, e.value))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _apiServerKey = v);
+                },
               ),
             ),
             SettingsLabeledRow(
               title: l10n.settingsDownloadConcurrency,
               subtitle: l10n.settingsDownloadConcurrencyDesc,
-              trailing: AppDropdown<int>(
+              trailing: TpCompactSelect<int>(
                 value: _downloadConcurrency,
-                items: const [1, 2, 3, 5],
-                onChanged: (v) => setState(() => _downloadConcurrency = v),
+                entries: const [1, 2, 3, 5]
+                    .map((e) => (e, e.toString()))
+                    .toList(),
+                onChanged: (v) {
+                  if (v != null) setState(() => _downloadConcurrency = v);
+                },
               ),
               showDividerBelow: false,
             ),

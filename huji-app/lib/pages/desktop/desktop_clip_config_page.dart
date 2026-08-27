@@ -7,7 +7,6 @@ import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
-import 'package:huji_app/widgets/desktop/app_dropdown.dart';
 import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
@@ -474,15 +473,15 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             ),
           ],
         ),
-        AppDropdown<String>(
+        TpCompactSelect<String>(
           value: _selectedPreset,
-          items: const [
+          entries: const [
             _presetDefault,
             _presetTraining,
             _presetOfficial,
             _presetBadmintonDefault,
-          ],
-          labelBuilder: (v) => _presetLabel(context.hujiL10n, v),
+          ].map((e) => (e, _presetLabel(context.hujiL10n, e))).toList(),
+          onChanged: (v) {},
         ),
       ],
     );
@@ -491,18 +490,19 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   Widget _buildSportType() {
     return _ConfigSection(
       label: context.hujiL10n.matchType,
-      child: AppDropdown<String>(
+      child: TpCompactSelect<String>(
         value: _sportType,
-        items: const [_sportPingPong, _sportBadminton],
-        labelBuilder: (v) {
+        entries: const [_sportPingPong, _sportBadminton].map((v) {
           final l10n = context.hujiL10n;
           final emoji = v == _sportPingPong ? '🏓' : '🏸';
           final label = v == _sportPingPong
               ? l10n.sportPingPong
               : l10n.sportBadminton;
-          return '$emoji  $label';
+          return (v, '$emoji  $label');
+        }).toList(),
+        onChanged: (v) {
+          if (v != null) setState(() => _sportType = v);
         },
-        onChanged: (v) => setState(() => _sportType = v),
       ),
     );
   }

@@ -10,7 +10,6 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/time_utils.dart';
-import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class TaskRowDesktop extends StatelessWidget {
@@ -97,18 +96,12 @@ class TaskRowDesktop extends StatelessWidget {
   }
 
   Widget _actionButton(BuildContext context, String label, VoidCallback? onPressed) {
-    final cs = context.desktopColors;
     return Padding(
       padding: const EdgeInsets.only(left: 6),
-      child: AppButton(
-        label: label,
-        onTap: onPressed,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-        textStyle: TpTextStyles.of(context).xs,
-        foregroundColor: cs.onSurfaceVariant,
-        backgroundColor: cs.surfaceContainer,
-        borderColor: cs.outlineVariant.withValues(alpha: 0.55),
-        borderRadius: 5,
+      child: TpButton(
+        variant: TpButtonVariant.ghost,
+        onPressed: onPressed,
+        child: Text(label),
       ),
     );
   }

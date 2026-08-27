@@ -4,7 +4,6 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/desktop_style.dart';
-import 'package:huji_app/widgets/desktop/app_button.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -45,9 +44,10 @@ class TaskBatchToolbar extends StatelessWidget {
           if (variant == TaskBatchToolbarVariant.desktop) {
             return Align(
               alignment: Alignment.centerRight,
-              child: AppButton.outlined(
-                label: context.hujiL10n.batchSelect,
-                onTap: onEnterBatchMode,
+              child: TpButton(
+                variant: TpButtonVariant.outline,
+                onPressed: onEnterBatchMode,
+                child: Text(context.hujiL10n.batchSelect),
               ),
             );
           }
