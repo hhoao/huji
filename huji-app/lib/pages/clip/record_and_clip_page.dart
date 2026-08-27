@@ -241,7 +241,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
 
   /// 显示片段选择对话框
   void _showSegmentsDialog(BuildContext context) {
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => SimpleSegmentsDialog(
         title: context.hujiL10n.detectedSegments,

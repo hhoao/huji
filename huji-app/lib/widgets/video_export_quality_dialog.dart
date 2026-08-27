@@ -16,7 +16,7 @@ class VideoExportQualityDialog extends StatefulWidget {
     BuildContext context, {
     VideoCompressQuality? initialQuality,
   }) async {
-    return showDialog<VideoCompressQuality>(
+    return showTpDialog<VideoCompressQuality>(
       context: context,
       builder: (context) =>
           VideoExportQualityDialog(initialQuality: initialQuality),
@@ -75,14 +75,20 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(context.hujiL10n.selectExportQualityTitle),
-      content: _isCheckingPermissions
-          ? SizedBox(
+    return TpDialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TpDialogHeader(title: context.hujiL10n.selectExportQualityTitle),
+          SizedBox(height: context.tpSpacing.lg),
+          if (_isCheckingPermissions)
+            const SizedBox(
               height: 100,
               child: Center(child: CircularProgressIndicator()),
             )
-          : Column(
+          else
+            Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildQualityOption(
@@ -136,16 +142,22 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                 ),
               ],
             ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.hujiL10n.taskStatusCancelledShort),
-        ),
-        ElevatedButton(
-          onPressed: () => Navigator.of(context).pop(selectedQuality),
-          child: Text(context.hujiL10n.actionConfirm),
-        ),
-      ],
+          TpDialogActions(
+            children: [
+              TpButton(
+                variant: TpButtonVariant.ghost,
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.hujiL10n.taskStatusCancelledShort),
+              ),
+              TpButton(
+                variant: TpButtonVariant.primary,
+                onPressed: () => Navigator.of(context).pop(selectedQuality),
+                child: Text(context.hujiL10n.actionConfirm),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 

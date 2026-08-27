@@ -377,7 +377,7 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   /// 显示所有回合弹窗
   void _showAllRoundsDialog() {
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => BlocProvider.value(
         value: _roundClipBloc,
@@ -962,7 +962,7 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   /// 显示收藏回合弹窗
   void _showFavoriteRoundsDialog() {
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => BlocProvider.value(
         value: _roundClipBloc,
@@ -1208,7 +1208,7 @@ class _RoundClipPageState extends State<RoundClipPage>
 
     // 显示保存进度对话框
     if (mounted) {
-      showDialog(
+      showTpDialog(
         context: context,
         barrierDismissible: false,
         builder: (context) => VideoSaveProgressDialog(

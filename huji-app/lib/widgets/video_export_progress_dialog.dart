@@ -43,7 +43,7 @@ class VideoExportProgressDialog extends StatefulWidget {
     String? subtitle,
     required VideoExportTask exportTask,
   }) {
-    return showDialog<void>(
+    return showTpDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (context) => VideoExportProgressDialog(
@@ -155,42 +155,32 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
         isDesktop ? cs.onSurfaceVariant : Colors.white70;
     final surface = isDesktop ? cs.surfaceContainer : Colors.grey[900]!;
 
-    return AlertDialog(
+    return TpDialog(
       backgroundColor: surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(isDesktop ? 10 : 12),
-      ),
-      title: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Icon(
-            _errorMessage != null
-                ? Icons.error_outline
-                : _isCompleted
-                    ? Icons.check_circle_outline
-                    : Icons.file_download_outlined,
-            color: _errorMessage != null
-                ? cs.error
-                : _isCompleted
-                    ? Colors.green
-                    : cs.primary,
-            size: 22,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
+          TpDialogHeader(
+            title: _errorMessage != null
+                ? context.hujiL10n.exportFailedTitle
+                : widget.title,
+            onClose: _isRunning ? () {} : () => Navigator.of(context).pop(),
+            trailing: Icon(
               _errorMessage != null
-                  ? context.hujiL10n.exportFailedTitle
-                  : widget.title,
-              style: (isDesktop ? styles.xl : const TextStyle())
-                  .copyWith(color: onSurface),
+                  ? Icons.error_outline
+                  : _isCompleted
+                      ? Icons.check_circle_outline
+                      : Icons.file_download_outlined,
+              color: _errorMessage != null
+                  ? cs.error
+                  : _isCompleted
+                      ? Colors.green
+                      : cs.primary,
+              size: 22,
             ),
           ),
-        ],
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          SizedBox(height: context.tpSpacing.lg),
           if (widget.subtitle != null) ...[
             Text(
               widget.subtitle!,
@@ -301,27 +291,30 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               ),
             ],
           ],
+          TpDialogActions(
+            children: [
+              if (_isCompleted && _outputPath != null)
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: _openFolder,
+                  child: Text(context.hujiL10n.openFolder),
+                ),
+              TpButton(
+                variant: TpButtonVariant.primary,
+                onPressed:
+                    _isRunning ? null : () => Navigator.of(context).pop(),
+                child: Text(
+                  _errorMessage != null
+                      ? context.hujiL10n.actionConfirm
+                      : (_isCompleted
+                          ? context.hujiL10n.actionDone
+                          : context.hujiL10n.actionClose),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        if (_isCompleted && _outputPath != null)
-          TextButton(
-            onPressed: _openFolder,
-            child: Text(context.hujiL10n.openFolder, style: TextStyle(color: cs.primary),
-            ),
-          ),
-        TextButton(
-          onPressed: _isRunning ? null : () => Navigator.of(context).pop(),
-          child: Text(
-            _errorMessage != null
-                ? context.hujiL10n.actionConfirm
-                : (_isCompleted
-                    ? context.hujiL10n.actionDone
-                    : context.hujiL10n.actionClose),
-            style: TextStyle(color: onSurfaceVariant),
-          ),
-        ),
-      ],
     );
   }
 }

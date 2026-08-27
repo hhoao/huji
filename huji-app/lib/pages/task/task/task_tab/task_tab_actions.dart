@@ -4,8 +4,8 @@ import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
-import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Optional dialog styling for platform-specific themes.
 class TaskDialogStyle {
@@ -36,44 +36,59 @@ class TaskTabActions {
     TaskDialogStyle? style,
     bool showSuccessSnackBar = false,
   }) {
-    showDialog(
+    showTpDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => TpDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text(context.hujiL10n.confirmDelete, style: style?.titleStyle),
-        content: Text(
-          context.hujiL10n.confirmDeleteTaskMessage(task.name),
-          style: style?.contentStyle,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.hujiL10n.taskStatusCancelledShort, style: style?.cancelStyle),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Throttles.throttle(
-                'delete_confirm_${task.id}',
-                const Duration(milliseconds: 500),
-                () {
-                  bloc.add(TaskTabDeleteTaskEvent(task.id));
-                  if (showSuccessSnackBar && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(context.hujiL10n.taskDeleted(task.name)),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 2),
-                      ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmDelete),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(
+              context.hujiL10n.confirmDeleteTaskMessage(task.name),
+              style: style?.contentStyle,
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(
+                    context.hujiL10n.taskStatusCancelledShort,
+                    style: style?.cancelStyle,
+                  ),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Throttles.throttle(
+                      'delete_confirm_${task.id}',
+                      const Duration(milliseconds: 500),
+                      () {
+                        bloc.add(TaskTabDeleteTaskEvent(task.id));
+                        if (showSuccessSnackBar && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.hujiL10n.taskDeleted(task.name),
+                              ),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
                     );
-                  }
-                },
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.hujiL10n.actionDelete),
-          ),
-        ],
+                  },
+                  child: Text(context.hujiL10n.actionDelete),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -85,44 +100,59 @@ class TaskTabActions {
     TaskDialogStyle? style,
     bool showSuccessSnackBar = false,
   }) {
-    showDialog(
+    showTpDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => TpDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text(context.hujiL10n.confirmCancel, style: style?.titleStyle),
-        content: Text(
-          context.hujiL10n.confirmCancelTaskMessage(task.name),
-          style: style?.contentStyle,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.hujiL10n.actionContinue, style: style?.cancelStyle),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Throttles.throttle(
-                'cancel_confirm_${task.id}',
-                const Duration(milliseconds: 500),
-                () {
-                  bloc.add(TaskTabCancelTaskEvent(task));
-                  if (showSuccessSnackBar && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(context.hujiL10n.taskCancelled(task.name)),
-                        backgroundColor: Colors.orange,
-                        duration: const Duration(seconds: 2),
-                      ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmCancel),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(
+              context.hujiL10n.confirmCancelTaskMessage(task.name),
+              style: style?.contentStyle,
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(
+                    context.hujiL10n.actionContinue,
+                    style: style?.cancelStyle,
+                  ),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Throttles.throttle(
+                      'cancel_confirm_${task.id}',
+                      const Duration(milliseconds: 500),
+                      () {
+                        bloc.add(TaskTabCancelTaskEvent(task));
+                        if (showSuccessSnackBar && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.hujiL10n.taskCancelled(task.name),
+                              ),
+                              backgroundColor: Colors.orange,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
                     );
-                  }
-                },
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.hujiL10n.cancelTask),
-          ),
-        ],
+                  },
+                  child: Text(context.hujiL10n.cancelTask),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -136,47 +166,60 @@ class TaskTabActions {
   }) {
     if (taskIds.isEmpty) return;
 
-    showDialog(
+    showTpDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => TpDialog(
         backgroundColor: style?.backgroundColor,
-        title: Text(context.hujiL10n.confirmDelete, style: style?.titleStyle),
-        content: Text(
-          context.hujiL10n.confirmBatchDeleteMessage(taskIds.length),
-          style: style?.contentStyle,
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text(context.hujiL10n.taskStatusCancelledShort, style: style?.cancelStyle),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Throttles.throttle(
-                'batch_delete_confirm',
-                const Duration(milliseconds: 500),
-                () {
-                  final deletedCount = taskIds.length;
-                  bloc.add(TaskTabBatchDeleteTasksEvent(taskIds));
-                  if (showSuccessSnackBar && context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          context.hujiL10n.batchTasksDeleted(deletedCount),
-                        ),
-                        backgroundColor: Colors.green,
-                        duration: const Duration(seconds: 2),
-                      ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmDelete),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(
+              context.hujiL10n.confirmBatchDeleteMessage(taskIds.length),
+              style: style?.contentStyle,
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(
+                    context.hujiL10n.taskStatusCancelledShort,
+                    style: style?.cancelStyle,
+                  ),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Throttles.throttle(
+                      'batch_delete_confirm',
+                      const Duration(milliseconds: 500),
+                      () {
+                        final deletedCount = taskIds.length;
+                        bloc.add(TaskTabBatchDeleteTasksEvent(taskIds));
+                        if (showSuccessSnackBar && context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(
+                                context.hujiL10n.batchTasksDeleted(deletedCount),
+                              ),
+                              backgroundColor: Colors.green,
+                              duration: const Duration(seconds: 2),
+                            ),
+                          );
+                        }
+                      },
                     );
-                  }
-                },
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.hujiL10n.actionDelete),
-          ),
-        ],
+                  },
+                  child: Text(context.hujiL10n.actionDelete),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

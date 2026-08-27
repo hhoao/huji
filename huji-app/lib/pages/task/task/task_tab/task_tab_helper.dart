@@ -22,7 +22,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 /// Opens the shared video clip progress dialog for a task.
 void showVideoClipProgressDialog(BuildContext context, Task task) {
-  showDialog(
+  showTpDialog(
     context: context,
     barrierDismissible: task.status == TaskStatusEnum.failed,
     builder: (context) => VideoClipProgressDialog(task: task),
@@ -279,14 +279,15 @@ void _showImageDetail(
   final compressedFile = File(compressedPath);
   final originalFile = File(originalPath);
 
-  showDialog(
+  showTpDialog<void>(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text(context.hujiL10n.imageDetails),
-      content: Column(
+    builder: (context) => TpDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          TpDialogHeader(title: context.hujiL10n.imageDetails),
+          SizedBox(height: context.tpSpacing.lg),
           AspectRatio(
             aspectRatio: 1,
             child: Image.file(
@@ -317,21 +318,25 @@ void _showImageDetail(
             context.hujiL10n.compressionRatio,
             '${((1 - compressedFile.lengthSync() / originalFile.lengthSync()) * 100).toStringAsFixed(1)}%',
           ),
+          TpDialogActions(
+            children: [
+              TpButton(
+                variant: TpButtonVariant.ghost,
+                onPressed: () => Navigator.of(context).pop(),
+                child: Text(context.hujiL10n.actionClose),
+              ),
+              TpButton(
+                variant: TpButtonVariant.primary,
+                onPressed: () {
+                  _saveImageToGallery(context, compressedPath);
+                  Navigator.of(context).pop();
+                },
+                child: Text(context.hujiL10n.saveToGallery),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: Text(context.hujiL10n.actionClose),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            _saveImageToGallery(context, compressedPath);
-            Navigator.of(context).pop();
-          },
-          child: Text(context.hujiL10n.saveToGallery),
-        ),
-      ],
     ),
   );
 }

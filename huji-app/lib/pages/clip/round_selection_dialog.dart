@@ -30,15 +30,14 @@ class RoundsSelectionDialog extends StatelessWidget {
     return BlocBuilder<RoundClipBloc, RoundClipState>(
       builder: (context, state) {
         final l10n = context.hujiL10n;
-        return Dialog(
-          backgroundColor: Colors.transparent,
-          child: Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.8,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
+        final media = MediaQuery.sizeOf(context);
+        return TpDialog(
+          maxWidth: media.width * 0.9,
+          maxHeight: media.height * 0.8,
+          contentPadding: EdgeInsets.zero,
+          child: SizedBox(
+            width: media.width * 0.9,
+            height: media.height * 0.8,
             child: Column(
               children: [
                 // 标题栏
@@ -346,39 +345,52 @@ class RoundsSelectionDialog extends StatelessWidget {
 
     final dialogNavigator = Navigator.of(context);
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.confirmDelete),
-        content: Text(context.hujiL10n.confirmDeleteCurrentPlayingRound),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'round_delete_cancel',
-                const Duration(milliseconds: 500),
-                () => Navigator.of(context).pop(),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'round_delete_confirm',
-                const Duration(milliseconds: 500),
-                () {
-                  Navigator.of(context).pop(); // 关闭确认对话框
-                  dialogNavigator.pop(); // 关闭回合选择弹窗
+      builder: (context) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmDelete),
+            SizedBox(height: context.tpSpacing.lg),
+            Text(context.hujiL10n.confirmDeleteCurrentPlayingRound),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'round_delete_cancel',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.of(context).pop(),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'round_delete_confirm',
+                      const Duration(milliseconds: 500),
+                      () {
+                        Navigator.of(context).pop(); // 关闭确认对话框
+                        dialogNavigator.pop(); // 关闭回合选择弹窗
 
-                  // 通过Bloc处理删除逻辑
-                  roundClipBloc.add(const DeleteCurrentPlayingSegmentEvent());
-                },
-              );
-            },
-            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
-          ),
-        ],
+                        // 通过Bloc处理删除逻辑
+                        roundClipBloc.add(
+                          const DeleteCurrentPlayingSegmentEvent(),
+                        );
+                      },
+                    );
+                  },
+                  child: Text(context.hujiL10n.actionDelete),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -471,20 +483,19 @@ class SimpleSegmentsDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: Colors.transparent,
+    final media = MediaQuery.sizeOf(context);
+    return TpDialog(
+      maxWidth: media.width * 0.9,
+      maxHeight: media.height * 0.8,
+      contentPadding: EdgeInsets.zero,
       child: ValueListenableBuilder<EdittingVideoRecord?>(
         valueListenable: edittingRecord,
         builder: (context, record, _) {
           final segments = record?.allMatchSegments ?? [];
 
-          return Container(
-            width: MediaQuery.of(context).size.width * 0.9,
-            height: MediaQuery.of(context).size.height * 0.8,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
-            ),
+          return SizedBox(
+            width: media.width * 0.9,
+            height: media.height * 0.8,
             child: Column(
               children: [
                 // 标题栏

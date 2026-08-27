@@ -259,25 +259,21 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   void _showExportModal(BuildContext context) {
     final cs = context.desktopColors;
-    final styles = TpTextStyles.of(context);
     final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
     final qualityLabel = _qualityLabel(l10n);
 
-    showDialog(
+    showTpDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) => TpDialog(
         backgroundColor: cs.surfaceContainer,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-        title: Text(
-          l10n.confirmExportTitle,
-          style: styles.xl.copyWith(color: cs.onSurface),
-        ),
-        content: Column(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            TpDialogHeader(title: l10n.confirmExportTitle),
+            SizedBox(height: ctx.tpSpacing.lg),
             _exportInfoRow(ctx, l10n.fileName, '$_fileName.mp4'),
             SizedBox(height: 8),
             _exportInfoRow(ctx, l10n.formatLabel, l10n.exportFormatMp4H264),
@@ -291,35 +287,37 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               l10n.roundCountLabel,
               l10n.roundCountDurationSummary(segCount, durationStr),
             ),
-          ],
-        ),
-        actions: [
-          TpButton(
-            variant: TpButtonVariant.ghost,
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(l10n.taskStatusCancelledShort),
-          ),
-          TpButton(
-            variant: TpButtonVariant.primary,
-            onPressed: () {
-              Navigator.of(ctx).pop();
-              VideoExportProgressDialog.show(
-                context,
-                title: l10n.exportVideoTitle,
-                subtitle: '$_fileName.mp4 · $qualityLabel',
-                exportTask: (onProgress) => _runExport(onProgress, l10n),
-              );
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+            TpDialogActions(
               children: [
-                const Icon(Icons.play_arrow, size: 16),
-                const SizedBox(width: 6),
-                Text(l10n.startExport),
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(l10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.primary,
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    VideoExportProgressDialog.show(
+                      context,
+                      title: l10n.exportVideoTitle,
+                      subtitle: '$_fileName.mp4 · $qualityLabel',
+                      exportTask: (onProgress) => _runExport(onProgress, l10n),
+                    );
+                  },
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.play_arrow, size: 16),
+                      const SizedBox(width: 6),
+                      Text(l10n.startExport),
+                    ],
+                  ),
+                ),
               ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
