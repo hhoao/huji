@@ -169,10 +169,17 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
             style: styles.md.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 16),
-          FilledButton.icon(
+          TpButton(
+            variant: TpButtonVariant.primary,
             onPressed: _loadRecords,
-            icon: const Icon(Icons.refresh, size: 16),
-            label: Text(l10n.actionRetry),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.refresh, size: 16),
+                const SizedBox(width: 6),
+                Text(l10n.actionRetry),
+              ],
+            ),
           ),
         ],
       ),

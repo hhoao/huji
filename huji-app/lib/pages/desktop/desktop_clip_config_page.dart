@@ -384,15 +384,23 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         context.hujiL10n.newClip,
       ],
       actions: [
-        OutlinedButton(
+        TpButton(
+          variant: TpButtonVariant.outline,
           onPressed: () => context.go('/'),
           child: Text(context.hujiL10n.taskStatusCancelledShort),
         ),
         SizedBox(width: 8),
-        ElevatedButton.icon(
+        TpButton(
+          variant: TpButtonVariant.primary,
           onPressed: _startDetection,
-          icon: const Icon(Icons.play_arrow, size: 16),
-          label: Text(context.hujiL10n.startDetectionClip),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.play_arrow, size: 16),
+              const SizedBox(width: 6),
+              Text(context.hujiL10n.startDetectionClip),
+            ],
+          ),
         ),
       ],
       child: Row(
@@ -640,14 +648,21 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             style: styles.xs.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 10),
-          OutlinedButton.icon(
+          TpButton(
+            variant: TpButtonVariant.outline,
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(content: Text(context.hujiL10n.presetComingSoon)),
               );
             },
-            icon: const Icon(Icons.save_outlined, size: 14),
-            label: Text(context.hujiL10n.saveAsPreset),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.save_outlined, size: 16),
+                const SizedBox(width: 6),
+                Text(context.hujiL10n.saveAsPreset),
+              ],
+            ),
           ),
         ],
       ),

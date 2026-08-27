@@ -192,13 +192,9 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             style: styles.mutedSm.copyWith(color: cs.outline),
           ),
           const SizedBox(height: 8),
-          ElevatedButton(
+          TpButton(
+            variant: TpButtonVariant.primary,
             onPressed: _pickVideoFile,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: cs.primary.withAlpha(38),
-              foregroundColor: cs.onPrimaryContainer,
-              side: BorderSide(color: cs.primary.withAlpha(77)),
-            ),
             child: Text(context.hujiL10n.selectFiles),
           ),
           const SizedBox(height: 8),
@@ -258,7 +254,8 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              TextButton(
+              TpButton(
+                variant: TpButtonVariant.ghost,
                 onPressed: _pickVideoFile,
                 child: Text(context.hujiL10n.selectFiles),
               ),

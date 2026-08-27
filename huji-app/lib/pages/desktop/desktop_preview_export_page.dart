@@ -211,7 +211,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.desktopColors;
     final l10n = context.hujiL10n;
     final videoName = _record?.filePath != null
         ? p.basename(_record!.filePath!)
@@ -224,22 +223,31 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         title: l10n.previewTitle,
         breadcrumbs: [l10n.desktopNavLibrary, videoName, l10n.previewTitle],
         actions: [
-          OutlinedButton(onPressed: () => context.go('/'), child: Text(context.hujiL10n.taskStatusCancelledShort)),
+          TpButton(
+            variant: TpButtonVariant.outline,
+            onPressed: () => context.go('/'),
+            child: Text(context.hujiL10n.taskStatusCancelledShort),
+          ),
           SizedBox(width: 8),
-          OutlinedButton(
+          TpButton(
+            variant: TpButtonVariant.outline,
             onPressed: () => context.go(DesktopRoutes.clipEditPath(widget.clipId)),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: cs.onPrimaryContainer,
-              side: BorderSide(color: cs.primary.withAlpha(89)),
-              backgroundColor: cs.primary.withAlpha(26),
-            ),
             child: Text(l10n.precisionEditButton),
           ),
           SizedBox(width: 8),
-          ElevatedButton.icon(
-            onPressed: _isLoading || _record == null ? null : () => _showExportModal(context),
-            icon: const Icon(Icons.file_download, size: 16),
-            label: Text(context.hujiL10n.actionExport),
+          TpButton(
+            variant: TpButtonVariant.primary,
+            onPressed: _isLoading || _record == null
+                ? null
+                : () => _showExportModal(context),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.file_download, size: 16),
+                const SizedBox(width: 6),
+                Text(context.hujiL10n.actionExport),
+              ],
+            ),
           ),
         ],
         child: _isLoading
@@ -286,14 +294,13 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           ],
         ),
         actions: [
-          TextButton(
+          TpButton(
+            variant: TpButtonVariant.ghost,
             onPressed: () => Navigator.of(ctx).pop(),
-            child: Text(
-              l10n.taskStatusCancelledShort,
-              style: styles.md.copyWith(color: cs.onSurfaceVariant),
-            ),
+            child: Text(l10n.taskStatusCancelledShort),
           ),
-          ElevatedButton.icon(
+          TpButton(
+            variant: TpButtonVariant.primary,
             onPressed: () {
               Navigator.of(ctx).pop();
               VideoExportProgressDialog.show(
@@ -303,8 +310,14 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                 exportTask: (onProgress) => _runExport(onProgress, l10n),
               );
             },
-            icon: const Icon(Icons.play_arrow, size: 16),
-            label: Text(l10n.startExport),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.play_arrow, size: 16),
+                const SizedBox(width: 6),
+                Text(l10n.startExport),
+              ],
+            ),
           ),
         ],
       ),

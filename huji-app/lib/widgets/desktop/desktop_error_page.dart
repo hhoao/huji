@@ -33,7 +33,8 @@ class DesktopErrorPage extends StatelessWidget {
               style: styles.mutedSm,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            TpButton(
+              variant: TpButtonVariant.primary,
               onPressed: () => context.go('/'),
               child: Text(l10n.returnToHome),
             ),

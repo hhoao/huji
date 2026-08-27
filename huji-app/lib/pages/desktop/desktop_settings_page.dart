@@ -148,7 +148,8 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
                 child: SizedBox(
                   width: double.infinity,
-                  child: OutlinedButton(
+                  child: TpButton(
+                    variant: TpButtonVariant.outline,
                     onPressed: () {
                       UserBlocInstance.instance.add(const UserLogoutEvent());
                       setState(() {});

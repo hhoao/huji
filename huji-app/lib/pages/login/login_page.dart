@@ -339,23 +339,17 @@ class _LoginPageState extends State<LoginPage> {
                       SizedBox(width: 12),
                       SizedBox(
                         width: 120,
-                        child: ElevatedButton(
+                        child: TpButton(
+                          variant: TpButtonVariant.primary,
                           onPressed: (_countdown > 0 || _isSendingCode)
                               ? null
                               : _sendAuthCode,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.deepPurple,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
                           child: Text(
                             _countdown > 0
                                 ? context.hujiL10n.actionResendCodeCountdown(
                                     _countdown,
                                   )
                                 : context.hujiL10n.actionSendVerificationCode,
-                            style: const TextStyle(color: Colors.white),
                           ),
                         ),
                       ),
@@ -366,32 +360,19 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 32),
 
                 // 登录按钮
-                SizedBox(
-                  height: 56,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.deepPurple,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : Text(context.hujiL10n.loginTitle, style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
+                TpButton(
+                  variant: TpButtonVariant.primary,
+                  onPressed: _isLoading ? null : _login,
+                  child: _isLoading
+                      ? SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
                           ),
-                  ),
+                        )
+                      : Text(context.hujiL10n.loginTitle),
                 ),
 
                 SizedBox(height: 24),
@@ -400,19 +381,19 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    TextButton(
+                    TpButton(
+                      variant: TpButtonVariant.ghost,
                       onPressed: () {
                         // 跳转到注册页面
                       },
-                      child: Text(context.hujiL10n.loginRegisterAccount, style: TextStyle(color: Colors.grey[600]),
-                      ),
+                      child: Text(context.hujiL10n.loginRegisterAccount),
                     ),
-                    TextButton(
+                    TpButton(
+                      variant: TpButtonVariant.ghost,
                       onPressed: () {
                         // 跳转到忘记密码页面
                       },
-                      child: Text(context.hujiL10n.loginForgotPassword, style: TextStyle(color: Colors.grey[600]),
-                      ),
+                      child: Text(context.hujiL10n.loginForgotPassword),
                     ),
                   ],
                 ),

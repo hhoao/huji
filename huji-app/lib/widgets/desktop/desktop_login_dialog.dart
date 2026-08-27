@@ -234,26 +234,17 @@ class _LoginDialogState extends State<LoginDialog> {
                       SizedBox(width: 10),
                       SizedBox(
                         width: 110,
-                        height: 48,
-                        child: ElevatedButton(
+                        child: TpButton(
+                          variant: TpButtonVariant.primary,
                           onPressed: (_countdown > 0 || _isSendingCode)
                               ? null
                               : _sendAuthCode,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: cs.primary,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
                           child: Text(
                             _countdown > 0
                                 ? context.hujiL10n.actionResendCodeCountdown(
                                     _countdown,
                                   )
                                 : context.hujiL10n.actionSendVerificationCode,
-                            style: styles.sm.copyWith(
-                              color: cs.onPrimary,
-                            ),
                           ),
                         ),
                       ),
@@ -267,15 +258,9 @@ class _LoginDialogState extends State<LoginDialog> {
       actions: [
         SizedBox(
           width: double.infinity,
-          height: 44,
-          child: ElevatedButton(
+          child: TpButton(
+            variant: TpButtonVariant.primary,
             onPressed: _isLoading ? null : _login,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: cs.primary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
             child: _isLoading
                 ? SizedBox(
                     width: 20,
@@ -285,8 +270,7 @@ class _LoginDialogState extends State<LoginDialog> {
                       strokeWidth: 2,
                     ),
                   )
-                : Text(context.hujiL10n.loginTitle, style: styles.lgSemibold.copyWith(color: cs.onPrimary),
-                  ),
+                : Text(context.hujiL10n.loginTitle),
           ),
         ),
       ],

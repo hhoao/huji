@@ -214,8 +214,6 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           }
           final activeSegment = validActive;
 
-          final cs = context.desktopColors;
-
           return DesktopPageShell(
             currentRoute: DesktopRoutes.clipEditPath(widget.clipId),
             title: context.hujiL10n.precisionEditTitle,
@@ -225,27 +223,31 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
               context.hujiL10n.precisionEditTitle,
             ],
             actions: [
-              OutlinedButton(
+              TpButton(
+                variant: TpButtonVariant.outline,
                 onPressed: () => context.go('/'),
                 child: Text(context.hujiL10n.taskStatusCancelledShort),
               ),
               SizedBox(width: 8),
-              OutlinedButton(
+              TpButton(
+                variant: TpButtonVariant.outline,
                 onPressed: () =>
                     context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: cs.onPrimaryContainer,
-                  side: BorderSide(color: cs.primary.withAlpha(89)),
-                  backgroundColor: cs.primary.withAlpha(26),
-                ),
                 child: Text(context.hujiL10n.backToPreview),
               ),
               SizedBox(width: 8),
-              ElevatedButton.icon(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: () =>
                     context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
-                icon: const Icon(Icons.arrow_forward, size: 16),
-                label: Text(context.hujiL10n.previewTitle),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.arrow_forward, size: 16),
+                    const SizedBox(width: 6),
+                    Text(context.hujiL10n.previewTitle),
+                  ],
+                ),
               ),
             ],
             child: Row(
@@ -470,7 +472,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                   ),
             ),
             SizedBox(height: 16),
-            ElevatedButton(
+            TpButton(
+              variant: TpButtonVariant.primary,
               onPressed: () {
                 final record = state.videoRecord;
                 if (record?.filePath != null) {
