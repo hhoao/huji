@@ -6,9 +6,8 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/app_theme.dart';
 import 'package:huji_app/widgets/settings/theme_color_preset_picker.dart';
 import 'package:huji_app/widgets/settings/typography_scale_setting.dart';
-import 'package:huji_app/widgets/settings/workspace_settings_toggle_strip.dart';
-import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
 import 'package:huji_app/theme/app_typography_scale.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Huji appearance settings — Teampilot [LayoutAppearanceInLayoutSection] subset.
 class HujiAppearanceSettingsSection extends StatelessWidget {
@@ -28,36 +27,36 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
         final langValue = prefs.locale.startsWith('zh') ? 'zh' : 'en';
 
         return SingleChildScrollView(
-          child: SettingsSurfaceCard(
+          child: TpCard.outlined(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                SettingsLabeledRow(
+                TpPreferenceRow(
                   title: l10n.themeModeTitle,
                   subtitle: l10n.themeModeDescription,
-                  trailing: WorkspaceSettingsToggleStrip<String>(
+                  trailing: TpSegmentedPicker<String>(
+                    selected: themeMode,
+                    onChanged: cubit.setThemeMode,
                     segments: [
-                      WorkspaceToggleSegment<String>(
+                      TpSegmentedOption(
                         value: 'light',
                         label: l10n.themeLight,
                         icon: Icons.light_mode_outlined,
                       ),
-                      WorkspaceToggleSegment<String>(
+                      TpSegmentedOption(
                         value: 'dark',
                         label: l10n.themeDark,
                         icon: Icons.dark_mode_outlined,
                       ),
-                      WorkspaceToggleSegment<String>(
+                      TpSegmentedOption(
                         value: 'system',
                         label: l10n.themeSystem,
                         icon: Icons.desktop_windows_outlined,
                       ),
                     ],
-                    selected: themeMode,
-                    onChanged: cubit.setThemeMode,
                   ),
                 ),
-                SettingsLabeledRow(
+                TpPreferenceRow(
                   title: l10n.themeColorPresetTitle,
                   subtitle: l10n.themeColorPresetDescription,
                   trailing: ThemeColorPresetPicker(
@@ -65,7 +64,7 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
                     onSelect: cubit.setThemeColorPreset,
                   ),
                 ),
-                SettingsLabeledRow(
+                TpPreferenceRow(
                   title: l10n.typographyScaleTitle,
                   subtitle: l10n.typographyScaleDescription,
                   trailing: TypographyScaleSetting(
@@ -78,7 +77,7 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SettingsLabeledRow(
+                TpPreferenceRow(
                   title: l10n.uiZoomTitle,
                   subtitle: l10n.uiZoomDescription,
                   trailing: TypographyScaleSetting(
@@ -91,24 +90,24 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
                     ),
                   ),
                 ),
-                SettingsLabeledRow(
+                TpPreferenceRow(
                   title: l10n.language,
                   subtitle: l10n.languageDescription,
-                  trailing: WorkspaceSettingsToggleStrip<String>(
+                  trailing: TpSegmentedPicker<String>(
+                    selected: langValue,
+                    onChanged: cubit.setLocale,
                     segments: [
-                      WorkspaceToggleSegment<String>(
+                      TpSegmentedOption(
                         value: 'zh',
                         label: l10n.languageChinese,
                         icon: Icons.translate,
                       ),
-                      WorkspaceToggleSegment<String>(
+                      TpSegmentedOption(
                         value: 'en',
                         label: l10n.languageEnglish,
                         icon: Icons.language,
                       ),
                     ],
-                    selected: langValue,
-                    onChanged: cubit.setLocale,
                   ),
                   showDividerBelow: false,
                 ),

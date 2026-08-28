@@ -14,6 +14,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/app_update_dialog.dart';
 import 'package:huji_app/appearance/appearance_cubit.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/widgets/desktop/app_switch.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -52,10 +53,13 @@ class _SettingsPageState extends State<SettingsPage> {
               Icons.notifications,
               l10n.settingsPushNotifications,
               trailing: Obx(
-                () => Switch(
-                  value: SettingsManager.to.notifications,
-                  onChanged: (v) async {
-                    await SettingsManager.to.setNotifications(v);
+                () => AppSwitch(
+                  active: SettingsManager.to.notifications,
+                  onTap: () async {
+                    await SettingsManager.to.setNotifications(
+                      !SettingsManager.to.notifications,
+                    );
+                    if (!context.mounted) return;
                     TpToast.show(
                       context,
                       message: l10n.settingsNotificationsUpdated,
@@ -65,15 +69,17 @@ class _SettingsPageState extends State<SettingsPage> {
                 ),
               ),
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.dark_mode,
               l10n.settingsDarkMode,
               trailing: Obx(
-                () => Switch(
-                  value: ThemeManager.to.isDarkMode,
-                  onChanged: (v) async {
-                    await ThemeManager.to.setThemeMode(v);
+                () => AppSwitch(
+                  active: ThemeManager.to.isDarkMode,
+                  onTap: () async {
+                    await ThemeManager.to.setThemeMode(
+                      !ThemeManager.to.isDarkMode,
+                    );
+                    if (!context.mounted) return;
                     TpToast.show(
                       context,
                       message: l10n.settingsThemeChanged,
@@ -82,6 +88,7 @@ class _SettingsPageState extends State<SettingsPage> {
                   },
                 ),
               ),
+              showDividerBelow: false,
             ),
           ]),
           SizedBox(height: 16),
@@ -99,6 +106,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 },
               ),
               onTap: () => _showLanguageDialog(context),
+              showDividerBelow: false,
             ),
           ]),
           SizedBox(height: 16),
@@ -109,7 +117,6 @@ class _SettingsPageState extends State<SettingsPage> {
               l10n.settingsClearCache,
               onTap: () => _showClearCacheDialog(context),
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.storage,
               l10n.settingsStorage,
@@ -124,11 +131,11 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               onTap: () => _showStorageInfo(context),
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.security,
               l10n.settingsPermissions,
               onTap: () => context.push(ProfileRoute.permissionManagement),
+              showDividerBelow: false,
             ),
           ]),
           SizedBox(height: 16),
@@ -148,7 +155,6 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               onTap: () => context.push(ProfileRoute.versionInfo),
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.system_update,
               l10n.settingsCheckUpdate,
@@ -165,17 +171,16 @@ class _SettingsPageState extends State<SettingsPage> {
               ),
               onTap: () => checkUpdate(context),
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.privacy_tip_outlined,
               l10n.settingsPrivacyPolicy,
               onTap: _showPrivacyPolicy,
             ),
-            _buildDivider(),
             _buildSettingRow(
               Icons.description_outlined,
               l10n.settingsUserAgreement,
               onTap: _showUserAgreement,
+              showDividerBelow: false,
             ),
           ]),
           SizedBox(height: 32),
@@ -185,16 +190,11 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   Widget _buildCard(List<Widget> children) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-        ],
+    return TpCard.outlined(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: children,
       ),
-      child: Column(children: children),
     );
   }
 
@@ -203,35 +203,24 @@ class _SettingsPageState extends State<SettingsPage> {
     String title, {
     Widget? trailing,
     VoidCallback? onTap,
+    bool showDividerBelow = true,
   }) {
-    return InkWell(
+    final row = TpPreferenceRow(
+      title: title,
+      titleLeading: Icon(icon, color: Colors.grey[700], size: 22),
+      trailing: trailing ??
+          (onTap != null
+              ? const Icon(Icons.chevron_right, color: Colors.grey, size: 20)
+              : const SizedBox.shrink()),
+      showDividerBelow: showDividerBelow,
+    );
+    if (onTap == null) return row;
+    return TpHover(
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 18),
-        child: Row(
-          children: [
-            Icon(icon, color: Colors.grey[700], size: 22),
-            SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w400,
-                ),
-              ),
-            ),
-            if (trailing != null) trailing,
-            if (onTap != null && trailing == null)
-              const Icon(Icons.chevron_right, color: Colors.grey, size: 20),
-          ],
-        ),
-      ),
+      borderRadius: BorderRadius.zero,
+      child: row,
     );
   }
-
-  Widget _buildDivider() =>
-      Container(height: 1, color: const Color(0xFFF2F2F2));
 
   void _showLanguageDialog(BuildContext context) {
     final l10n = context.hujiL10n;

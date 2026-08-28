@@ -6,7 +6,6 @@ import 'package:huji_app/store/user/user_event.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
 import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
 import 'package:huji_app/widgets/settings/workspace_section_layout.dart';
-import 'package:huji_app/widgets/settings/workspace_settings_widgets.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 enum _SettingsSection { general, appearance, account, network }
@@ -84,11 +83,11 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   Widget _buildGeneralBody() {
     final l10n = context.hujiL10n;
     return SingleChildScrollView(
-      child: SettingsSurfaceCard(
+      child: TpCard.outlined(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsDefaultSavePath,
               subtitle: l10n.settingsDefaultSavePathValue,
               trailing: Icon(
@@ -97,7 +96,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                 color: Theme.of(context).colorScheme.outline,
               ),
             ),
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsCheckUpdateOnStart,
               subtitle: l10n.settingsCheckUpdateOnStartDesc,
               trailing: AppSwitch(
@@ -106,7 +105,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                     setState(() => _checkUpdateOnStart = !_checkUpdateOnStart),
               ),
             ),
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsSendUsageStats,
               subtitle: l10n.settingsSendUsageStatsDesc,
               trailing: AppSwitch(
@@ -128,11 +127,11 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     final userName = userState.user?.nickname ?? l10n.accountNotLoggedIn;
 
     return SingleChildScrollView(
-      child: SettingsSurfaceCard(
+      child: TpCard.outlined(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsUsername,
               subtitle: userName,
               trailing: Icon(
@@ -173,11 +172,11 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     };
 
     return SingleChildScrollView(
-      child: SettingsSurfaceCard(
+      child: TpCard.outlined(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsApiServer,
               subtitle: l10n.settingsApiServerDesc,
               trailing: TpCompactSelect<String>(
@@ -190,7 +189,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                 },
               ),
             ),
-            SettingsLabeledRow(
+            TpPreferenceRow(
               title: l10n.settingsDownloadConcurrency,
               subtitle: l10n.settingsDownloadConcurrencyDesc,
               trailing: TpCompactSelect<int>(

@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/app_typography_scale.dart';
-import 'package:huji_app/widgets/settings/workspace_settings_toggle_strip.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Typography scale preset strip; shows a percent field when [scaleId] is `custom`.
 class TypographyScaleSetting extends StatefulWidget {
@@ -78,48 +78,47 @@ class _TypographyScaleSettingState extends State<TypographyScaleSetting> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          WorkspaceSettingsToggleStrip<String>(
-            segments: [
-              WorkspaceToggleSegment<String>(
-                value: 'compact',
-                label: l10n.typographyScaleCompact,
-                icon: Icons.density_small_outlined,
-              ),
-              WorkspaceToggleSegment<String>(
-                value: 'standard',
-                label: l10n.typographyScaleStandard,
-                icon: Icons.density_medium_outlined,
-              ),
-              WorkspaceToggleSegment<String>(
-                value: 'comfortable',
-                label: l10n.typographyScaleComfortable,
-                icon: Icons.density_large_outlined,
-              ),
-              WorkspaceToggleSegment<String>(
-                value: 'custom',
-                label: l10n.typographyScaleCustom,
-                icon: Icons.tune_outlined,
-              ),
-            ],
+          TpSegmentedPicker<String>(
             selected: widget.scaleId,
+            scrollable: false,
             onChanged: (id) {
               widget.onScaleIdChanged(id);
               if (id == 'custom') {
                 widget.onCustomMultiplierChanged(widget.customMultiplier);
               }
             },
+            segments: [
+              TpSegmentedOption(
+                value: 'compact',
+                label: l10n.typographyScaleCompact,
+                icon: Icons.density_small_outlined,
+              ),
+              TpSegmentedOption(
+                value: 'standard',
+                label: l10n.typographyScaleStandard,
+                icon: Icons.density_medium_outlined,
+              ),
+              TpSegmentedOption(
+                value: 'comfortable',
+                label: l10n.typographyScaleComfortable,
+                icon: Icons.density_large_outlined,
+              ),
+              TpSegmentedOption(
+                value: 'custom',
+                label: l10n.typographyScaleCustom,
+                icon: Icons.tune_outlined,
+              ),
+            ],
           ),
           if (isCustom) ...[
             const SizedBox(width: 8),
             SizedBox(
               width: 96,
-              height: 38,
-              child: TextField(
+              child: TpInput(
                 controller: _percentController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
-                  isDense: true,
                   hintText: l10n.typographyScaleCustomHint,
                   suffixText: '%',
                 ),
