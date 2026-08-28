@@ -712,26 +712,39 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                             _customFileName ??
                             _originFile!.path.split('/').last,
                       );
-                      final result = await showDialog<String>(
+                      final result = await showTpDialog<String>(
                         context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text('修改文件名'),
-                          content: TextField(
-                            controller: controller,
-                            decoration: const InputDecoration(
-                              labelText: '新文件名',
-                            ),
+                        builder: (ctx) => TpDialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              const TpDialogHeader(title: '修改文件名'),
+                              SizedBox(height: ctx.tpSpacing.lg),
+                              TpInput(
+                                controller: controller,
+                                decoration: const InputDecoration(
+                                  labelText: '新文件名',
+                                ),
+                              ),
+                              TpDialogActions(
+                                children: [
+                                  TpButton(
+                                    variant: TpButtonVariant.ghost,
+                                    onPressed: () => Navigator.pop(ctx),
+                                    child: Text(
+                                      ctx.hujiL10n.taskStatusCancelledShort,
+                                    ),
+                                  ),
+                                  TpButton(
+                                    onPressed: () =>
+                                        Navigator.pop(ctx, controller.text),
+                                    child: Text(ctx.hujiL10n.actionConfirm),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
-                          actions: [
-                            TextButton(
-                              onPressed: () => context.pop(),
-                              child: Text(context.hujiL10n.taskStatusCancelledShort),
-                            ),
-                            TextButton(
-                              onPressed: () => context.pop(controller.text),
-                              child: Text(context.hujiL10n.actionConfirm),
-                            ),
-                          ],
                         ),
                       );
                       if (result != null && result.trim().isNotEmpty) {
@@ -1041,39 +1054,41 @@ class _VideoCompressPageState extends State<VideoCompressPage>
     BuildContext context,
     VideoCompressResult compressResult,
   ) {
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('压缩结果'),
-        content: Padding(
-          padding: const EdgeInsets.all(16),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildInfoRow('文件路径', compressResult.outputPath ?? ''),
-                  SizedBox(height: 12),
-                  _buildInfoRow(
-                    '原始大小',
-                    _formatFileSize(compressResult.originalSize ?? 0),
-                  ),
-                  _buildInfoRow(
-                    '压缩后大小',
-                    _formatFileSize(compressResult.compressedSize ?? 0),
-                  ),
-                  _buildInfoRow(
-                    '压缩比例',
-                    '${compressResult.compressionRatio?.toStringAsFixed(1)}%',
-                  ),
-                  _buildInfoRow('质量评估', compressResult.qualityAssessment),
-                  if (compressResult.processingTime != null)
-                    _buildInfoRow('处理时间', '${compressResult.processingTime}秒'),
-                ],
+      builder: (ctx) => TpDialog(
+        maxHeight: MediaQuery.of(ctx).size.height * 0.8,
+        child: TpDialogPinnedLayout(
+          header: const TpDialogHeader(title: '压缩结果'),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildInfoRow('文件路径', compressResult.outputPath ?? ''),
+              const SizedBox(height: 12),
+              _buildInfoRow(
+                '原始大小',
+                _formatFileSize(compressResult.originalSize ?? 0),
               ),
-            ),
+              _buildInfoRow(
+                '压缩后大小',
+                _formatFileSize(compressResult.compressedSize ?? 0),
+              ),
+              _buildInfoRow(
+                '压缩比例',
+                '${compressResult.compressionRatio?.toStringAsFixed(1)}%',
+              ),
+              _buildInfoRow('质量评估', compressResult.qualityAssessment),
+              if (compressResult.processingTime != null)
+                _buildInfoRow('处理时间', '${compressResult.processingTime}秒'),
+            ],
+          ),
+          footer: TpDialogActions(
+            children: [
+              TpButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(ctx.hujiL10n.actionClose),
+              ),
+            ],
           ),
         ),
       ),
@@ -1091,20 +1106,20 @@ class _VideoCompressPageState extends State<VideoCompressPage>
       return;
     }
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
-          children: [
-            const Icon(Icons.video_library, color: Colors.blue),
-            SizedBox(width: 8),
-            const Text('视频信息'),
-          ],
-        ),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+      builder: (ctx) => TpDialog(
+        maxHeight: MediaQuery.of(ctx).size.height * 0.8,
+        child: TpDialogPinnedLayout(
+          header: TpDialogHeader(
+            title: '视频信息',
+            trailing: Icon(
+              Icons.video_library,
+              color: Theme.of(ctx).colorScheme.primary,
+            ),
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               _buildDialogInfoRow(
                 '文件名',
@@ -1130,10 +1145,15 @@ class _VideoCompressPageState extends State<VideoCompressPage>
               _buildDialogInfoRow('格式', _videoInfo!.format),
             ],
           ),
+          footer: TpDialogActions(
+            children: [
+              TpButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(ctx.hujiL10n.actionClose),
+              ),
+            ],
+          ),
         ),
-        actions: [
-          TextButton(onPressed: () => context.pop(), child: Text(context.hujiL10n.actionClose)),
-        ],
       ),
     );
   }
