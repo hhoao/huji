@@ -23,7 +23,7 @@ The `huji-app/scripts/local_inference.py` script expects:
 
 - `huji-app/` — Flutter app (mobile + desktop), package name `huji_app`
 - `huji-algorithm/` — Python ML pipeline (Git submodule; training + inference)
-- `huji-app/packages/shared_ui` — git submodule (`hhoao/shared_ui`): **Tp\*** design system only (`TpTheme`, `TpTextStyles`, `TpToast`, …). Import via `package:shared_ui/shared_ui.dart`. Appearance / desktop chrome / workspace surfaces live under `huji-app/lib/` (not in the package). Pin: `7aabdb366d424181e9f2f4f725d99b3d34ceaa6d`.
+- `huji-app/packages/shared_ui` — git submodule (`hhoao/shared_ui`): **Tp\*** design system only (`TpTheme`, `TpTextStyles`, `TpToast`, …). Import via `package:shared_ui/shared_ui.dart`. Appearance / desktop chrome / workspace surfaces live under `huji-app/lib/` (not in the package). Pin: `ce35f81ec935ca3e1b0792701dec035bb31de63a`.
 - Desktop pages use `media_kit` for video playback (libmpv backend)
 - Mobile pages use `video_player` plugin
 - `MultiVideoPlayerBloc` supports both backends via `PlatformCapability.isDesktop`
