@@ -154,6 +154,50 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
     final onSurfaceVariant =
         isDesktop ? cs.onSurfaceVariant : Colors.white70;
     final surface = isDesktop ? cs.surfaceContainer : Colors.grey[900]!;
+    final title = _errorMessage != null
+        ? context.hujiL10n.exportFailedTitle
+        : widget.title;
+    final statusIcon = Icon(
+      _errorMessage != null
+          ? Icons.error_outline
+          : _isCompleted
+              ? Icons.check_circle_outline
+              : Icons.file_download_outlined,
+      color: _errorMessage != null
+          ? cs.error
+          : _isCompleted
+              ? Colors.green
+              : cs.primary,
+      size: 22,
+    );
+    final titleStyle = (Theme.of(context).textTheme.bodyLarge ??
+            const TextStyle())
+        .copyWith(
+      fontWeight: FontWeight.w600,
+      height: 1.25,
+      color: Theme.of(context).colorScheme.onSurface,
+    );
+    final header = _isRunning
+        ? Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(child: Text(title, style: titleStyle)),
+                  statusIcon,
+                ],
+              ),
+              SizedBox(height: context.tpSpacing.lg),
+              const TpDialogDivider(),
+            ],
+          )
+        : TpDialogHeader(
+            title: title,
+            onClose: () => Navigator.of(context).pop(),
+            trailing: statusIcon,
+          );
 
     return TpDialog(
       backgroundColor: surface,
@@ -161,25 +205,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TpDialogHeader(
-            title: _errorMessage != null
-                ? context.hujiL10n.exportFailedTitle
-                : widget.title,
-            onClose: _isRunning ? () {} : () => Navigator.of(context).pop(),
-            trailing: Icon(
-              _errorMessage != null
-                  ? Icons.error_outline
-                  : _isCompleted
-                      ? Icons.check_circle_outline
-                      : Icons.file_download_outlined,
-              color: _errorMessage != null
-                  ? cs.error
-                  : _isCompleted
-                      ? Colors.green
-                      : cs.primary,
-              size: 22,
-            ),
-          ),
+          header,
           SizedBox(height: context.tpSpacing.lg),
           if (widget.subtitle != null) ...[
             Text(
