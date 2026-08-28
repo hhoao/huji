@@ -344,10 +344,10 @@ void _showImageDetail(
 Future<void> _saveImageToGallery(BuildContext context, String imagePath) async {
   if (!PlatformCapability.supportsGalleryAccess) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.galleryNotSupportedOnDesktop),
-          backgroundColor: Colors.orange,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.galleryNotSupportedOnDesktop,
+        variant: TpToastVariant.warning,
       );
     }
     return;
@@ -358,17 +358,18 @@ Future<void> _saveImageToGallery(BuildContext context, String imagePath) async {
       album: 'Compressed Images',
     );
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.savedToGallery), backgroundColor: Colors.green),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.savedToGallery,
+        variant: TpToastVariant.success,
       );
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.saveFailed('$e')),
-          backgroundColor: Colors.red,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.saveFailed('$e'),
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -380,10 +381,10 @@ Future<void> _saveAllImagesToGallery(
 ) async {
   if (!PlatformCapability.supportsGalleryAccess) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.galleryNotSupportedOnDesktop),
-          backgroundColor: Colors.orange,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.galleryNotSupportedOnDesktop,
+        variant: TpToastVariant.warning,
       );
     }
     return;
@@ -398,20 +399,18 @@ Future<void> _saveAllImagesToGallery(
       savedCount++;
     }
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.savedImagesCount(savedCount)),
-          backgroundColor: Colors.green,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.savedImagesCount(savedCount),
+        variant: TpToastVariant.success,
       );
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.saveFailed('$e')),
-          backgroundColor: Colors.red,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.saveFailed('$e'),
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -420,8 +419,10 @@ Future<void> _saveAllImagesToGallery(
 void _openImageFolder(BuildContext context, String imagePath) {
   // 这里可以添加打开文件夹的逻辑
   // 由于平台限制，可能需要使用第三方插件
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text(context.hujiL10n.featureInDevelopment), backgroundColor: Colors.orange),
+  TpToast.show(
+    context,
+    message: context.hujiL10n.featureInDevelopment,
+    variant: TpToastVariant.warning,
   );
 }
 
@@ -443,18 +444,19 @@ Widget _buildDetailRow(String label, String value) {
 Future<void> handleTaskTap(BuildContext context, Task task) async {
   void showMissingResult() {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.hujiL10n.taskResultUnavailable)),
+    TpToast.show(
+      context,
+      message: context.hujiL10n.taskResultUnavailable,
+      variant: TpToastVariant.error,
     );
   }
 
   void showMissingFile() {
     if (!context.mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.hujiL10n.fileDoesNotExist),
-        backgroundColor: Colors.red,
-      ),
+    TpToast.show(
+      context,
+      message: context.hujiL10n.fileDoesNotExist,
+      variant: TpToastVariant.error,
     );
   }
 
@@ -527,11 +529,10 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
       await OpenFile.open(task.savePath);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFileFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFileFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }

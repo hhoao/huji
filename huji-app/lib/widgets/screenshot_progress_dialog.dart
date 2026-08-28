@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:gal/gal.dart';
@@ -165,22 +166,20 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
           await OpenFile.open(file.parent.path);
         } else {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.hujiL10n.fileDoesNotExist),
-                backgroundColor: Colors.red,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.fileDoesNotExist,
+              variant: TpToastVariant.error,
             );
           }
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFolderFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFolderFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -194,33 +193,30 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
           await OpenFile.open(_screenshotPath!);
         } else {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.hujiL10n.fileDoesNotExist),
-                backgroundColor: Colors.red,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.fileDoesNotExist,
+              variant: TpToastVariant.error,
             );
           }
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFileFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFileFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
   }
 
   Future<void> _shareImage(BuildContext context) async {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.hujiL10n.shareFeatureInDevelopment),
-        backgroundColor: Colors.blue,
-      ),
+    TpToast.show(
+      context,
+      message: context.hujiL10n.shareFeatureInDevelopment,
+      variant: TpToastVariant.info,
     );
   }
 

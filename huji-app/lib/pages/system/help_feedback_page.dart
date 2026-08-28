@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/issue_models.dart';
@@ -31,11 +32,19 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
   Future<void> _submitFeedback() async {
     final l10n = context.hujiL10n;
     if (_titleController.text.trim().isEmpty) {
-      _showSnackBar(l10n.pleaseEnterTitle);
+      TpToast.show(
+        context,
+        message: l10n.pleaseEnterTitle,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
     if (_descController.text.trim().isEmpty) {
-      _showSnackBar(l10n.pleaseEnterDescription);
+      TpToast.show(
+        context,
+        message: l10n.pleaseEnterDescription,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
     setState(() {
@@ -50,7 +59,11 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
         type: _selectedType,
       );
       await Api.issue.createIssue(req);
-      _showSnackBar(l10n.feedbackSubmittedSuccessfully);
+      TpToast.show(
+        context,
+        message: l10n.feedbackSubmittedSuccessfully,
+        variant: TpToastVariant.success,
+      );
       _titleController.clear();
       _descController.clear();
       _contactController.clear();
@@ -58,7 +71,11 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
         _selectedType = IssueTypeEnum.bug;
       });
     } catch (e) {
-      _showSnackBar(context.hujiL10n.submitFailedRetryLater);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.submitFailedRetryLater,
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isSubmitting = false;
@@ -71,15 +88,14 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
     } else {
-      _showSnackBar(context.hujiL10n.cannotOpenLink);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.cannotOpenLink,
+        variant: TpToastVariant.error,
+      );
     }
   }
 
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
 
   @override
   Widget build(BuildContext context) {

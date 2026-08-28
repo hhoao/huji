@@ -4,6 +4,7 @@ import 'package:android_package_installer/android_package_installer.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/autoclip/app_models.dart';
 import 'package:huji_app/models/changelog.dart';
 import 'package:huji_app/models/task.dart';
@@ -391,10 +392,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
         widget.updateInfo.latestApp?.downloadType;
     if (downloadType == DownloadTypeEnum.redirect) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.hujiL10n.linkRequiresBrowserDownload),
-            duration: Duration(seconds: 2),
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.linkRequiresBrowserDownload,
+          variant: TpToastVariant.info,
         );
       }
       return;
@@ -418,11 +419,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.downloadErrorWithDetails('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.downloadErrorWithDetails('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -486,21 +486,11 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   Future<void> _handleBrowserDownload(AppApplicationRespVO latestApp) async {
     // 显示加载提示
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-              const SizedBox(width: 12),
-              Text(context.hujiL10n.fetchingDownloadLink),
-            ],
-          ),
-          duration: const Duration(seconds: 30), // 设置较长的超时时间
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.fetchingDownloadLink,
+        variant: TpToastVariant.info,
+        duration: const Duration(seconds: 30),
       );
     }
 
@@ -512,11 +502,10 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
 
       if (downloadUrl.isEmpty) {
         if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.hujiL10n.downloadLinkUnavailable),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.downloadLinkUnavailable,
+            variant: TpToastVariant.error,
           );
         }
         return;
@@ -544,40 +533,35 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       try {
         final launched = await launchUrl(uri);
         if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           if (launched) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.hujiL10n.downloadLinkOpenedInBrowser),
-                duration: Duration(seconds: 2),
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.downloadLinkOpenedInBrowser,
+              variant: TpToastVariant.success,
             );
           } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.hujiL10n.cannotOpenDownloadLink),
-                backgroundColor: Colors.red,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.cannotOpenDownloadLink,
+              variant: TpToastVariant.error,
             );
           }
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.openBrowserFailed('$e')),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.openBrowserFailed('$e'),
+            variant: TpToastVariant.error,
           );
         }
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openBrowserFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openBrowserFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }

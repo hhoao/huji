@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:dio/dio.dart';
-import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:huji_app/exceptions/notify_exception.dart';
 import 'package:huji_app/l10n/app_localizations.dart';
@@ -168,14 +168,10 @@ class AppErrorUtils {
     _lastShownMessage = message;
     _lastShownAt = now;
 
-    final messenger = ScaffoldMessenger.of(context);
-    messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(
-      SnackBar(
-        content: Text(message),
-        behavior: SnackBarBehavior.floating,
-        backgroundColor: Colors.red,
-      ),
+    TpToast.show(
+      context,
+      message: message,
+      variant: TpToastVariant.error,
     );
   }
 

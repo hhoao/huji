@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter/services.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
@@ -549,14 +550,11 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                               if (navigator == null) {
                                 debugPrint('Navigator state is null');
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        context.hujiL10n
-                                            .cannotOpenLogViewerNavigatorNotInitialized,
-                                      ),
-                                      duration: const Duration(seconds: 3),
-                                    ),
+                                  TpToast.show(
+                                    context,
+                                    message: context.hujiL10n
+                                        .cannotOpenLogViewerNavigatorNotInitialized,
+                                    variant: TpToastVariant.error,
                                   );
                                 }
                                 return;
@@ -572,15 +570,12 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                               debugPrint('导航到日志查看器失败: $e');
                               debugPrint('堆栈跟踪: $stackTrace');
                               if (mounted && context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  SnackBar(
-                                    content: Text(
-                                      context.hujiL10n.cannotOpenLogViewer(
-                                        '$e',
-                                      ),
-                                    ),
-                                    duration: const Duration(seconds: 3),
+                                TpToast.show(
+                                  context,
+                                  message: context.hujiL10n.cannotOpenLogViewer(
+                                    '$e',
                                   ),
+                                  variant: TpToastVariant.error,
                                 );
                               }
                             }

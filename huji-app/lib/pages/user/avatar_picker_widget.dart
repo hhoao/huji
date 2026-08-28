@@ -46,7 +46,11 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
     } catch (e, stackTrace) {
       AppLogger().e('选择图片失败: $e', stackTrace);
       if (mounted) {
-        _showErrorSnackBar(context.hujiL10n.pickImageFailed('$e'));
+        TpToast.show(
+          context,
+          message: context.hujiL10n.pickImageFailed('$e'),
+          variant: TpToastVariant.error,
+        );
       }
     }
   }
@@ -75,12 +79,20 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
 
       if (mounted) {
         widget.onAvatarChanged(avatarUrl ?? '');
-        _showSuccessSnackBar(context.hujiL10n.avatarUploadSuccess);
+        TpToast.show(
+          context,
+          message: context.hujiL10n.avatarUploadSuccess,
+          variant: TpToastVariant.success,
+        );
       }
     } catch (e, stackTrace) {
       AppLogger().e('上传头像失败: $e', stackTrace);
       if (mounted) {
-        _showErrorSnackBar(context.hujiL10n.avatarUploadFailed('$e'));
+        TpToast.show(
+          context,
+          message: context.hujiL10n.avatarUploadFailed('$e'),
+          variant: TpToastVariant.error,
+        );
       }
     } finally {
       if (mounted) {
@@ -121,18 +133,6 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
           ),
         );
       },
-    );
-  }
-
-  void _showSuccessSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.green),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message), backgroundColor: Colors.red),
     );
   }
 

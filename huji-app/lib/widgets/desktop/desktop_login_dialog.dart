@@ -111,13 +111,10 @@ class _LoginDialogState extends State<LoginDialog> {
 
   void _showError(String msg) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(msg),
-        backgroundColor: const Color(0xFF333333),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(seconds: 2),
-      ),
+    TpToast.show(
+      context,
+      message: msg,
+      variant: TpToastVariant.error,
     );
   }
 

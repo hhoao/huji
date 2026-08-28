@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/main.dart';
@@ -100,9 +101,11 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
         .toList();
 
     if (pendingItems.isEmpty) {
-      ScaffoldMessenger.of(
+      TpToast.show(
         context,
-      ).showSnackBar(const SnackBar(content: Text('没有待压缩的图片')));
+        message: '没有待压缩的图片',
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 
@@ -124,12 +127,10 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
     await TaskStorage().addAndAsyncProcessTask(task);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('任务已提交，正在跳转到任务页面...'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
+      TpToast.show(
+        context,
+        message: '任务已提交，正在跳转到任务页面...',
+        variant: TpToastVariant.success,
       );
     }
 

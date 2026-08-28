@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/pages/login/common.dart';
@@ -48,7 +49,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     final error = validateEmailOrPhone(context.hujiL10n, _identifierController.text);
 
     if (error != null) {
-      _showSnackBar(error);
+      TpToast.show(
+        context,
+        message: error,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 
@@ -59,7 +64,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
 
     if (_isSendingCode || _countdown > 0) return;
     if (userIdentifier != inputIdentifier) {
-      _showSnackBar(context.hujiL10n.accountMismatch);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.accountMismatch,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 
@@ -75,9 +84,17 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         _countdown = 60;
       });
       _startCountdown();
-      _showSnackBar(context.hujiL10n.loginAuthCodeSent);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginAuthCodeSent,
+        variant: TpToastVariant.success,
+      );
     } catch (e) {
-      _showSnackBar(context.hujiL10n.loginSendAuthCodeFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginSendAuthCodeFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isSendingCode = false;
@@ -101,11 +118,19 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   Future<void> _changePassword(IdentifierType identifierType) async {
     final error = validatePassword(context.hujiL10n, _newPasswordController.text);
     if (error != null) {
-      _showSnackBar(error);
+      TpToast.show(
+        context,
+        message: error,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
     if (_newPasswordController.text != _confirmPasswordController.text) {
-      _showSnackBar(context.hujiL10n.loginPasswordMismatch);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginPasswordMismatch,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
     if (!_formKey.currentState!.validate()) return;
@@ -120,13 +145,21 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           code: _codeController.text,
         ),
       );
-      _showSnackBar(context.hujiL10n.passwordChangedSuccessfully);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.passwordChangedSuccessfully,
+        variant: TpToastVariant.success,
+      );
       _reset();
       if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
-      _showSnackBar(context.hujiL10n.passwordChangeFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.passwordChangeFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -167,15 +200,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
           appRouter.go(LoginRoute.login);
         }
       } catch (e) {
-        _showSnackBar(context.hujiL10n.logoutFailed(e.toString()));
+        TpToast.show(
+          context,
+          message: context.hujiL10n.logoutFailed(e.toString()),
+          variant: TpToastVariant.error,
+        );
       }
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

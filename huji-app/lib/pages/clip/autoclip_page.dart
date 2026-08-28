@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
@@ -161,23 +162,20 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       );
       if (!hasPermission) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.hujiL10n.cloudClipUnavailable),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.cloudClipUnavailable,
+            variant: TpToastVariant.warning,
           );
         }
         return;
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openCloudClipFailed(e.toString())),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openCloudClipFailed(e.toString()),
+          variant: TpToastVariant.error,
         );
       }
       return;
@@ -197,7 +195,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
 
     try {
       if (rawRecord.filePath == null) {
-        _showSnackBar(context.hujiL10n.videoPathEmpty);
+        TpToast.show(
+          context,
+          message: context.hujiL10n.videoPathEmpty,
+          variant: TpToastVariant.warning,
+        );
         return;
       }
       final file = File(rawRecord.filePath!);
@@ -227,7 +229,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
 
       await _convertRawToProcessRecord(clipTask.id);
 
-      _showSnackBar(context.hujiL10n.clipTaskCreatedRedirecting);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.clipTaskCreatedRedirecting,
+        variant: TpToastVariant.success,
+      );
 
       if (mounted) {
         appRouter.go('${MainRoute.mainTask}?clipTaskId=${clipTask.id}');
@@ -238,7 +244,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         processStatus = context.hujiL10n.createTaskFailed;
       });
       AppLogger().e('创建任务失败: $e', stackTrace);
-      _showSnackBar(context.hujiL10n.createTaskFailedWithError(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.createTaskFailedWithError(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
@@ -260,12 +270,6 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         return processRecord;
       });
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _navigateToRecordAndClip() {
@@ -296,7 +300,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       _currentLocalTask = await _startLocalClipTask();
 
       // 显示成功提示
-      _showSnackBar(context.hujiL10n.localClipTaskCreatedRedirecting);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.localClipTaskCreatedRedirecting,
+        variant: TpToastVariant.success,
+      );
 
       // 直接跳转到任务页面，并传递任务ID
       if (mounted) {
@@ -309,7 +317,11 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
         isLocalProcessing = false;
       });
       AppLogger().e('本地视频剪辑失败: $e', stackTrace);
-      _showSnackBar(context.hujiL10n.localClipFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.localClipFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 

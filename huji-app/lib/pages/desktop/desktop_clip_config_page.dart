@@ -135,10 +135,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       });
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.loadDemoVideoFailed(e.toString())),
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loadDemoVideoFailed(e.toString()),
+        variant: TpToastVariant.error,
       );
     } finally {
       if (mounted) setState(() => _demoLoading = false);
@@ -156,8 +156,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   Future<void> _startDetection() async {
     final file = _selectedFile;
     if (file == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.selectVideoFileFirst)),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.selectVideoFileFirst,
+        variant: TpToastVariant.warning,
       );
       return;
     }
@@ -212,14 +214,18 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
       if (!mounted) return;
 
-      ScaffoldMessenger.of(
+      TpToast.show(
         context,
-      ).showSnackBar(SnackBar(content: Text(l10n.clipTaskCreatedRedirecting)));
+        message: l10n.clipTaskCreatedRedirecting,
+        variant: TpToastVariant.success,
+      );
       _goToTasks(task.id);
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.createTaskFailedWithError(e.toString()))),
+      TpToast.show(
+        context,
+        message: l10n.createTaskFailedWithError(e.toString()),
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -368,8 +374,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
     if (!mounted) return;
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(l10n.localClipTaskCreatedRedirecting)),
+    TpToast.show(
+      context,
+      message: l10n.localClipTaskCreatedRedirecting,
+      variant: TpToastVariant.success,
     );
     _goToTasks(task.id);
   }
@@ -651,8 +659,10 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           TpButton(
             variant: TpButtonVariant.outline,
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(context.hujiL10n.presetComingSoon)),
+              TpToast.show(
+                context,
+                message: context.hujiL10n.presetComingSoon,
+                variant: TpToastVariant.warning,
               );
             },
             child: Row(

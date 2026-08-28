@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:get/get_state_manager/src/rx_flutter/rx_obx_widget.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -22,12 +23,6 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
@@ -61,7 +56,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: SettingsManager.to.notifications,
                   onChanged: (v) async {
                     await SettingsManager.to.setNotifications(v);
-                    _showSnackBar(l10n.settingsNotificationsUpdated);
+                    TpToast.show(
+                      context,
+                      message: l10n.settingsNotificationsUpdated,
+                      variant: TpToastVariant.success,
+                    );
                   },
                 ),
               ),
@@ -75,7 +74,11 @@ class _SettingsPageState extends State<SettingsPage> {
                   value: ThemeManager.to.isDarkMode,
                   onChanged: (v) async {
                     await ThemeManager.to.setThemeMode(v);
-                    _showSnackBar(l10n.settingsThemeChanged);
+                    TpToast.show(
+                      context,
+                      message: l10n.settingsThemeChanged,
+                      variant: TpToastVariant.success,
+                    );
                   },
                 ),
               ),
@@ -251,7 +254,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 await cubit.setLocale(value!);
                 if (!dialogContext.mounted) return;
                 Navigator.pop(dialogContext);
-                _showSnackBar(l10n.settingsLanguageUpdated);
+                TpToast.show(
+                  context,
+                  message: l10n.settingsLanguageUpdated,
+                  variant: TpToastVariant.success,
+                );
               },
             ),
             RadioListTile<String>(
@@ -262,7 +269,11 @@ class _SettingsPageState extends State<SettingsPage> {
                 await cubit.setLocale(value!);
                 if (!dialogContext.mounted) return;
                 Navigator.pop(dialogContext);
-                _showSnackBar(l10n.settingsLanguageUpdated);
+                TpToast.show(
+                  context,
+                  message: l10n.settingsLanguageUpdated,
+                  variant: TpToastVariant.success,
+                );
               },
             ),
           ],
@@ -483,18 +494,34 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _clearCacheFiles() async {
     try {
       await StorageManager.to.clearCacheFiles();
-      _showSnackBar(context.hujiL10n.settingsCacheCleanupDone);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsCacheCleanupDone,
+        variant: TpToastVariant.success,
+      );
     } catch (e) {
-      _showSnackBar(context.hujiL10n.settingsCacheCleanupFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsCacheCleanupFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
   Future<void> _clearDownloadFiles() async {
     try {
       await StorageManager.to.clearDownloadFiles();
-      _showSnackBar(context.hujiL10n.settingsDownloadCleanupDone);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsDownloadCleanupDone,
+        variant: TpToastVariant.success,
+      );
     } catch (e) {
-      _showSnackBar(context.hujiL10n.settingsDownloadCleanupFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsDownloadCleanupFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
@@ -592,30 +619,50 @@ class _SettingsPageState extends State<SettingsPage> {
         );
       }
     } catch (e) {
-      _showSnackBar(context.hujiL10n.settingsDownloadListFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsDownloadListFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
   Future<void> _deleteSingleFile(BuildContext context, String filePath) async {
     try {
       await StorageManager.to.deleteSingleFile(filePath);
-      _showSnackBar(context.hujiL10n.settingsFileDeleteSuccess);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsFileDeleteSuccess,
+        variant: TpToastVariant.success,
+      );
       // 刷新文件列表
       if (context.mounted) {
         Navigator.pop(context);
         await _showDownloadFilesList(context);
       }
     } catch (e) {
-      _showSnackBar(context.hujiL10n.settingsFileDeleteFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsFileDeleteFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
   Future<void> _clearAllFiles() async {
     try {
       await StorageManager.to.clearAllFiles();
-      _showSnackBar(context.hujiL10n.settingsAllFilesCleanupDone);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsAllFilesCleanupDone,
+        variant: TpToastVariant.success,
+      );
     } catch (e) {
-      _showSnackBar(context.hujiL10n.settingsAllFilesCleanupFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsAllFilesCleanupFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
@@ -739,17 +786,29 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 
   void _showPrivacyPolicy() {
-    _showSnackBar(context.hujiL10n.featureInDevelopment);
+    TpToast.show(
+      context,
+      message: context.hujiL10n.featureInDevelopment,
+      variant: TpToastVariant.warning,
+    );
   }
 
   void _showUserAgreement() {
-    _showSnackBar(context.hujiL10n.featureInDevelopment);
+    TpToast.show(
+      context,
+      message: context.hujiL10n.featureInDevelopment,
+      variant: TpToastVariant.warning,
+    );
   }
 
   void checkUpdate(context) async {
     final updateInfo = await AppUpdateService.instance.checkForUpdate();
     if (updateInfo == null || !updateInfo.hasUpdate) {
-      _showSnackBar(context.hujiL10n.settingsAlreadyLatestVersion);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.settingsAlreadyLatestVersion,
+        variant: TpToastVariant.info,
+      );
       return;
     }
     showDialog(

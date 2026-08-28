@@ -113,9 +113,11 @@ class _LoginFormState extends State<LoginForm> {
       }
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginSuccess)));
+          message: context.hujiL10n.loginSuccess,
+          variant: TpToastVariant.success,
+        );
       }
       // 调用登录成功回调，如果没有则调用普通关闭回调
       if (widget.onLoginSuccess != null) {
@@ -125,9 +127,11 @@ class _LoginFormState extends State<LoginForm> {
       }
     } on AppException catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginFailed(e.message))));
+          message: context.hujiL10n.loginFailed(e.message),
+          variant: TpToastVariant.error,
+        );
       }
     } finally {
       setState(() {

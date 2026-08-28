@@ -83,10 +83,10 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.prepareVideoFailed(e.toString())),
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.prepareVideoFailed(e.toString()),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -116,10 +116,10 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.loadDemoVideoFailed(e.toString())),
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loadDemoVideoFailed(e.toString()),
+          variant: TpToastVariant.error,
         );
       }
     } finally {

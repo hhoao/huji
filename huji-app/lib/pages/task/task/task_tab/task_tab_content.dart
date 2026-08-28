@@ -92,7 +92,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
       context,
       _taskTabBloc,
       selectedTaskIds,
-      showSuccessSnackBar: true,
+      showSuccessToast: true,
     );
   }
 
@@ -102,7 +102,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
       context,
       _taskTabBloc,
       task,
-      showSnackBars: true,
+      showToasts: true,
     );
   }
 
@@ -186,7 +186,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
       context,
       _taskTabBloc,
       task,
-      showSuccessSnackBar: true,
+      showSuccessToast: true,
     );
   }
 
@@ -195,7 +195,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
       context,
       _taskTabBloc,
       task,
-      showSuccessSnackBar: true,
+      showSuccessToast: true,
     );
   }
 

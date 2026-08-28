@@ -41,9 +41,11 @@ class _HomeVideoListWidget extends StatelessWidget {
           previous.errorMessage != current.errorMessage,
       listener: (context, state) {
         if (state.errorMessage != null && context.mounted) {
-          ScaffoldMessenger.of(
+          TpToast.show(
             context,
-          ).showSnackBar(SnackBar(content: Text(state.errorMessage!)));
+            message: state.errorMessage!,
+            variant: TpToastVariant.error,
+          );
         }
       },
       child: BlocBuilder<HomeVideoListBloc, HomeVideoListState>(

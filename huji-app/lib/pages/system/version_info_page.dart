@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/profile.dart';
@@ -211,8 +212,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
 
   void _onVersionTap() {
     if (_isDeveloperMode) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.developerModeAlreadyEnabled)),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.developerModeAlreadyEnabled,
+        variant: TpToastVariant.info,
       );
       return;
     }
@@ -288,13 +291,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       Navigator.pop(context); // 关闭密码输入框
       _enableDeveloperMode();
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.developerPasswordIncorrect),
-          backgroundColor: Colors.red,
-          duration: const Duration(seconds: 2),
-          behavior: SnackBarBehavior.floating,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.developerPasswordIncorrect,
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -304,13 +304,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       _isDeveloperMode = true;
     });
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.hujiL10n.developerModeEnabledMessage),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
+    TpToast.show(
+      context,
+      message: context.hujiL10n.developerModeEnabledMessage,
+      variant: TpToastVariant.success,
     );
 
     // 重置点击计数

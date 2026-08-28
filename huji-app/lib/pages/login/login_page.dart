@@ -54,7 +54,11 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _sendAuthCode() async {
     if (_identifierController.text.isEmpty) {
-      _showSnackBar(context.hujiL10n.loginValidationIdentifierRequired);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginValidationIdentifierRequired,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 
@@ -73,9 +77,17 @@ class _LoginPageState extends State<LoginPage> {
       });
       _startCountdown();
 
-      _showSnackBar(context.hujiL10n.loginAuthCodeSent);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginAuthCodeSent,
+        variant: TpToastVariant.success,
+      );
     } catch (e) {
-      _showSnackBar(context.hujiL10n.loginSendAuthCodeFailed('$e'));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginSendAuthCodeFailed('$e'),
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isSendingCode = false;
@@ -121,18 +133,16 @@ class _LoginPageState extends State<LoginPage> {
         context.go('/');
       }
     } catch (e) {
-      _showSnackBar(context.hujiL10n.loginFailed('$e'));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginFailed('$e'),
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isLoading = false;
       });
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

@@ -412,11 +412,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       final newPath = '${dir.path}/${result.trim()}';
       if (await File(newPath).exists()) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.fileNameAlreadyExists),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.fileNameAlreadyExists,
+            variant: TpToastVariant.error,
           );
         }
         return;
@@ -426,11 +425,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
         _currentFileName = result.trim();
       });
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.renameSucceeded),
-            backgroundColor: Colors.green,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.renameSucceeded,
+          variant: TpToastVariant.success,
         );
       }
     }
@@ -506,11 +504,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (mounted) {
         Navigator.of(context).pop();
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.fileDeleted),
-              backgroundColor: Colors.orange,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.fileDeleted,
+            variant: TpToastVariant.warning,
           );
         }
       }
@@ -559,21 +556,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       try {
         DefaultCacheManager().removeFile(getCacheKey());
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.cacheCleared),
-              backgroundColor: Colors.green,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.cacheCleared,
+            variant: TpToastVariant.success,
           );
         }
         _initPlayer();
       } catch (e) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.clearCacheFailed(e.toString())),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.clearCacheFailed(e.toString()),
+            variant: TpToastVariant.error,
           );
         }
       }
@@ -1325,13 +1320,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
           return;
         }
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.hujiL10n.videoSavedTo('${file.parent.path}/$name'),
-              ),
-              behavior: SnackBarBehavior.floating,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.videoSavedTo('${file.parent.path}/$name'),
+            variant: TpToastVariant.success,
           );
         }
         return;
@@ -1375,23 +1367,19 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       if (taskById != null && taskById.status == TaskStatusEnum.completed) {
         if (taskById.status == TaskStatusEnum.completed) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.hujiL10n.downloadCompleted),
-                backgroundColor: Colors.green,
-                duration: Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.downloadCompleted,
+              variant: TpToastVariant.success,
             );
           }
           _initPlayer();
         } else if (taskById.status == TaskStatusEnum.failed) {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(context.hujiL10n.downloadFailed),
-                backgroundColor: Colors.red,
-                duration: Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.downloadFailed,
+              variant: TpToastVariant.error,
             );
           }
         } else if (taskById.status == TaskStatusEnum.processing) {

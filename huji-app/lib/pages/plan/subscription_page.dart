@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/subscription_models.dart';
 import 'package:huji_app/api/models/autoclip/minutes_models.dart';
@@ -645,10 +646,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 const Duration(seconds: 2),
                 () async {
                   Navigator.of(context).pop();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(context.hujiL10n.purchaseFeatureInDevelopment),
-                      backgroundColor: Colors.orange,
-                    ),
+                  TpToast.show(
+                    context,
+                    message: context.hujiL10n.purchaseFeatureInDevelopment,
+                    variant: TpToastVariant.warning,
                   );
                 },
               );
@@ -687,11 +688,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       });
 
       // 显示成功消息
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.subscriptionSuccess(plan.planName)),
-          backgroundColor: Colors.green,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.subscriptionSuccess(plan.planName),
+        variant: TpToastVariant.success,
       );
     } catch (e) {
       // 检查组件是否仍然挂载
@@ -701,11 +701,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       Navigator.of(context).pop();
 
       // 显示错误消息
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.subscriptionFailed('${e.toString()}')),
-          backgroundColor: Colors.red,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.subscriptionFailed('${e.toString()}'),
+        variant: TpToastVariant.error,
       );
     }
   }

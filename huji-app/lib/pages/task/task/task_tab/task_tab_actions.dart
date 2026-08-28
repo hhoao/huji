@@ -34,7 +34,7 @@ class TaskTabActions {
     TaskTabBloc bloc,
     Task task, {
     TaskDialogStyle? style,
-    bool showSuccessSnackBar = false,
+    bool showSuccessToast = false,
   }) {
     showTpDialog<void>(
       context: context,
@@ -69,15 +69,11 @@ class TaskTabActions {
                       const Duration(milliseconds: 500),
                       () {
                         bloc.add(TaskTabDeleteTaskEvent(task.id));
-                        if (showSuccessSnackBar && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.hujiL10n.taskDeleted(task.name),
-                              ),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 2),
-                            ),
+                        if (showSuccessToast && context.mounted) {
+                          TpToast.show(
+                            context,
+                            message: context.hujiL10n.taskDeleted(task.name),
+                            variant: TpToastVariant.success,
                           );
                         }
                       },
@@ -98,7 +94,7 @@ class TaskTabActions {
     TaskTabBloc bloc,
     Task task, {
     TaskDialogStyle? style,
-    bool showSuccessSnackBar = false,
+    bool showSuccessToast = false,
   }) {
     showTpDialog<void>(
       context: context,
@@ -133,15 +129,11 @@ class TaskTabActions {
                       const Duration(milliseconds: 500),
                       () {
                         bloc.add(TaskTabCancelTaskEvent(task));
-                        if (showSuccessSnackBar && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.hujiL10n.taskCancelled(task.name),
-                              ),
-                              backgroundColor: Colors.orange,
-                              duration: const Duration(seconds: 2),
-                            ),
+                        if (showSuccessToast && context.mounted) {
+                          TpToast.show(
+                            context,
+                            message: context.hujiL10n.taskCancelled(task.name),
+                            variant: TpToastVariant.warning,
                           );
                         }
                       },
@@ -162,7 +154,7 @@ class TaskTabActions {
     TaskTabBloc bloc,
     Set<String> taskIds, {
     TaskDialogStyle? style,
-    bool showSuccessSnackBar = false,
+    bool showSuccessToast = false,
   }) {
     if (taskIds.isEmpty) return;
 
@@ -200,15 +192,11 @@ class TaskTabActions {
                       () {
                         final deletedCount = taskIds.length;
                         bloc.add(TaskTabBatchDeleteTasksEvent(taskIds));
-                        if (showSuccessSnackBar && context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                context.hujiL10n.batchTasksDeleted(deletedCount),
-                              ),
-                              backgroundColor: Colors.green,
-                              duration: const Duration(seconds: 2),
-                            ),
+                        if (showSuccessToast && context.mounted) {
+                          TpToast.show(
+                            context,
+                            message: context.hujiL10n.batchTasksDeleted(deletedCount),
+                            variant: TpToastVariant.success,
                           );
                         }
                       },
@@ -229,8 +217,10 @@ class TaskTabActions {
       await TaskStorage().retryTask(task);
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.hujiL10n.retryFailed('$e'))),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.retryFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -240,7 +230,7 @@ class TaskTabActions {
     BuildContext context,
     TaskTabBloc bloc,
     Task task, {
-    bool showSnackBars = false,
+    bool showToasts = false,
   }) {
     final supportsPause = TaskStorage().supportsPause(task);
 
@@ -251,38 +241,30 @@ class TaskTabActions {
       if (task.status == TaskStatusEnum.processing ||
           task.status == TaskStatusEnum.pending) {
         bloc.add(TaskTabToggleTaskStatusEvent(task));
-        if (showSnackBars && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.taskPaused(task.name)),
-              backgroundColor: Colors.orange,
-              duration: const Duration(seconds: 2),
-            ),
+        if (showToasts && context.mounted) {
+          TpToast.show(
+            context,
+            message: l10n.taskPaused(task.name),
+            variant: TpToastVariant.warning,
           );
         }
       } else if (task.status == TaskStatusEnum.paused) {
         bloc.add(TaskTabToggleTaskStatusEvent(task));
-        if (showSnackBars && context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(l10n.taskResumed(task.name)),
-              backgroundColor: Colors.green,
-              duration: const Duration(seconds: 2),
-            ),
+        if (showToasts && context.mounted) {
+          TpToast.show(
+            context,
+            message: l10n.taskResumed(task.name),
+            variant: TpToastVariant.success,
           );
         }
       }
     } else if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            showSnackBars
-                ? l10n.taskPauseNotSupportedWithCancel(taskTypeLabel)
-                : l10n.taskPauseNotSupported(taskTypeLabel),
-          ),
-          backgroundColor: Colors.blue,
-          duration: Duration(seconds: showSnackBars ? 3 : 2),
-        ),
+      TpToast.show(
+        context,
+        message: showToasts
+            ? l10n.taskPauseNotSupportedWithCancel(taskTypeLabel)
+            : l10n.taskPauseNotSupported(taskTypeLabel),
+        variant: TpToastVariant.info,
       );
     }
   }

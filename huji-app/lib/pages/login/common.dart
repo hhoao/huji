@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -13,8 +14,10 @@ Future<void> getVerificationCode(
   final error = validateEmailOrPhone(context.hujiL10n, identifier);
   if (error != null) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error), backgroundColor: Colors.orange),
+      TpToast.show(
+        context,
+        message: error,
+        variant: TpToastVariant.warning,
       );
     }
     return;
@@ -28,20 +31,19 @@ Future<void> getVerificationCode(
       scene: SmsSceneEnum.memberLogin,
     );
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.loginAuthCodeSentCheck),
-          backgroundColor: Colors.green,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginAuthCodeSentCheck,
+        variant: TpToastVariant.success,
       );
     }
     onSuccess();
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.hujiL10n.loginSendFailed(e.toString())),
-          backgroundColor: Colors.red,
-        ),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loginSendFailed(e.toString()),
+        variant: TpToastVariant.error,
       );
     }
     onError(e.toString());

@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/api/models/autoclip/subscription_models.dart';
@@ -88,14 +89,12 @@ class ProfilePageContentState extends State<ProfilePageContent> {
       setState(() {
         _isLoading = false;
       });
-      _showSnackBar(context.hujiL10n.loadUserInfoFailed(e.toString()));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.loadUserInfoFailed(e.toString()),
+        variant: TpToastVariant.error,
+      );
     }
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

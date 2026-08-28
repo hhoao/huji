@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/pages/user/avatar_picker_widget.dart';
@@ -43,7 +44,11 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
       });
     } catch (e) {
       if (mounted) {
-        _showSnackBar(context.hujiL10n.loadUserInfoFailed('$e'));
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loadUserInfoFailed('$e'),
+          variant: TpToastVariant.error,
+        );
       }
     }
   }
@@ -51,7 +56,11 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   Future<void> _updateBasicInfo() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedSex == null) {
-      _showSnackBar(context.hujiL10n.pleaseSelectGender);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.pleaseSelectGender,
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 
@@ -66,12 +75,20 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
           sex: _selectedSex!,
         ),
       );
-      _showSnackBar(context.hujiL10n.infoUpdatedSuccessfully);
+      TpToast.show(
+        context,
+        message: context.hujiL10n.infoUpdatedSuccessfully,
+        variant: TpToastVariant.success,
+      );
       if (mounted) {
         Navigator.pop(context);
       }
     } catch (e) {
-      _showSnackBar(context.hujiL10n.infoUpdateFailed('$e'));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.infoUpdateFailed('$e'),
+        variant: TpToastVariant.error,
+      );
     } finally {
       setState(() {
         _isLoading = false;
@@ -83,12 +100,6 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
     setState(() {
       _userInfo?.avatar = avatarPath;
     });
-  }
-
-  void _showSnackBar(String message) {
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override

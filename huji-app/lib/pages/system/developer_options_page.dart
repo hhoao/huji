@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
@@ -387,15 +388,12 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
           ElevatedButton(
             onPressed: () {
               Navigator.of(context).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    context.hujiL10n.namedFeatureInDevelopment(
-                      context.hujiL10n.resetAppTitle,
-                    ),
-                  ),
-                  backgroundColor: Colors.orange,
+              TpToast.show(
+                context,
+                message: context.hujiL10n.namedFeatureInDevelopment(
+                  context.hujiL10n.resetAppTitle,
                 ),
+                variant: TpToastVariant.warning,
               );
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
@@ -406,45 +404,42 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
     );
   }
 
-  void _showFeatureInDevelopmentSnackBar(String featureName) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          context.hujiL10n.namedFeatureInDevelopment(featureName),
-        ),
-        behavior: SnackBarBehavior.floating,
-      ),
+  void _showFeatureInDevelopment(String featureName) {
+    TpToast.show(
+      context,
+      message: context.hujiL10n.namedFeatureInDevelopment(featureName),
+      variant: TpToastVariant.warning,
     );
   }
 
   void _clearCache() {
-    _showFeatureInDevelopmentSnackBar(context.hujiL10n.clearCacheTitle);
+    _showFeatureInDevelopment(context.hujiL10n.clearCacheTitle);
   }
 
   void _exportLogs() {
-    _showFeatureInDevelopmentSnackBar(context.hujiL10n.exportLogsTitle);
+    _showFeatureInDevelopment(context.hujiL10n.exportLogsTitle);
   }
 
   void _showPerformanceMonitor() {
-    _showFeatureInDevelopmentSnackBar(context.hujiL10n.performanceMonitorTitle);
+    _showFeatureInDevelopment(context.hujiL10n.performanceMonitorTitle);
   }
 
   void _showNetworkDebug() {
-    _showFeatureInDevelopmentSnackBar(context.hujiL10n.networkDebugTitle);
+    _showFeatureInDevelopment(context.hujiL10n.networkDebugTitle);
   }
 
   void _showDatabaseDebug() {
-    _showFeatureInDevelopmentSnackBar(context.hujiL10n.databaseDebugTitle);
+    _showFeatureInDevelopment(context.hujiL10n.databaseDebugTitle);
   }
 
   void _experimentalFeatureA() {
-    _showFeatureInDevelopmentSnackBar(
+    _showFeatureInDevelopment(
       context.hujiL10n.experimentalFeatureATitle,
     );
   }
 
   void _experimentalFeatureB() {
-    _showFeatureInDevelopmentSnackBar(
+    _showFeatureInDevelopment(
       context.hujiL10n.experimentalFeatureBTitle,
     );
   }

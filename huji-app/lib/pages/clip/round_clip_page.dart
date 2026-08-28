@@ -94,23 +94,19 @@ class _RoundClipPageState extends State<RoundClipPage>
             listener: (context, state) {
               // 处理错误消息
               if (state.errorMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.errorMessage!),
-                    backgroundColor: Colors.red,
-                    duration: const Duration(seconds: 3),
-                  ),
+                TpToast.show(
+                  context,
+                  message: state.errorMessage!,
+                  variant: TpToastVariant.error,
                 );
               }
 
               // 处理成功消息
               if (state.successMessage != null) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.successMessage!),
-                    backgroundColor: Colors.green,
-                    duration: const Duration(seconds: 2),
-                  ),
+                TpToast.show(
+                  context,
+                  message: state.successMessage!,
+                  variant: TpToastVariant.success,
                 );
               }
             },
@@ -1074,23 +1070,20 @@ class _RoundClipPageState extends State<RoundClipPage>
       );
       if (!hasPermission) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(context.hujiL10n.editFeatureUnavailable),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.editFeatureUnavailable,
+            variant: TpToastVariant.warning,
           );
         }
         return;
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openEditFeatureFailed),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openEditFeatureFailed,
+          variant: TpToastVariant.error,
         );
       }
       return;
@@ -1184,14 +1177,14 @@ class _RoundClipPageState extends State<RoundClipPage>
     final l10n = context.hujiL10n;
     final state = _roundClipBloc.state;
     if (state.videoRecord == null) {
-      _showErrorSnackBar(l10n.noVideoDataAvailable);
+      _showErrorMessage(l10n.noVideoDataAvailable);
       return;
     }
 
     // 获取要保存的片段
     final segmentsToSave = _getSegmentsToSave(state);
     if (segmentsToSave.isEmpty) {
-      _showErrorSnackBar(l10n.noSegmentsToSave);
+      _showErrorMessage(l10n.noSegmentsToSave);
       return;
     }
 
@@ -1234,7 +1227,7 @@ class _RoundClipPageState extends State<RoundClipPage>
   }
 
   /// 显示错误消息
-  void _showErrorSnackBar(String message) {
+  void _showErrorMessage(String message) {
     _roundClipBloc.add(ShowErrorMessageEvent(message));
   }
 }

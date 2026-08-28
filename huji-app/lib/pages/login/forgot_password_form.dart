@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
@@ -92,18 +93,18 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginResetPasswordSuccess)));
+          message: context.hujiL10n.loginResetPasswordSuccess,
+          variant: TpToastVariant.success,
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.loginResetPasswordFailed('$e')),
-          ),
+          message: context.hujiL10n.loginResetPasswordFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     } finally {

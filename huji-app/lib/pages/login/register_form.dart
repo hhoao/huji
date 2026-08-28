@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/pages/login/common.dart';
@@ -86,18 +87,18 @@ class _RegisterFormState extends State<RegisterForm> {
       );
 
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(SnackBar(content: Text(context.hujiL10n.loginRegisterSuccess)));
+          message: context.hujiL10n.loginRegisterSuccess,
+          variant: TpToastVariant.success,
+        );
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.loginRegisterFailed('$e')),
-          ),
+          message: context.hujiL10n.loginRegisterFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     } finally {

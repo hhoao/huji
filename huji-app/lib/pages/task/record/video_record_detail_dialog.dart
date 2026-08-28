@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
@@ -254,20 +255,16 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                       onPressed: () {
                         Navigator.of(context).pop();
                         if (record.status == ProcessStatus.completed) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(
-                                l10n.videoProcessingCompletedViewOutput,
-                              ),
-                              behavior: SnackBarBehavior.floating,
-                            ),
+                          TpToast.show(
+                            context,
+                            message: l10n.videoProcessingCompletedViewOutput,
+                            variant: TpToastVariant.success,
                           );
                         } else {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(l10n.videoStillProcessingTryLater),
-                              behavior: SnackBarBehavior.floating,
-                            ),
+                          TpToast.show(
+                            context,
+                            message: l10n.videoStillProcessingTryLater,
+                            variant: TpToastVariant.info,
                           );
                         }
                       },
@@ -284,15 +281,12 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                     child: OutlinedButton.icon(
                       onPressed: () {
                         Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(
-                              l10n.namedFeatureInDevelopment(
-                                l10n.reprocessButton,
-                              ),
-                            ),
-                            behavior: SnackBarBehavior.floating,
+                        TpToast.show(
+                          context,
+                          message: l10n.namedFeatureInDevelopment(
+                            l10n.reprocessButton,
                           ),
+                          variant: TpToastVariant.warning,
                         );
                       },
                       icon: const Icon(Icons.refresh),

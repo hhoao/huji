@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:gal/gal.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:intl/intl.dart';
@@ -366,22 +367,20 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
           await OpenFile.open(file.parent.path);
         } else {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.hujiL10n.videoPlayerFileNotFound),
-                backgroundColor: Colors.red,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.videoPlayerFileNotFound,
+              variant: TpToastVariant.error,
             );
           }
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFolderFailed(e.toString())),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFolderFailed(e.toString()),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -399,22 +398,20 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
           }
         } else {
           if (context.mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(context.hujiL10n.videoPlayerFileNotFound),
-                backgroundColor: Colors.red,
-              ),
+            TpToast.show(
+              context,
+              message: context.hujiL10n.videoPlayerFileNotFound,
+              variant: TpToastVariant.error,
             );
           }
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFileFailed(e.toString())),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFileFailed(e.toString()),
+          variant: TpToastVariant.error,
         );
       }
     }

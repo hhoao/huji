@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:chewie/chewie.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -366,12 +367,10 @@ class _VideoCompressPageState extends State<VideoCompressPage>
             },
             onError: (result) {
               if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(result.errorMessage ?? '预览压缩失败'),
-                    backgroundColor: Colors.red,
-                    behavior: SnackBarBehavior.floating,
-                  ),
+                TpToast.show(
+                  context,
+                  message: result.errorMessage ?? '预览压缩失败',
+                  variant: TpToastVariant.error,
                 );
               }
               setState(() {
@@ -412,12 +411,10 @@ class _VideoCompressPageState extends State<VideoCompressPage>
     await TaskStorage().addAndAsyncProcessTask(task);
     // 显示成功提示并自动跳转到任务界面
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('任务已提交，正在跳转到任务页面...'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
+      TpToast.show(
+        context,
+        message: '任务已提交，正在跳转到任务页面...',
+        variant: TpToastVariant.success,
       );
     }
 
@@ -1086,9 +1083,11 @@ class _VideoCompressPageState extends State<VideoCompressPage>
   // 显示视频信息对话框
   void _showVideoInfoDialog() {
     if (_videoInfo == null) {
-      ScaffoldMessenger.of(
+      TpToast.show(
         context,
-      ).showSnackBar(const SnackBar(content: Text('视频信息加载中，请稍后再试')));
+        message: '视频信息加载中，请稍后再试',
+        variant: TpToastVariant.warning,
+      );
       return;
     }
 

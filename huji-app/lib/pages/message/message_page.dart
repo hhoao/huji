@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/common/page.dart';
 import 'package:huji_app/api/models/member/notify_models.dart';
@@ -180,11 +181,10 @@ class MessagePageContentState extends State<MessagePageContent> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.markReadFailed),
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.markReadFailed,
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -217,20 +217,18 @@ class MessagePageContentState extends State<MessagePageContent> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.markAllReadSuccess),
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.markAllReadSuccess,
+          variant: TpToastVariant.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.operationFailed),
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.operationFailed,
+          variant: TpToastVariant.error,
         );
       }
     }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:open_file/open_file.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/store/task/task_manager.dart';
@@ -96,21 +97,19 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
         await OpenFile.open(file.parent.path);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.fileDoesNotExist),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.fileDoesNotExist,
+            variant: TpToastVariant.error,
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFolderFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFolderFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -123,21 +122,19 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
         await OpenFile.open(widget.task.savePath);
       } else {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.hujiL10n.fileDoesNotExist),
-              backgroundColor: Colors.red,
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.fileDoesNotExist,
+            variant: TpToastVariant.error,
           );
         }
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.hujiL10n.openFileFailed('$e')),
-            backgroundColor: Colors.red,
-          ),
+        TpToast.show(
+          context,
+          message: context.hujiL10n.openFileFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -154,11 +151,10 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
 
   void _minimizeToBackground() {
     Navigator.of(context).pop();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(context.hujiL10n.downloadWillContinueInBackground),
-        backgroundColor: Colors.blue,
-      ),
+    TpToast.show(
+      context,
+      message: context.hujiL10n.downloadWillContinueInBackground,
+      variant: TpToastVariant.info,
     );
   }
 

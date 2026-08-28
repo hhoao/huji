@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:huji_app/services/permission_service.dart';
@@ -62,24 +63,38 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
       );
 
       if (status.isGranted) {
-        _showSuccessSnackBar(l10n.permissionGrantedSuccess(permissionName));
+        TpToast.show(
+          context,
+          message: l10n.permissionGrantedSuccess(permissionName),
+          variant: TpToastVariant.success,
+        );
       } else if (status.isPermanentlyDenied) {
         _showPermissionSettingsDialog(permission);
       } else if (status.isDenied) {
-        _showWarningSnackBar(l10n.permissionDeniedRetry(permissionName));
+        TpToast.show(
+          context,
+          message: l10n.permissionDeniedRetry(permissionName),
+          variant: TpToastVariant.warning,
+        );
       } else {
-        _showInfoSnackBar(
-          l10n.permissionStatusMessage(
+        TpToast.show(
+          context,
+          message: l10n.permissionStatusMessage(
             permissionName,
             _permissionService.getPermissionStatusText(status, l10n),
           ),
+          variant: TpToastVariant.info,
         );
       }
     } catch (e) {
       setState(() {
         _isLoading = false;
       });
-      _showErrorSnackBar(context.hujiL10n.requestPermissionError('$e'));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.requestPermissionError('$e'),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
@@ -153,55 +168,6 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
     );
   }
 
-  // SnackBar 反馈方法（使用 Flutter 原生的 ScaffoldMessenger）
-  void _showSuccessSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.green,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _showWarningSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.orange,
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _showInfoSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.blue,
-        duration: const Duration(seconds: 2),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
-  void _showErrorSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: Colors.red,
-        duration: const Duration(seconds: 4),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-  }
-
   void _showDiagnosticInfo() async {
     try {
       final l10n = context.hujiL10n;
@@ -256,7 +222,11 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
         ),
       );
     } catch (e) {
-      _showErrorSnackBar(context.hujiL10n.permissionDiagnosticFetchFailed('$e'));
+      TpToast.show(
+        context,
+        message: context.hujiL10n.permissionDiagnosticFetchFailed('$e'),
+        variant: TpToastVariant.error,
+      );
     }
   }
 

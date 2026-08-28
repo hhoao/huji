@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
@@ -310,10 +311,10 @@ class _LogViewerPageState extends State<LogViewerPage> {
       if (!context.mounted) {
         return;
       }
-      ScaffoldMessenger.of(
+      TpToast.show(
         context,
-      ).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.shareLogsFailed('$e'))),
+        message: context.hujiL10n.shareLogsFailed('$e'),
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -323,18 +324,18 @@ class _LogViewerPageState extends State<LogViewerPage> {
       await AppLogger.instance.clearOldLogs();
       await _loadLogFiles();
       if (mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(
-          SnackBar(content: Text(context.hujiL10n.clearedLogsOlderThan7Days)),
+          message: context.hujiL10n.clearedLogsOlderThan7Days,
+          variant: TpToastVariant.success,
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(
+        TpToast.show(
           context,
-        ).showSnackBar(
-          SnackBar(content: Text(context.hujiL10n.clearLogsFailed('$e'))),
+          message: context.hujiL10n.clearLogsFailed('$e'),
+          variant: TpToastVariant.error,
         );
       }
     }

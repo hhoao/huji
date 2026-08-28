@@ -255,12 +255,10 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                context.hujiL10n.prepareVideoFailed(e.toString()),
-              ),
-            ),
+          TpToast.show(
+            context,
+            message: context.hujiL10n.prepareVideoFailed(e.toString()),
+            variant: TpToastVariant.error,
           );
         }
       }

@@ -139,8 +139,10 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.hujiL10n.openFolderFailed('$e'))),
+      TpToast.show(
+        context,
+        message: context.hujiL10n.openFolderFailed('$e'),
+        variant: TpToastVariant.error,
       );
     }
   }
