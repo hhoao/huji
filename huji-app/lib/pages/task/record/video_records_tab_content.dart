@@ -191,27 +191,17 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 previous.hasMore != current.hasMore,
             builder: (context, state) {
               if (state.errorMessage != null) {
-                return Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        state.errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
+                return TpEmptyState(
+                  centered: true,
+                  icon: Icons.error_outline,
+                  title: state.errorMessage!,
+                  actionLabel: context.hujiL10n.actionRetry,
+                  onAction: () =>
+                      context.read<VideoRecordsTabBloc>().add(
+                        const VideoRecordsTabLoadRecordsEvent(
+                          refresh: true,
+                        ),
                       ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () =>
-                            context.read<VideoRecordsTabBloc>().add(
-                              const VideoRecordsTabLoadRecordsEvent(
-                                refresh: true,
-                              ),
-                            ),
-                        child: Text(context.hujiL10n.actionRetry),
-                      ),
-                    ],
-                  ),
                 );
               }
 
@@ -225,18 +215,10 @@ class _VideoRecordsTabContent extends StatelessWidget {
                 child: state.isLoading && state.recordList.isEmpty
                     ? Center(child: CircularProgressIndicator())
                     : state.recordList.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.history, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              l10n.noProcessingRecords,
-                              style: TextStyle(color: Colors.grey),
-                            ),
-                          ],
-                        ),
+                    ? TpEmptyState(
+                        centered: true,
+                        icon: Icons.history,
+                        title: l10n.noProcessingRecords,
                       )
                     : NotificationListener<ScrollNotification>(
                         onNotification: (ScrollNotification scrollInfo) {

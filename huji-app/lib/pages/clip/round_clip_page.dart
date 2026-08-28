@@ -236,23 +236,10 @@ class _RoundClipPageState extends State<RoundClipPage>
                       ),
                     ],
                   )
-                : Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.video_library,
-                          size: 48,
-                          color: Colors.grey[600],
-                        ),
-                        SizedBox(height: 8),
-                        Text(context.hujiL10n.noVideoData, style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 16,
-                          ),
-                        ),
-                      ],
-                    ),
+                : TpEmptyState(
+                    centered: true,
+                    icon: Icons.video_library,
+                    title: context.hujiL10n.noVideoData,
                   ),
           ),
         );
@@ -969,26 +956,10 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   /// 构建空收藏视图
   Widget _buildEmptyFavoritesView() {
-    return SizedBox(
-      height: 60, // 与列表高度一致，保持布局稳定
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.grey[300]!),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.star_border, size: 24, color: Colors.grey),
-              SizedBox(height: 4),
-              Text(context.hujiL10n.noFavoriteRounds, style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ],
-          ),
-        ),
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.star_border,
+      title: context.hujiL10n.noFavoriteRounds,
     );
   }
 

@@ -13,6 +13,7 @@ import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dar
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/main.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 import '../../../../models/task.dart';
 
@@ -200,33 +201,14 @@ class _TaskTabContentState extends State<TaskTabContent> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.folder_open, size: 80, color: Colors.amber[200]),
-          const SizedBox(height: 16),
-          Text(
-            context.hujiL10n.noCompletedTasks,
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey),
-          ),
-          const SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: () {
-              appRouter.go(MainRoute.mainHome);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: Text(context.hujiL10n.goToFeature),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.folder_open,
+      title: context.hujiL10n.noCompletedTasks,
+      actionLabel: context.hujiL10n.goToFeature,
+      onAction: () {
+        appRouter.go(MainRoute.mainHome);
+      },
     );
   }
 }

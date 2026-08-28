@@ -671,18 +671,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       height: 180,
       width: double.infinity,
       color: Colors.grey[300],
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.video_library, size: 48, color: Colors.grey),
-          SizedBox(height: 8),
-          Text(
-            _isInitialized
-                ? context.hujiL10n.videoLoading
-                : context.hujiL10n.noVideo,
-            style: TextStyle(color: Colors.grey[600], fontSize: 14),
-          ),
-        ],
+      child: TpEmptyState(
+        centered: true,
+        icon: Icons.video_library,
+        title: _isInitialized
+            ? context.hujiL10n.videoLoading
+            : context.hujiL10n.noVideo,
       ),
     );
   }

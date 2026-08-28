@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../models/changelog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class ChangelogPage extends StatefulWidget {
   const ChangelogPage({super.key});
@@ -79,51 +80,20 @@ class _ChangelogPageState extends State<ChangelogPage> {
     }
 
     if (_errorMessage != null) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.error_outline,
-              size: 64,
-              color: context.theme.colorScheme.error,
-            ),
-            SizedBox(height: 16),
-            Text(
-              _errorMessage!,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: context.theme.colorScheme.error,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            SizedBox(height: 16),
-            ElevatedButton(onPressed: _loadChangelog, child: Text(context.hujiL10n.actionRetry)),
-          ],
-        ),
+      return TpEmptyState(
+        centered: true,
+        icon: Icons.error_outline,
+        title: _errorMessage!,
+        actionLabel: context.hujiL10n.actionRetry,
+        onAction: _loadChangelog,
       );
     }
 
     if (_entries.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.description_outlined,
-              size: 64,
-              color: context.theme.colorScheme.onSurface.withValues(alpha: 0.5),
-            ),
-            SizedBox(height: 16),
-            Text(
-              context.hujiL10n.noChangelogEntries,
-              style: context.textTheme.titleMedium?.copyWith(
-                color: context.theme.colorScheme.onSurface.withValues(
-                  alpha: 0.5,
-                ),
-              ),
-            ),
-          ],
-        ),
+      return TpEmptyState(
+        centered: true,
+        icon: Icons.description_outlined,
+        title: context.hujiL10n.noChangelogEntries,
       );
     }
 

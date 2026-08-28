@@ -123,66 +123,22 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
 
   Widget _buildEmptyState(BuildContext context) {
     final l10n = context.hujiL10n;
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.video_library_outlined,
-            size: context.tpIconSizes.md,
-            color: cs.onSurfaceVariant.withValues(alpha: 0.5),
-          ),
-          SizedBox(height: 14),
-          Text(
-            l10n.desktopLibraryEmptyTitle,
-            style: styles.md.copyWith(color: cs.onSurfaceVariant),
-          ),
-          Text(
-            l10n.desktopLibraryEmptyHint,
-            style: styles.sm.copyWith(
-              color: cs.onSurfaceVariant.withValues(alpha: 0.75),
-            ),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.video_library_outlined,
+      title: l10n.desktopLibraryEmptyTitle,
+      hint: l10n.desktopLibraryEmptyHint,
     );
   }
 
   Widget _buildErrorState(BuildContext context) {
     final l10n = context.hujiL10n;
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.error_outline,
-            size: context.tpIconSizes.md,
-            color: cs.outline,
-          ),
-          SizedBox(height: 14),
-          Text(
-            l10n.desktopLibraryLoadFailed(_error!),
-            style: styles.md.copyWith(color: cs.onSurfaceVariant),
-          ),
-          SizedBox(height: 16),
-          TpButton(
-            variant: TpButtonVariant.primary,
-            onPressed: _loadRecords,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.refresh, size: 16),
-                const SizedBox(width: 6),
-                Text(l10n.actionRetry),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.error_outline,
+      title: l10n.desktopLibraryLoadFailed(_error!),
+      actionLabel: l10n.actionRetry,
+      onAction: _loadRecords,
     );
   }
 

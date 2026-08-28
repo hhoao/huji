@@ -398,36 +398,20 @@ class MessagePageContentState extends State<MessagePageContent> {
   }
 
   Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.message_outlined, size: 64, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            context.hujiL10n.noMessages,
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.message_outlined,
+      title: context.hujiL10n.noMessages,
     );
   }
 
   Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            _errorMessage ?? context.hujiL10n.loadFailedShort,
-            style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(onPressed: _loadMessages, child: Text(context.hujiL10n.actionRetry)),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.error_outline,
+      title: _errorMessage ?? context.hujiL10n.loadFailedShort,
+      actionLabel: context.hujiL10n.actionRetry,
+      onAction: _loadMessages,
     );
   }
 

@@ -110,24 +110,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildErrorWidget() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
-          SizedBox(height: 16),
-          Text(
-            _errorMessage!,
-            style: const TextStyle(color: Colors.grey),
-            textAlign: TextAlign.center,
-          ),
-          SizedBox(height: 16),
-          ElevatedButton(
-            onPressed: _loadSubscriptionData,
-            child: Text(context.hujiL10n.actionRetry),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.error_outline,
+      title: _errorMessage!,
+      actionLabel: context.hujiL10n.actionRetry,
+      onAction: _loadSubscriptionData,
     );
   }
 

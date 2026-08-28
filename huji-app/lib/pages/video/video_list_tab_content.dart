@@ -424,42 +424,22 @@ class VideoListTabContentState extends State<VideoListTabContent>
         // 视频列表内容
         Expanded(
           child: _errorMessage != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        _errorMessage!,
-                        style: const TextStyle(color: Colors.red),
-                        textAlign: TextAlign.center,
-                      ),
-                      SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () => _loadVideos(refresh: true),
-                        child: Text(context.hujiL10n.actionRetry),
-                      ),
-                    ],
-                  ),
+              ? TpEmptyState(
+                  centered: true,
+                  icon: Icons.error_outline,
+                  title: _errorMessage!,
+                  actionLabel: context.hujiL10n.actionRetry,
+                  onAction: () => _loadVideos(refresh: true),
                 )
               : RefreshIndicator(
                   onRefresh: () => _loadVideos(refresh: true),
                   child: _isLoading && _displayList.isEmpty
                       ? Center(child: CircularProgressIndicator())
                       : _displayList.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.video_library_outlined,
-                                size: 64,
-                                color: Colors.grey,
-                              ),
-                              SizedBox(height: 16),
-                              Text(context.hujiL10n.desktopLibraryEmptyTitle, style: TextStyle(color: Colors.grey),
-                              ),
-                            ],
-                          ),
+                      ? TpEmptyState(
+                          centered: true,
+                          icon: Icons.video_library_outlined,
+                          title: context.hujiL10n.desktopLibraryEmptyTitle,
                         )
                       : NotificationListener<ScrollNotification>(
                           onNotification: (ScrollNotification scrollInfo) {

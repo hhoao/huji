@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/models/task.dart';
-import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_event.dart';
@@ -184,19 +183,10 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
   }
 
   Widget _buildEmptyState() {
-    final cs = context.desktopColors;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.inbox_outlined, size: 64, color: cs.outline),
-          SizedBox(height: 16),
-          Text(context.hujiL10n.noTasks, style: TpTextStyles.of(context)
-                .md
-                .copyWith(color: cs.onSurfaceVariant),
-          ),
-        ],
-      ),
+    return TpEmptyState(
+      centered: true,
+      icon: Icons.inbox_outlined,
+      title: context.hujiL10n.noTasks,
     );
   }
 }
