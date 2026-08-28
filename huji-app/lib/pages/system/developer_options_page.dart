@@ -311,37 +311,47 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
 
   void _showSystemInfo(BuildContext context) {
     final l10n = context.hujiL10n;
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.systemInfoTitle),
-        content: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildInfoRow(
-                l10n.platformLabel,
-                GetPlatform.isAndroid ? 'Android' : 'iOS',
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: l10n.systemInfoTitle),
+            SizedBox(height: ctx.tpSpacing.lg),
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildInfoRow(
+                    l10n.platformLabel,
+                    GetPlatform.isAndroid ? 'Android' : 'iOS',
+                  ),
+                  _buildInfoRow(
+                    l10n.deviceLabel,
+                    GetPlatform.isMobile ? l10n.mobileDevice : l10n.desktopDevice,
+                  ),
+                  _buildInfoRow(l10n.flutterVersionLabel, '3.16.0'),
+                  _buildInfoRow(l10n.dartVersionLabel, '3.2.0'),
+                  _buildInfoRow(l10n.getxVersionLabel, '4.6.5'),
+                  _buildInfoRow(l10n.appVersionLabel, '1.0.0'),
+                  _buildInfoRow(l10n.buildNumber, '1'),
+                ],
               ),
-              _buildInfoRow(
-                l10n.deviceLabel,
-                GetPlatform.isMobile ? l10n.mobileDevice : l10n.desktopDevice,
-              ),
-              _buildInfoRow(l10n.flutterVersionLabel, '3.16.0'),
-              _buildInfoRow(l10n.dartVersionLabel, '3.2.0'),
-              _buildInfoRow(l10n.getxVersionLabel, '4.6.5'),
-              _buildInfoRow(l10n.appVersionLabel, '1.0.0'),
-              _buildInfoRow(l10n.buildNumber, '1'),
-            ],
-          ),
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(context.hujiL10n.actionClose),
+                ),
+              ],
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.hujiL10n.actionClose),
-          ),
-        ],
       ),
     );
   }
@@ -375,31 +385,41 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
 
   void _resetApp(BuildContext context) {
     final l10n = context.hujiL10n;
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.resetAppTitle),
-        content: Text(l10n.resetAppConfirmMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              TpToast.show(
-                context,
-                message: context.hujiL10n.namedFeatureInDevelopment(
-                  context.hujiL10n.resetAppTitle,
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: l10n.resetAppTitle),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(l10n.resetAppConfirmMessage),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
                 ),
-                variant: TpToastVariant.warning,
-              );
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            child: Text(context.hujiL10n.actionReset),
-          ),
-        ],
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    TpToast.show(
+                      context,
+                      message: context.hujiL10n.namedFeatureInDevelopment(
+                        context.hujiL10n.resetAppTitle,
+                      ),
+                      variant: TpToastVariant.warning,
+                    );
+                  },
+                  child: Text(context.hujiL10n.actionReset),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -235,66 +235,38 @@ class MessagePageContentState extends State<MessagePageContent> {
   }
 
   void _showMessageDetail(NotifyMessageVO message) {
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (BuildContext context) {
-        return Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 标题栏
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        message.templateNickname,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
+      builder: (dialogContext) {
+        return TpDialog(
+          maxWidth: 400,
+          maxHeight: 600,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TpDialogHeader(title: message.templateNickname),
+              SizedBox(height: dialogContext.tpSpacing.lg),
+              Text(
+                context.hujiL10n.messageTimeLabel(
+                  timeStampToTimeAgo(message.createTime),
                 ),
-                SizedBox(height: 16),
-
-                // 时间
-                Text(
-                  context.hujiL10n.messageTimeLabel(
-                    timeStampToTimeAgo(message.createTime),
-                  ),
-                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 16),
-
-                // 消息内容
-                Flexible(
-                  child: SingleChildScrollView(
-                    child: Text(
-                      message.templateContent,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        height: 1.5,
-                        color: Colors.black87,
-                      ),
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+              SizedBox(height: 16),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Text(
+                    message.templateContent,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.5,
+                      color: Colors.black87,
                     ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },

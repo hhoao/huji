@@ -565,86 +565,106 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Future<void> _handleSubscribe(SubscriptionPlanRespVO plan) async {
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.subscriptionConfirm),
-        content: Text(
-          context.hujiL10n.subscriptionConfirmMessage(
-            plan.planName,
-            '${plan.monthlyPrice}',
-          ),
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.subscriptionConfirm),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(
+              context.hujiL10n.subscriptionConfirmMessage(
+                plan.planName,
+                '${plan.monthlyPrice}',
+              ),
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'subscription_plan_cancel',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.of(ctx).pop(),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    Throttles.throttle(
+                      'subscription_create',
+                      const Duration(seconds: 2),
+                      () async {
+                        await _createSubscription(plan);
+                      },
+                    );
+                  },
+                  child: Text(context.hujiL10n.confirmSubscription),
+                ),
+              ],
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'subscription_plan_cancel',
-                const Duration(milliseconds: 500),
-                () => Navigator.of(context).pop(),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.of(context).pop();
-              Throttles.throttle(
-                'subscription_create',
-                const Duration(seconds: 2),
-                () async {
-                  await _createSubscription(plan);
-                },
-              );
-            },
-            child: Text(context.hujiL10n.confirmSubscription),
-          ),
-        ],
       ),
     );
   }
 
   Future<void> _handlePurchaseMinutes(AppMinutesPackageRespVO package) async {
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.purchaseConfirm),
-        content: Text(
-          context.hujiL10n.purchaseConfirmMessage(
-            package.packageName,
-            package.minutes.round(),
-            package.price.toStringAsFixed(2),
-          ),
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.purchaseConfirm),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(
+              context.hujiL10n.purchaseConfirmMessage(
+                package.packageName,
+                package.minutes.round(),
+                package.price.toStringAsFixed(2),
+              ),
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'subscription_cancel',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.of(ctx).pop(),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () {
+                    Throttles.throttle(
+                      'subscription_confirm',
+                      const Duration(seconds: 2),
+                      () async {
+                        Navigator.of(ctx).pop();
+                        TpToast.show(
+                          context,
+                          message: context.hujiL10n.purchaseFeatureInDevelopment,
+                          variant: TpToastVariant.warning,
+                        );
+                      },
+                    );
+                  },
+                  child: Text(context.hujiL10n.confirmPurchase),
+                ),
+              ],
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'subscription_cancel',
-                const Duration(milliseconds: 500),
-                () => Navigator.of(context).pop(),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Throttles.throttle(
-                'subscription_confirm',
-                const Duration(seconds: 2),
-                () async {
-                  Navigator.of(context).pop();
-                  TpToast.show(
-                    context,
-                    message: context.hujiL10n.purchaseFeatureInDevelopment,
-                    variant: TpToastVariant.warning,
-                  );
-                },
-              );
-            },
-            child: Text(context.hujiL10n.confirmPurchase),
-          ),
-        ],
       ),
     );
   }
@@ -654,10 +674,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
     try {
       // 显示加载对话框
-      showDialog(
+      showTpDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context) => Center(child: CircularProgressIndicator()),
+        builder: (context) => const Center(child: CircularProgressIndicator()),
       );
 
       // 调用创建订阅API

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class BackgroundServicePermissionDialog extends StatelessWidget {
   const BackgroundServicePermissionDialog({super.key});
@@ -10,18 +11,13 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    return AlertDialog(
-      title: Row(
-        children: [
-          const Icon(Icons.info_outline, color: Colors.orange),
-          const SizedBox(width: 8),
-          Expanded(child: Text(l10n.backgroundServicePermissionTitle)),
-        ],
-      ),
-      content: Column(
+    return TpDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
+          TpDialogHeader(title: l10n.backgroundServicePermissionTitle),
+          SizedBox(height: context.tpSpacing.lg),
           Text(
             l10n.backgroundServicePermissionIntro,
             style: const TextStyle(fontSize: 16),
@@ -52,29 +48,32 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
             l10n.backgroundServicePermissionDeniedHint,
             style: const TextStyle(fontSize: 14, color: Colors.orange),
           ),
+          TpDialogActions(
+            children: [
+              TpButton(
+                variant: TpButtonVariant.ghost,
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l10n.setupLater),
+              ),
+              TpButton(
+                onPressed: () async {
+                  Navigator.of(context).pop(true);
+                  if (Platform.isAndroid || Platform.isIOS) {
+                    await openAppSettings();
+                  }
+                },
+                child: Text(l10n.goToSettings),
+              ),
+            ],
+          ),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(false),
-          child: Text(l10n.setupLater),
-        ),
-        ElevatedButton(
-          onPressed: () async {
-            Navigator.of(context).pop(true);
-            if (Platform.isAndroid || Platform.isIOS) {
-              await openAppSettings();
-            }
-          },
-          child: Text(l10n.goToSettings),
-        ),
-      ],
     );
   }
 
   /// 显示权限对话框
   static Future<bool> show(BuildContext context) async {
-    final result = await showDialog<bool>(
+    final result = await showTpDialog<bool>(
       context: context,
       barrierDismissible: false,
       builder: (context) => const BackgroundServicePermissionDialog(),

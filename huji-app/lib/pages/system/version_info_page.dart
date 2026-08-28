@@ -240,45 +240,49 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   void _showPasswordDialog() {
     final TextEditingController passwordController = TextEditingController();
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) {
-        final l10n = context.hujiL10n;
-        return AlertDialog(
-        title: Text(l10n.enterDeveloperPasswordTitle),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.enterDeveloperPasswordHint),
-            SizedBox(height: 16),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: InputDecoration(
-                labelText: l10n.loginPasswordLabel,
-                border: const OutlineInputBorder(),
-                hintText: l10n.loginValidationPasswordRequired,
+      builder: (ctx) {
+        final l10n = ctx.hujiL10n;
+        return TpDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TpDialogHeader(title: l10n.enterDeveloperPasswordTitle),
+              SizedBox(height: ctx.tpSpacing.lg),
+              Text(l10n.enterDeveloperPasswordHint),
+              SizedBox(height: 16),
+              TpInput(
+                controller: passwordController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: l10n.loginPasswordLabel,
+                  hintText: l10n.loginValidationPasswordRequired,
+                ),
+                onSubmitted: (value) => _verifyPassword(value),
               ),
-              onSubmitted: (value) => _verifyPassword(value),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // 重置点击计数
-              _versionTapCount = 0;
-              _lastTapTime = null;
-            },
-            child: Text(l10n.taskStatusCancelledShort),
+              TpDialogActions(
+                children: [
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: () {
+                      Navigator.pop(ctx);
+                      _versionTapCount = 0;
+                      _lastTapTime = null;
+                    },
+                    child: Text(l10n.taskStatusCancelledShort),
+                  ),
+                  TpButton(
+                    onPressed: () =>
+                        _verifyPassword(passwordController.text),
+                    child: Text(l10n.actionConfirm),
+                  ),
+                ],
+              ),
+            ],
           ),
-          ElevatedButton(
-            onPressed: () => _verifyPassword(passwordController.text),
-            child: Text(l10n.actionConfirm),
-          ),
-        ],
-      );
+        );
       },
     );
   }
@@ -321,63 +325,64 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
 
     if (!mounted) return;
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Row(
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(Icons.phone_android, color: context.theme.primaryColor),
-            SizedBox(width: 8),
-            Text(l10n.deviceInfoLabel),
+            TpDialogHeader(title: l10n.deviceInfoLabel),
+            SizedBox(height: ctx.tpSpacing.lg),
+            SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: deviceInfo.entries
+                    .map(
+                      (entry) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              width: 100,
+                              child: Text(
+                                _deviceInfoFieldLabel(l10n, entry.key),
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                  color: context.theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.7),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                entry.value,
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.pop(ctx),
+                  child: Text(context.hujiL10n.actionClose),
+                ),
+              ],
+            ),
           ],
         ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: deviceInfo.entries
-                  .map(
-                    (entry) => Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 100,
-                            child: Text(
-                              _deviceInfoFieldLabel(l10n, entry.key),
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: context.theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.7),
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              entry.value,
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.hujiL10n.actionClose),
-          ),
-        ],
       ),
     );
   }

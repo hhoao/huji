@@ -164,41 +164,49 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     context.hujiL10n.name,
                     _nicknameController.text,
                     onTap: () async {
-                      final result = await showDialog<String>(
+                      final result = await showTpDialog<String>(
                         context: context,
-                        builder: (context) {
+                        builder: (ctx) {
                           final controller = TextEditingController(
                             text: _nicknameController.text,
                           );
-                          return AlertDialog(
-                            title: Text(context.hujiL10n.editName, style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                            content: TextField(
-                              controller: controller,
-                              decoration: InputDecoration(
-                                hintText: context.hujiL10n.enterName,
-                                hintStyle: Theme.of(
-                                  context,
-                                ).textTheme.bodyMedium,
-                                filled: true,
-                                fillColor: Theme.of(
-                                  context,
-                                ).colorScheme.surface,
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: Text(context.hujiL10n.taskStatusCancelledShort, style: Theme.of(context).textTheme.bodyMedium,
+                          return TpDialog(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                TpDialogHeader(
+                                  title: context.hujiL10n.editName,
                                 ),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, controller.text),
-                                child: Text(context.hujiL10n.actionConfirm, style: Theme.of(context).textTheme.bodyMedium,
+                                SizedBox(height: ctx.tpSpacing.lg),
+                                TpInput(
+                                  controller: controller,
+                                  decoration: InputDecoration(
+                                    hintText: context.hujiL10n.enterName,
+                                  ),
                                 ),
-                              ),
-                            ],
+                                TpDialogActions(
+                                  children: [
+                                    TpButton(
+                                      variant: TpButtonVariant.ghost,
+                                      onPressed: () => Navigator.pop(ctx),
+                                      child: Text(
+                                        context.hujiL10n.taskStatusCancelledShort,
+                                      ),
+                                    ),
+                                    TpButton(
+                                      onPressed: () => Navigator.pop(
+                                        ctx,
+                                        controller.text,
+                                      ),
+                                      child: Text(
+                                        context.hujiL10n.actionConfirm,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           );
                         },
                       );
@@ -216,23 +224,29 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                         ? context.hujiL10n.male
                         : context.hujiL10n.female,
                     onTap: () async {
-                      final result = await showDialog<int>(
+                      final result = await showTpDialog<int>(
                         context: context,
-                        builder: (context) => SimpleDialog(
-                          title: Text(context.hujiL10n.selectGender, style: Theme.of(context).textTheme.titleLarge,
+                        builder: (ctx) => TpDialog(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              TpDialogHeader(
+                                title: context.hujiL10n.selectGender,
+                              ),
+                              SizedBox(height: ctx.tpSpacing.lg),
+                              TpButton(
+                                variant: TpButtonVariant.ghost,
+                                onPressed: () => Navigator.pop(ctx, 1),
+                                child: Text(context.hujiL10n.male),
+                              ),
+                              TpButton(
+                                variant: TpButtonVariant.ghost,
+                                onPressed: () => Navigator.pop(ctx, 2),
+                                child: Text(context.hujiL10n.female),
+                              ),
+                            ],
                           ),
-                          children: [
-                            SimpleDialogOption(
-                              child: Text(context.hujiL10n.male, style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              onPressed: () => Navigator.pop(context, 1),
-                            ),
-                            SimpleDialogOption(
-                              child: Text(context.hujiL10n.female, style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              onPressed: () => Navigator.pop(context, 2),
-                            ),
-                          ],
                         ),
                       );
                       if (result != null) {

@@ -546,21 +546,32 @@ class VideoListTabContentState extends State<VideoListTabContent>
   Future<void> _deleteLocalVideo(VideoDisplayItem item) async {
     if (item.localRecordId == null) return;
 
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.confirmDelete),
-        content: Text(context.hujiL10n.confirmDeleteLocalVideoMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmDelete),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(context.hujiL10n.confirmDeleteLocalVideoMessage),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(context.hujiL10n.actionDelete),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 

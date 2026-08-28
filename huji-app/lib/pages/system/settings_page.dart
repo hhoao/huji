@@ -228,13 +228,15 @@ class _SettingsPageState extends State<SettingsPage> {
     final cubit = context.read<AppearanceCubit>();
     final selected = cubit.state.locale.startsWith('en') ? 'en' : 'zh';
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text(l10n.settingsChooseLanguage),
-        content: Column(
+      builder: (dialogContext) => TpDialog(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            TpDialogHeader(title: l10n.settingsChooseLanguage),
+            SizedBox(height: dialogContext.tpSpacing.lg),
             RadioListTile<String>(
               title: Text(l10n.languageChinese),
               value: 'zh',
@@ -278,56 +280,60 @@ class _SettingsPageState extends State<SettingsPage> {
 
     if (!context.mounted) return;
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.settingsClearCache),
-        content: Column(
+      builder: (ctx) => TpDialog(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            TpDialogHeader(title: context.hujiL10n.settingsClearCache),
+            SizedBox(height: ctx.tpSpacing.lg),
             Text(context.hujiL10n.settingsChooseCleanupContent),
             const SizedBox(height: 16),
             _buildClearOption(
-              context,
+              ctx,
               context.hujiL10n.settingsCacheFiles,
               storageInfo[StorageManager.storageKeyCache] ?? 0,
               () => _clearCacheFiles(),
             ),
             const SizedBox(height: 8),
             _buildClearOption(
-              context,
+              ctx,
               context.hujiL10n.settingsDownloadFiles,
               storageInfo[StorageManager.storageKeyDownloads] ?? 0,
               () => _clearDownloadFiles(),
             ),
             const SizedBox(height: 4),
             _buildViewOption(
-              context,
+              ctx,
               context.hujiL10n.settingsViewDownloadFiles,
               () => _showDownloadFilesList(context),
             ),
             const SizedBox(height: 8),
             _buildClearOption(
-              context,
+              ctx,
               context.hujiL10n.settingsCleanupAll,
               storageInfo.values.reduce((a, b) => a + b),
               () => _clearAllFiles(),
             ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'settings_dialog_close',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.pop(ctx),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+              ],
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'settings_dialog_close',
-                const Duration(milliseconds: 500),
-                () => Navigator.pop(context),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-        ],
       ),
     );
   }
@@ -369,34 +375,44 @@ class _SettingsPageState extends State<SettingsPage> {
     String title,
     VoidCallback onConfirm,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.settingsConfirmCleanup),
-        content: Text(context.hujiL10n.settingsConfirmCleanupMessage(title)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'settings_clear_cancel',
-                const Duration(milliseconds: 500),
-                () => Navigator.pop(context, false),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'settings_clear_confirm',
-                const Duration(milliseconds: 500),
-                () => Navigator.pop(context, true),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.hujiL10n.settingsConfirmCleanupAction),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.settingsConfirmCleanup),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(context.hujiL10n.settingsConfirmCleanupMessage(title)),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'settings_clear_cancel',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.pop(ctx, false),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'settings_clear_confirm',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.pop(ctx, true),
+                    );
+                  },
+                  child: Text(context.hujiL10n.settingsConfirmCleanupAction),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
@@ -410,34 +426,44 @@ class _SettingsPageState extends State<SettingsPage> {
     String fileName,
     String filePath,
   ) async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.confirmDelete),
-        content: Text(context.hujiL10n.settingsConfirmDeleteFileMessage(fileName)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'settings_delete_cancel',
-                const Duration(milliseconds: 500),
-                () => Navigator.pop(context, false),
-              );
-            },
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          TextButton(
-            onPressed: () {
-              Throttles.throttle(
-                'settings_delete_confirm',
-                const Duration(milliseconds: 500),
-                () => Navigator.pop(context, true),
-              );
-            },
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: Text(context.hujiL10n.settingsConfirmDeleteAction),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.confirmDelete),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(context.hujiL10n.settingsConfirmDeleteFileMessage(fileName)),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'settings_delete_cancel',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.pop(ctx, false),
+                    );
+                  },
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'settings_delete_confirm',
+                      const Duration(milliseconds: 500),
+                      () => Navigator.pop(ctx, true),
+                    );
+                  },
+                  child: Text(context.hujiL10n.settingsConfirmDeleteAction),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 
@@ -521,89 +547,102 @@ class _SettingsPageState extends State<SettingsPage> {
       final files = await StorageManager.to.getDownloadFiles();
 
       if (context.mounted) {
-        showDialog(
+        showTpDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.hujiL10n.settingsDownloadFileList),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 400,
-              child: files.isEmpty
-                  ? Center(
-                      child: Text(
-                        context.hujiL10n.settingsNoDownloadFiles,
-                        style: const TextStyle(color: Colors.grey),
-                      ),
-                    )
-                  : ListView.builder(
-                      itemCount: files.length,
-                      itemBuilder: (context, index) {
-                        final file = files[index];
-                        return ListTile(
-                          leading: Icon(
-                            StorageManager.to.getFileIcon(file['extension']),
-                            color: Colors.blue,
+          builder: (ctx) => TpDialog(
+            maxHeight: 560,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TpDialogHeader(
+                  title: context.hujiL10n.settingsDownloadFileList,
+                ),
+                SizedBox(height: ctx.tpSpacing.lg),
+                SizedBox(
+                  width: double.maxFinite,
+                  height: 400,
+                  child: files.isEmpty
+                      ? Center(
+                          child: Text(
+                            context.hujiL10n.settingsNoDownloadFiles,
+                            style: const TextStyle(color: Colors.grey),
                           ),
-                          title: Text(
-                            file['name'],
-                            style: const TextStyle(fontSize: 14),
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          subtitle: Text(
-                            StorageManager.to.formatFileSize(file['size']),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          trailing: IconButton(
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Colors.red,
-                              size: 20,
-                            ),
-                            onPressed: () {
-                              Throttles.throttle(
-                                'settings_file_delete',
-                                const Duration(milliseconds: 500),
-                                () => _showDeleteFileConfirmation(
-                                  context,
-                                  file['name'],
-                                  file['path'],
+                        )
+                      : ListView.builder(
+                          itemCount: files.length,
+                          itemBuilder: (context, index) {
+                            final file = files[index];
+                            return ListTile(
+                              leading: Icon(
+                                StorageManager.to.getFileIcon(
+                                  file['extension'],
                                 ),
-                              );
-                            },
-                          ),
+                                color: Colors.blue,
+                              ),
+                              title: Text(
+                                file['name'],
+                                style: const TextStyle(fontSize: 14),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              subtitle: Text(
+                                StorageManager.to.formatFileSize(file['size']),
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              trailing: IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  Throttles.throttle(
+                                    'settings_file_delete',
+                                    const Duration(milliseconds: 500),
+                                    () => _showDeleteFileConfirmation(
+                                      ctx,
+                                      file['name'],
+                                      file['path'],
+                                    ),
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                ),
+                TpDialogActions(
+                  children: [
+                    TpButton(
+                      variant: TpButtonVariant.ghost,
+                      onPressed: () {
+                        Throttles.throttle(
+                          'settings_dialog_close',
+                          const Duration(milliseconds: 500),
+                          () => Navigator.pop(ctx),
                         );
                       },
+                      child: Text(context.hujiL10n.actionClose),
                     ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'settings_dialog_close',
-                    const Duration(milliseconds: 500),
-                    () => Navigator.pop(context),
-                  );
-                },
-                child: Text(context.hujiL10n.actionClose),
-              ),
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  await _showClearConfirmation(
-                    context,
-                    context.hujiL10n.settingsAllDownloadFiles,
-                    _clearDownloadFiles,
-                  );
-                },
-                child: Text(
-                  context.hujiL10n.settingsClearAll,
-                  style: const TextStyle(color: Colors.red),
+                    TpButton(
+                      variant: TpButtonVariant.destructive,
+                      onPressed: () async {
+                        Navigator.pop(ctx);
+                        await _showClearConfirmation(
+                          context,
+                          context.hujiL10n.settingsAllDownloadFiles,
+                          _clearDownloadFiles,
+                        );
+                      },
+                      child: Text(context.hujiL10n.settingsClearAll),
+                    ),
+                  ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       }
@@ -669,15 +708,15 @@ class _SettingsPageState extends State<SettingsPage> {
     if (!context.mounted) return;
 
     // 显示加载对话框
-    showDialog(
+    showTpDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Row(
+      builder: (context) => TpDialog(
+        child: Row(
           children: [
             CircularProgressIndicator(),
             SizedBox(width: 16),
-            Text(context.hujiL10n.storageInfoCalculating),
+            Expanded(child: Text(context.hujiL10n.storageInfoCalculating)),
           ],
         ),
       ),
@@ -690,58 +729,61 @@ class _SettingsPageState extends State<SettingsPage> {
       if (context.mounted) {
         Navigator.pop(context);
 
-        showDialog(
+        showTpDialog(
           context: context,
-          builder: (context) {
-            final l10n = context.hujiL10n;
+          builder: (ctx) {
+            final l10n = ctx.hujiL10n;
             final format = StorageManager.to.formatFileSize;
-            return AlertDialog(
-            title: Text(l10n.settingsStorage),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  l10n.storageCategoryWithSize(
-                    l10n.settingsCacheFiles,
-                    format(storageInfo[StorageManager.storageKeyCache]!),
+            return TpDialog(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TpDialogHeader(title: l10n.settingsStorage),
+                  SizedBox(height: ctx.tpSpacing.lg),
+                  Text(
+                    l10n.storageCategoryWithSize(
+                      l10n.settingsCacheFiles,
+                      format(storageInfo[StorageManager.storageKeyCache]!),
+                    ),
                   ),
-                ),
-                Text(
-                  l10n.storageCategoryWithSize(
-                    l10n.settingsAppData,
-                    format(storageInfo[StorageManager.storageKeyAppData]!),
+                  Text(
+                    l10n.storageCategoryWithSize(
+                      l10n.settingsAppData,
+                      format(storageInfo[StorageManager.storageKeyAppData]!),
+                    ),
                   ),
-                ),
-                Text(
-                  l10n.storageCategoryWithSize(
-                    l10n.settingsDownloadFiles,
-                    format(storageInfo[StorageManager.storageKeyDownloads]!),
+                  Text(
+                    l10n.storageCategoryWithSize(
+                      l10n.settingsDownloadFiles,
+                      format(storageInfo[StorageManager.storageKeyDownloads]!),
+                    ),
                   ),
-                ),
-                Text(
-                  l10n.storageCategoryWithSize(
-                    l10n.settingsExternalStorage,
-                    format(storageInfo[StorageManager.storageKeyExternal]!),
+                  Text(
+                    l10n.storageCategoryWithSize(
+                      l10n.settingsExternalStorage,
+                      format(storageInfo[StorageManager.storageKeyExternal]!),
+                    ),
                   ),
-                ),
-                SizedBox(height: 16),
-                Text(l10n.settingsTotalUsedSpace(format(totalSize))),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'settings_dialog_close',
-                    const Duration(milliseconds: 500),
-                    () => Navigator.pop(context),
-                  );
-                },
-                child: Text(l10n.actionConfirm),
+                  SizedBox(height: 16),
+                  Text(l10n.settingsTotalUsedSpace(format(totalSize))),
+                  TpDialogActions(
+                    children: [
+                      TpButton(
+                        onPressed: () {
+                          Throttles.throttle(
+                            'settings_dialog_close',
+                            const Duration(milliseconds: 500),
+                            () => Navigator.pop(ctx),
+                          );
+                        },
+                        child: Text(l10n.actionConfirm),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          );
+            );
           },
         );
       }
@@ -749,25 +791,34 @@ class _SettingsPageState extends State<SettingsPage> {
       if (context.mounted) {
         Navigator.pop(context);
 
-        showDialog(
+        showTpDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(context.hujiL10n.labelError),
-            content: Text(
-              context.hujiL10n.storageInfoFetchFailedWithError(e.toString()),
+          builder: (ctx) => TpDialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TpDialogHeader(title: context.hujiL10n.labelError),
+                SizedBox(height: ctx.tpSpacing.lg),
+                Text(
+                  context.hujiL10n.storageInfoFetchFailedWithError(e.toString()),
+                ),
+                TpDialogActions(
+                  children: [
+                    TpButton(
+                      onPressed: () {
+                        Throttles.throttle(
+                          'settings_dialog_close',
+                          const Duration(milliseconds: 500),
+                          () => Navigator.pop(ctx),
+                        );
+                      },
+                      child: Text(context.hujiL10n.actionConfirm),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'settings_dialog_close',
-                    const Duration(milliseconds: 500),
-                    () => Navigator.pop(context),
-                  );
-                },
-                child: Text(context.hujiL10n.actionConfirm),
-              ),
-            ],
           ),
         );
       }
@@ -800,7 +851,7 @@ class _SettingsPageState extends State<SettingsPage> {
       );
       return;
     }
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
     );

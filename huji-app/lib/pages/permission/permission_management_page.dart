@@ -109,30 +109,36 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
       l10n,
     );
 
-    final result = await showDialog<bool>(
+    final result = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.requestPermissionTitle(permissionName)),
-        content: Column(
+      builder: (ctx) => TpDialog(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            TpDialogHeader(title: l10n.requestPermissionTitle(permissionName)),
+            SizedBox(height: ctx.tpSpacing.lg),
             Text(permissionDetail),
             SizedBox(height: 16),
-            Text(context.hujiL10n.permissionExplanation, style: TextStyle(fontSize: 12, color: Colors.grey),
+            Text(
+              context.hujiL10n.permissionExplanation,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(context.hujiL10n.requestPermission),
+                ),
+              ],
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.hujiL10n.requestPermission),
-          ),
-        ],
       ),
     );
 
@@ -146,24 +152,34 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
       l10n,
     );
 
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.permissionDenied),
-        content: Text(l10n.permissionPermanentlyDenied(permissionName)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _permissionService.openAppSettingsPage();
-            },
-            child: Text(context.hujiL10n.goToSettings),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: l10n.permissionDenied),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(l10n.permissionPermanentlyDenied(permissionName)),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    _permissionService.openAppSettingsPage();
+                  },
+                  child: Text(context.hujiL10n.goToSettings),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -175,50 +191,62 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
 
       if (!mounted) return;
 
-      showDialog(
+      showTpDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(l10n.permissionDiagnosticTitle),
-          content: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(l10n.permissionDiagnosticTime(diagnosis['timestamp'])),
-                SizedBox(height: 16),
-                Text(l10n.permissionDiagnosticStats),
-                Text(l10n.permissionDiagnosticTotal(diagnosis['summary']['total'])),
-                Text(l10n.permissionDiagnosticGranted(diagnosis['summary']['granted'])),
-                Text(l10n.permissionDiagnosticDenied(diagnosis['summary']['denied'])),
-                Text(
-                  l10n.permissionDiagnosticPermanentlyDenied(
-                    diagnosis['summary']['permanentlyDenied'],
-                  ),
+        builder: (ctx) => TpDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TpDialogHeader(title: l10n.permissionDiagnosticTitle),
+              SizedBox(height: ctx.tpSpacing.lg),
+              SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(l10n.permissionDiagnosticTime(diagnosis['timestamp'])),
+                    SizedBox(height: 16),
+                    Text(l10n.permissionDiagnosticStats),
+                    Text(l10n.permissionDiagnosticTotal(diagnosis['summary']['total'])),
+                    Text(l10n.permissionDiagnosticGranted(diagnosis['summary']['granted'])),
+                    Text(l10n.permissionDiagnosticDenied(diagnosis['summary']['denied'])),
+                    Text(
+                      l10n.permissionDiagnosticPermanentlyDenied(
+                        diagnosis['summary']['permanentlyDenied'],
+                      ),
+                    ),
+                    Text(
+                      l10n.permissionDiagnosticGrantedRate(
+                        diagnosis['summary']['grantedPercentage'],
+                      ),
+                    ),
+                    SizedBox(height: 16),
+                    Text(l10n.permissionDiagnosticDetailStatus),
+                    ...diagnosis['permissions'].entries.map((entry) {
+                      final permissionName = entry.key;
+                      final permissionData = entry.value as Map<String, dynamic>;
+                      return Padding(
+                        padding: const EdgeInsets.only(left: 16, top: 4),
+                        child: Text(
+                          '$permissionName: ${permissionData['status']}',
+                        ),
+                      );
+                    }),
+                  ],
                 ),
-                Text(
-                  l10n.permissionDiagnosticGrantedRate(
-                    diagnosis['summary']['grantedPercentage'],
+              ),
+              TpDialogActions(
+                children: [
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text(context.hujiL10n.actionClose),
                   ),
-                ),
-                SizedBox(height: 16),
-                Text(l10n.permissionDiagnosticDetailStatus),
-                ...diagnosis['permissions'].entries.map((entry) {
-                  final permissionName = entry.key;
-                  final permissionData = entry.value as Map<String, dynamic>;
-                  return Padding(
-                    padding: const EdgeInsets.only(left: 16, top: 4),
-                    child: Text('$permissionName: ${permissionData['status']}'),
-                  );
-                }),
-              ],
-            ),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.hujiL10n.actionClose),
-            ),
-          ],
         ),
       );
     } catch (e) {

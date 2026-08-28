@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'login_form.dart';
 import 'register_form.dart';
 import 'forgot_password_form.dart';
@@ -28,7 +29,7 @@ class LoginDialog extends StatefulWidget {
     _isDialogShowing = true;
 
     try {
-      final result = await showDialog<bool>(
+      final result = await showTpDialog<bool>(
         context: context,
         barrierDismissible: false,
         builder: (context) => const LoginDialog(visible: true),
@@ -109,89 +110,41 @@ class _LoginDialogState extends State<LoginDialog>
   Widget build(BuildContext context) {
     if (!widget.visible) return const SizedBox.shrink();
 
-    return AnimatedBuilder(
-      animation: _animationController,
-      builder: (context, child) {
-        return GestureDetector(
-          behavior: HitTestBehavior.opaque,
-          onTap: _closeDialog,
-          child: Container(
-            color: Colors.black.withValues(alpha: 0.5 * _fadeAnimation.value),
-            child: Center(
-              child: SlideTransition(
-                position: _slideAnimation,
-                child: FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: GestureDetector(
-                    onTap: () {}, // 防止点击内容区域关闭弹窗
-                    child: Container(
-                      width: MediaQuery.of(context).size.width * 0.9,
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.1),
-                            blurRadius: 20,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // 关闭按钮
-                          Stack(
-                            children: [
-                              Align(
-                                alignment: Alignment.topRight,
-                                child: IconButton(
-                                  onPressed: _closeDialog,
-                                  icon: const Icon(
-                                    Icons.close,
-                                    color: Colors.grey,
-                                  ),
-                                  padding: const EdgeInsets.fromLTRB(
-                                    0,
-                                    12,
-                                    16,
-                                    0,
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                padding: const EdgeInsets.fromLTRB(
-                                  12,
-                                  22,
-                                  12,
-                                  0,
-                                ),
-                                alignment: Alignment.center,
-
-                                child: Text(
-                                  context.hujiL10n.emailLoginOnlyNotice,
-                                  style: const TextStyle(
-                                    color: Colors.orange,
-                                    fontSize: 12,
-                                    decoration: TextDecoration.none,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
-                          _buildCurrentForm(),
-                        ],
-                      ),
-                    ),
+    return TpDialog(
+      maxWidth: 480,
+      child: AnimatedBuilder(
+        animation: _animationController,
+        builder: (context, child) {
+          return SlideTransition(
+            position: _slideAnimation,
+            child: FadeTransition(
+              opacity: _fadeAnimation,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TpDialogHeader(
+                    title: context.hujiL10n.loginTitle,
+                    onClose: _closeDialog,
                   ),
-                ),
+                  SizedBox(height: context.tpSpacing.lg),
+                  Text(
+                    context.hujiL10n.emailLoginOnlyNotice,
+                    style: const TextStyle(
+                      color: Colors.orange,
+                      fontSize: 12,
+                      decoration: TextDecoration.none,
+                      fontWeight: FontWeight.normal,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  _buildCurrentForm(),
+                ],
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 

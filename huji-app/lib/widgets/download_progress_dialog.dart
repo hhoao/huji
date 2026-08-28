@@ -160,86 +160,75 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: Row(
-        children: [
-          Icon(
-            _isCompleted ? Icons.check_circle : Icons.download,
-            color: _isCompleted ? Colors.green : Colors.blue,
-            size: 24,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _errorMessage != null
-                  ? context.hujiL10n.downloadFailed
-                  : context.hujiL10n.downloadProgress,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.close),
-          ),
-        ],
-      ),
-      content: Column(
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+    final title = _errorMessage != null
+        ? l10n.downloadFailed
+        : l10n.downloadProgress;
+    final statusIcon = Icon(
+      _isCompleted ? Icons.check_circle : Icons.download,
+      color: _isCompleted ? Colors.green : cs.primary,
+      size: 24,
+    );
+
+    return TpDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 文件名
+          TpDialogHeader(
+            title: title,
+            trailing: statusIcon,
+            onClose: () => Navigator.of(context).pop(),
+          ),
+          SizedBox(height: context.tpSpacing.lg),
           Text(
             widget.task.name,
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 16),
-
+          const SizedBox(height: 16),
           if (_errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.2),
+                color: cs.error.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error, color: Colors.red, size: 20),
-                  SizedBox(width: 8),
+                  Icon(Icons.error, color: cs.error, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                      style: TextStyle(color: cs.error, fontSize: 12),
                     ),
                   ),
                 ],
               ),
             ),
           ] else ...[
-            // 进度条
             LinearProgressIndicator(
               value: _progress,
-              backgroundColor: Colors.grey[700],
+              backgroundColor: cs.surfaceContainerHighest,
               valueColor: AlwaysStoppedAnimation<Color>(
-                _isDownloading ? Colors.orange : Colors.blue,
+                _isDownloading ? Colors.orange : cs.primary,
               ),
             ),
-            SizedBox(height: 12),
-
-            // 进度信息
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   '${(_progress * 100).toStringAsFixed(1)}%',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
@@ -247,48 +236,43 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
                 Text(
                   _status,
                   style: TextStyle(
-                    color: _isDownloading ? Colors.orange : Colors.white,
+                    color: _isDownloading ? Colors.orange : cs.onSurface,
                     fontSize: 12,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
-
-            // 下载速度和大小信息
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   '${formatBytesSize(_processedSize.toDouble())} / ${formatBytesSize(_totalSize.toDouble())}',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
                 ),
                 Text(
                   '${formatBytesSize(_speed)}/s',
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  style: TextStyle(color: cs.onSurfaceVariant, fontSize: 12),
                 ),
               ],
             ),
-
-            SizedBox(height: 12),
-
-            // 保存路径
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey[800],
+                color: cs.surfaceContainerHighest,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.hujiL10n.saveLocationLabel,
-                    style: TextStyle(color: Colors.grey, fontSize: 10),
+                    l10n.saveLocationLabel,
+                    style: TextStyle(color: cs.onSurfaceVariant, fontSize: 10),
                   ),
                   Text(
                     widget.task.savePath,
-                    style: const TextStyle(color: Colors.white, fontSize: 11),
+                    style: TextStyle(color: cs.onSurface, fontSize: 11),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -296,69 +280,65 @@ class _DownloadProgressDialogState extends State<DownloadProgressDialog> {
               ),
             ),
           ],
+          TpDialogActions(
+            children: [
+              if (!_isCompleted && _errorMessage == null) ...[
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'download_minimize',
+                      const Duration(milliseconds: 500),
+                      () => _minimizeToBackground(),
+                    );
+                  },
+                  child: Text(l10n.downloadInBackground),
+                ),
+                TpButton(
+                  variant: _isDownloading
+                      ? TpButtonVariant.destructive
+                      : TpButtonVariant.primary,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'download_cancel_start',
+                      const Duration(milliseconds: 500),
+                      () => _cancelOrStartTask(),
+                    );
+                  },
+                  child: Text(
+                    _isDownloading
+                        ? l10n.taskStatusCancelledShort
+                        : l10n.downloadNow,
+                  ),
+                ),
+              ],
+              if (_isCompleted) ...[
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'download_open_file',
+                      const Duration(milliseconds: 500),
+                      () => _openFile(context),
+                    );
+                  },
+                  child: Text(l10n.openFile),
+                ),
+                TpButton(
+                  onPressed: () {
+                    Throttles.throttle(
+                      'download_open_folder',
+                      const Duration(milliseconds: 500),
+                      () => _openFolder(context),
+                    );
+                  },
+                  child: Text(l10n.openFolder),
+                ),
+              ],
+            ],
+          ),
         ],
       ),
-      actions: [
-        Flex(
-          direction: Axis.horizontal,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            if (!_isCompleted && _errorMessage == null) ...[
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'download_minimize',
-                    const Duration(milliseconds: 500),
-                    () => _minimizeToBackground(),
-                  );
-                },
-                child: Text(context.hujiL10n.downloadInBackground, style: TextStyle(color: Colors.grey)),
-              ),
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'download_cancel_start',
-                    const Duration(milliseconds: 500),
-                    () => _cancelOrStartTask(),
-                  );
-                },
-                child: Text(
-                  _isDownloading
-                      ? context.hujiL10n.taskStatusCancelledShort
-                      : context.hujiL10n.downloadNow,
-                  style: const TextStyle(color: Colors.red),
-                ),
-              ),
-            ],
-            if (_isCompleted) ...[
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'download_open_file',
-                    const Duration(milliseconds: 500),
-                    () => _openFile(context),
-                  );
-                },
-                child: Text(
-                  context.hujiL10n.openFile,
-                  style: TextStyle(color: Colors.green),
-                ),
-              ),
-              TextButton(
-                onPressed: () {
-                  Throttles.throttle(
-                    'download_open_folder',
-                    const Duration(milliseconds: 500),
-                    () => _openFolder(context),
-                  );
-                },
-                child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ],
     );
   }
 }

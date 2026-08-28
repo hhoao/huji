@@ -479,7 +479,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
     BuildContext context,
     VideoProcessRecordVO record,
   ) {
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => VideoRecordDetailDialog(record: record),
     );

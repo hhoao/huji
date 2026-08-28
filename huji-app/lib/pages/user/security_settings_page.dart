@@ -175,21 +175,31 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _logout() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.hujiL10n.accountLogout),
-        content: Text(context.hujiL10n.confirmLogoutMessage),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(context.hujiL10n.taskStatusCancelledShort),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(context.hujiL10n.actionConfirm),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: context.hujiL10n.accountLogout),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(context.hujiL10n.confirmLogoutMessage),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text(context.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text(context.hujiL10n.actionConfirm),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
 

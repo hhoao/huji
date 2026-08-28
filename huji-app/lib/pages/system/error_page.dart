@@ -483,27 +483,39 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                             child: OutlinedButton.icon(
                               onPressed: () {
                                 // Try to restart the app or show restart dialog
-                                showDialog(
+                                showTpDialog(
                                   context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Restart App'),
-                                    content: const Text(
-                                      'Would you like to restart the application? This may resolve the issue.',
+                                  builder: (ctx) => TpDialog(
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        const TpDialogHeader(
+                                          title: 'Restart App',
+                                        ),
+                                        SizedBox(height: ctx.tpSpacing.lg),
+                                        const Text(
+                                          'Would you like to restart the application? This may resolve the issue.',
+                                        ),
+                                        TpDialogActions(
+                                          children: [
+                                            TpButton(
+                                              variant: TpButtonVariant.ghost,
+                                              onPressed: () =>
+                                                  Navigator.of(ctx).pop(),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            TpButton(
+                                              onPressed: () {
+                                                Navigator.of(ctx).pop();
+                                              },
+                                              child: const Text('Restart'),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
                                     ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.of(context).pop(),
-                                        child: const Text('Cancel'),
-                                      ),
-                                      ElevatedButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                          // Here you would implement app restart logic
-                                        },
-                                        child: const Text('Restart'),
-                                      ),
-                                    ],
                                   ),
                                 );
                               },

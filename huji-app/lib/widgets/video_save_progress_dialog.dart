@@ -420,131 +420,115 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: Row(
-        children: [
-          Icon(
-            _isCompleted ? Icons.check_circle : Icons.video_library,
-            color: _isCompleted ? Colors.green : Colors.blue,
-            size: 24,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _errorMessage != null ? l10n.saveFailedShort : l10n.saveProgressTitle,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-          if (_isCompleted && _savedVideoPath != null)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert, color: Colors.white),
-              color: Colors.black.withValues(alpha: 0.9),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              itemBuilder: (context) => [
-                PopupMenuItem(
-                  value: 'open_file',
-                  child: Text(
-                    l10n.playVideo,
-                    style: const TextStyle(color: Colors.green),
-                  ),
-                ),
-                PopupMenuItem(
-                  value: 'open_folder',
-                  child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
-                  ),
-                ),
-              ],
-              onSelected: (value) {
-                switch (value) {
-                  case 'open_file':
-                    _openFile(context);
-                    break;
-                  case 'open_folder':
-                    _openFolder(context);
-                    break;
-                }
-              },
-            ),
-        ],
-      ),
-      content: Column(
+    final cs = Theme.of(context).colorScheme;
+    final title = _errorMessage != null
+        ? l10n.saveFailedShort
+        : l10n.saveProgressTitle;
+    final statusIcon = Icon(
+      _isCompleted ? Icons.check_circle : Icons.video_library,
+      color: _isCompleted ? Colors.green : cs.primary,
+      size: 24,
+    );
+    final completedMenu = _isCompleted && _savedVideoPath != null
+        ? PopupMenuButton<String>(
+            itemBuilder: (context) => [
+              PopupMenuItem(value: 'open_file', child: Text(l10n.playVideo)),
+              PopupMenuItem(value: 'open_folder', child: Text(l10n.openFolder)),
+            ],
+            onSelected: (value) {
+              switch (value) {
+                case 'open_file':
+                  _openFile(context);
+                  break;
+                case 'open_folder':
+                  _openFolder(context);
+                  break;
+              }
+            },
+          )
+        : null;
+
+    return TpDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 视频信息
+          TpDialogHeader(
+            title: title,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                statusIcon,
+                if (completedMenu != null) completedMenu,
+              ],
+            ),
+            onClose: () => Navigator.of(context).pop(),
+          ),
+          SizedBox(height: context.tpSpacing.lg),
           Text(
             l10n.fileNameWithSegmentCount(
               widget.fileName,
               widget.segments.length,
             ),
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 16),
-
+          const SizedBox(height: 16),
           if (_errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.2),
+                color: cs.error.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error, color: Colors.red, size: 20),
-                  SizedBox(width: 8),
+                  Icon(Icons.error, color: cs.error, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                      style: TextStyle(color: cs.error, fontSize: 12),
                     ),
                   ),
                 ],
               ),
             ),
           ] else ...[
-            // 进度条
             LinearProgressIndicator(
               value: _progress,
-              backgroundColor: Colors.grey[700],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+              backgroundColor: cs.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
             ),
-            SizedBox(height: 12),
-
-            // 进度信息
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   '${(_progress * 100).toStringAsFixed(1)}%',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   _status,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: cs.onSurface, fontSize: 12),
                 ),
               ],
             ),
-            SizedBox(height: 16),
-
-            // 文件信息
+            const SizedBox(height: 16),
             if (_isCompleted && _savedVideoPath != null) ...[
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[800],
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Column(
@@ -555,25 +539,28 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
                       children: [
                         Text(
                           l10n.fileInfoLabel,
-                          style: const TextStyle(color: Colors.grey, fontSize: 10),
-                        ),
-                        Text(
-                          _formattedFileSize,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
                             fontSize: 10,
                           ),
                         ),
+                        Text(
+                          _formattedFileSize,
+                          style: TextStyle(color: cs.onSurface, fontSize: 10),
+                        ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
                       l10n.saveLocationLabel,
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
                     ),
                     Text(
                       path.dirname(_savedVideoPath!),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                      style: TextStyle(color: cs.onSurface, fontSize: 11),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -582,46 +569,38 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
               ),
             ],
           ],
-        ],
-      ),
-      actions: [
-        Flex(
-          direction: Axis.horizontal,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            if (_isCompleted && _savedVideoPath != null) ...[
-              TextButton(
+          TpDialogActions(
+            children: [
+              if (_isCompleted && _savedVideoPath != null)
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'video_save_play',
+                      const Duration(milliseconds: 500),
+                      () => _openFile(context),
+                    );
+                  },
+                  child: Text(l10n.playVideo),
+                ),
+              TpButton(
                 onPressed: () {
                   Throttles.throttle(
-                    'video_save_play',
+                    'video_save_close',
                     const Duration(milliseconds: 500),
-                    () => _openFile(context),
+                    () => Navigator.of(context).pop(),
                   );
                 },
                 child: Text(
-                  l10n.playVideo,
-                  style: const TextStyle(color: Colors.green),
+                  _errorMessage != null
+                      ? l10n.actionConfirm
+                      : (_isCompleted ? l10n.actionDone : l10n.actionClose),
                 ),
               ),
             ],
-            TextButton(
-              onPressed: () {
-                Throttles.throttle(
-                  'video_save_close',
-                  const Duration(milliseconds: 500),
-                  () => Navigator.of(context).pop(),
-                );
-              },
-              child: Text(
-                _errorMessage != null
-                    ? l10n.actionConfirm
-                    : (_isCompleted ? l10n.actionDone : l10n.actionClose),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

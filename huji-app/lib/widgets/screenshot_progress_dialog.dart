@@ -222,124 +222,103 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.grey[900],
-      title: Row(
-        children: [
-          Icon(
-            _isCompleted ? Icons.check_circle : Icons.camera_alt,
-            color: _isCompleted ? Colors.green : Colors.blue,
-            size: 24,
-          ),
-          SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              _errorMessage != null
-                  ? context.hujiL10n.screenshotFailedTitle
-                  : context.hujiL10n.screenshotProgressTitle,
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, color: Colors.white),
-            color: Colors.black.withValues(alpha: 0.9),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: 'open_file',
-                child: Text(
-                  context.hujiL10n.openFile,
-                  style: const TextStyle(color: Colors.green),
-                ),
-              ),
-              PopupMenuItem(
-                value: 'open_folder',
-                child: Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.blue),
-                ),
-              ),
-            ],
-            onSelected: (value) {
-              switch (value) {
-                case 'open_file':
-                  _openFile(context);
-                  break;
-                case 'open_folder':
-                  _openFolder(context);
-                  break;
-              }
-            },
-          ),
-        ],
-      ),
-      content: Column(
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+    final title = _errorMessage != null
+        ? l10n.screenshotFailedTitle
+        : l10n.screenshotProgressTitle;
+    final statusIcon = Icon(
+      _isCompleted ? Icons.check_circle : Icons.camera_alt,
+      color: _isCompleted ? Colors.green : cs.primary,
+      size: 24,
+    );
+    final overflowMenu = PopupMenuButton<String>(
+      itemBuilder: (context) => [
+        PopupMenuItem(value: 'open_file', child: Text(l10n.openFile)),
+        PopupMenuItem(value: 'open_folder', child: Text(l10n.openFolder)),
+      ],
+      onSelected: (value) {
+        switch (value) {
+          case 'open_file':
+            _openFile(context);
+            break;
+          case 'open_folder':
+            _openFolder(context);
+            break;
+        }
+      },
+    );
+
+    return TpDialog(
+      child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 文件名和时间位置
+          TpDialogHeader(
+            title: title,
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [statusIcon, overflowMenu],
+            ),
+            onClose: () => Navigator.of(context).pop(),
+          ),
+          SizedBox(height: context.tpSpacing.lg),
           Text(
             '${widget.fileName} ($_formattedPosition)',
-            style: const TextStyle(
-              color: Colors.white,
+            style: TextStyle(
+              color: cs.onSurface,
               fontSize: 14,
               fontWeight: FontWeight.bold,
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          SizedBox(height: 16),
-
+          const SizedBox(height: 16),
           if (_errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.red.withValues(alpha: 0.2),
+                color: cs.error.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.error, color: Colors.red, size: 20),
-                  SizedBox(width: 8),
+                  Icon(Icons.error, color: cs.error, size: 20),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       _errorMessage!,
-                      style: const TextStyle(color: Colors.red, fontSize: 12),
+                      style: TextStyle(color: cs.error, fontSize: 12),
                     ),
                   ),
                 ],
               ),
             ),
           ] else ...[
-            // 进度条
             LinearProgressIndicator(
               value: _progress,
-              backgroundColor: Colors.grey[700],
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+              backgroundColor: cs.surfaceContainerHighest,
+              valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
             ),
-            SizedBox(height: 12),
-
-            // 进度信息
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
                   '${(_progress * 100).toStringAsFixed(1)}%',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: cs.onSurface,
                     fontSize: 14,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 Text(
                   _status,
-                  style: const TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: cs.onSurface, fontSize: 12),
                 ),
               ],
             ),
-            SizedBox(height: 16),
-
-            // 截图预览
+            const SizedBox(height: 16),
             if (_isCompleted && _screenshotPath != null) ...[
               Container(
                 height: 120,
@@ -347,7 +326,7 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                 decoration: BoxDecoration(
                   color: Colors.black,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[600]!),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
@@ -355,24 +334,20 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                     File(_screenshotPath!),
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
-                      return Center(
-                        child: Icon(
-                          Icons.image_not_supported,
-                          color: Colors.grey,
-                          size: 48,
-                        ),
+                      return Icon(
+                        Icons.image_not_supported,
+                        color: cs.onSurfaceVariant,
+                        size: 48,
                       );
                     },
                   ),
                 ),
               ),
-              SizedBox(height: 12),
-
-              // 文件信息
+              const SizedBox(height: 12),
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.grey[800],
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Column(
@@ -382,31 +357,34 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          context.hujiL10n.fileInfoLabel,
-                          style: const TextStyle(color: Colors.grey, fontSize: 10),
-                        ),
-                        Text(
-                          _formattedFileSize,
-                          style: const TextStyle(
-                            color: Colors.white,
+                          l10n.fileInfoLabel,
+                          style: TextStyle(
+                            color: cs.onSurfaceVariant,
                             fontSize: 10,
                           ),
                         ),
+                        Text(
+                          _formattedFileSize,
+                          style: TextStyle(color: cs.onSurface, fontSize: 10),
+                        ),
                       ],
                     ),
-                    SizedBox(height: 4),
+                    const SizedBox(height: 4),
                     Text(
-                      context.hujiL10n.saveLocationLabel,
-                      style: const TextStyle(color: Colors.grey, fontSize: 10),
+                      l10n.saveLocationLabel,
+                      style: TextStyle(
+                        color: cs.onSurfaceVariant,
+                        fontSize: 10,
+                      ),
                     ),
                     Text(
                       path.dirname(_screenshotPath!),
-                      style: const TextStyle(color: Colors.white, fontSize: 11),
+                      style: TextStyle(color: cs.onSurface, fontSize: 11),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
                     if (_savedToGallery) ...[
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Row(
                         children: [
                           const Icon(
@@ -414,8 +392,13 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
                             color: Colors.green,
                             size: 12,
                           ),
-                          SizedBox(width: 4),
-                          Text(context.hujiL10n.savedToGallery, style: TextStyle(color: Colors.green, fontSize: 10),
+                          const SizedBox(width: 4),
+                          Text(
+                            l10n.savedToGallery,
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontSize: 10,
+                            ),
                           ),
                         ],
                       ),
@@ -425,48 +408,38 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
               ),
             ],
           ],
-        ],
-      ),
-      actions: [
-        Flex(
-          direction: Axis.horizontal,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            if (_isCompleted && _screenshotPath != null) ...[
-              TextButton(
+          TpDialogActions(
+            children: [
+              if (_isCompleted && _screenshotPath != null)
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    Throttles.throttle(
+                      'screenshot_share',
+                      const Duration(milliseconds: 500),
+                      () => _shareImage(context),
+                    );
+                  },
+                  child: Text(l10n.actionShare),
+                ),
+              TpButton(
                 onPressed: () {
                   Throttles.throttle(
-                    'screenshot_share',
+                    'screenshot_close',
                     const Duration(milliseconds: 500),
-                    () => _shareImage(context),
+                    () => Navigator.of(context).pop(),
                   );
                 },
                 child: Text(
-                  context.hujiL10n.actionShare,
-                  style: const TextStyle(color: Colors.purple),
+                  _errorMessage != null
+                      ? l10n.actionConfirm
+                      : (_isCompleted ? l10n.actionDone : l10n.actionClose),
                 ),
               ),
             ],
-            TextButton(
-              onPressed: () {
-                Throttles.throttle(
-                  'screenshot_close',
-                  const Duration(milliseconds: 500),
-                  () => Navigator.of(context).pop(),
-                );
-              },
-              child: Text(
-                _errorMessage != null
-                    ? context.hujiL10n.actionConfirm
-                    : (_isCompleted
-                        ? context.hujiL10n.actionDone
-                        : context.hujiL10n.actionClose),
-                style: const TextStyle(color: Colors.white),
-              ),
-            ),
-          ],
-        ),
-      ],
+          ),
+        ],
+      ),
     );
   }
 }

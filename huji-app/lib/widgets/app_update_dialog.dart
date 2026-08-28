@@ -55,54 +55,46 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       widget.updateInfo.changelogs!.join('\n'),
     );
 
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: BoxConstraints(
-          maxWidth: 400,
-          maxHeight: MediaQuery.of(context).size.height * 0.8,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+    return TpDialog(
+      maxWidth: 400,
+      maxHeight: MediaQuery.of(context).size.height * 0.8,
+      child: TpDialogPinnedLayout(
+        header: _buildHeader(context),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            SizedBox(height: 20),
-            Center(
-              child: Text(context.hujiL10n.newVersionFound, style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-
-            SizedBox(height: 10),
-
-            // 内容区域
-            Flexible(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.zero,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 版本信息
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: _buildVersionInfo(latestApp, currentApp),
-                    ),
-
-                    if (_isDownloading || _downloadCompleted) ...[
-                      _buildDownloadProgress(),
-                    ],
-
-                    // 下载按钮
-                    _buildBottomRow(latestApp),
-                  ],
-                ),
-              ),
-            ),
+            _buildVersionInfo(latestApp, currentApp),
+            if (_isDownloading || _downloadCompleted) _buildDownloadProgress(),
           ],
         ),
+        footer: _buildBottomRow(),
       ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final title = context.hujiL10n.newVersionFound;
+    if (widget.updateInfo.forceUpdate) {
+      final titleStyle = (Theme.of(context).textTheme.bodyLarge ??
+              const TextStyle())
+          .copyWith(
+            fontWeight: FontWeight.w600,
+            height: 1.25,
+            color: Theme.of(context).colorScheme.onSurface,
+          );
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(title, style: titleStyle),
+          SizedBox(height: context.tpSpacing.lg),
+          const TpDialogDivider(),
+        ],
+      );
+    }
+    return TpDialogHeader(
+      title: title,
+      onClose: () => Navigator.of(context).pop(),
     );
   }
 
@@ -211,9 +203,9 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
   }
 
   Widget _buildDownloadProgress() {
-    return Container(
-      padding: EdgeInsets.fromLTRB(20, 0, 20, 10),
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(12)),
+    final cs = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.only(top: 8, bottom: 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -222,90 +214,79 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
             children: [
               Text(
                 _downloadStatus,
-                style: TextStyle(fontSize: 12, color: Colors.blue[700]),
+                style: TextStyle(fontSize: 12, color: cs.primary),
               ),
               Text(
                 '${(_downloadProgress * 100).toStringAsFixed(1)}%',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[800],
+                  color: cs.primary,
                 ),
               ),
             ],
           ),
-          SizedBox(height: 8),
+          const SizedBox(height: 8),
           LinearProgressIndicator(
             value: _downloadProgress,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+            valueColor: AlwaysStoppedAnimation<Color>(cs.primary),
             minHeight: 8,
           ),
-          SizedBox(height: 8),
         ],
       ),
     );
   }
 
-  Widget _buildBottomRow(AppApplicationRespVO? latestApp) {
+  Widget _buildBottomRow() {
     // 判断是否为跳转链接（优先使用 AppUpdateInfo 中的 downloadType，如果没有则从 latestApp 中获取）
     final isRedirectUrl =
         (widget.updateInfo.downloadType ??
             widget.updateInfo.latestApp?.downloadType) ==
         DownloadTypeEnum.redirect;
 
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        border: Border(top: BorderSide(color: Colors.grey[300]!)),
-      ),
-      child: Flex(
-        direction: Axis.horizontal,
-        spacing: 0,
-        children: [
-          if (!widget.updateInfo.forceUpdate)
-            Expanded(
-              child: _buildBottomButton(
-                () {
-                  final task = TaskStorage().getTaskById(_downloadTaskId);
-                  if (task != null) {
-                    TaskStorage().cancelTask(task);
-                  }
-                  Navigator.of(context).pop();
-                },
-                null,
-                context.hujiL10n.updateLater,
-              ),
-            ),
-          // 如果是直接下载链接，显示应用内下载按钮
-          if (!isRedirectUrl)
-            Expanded(
-              child: _buildBottomButton(
-                () {
-                  if (_downloadCompleted) {
-                    _handleInstall();
-                    return;
-                  }
-                  if (_isDownloading) {
-                    Navigator.of(context).pop();
-                    return;
-                  }
-                  _handleDownload(widget.updateInfo.latestApp!);
-                },
-                null,
-                _getBottomButtonText(),
-              ),
-            ),
-          // 如果是跳转链接，显示浏览器下载按钮
-          if (isRedirectUrl && !_isDownloading && !_downloadCompleted)
-            Expanded(
-              child: _buildBottomButton(
-                () => _handleBrowserDownload(widget.updateInfo.latestApp!),
+    return TpDialogActions(
+      children: [
+        if (!widget.updateInfo.forceUpdate)
+          TpButton(
+            variant: TpButtonVariant.ghost,
+            onPressed: () {
+              final task = TaskStorage().getTaskById(_downloadTaskId);
+              if (task != null) {
+                TaskStorage().cancelTask(task);
+              }
+              Navigator.of(context).pop();
+            },
+            child: Text(context.hujiL10n.updateLater),
+          ),
+        if (!isRedirectUrl)
+          TpButton(
+            onPressed: () {
+              if (_downloadCompleted) {
+                _handleInstall();
+                return;
+              }
+              if (_isDownloading) {
+                Navigator.of(context).pop();
+                return;
+              }
+              _handleDownload(widget.updateInfo.latestApp!);
+            },
+            child: Text(_getBottomButtonText()),
+          ),
+        if (isRedirectUrl && !_isDownloading && !_downloadCompleted)
+          TpButton(
+            onPressed: () =>
+                _handleBrowserDownload(widget.updateInfo.latestApp!),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
                 const Icon(Icons.open_in_browser, size: 18),
-                context.hujiL10n.browserDownload,
-              ),
+                const SizedBox(width: 6),
+                Text(context.hujiL10n.browserDownload),
+              ],
             ),
-        ],
-      ),
+          ),
+      ],
     );
   }
 
@@ -324,29 +305,6 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
       return l10n.backgroundDownload;
     }
     return l10n.downloadNow;
-  }
-
-  Widget _buildBottomButton(
-    Function()? onPressed,
-    Widget? prefix,
-    String text,
-  ) {
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        backgroundColor: Colors.transparent,
-        foregroundColor: Colors.blue[400],
-        padding: EdgeInsets.symmetric(vertical: 16),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          if (prefix != null) prefix,
-          Text(text, style: TextStyle(fontSize: 16)),
-        ],
-      ),
-    );
   }
 
   void _onTaskManagerChanged() {
@@ -588,7 +546,7 @@ class AppUpdateDialogHelper {
         final delayedContext =
             appRouter.routerDelegate.navigatorKey.currentContext;
         if (delayedContext != null && delayedContext.mounted) {
-          showDialog(
+          showTpDialog(
             context: delayedContext,
             barrierDismissible: !updateInfo.forceUpdate,
             builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
@@ -598,8 +556,7 @@ class AppUpdateDialogHelper {
       return;
     }
 
-    // 使用 Flutter 原生的 showDialog，更可靠
-    showDialog(
+    showTpDialog(
       context: context,
       barrierDismissible: !updateInfo.forceUpdate,
       builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
