@@ -171,13 +171,11 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
                           child: Row(
                             children: [
                               // 返回按钮
-                              IconButton(
-                                onPressed: _exitFullscreen,
-                                icon: const Icon(
-                                  Icons.arrow_back,
-                                  color: Colors.white,
-                                  size: 24,
-                                ),
+                              TpIconButton(
+                                onTap: _exitFullscreen,
+                                icon: Icons.arrow_back,
+                                color: Colors.white,
+                                iconSize: 24,
                                 tooltip: context.hujiL10n.exitFullscreen,
                               ),
                               const Spacer(),

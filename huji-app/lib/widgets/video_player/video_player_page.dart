@@ -117,24 +117,28 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
     final file = File(videoUrl);
     if (!await file.exists()) {
       if (mounted) {
-        await showDialog(
+        await showTpDialog(
           context: context,
-          builder: (context) => AlertDialog(
-            backgroundColor: Colors.grey[900],
-            title: Text(
-              context.hujiL10n.videoPlayerFileNotFound,
-              style: const TextStyle(color: Colors.white),
+          builder: (ctx) => TpDialog(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                TpDialogHeader(
+                  title: ctx.hujiL10n.videoPlayerFileNotFound,
+                ),
+                SizedBox(height: ctx.tpSpacing.lg),
+                Text(ctx.hujiL10n.videoPlayerFileMovedOrDeleted(videoUrl)),
+                TpDialogActions(
+                  children: [
+                    TpButton(
+                      onPressed: () => Navigator.of(ctx).pop(),
+                      child: Text(ctx.hujiL10n.actionConfirm),
+                    ),
+                  ],
+                ),
+              ],
             ),
-            content: Text(
-              context.hujiL10n.videoPlayerFileMovedOrDeleted(videoUrl),
-              style: const TextStyle(color: Colors.white),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.white)),
-              ),
-            ],
           ),
         );
         if (mounted) {
@@ -191,21 +195,29 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   void _showErrorDialog(String title, String message) {
-    showDialog(
+    showTpDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: Text(title, style: const TextStyle(color: Colors.white)),
-        content: Text(message, style: const TextStyle(color: Colors.white)),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-            },
-            child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.white)),
-          ),
-        ],
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: title),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(message),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  onPressed: () {
+                    Navigator.of(ctx).pop();
+                    Navigator.of(context).pop();
+                  },
+                  child: Text(ctx.hujiL10n.actionConfirm),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -371,38 +383,36 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   Future<void> _renameFile(BuildContext context) async {
     final controller = TextEditingController(text: _currentFileName);
-    final result = await showDialog<String>(
+    final result = await showTpDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: Text(
-          context.hujiL10n.renameFileTitle,
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: TextField(
-          controller: controller,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            labelText: context.hujiL10n.newFileNameLabel,
-            labelStyle: TextStyle(color: Colors.grey),
-            enabledBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey),
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: ctx.hujiL10n.renameFileTitle),
+            SizedBox(height: ctx.tpSpacing.lg),
+            TpInput(
+              controller: controller,
+              decoration: InputDecoration(
+                labelText: ctx.hujiL10n.newFileNameLabel,
+              ),
             ),
-            focusedBorder: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.blue),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: Text(ctx.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () => Navigator.of(ctx).pop(controller.text),
+                  child: Text(ctx.hujiL10n.actionConfirm),
+                ),
+              ],
             ),
-          ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(controller.text),
-            child: Text(context.hujiL10n.actionConfirm, style: TextStyle(color: Colors.blue)),
-          ),
-        ],
       ),
     );
     if (result != null &&
@@ -453,24 +463,27 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       ),
     ];
     if (context.mounted) {
-      showDialog(
+      showTpDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Colors.grey[900],
-          title: Text(
-            l10n.fileDetailsTitle,
-            style: const TextStyle(color: Colors.white),
+        builder: (ctx) => TpDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              TpDialogHeader(title: l10n.fileDetailsTitle),
+              SizedBox(height: ctx.tpSpacing.lg),
+              SelectableText(info.join('\n')),
+              TpDialogActions(
+                children: [
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text(ctx.hujiL10n.actionClose),
+                  ),
+                ],
+              ),
+            ],
           ),
-          content: SelectableText(
-            info.join('\n'),
-            style: const TextStyle(color: Colors.white),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: Text(context.hujiL10n.actionClose, style: TextStyle(color: Colors.white)),
-            ),
-          ],
         ),
       );
     }
@@ -478,25 +491,32 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   Future<void> _deleteFile() async {
     final file = File(videoUrl);
-    final confirm = await showDialog<bool>(
+    final confirm = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: Text(context.hujiL10n.confirmDelete, style: TextStyle(color: Colors.white)),
-        content: Text(
-          context.hujiL10n.confirmDeleteFileMessage,
-          style: const TextStyle(color: Colors.white),
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: ctx.hujiL10n.confirmDelete),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(ctx.hujiL10n.confirmDeleteFileMessage),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(ctx.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  variant: TpButtonVariant.destructive,
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(ctx.hujiL10n.actionDelete),
+                ),
+              ],
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(context.hujiL10n.actionDelete, style: TextStyle(color: Colors.red)),
-          ),
-        ],
       ),
     );
     if (confirm == true) {
@@ -524,31 +544,31 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   Future<void> _clearCache(BuildContext context) async {
-    final confirm = await showDialog<bool>(
+    final confirm = await showTpDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.grey[900],
-        title: Text(
-          context.hujiL10n.clearCacheTitle,
-          style: const TextStyle(color: Colors.white),
-        ),
-        content: Text(
-          context.hujiL10n.confirmClearCacheMessage,
-          style: const TextStyle(color: Colors.white),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: Text(context.hujiL10n.taskStatusCancelledShort, style: TextStyle(color: Colors.white)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: Text(
-              context.hujiL10n.actionClear,
-              style: const TextStyle(color: Colors.blue),
+      builder: (ctx) => TpDialog(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            TpDialogHeader(title: ctx.hujiL10n.clearCacheTitle),
+            SizedBox(height: ctx.tpSpacing.lg),
+            Text(ctx.hujiL10n.confirmClearCacheMessage),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(ctx.hujiL10n.taskStatusCancelledShort),
+                ),
+                TpButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(ctx.hujiL10n.actionClear),
+                ),
+              ],
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
 
@@ -680,13 +700,11 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
                 ),
                 child: Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(
-                        Icons.fullscreen_exit,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                      onPressed: _toggleFullScreen,
+                    TpIconButton(
+                      icon: Icons.fullscreen_exit,
+                      color: Colors.white,
+                      iconSize: 28,
+                      onTap: _toggleFullScreen,
                     ),
                     Expanded(
                       child: Text(
@@ -737,9 +755,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       color: Colors.grey[900],
       child: Row(
         children: [
-          IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.arrow_back,
+            color: Colors.white,
+            onTap: () {
               Throttles.throttle(
                 'video_player_back',
                 const Duration(milliseconds: 500),
@@ -760,9 +779,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
             ),
           ),
           // _buildFileActions(),
-          IconButton(
-            icon: const Icon(Icons.download, color: Colors.white),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.download,
+            color: Colors.white,
+            onTap: () {
               Throttles.throttle(
                 'video_player_download',
                 const Duration(milliseconds: 500),
@@ -770,9 +790,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.camera_alt, color: Colors.white),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.camera_alt,
+            color: Colors.white,
+            onTap: () {
               Throttles.throttle(
                 'video_player_screenshot',
                 const Duration(milliseconds: 500),
@@ -780,9 +801,10 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               );
             },
           ),
-          IconButton(
-            icon: const Icon(Icons.fullscreen, color: Colors.white),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.fullscreen,
+            color: Colors.white,
+            onTap: () {
               Throttles.throttle(
                 'video_player_fullscreen',
                 const Duration(milliseconds: 500),
@@ -790,116 +812,58 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
               );
             },
           ),
-          Row(
-            children: [
-              PopupMenuButton<String>(
-                icon: const Icon(Icons.more_vert, color: Colors.white),
-                color: Colors.black.withValues(alpha: 0.9),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+          TpActionMenuButton(
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            specs: [
+              if (_isCached)
+                TpActionMenuSpec.item(
+                  value: 'rename',
+                  icon: Icons.edit,
+                  label: context.hujiL10n.actionRename,
                 ),
-                onSelected: (value) {
-                  switch (value) {
-                    case 'rename':
-                      _renameFile(context);
-                      break;
-                    case 'info':
-                      _showFileInfo(context);
-                      break;
-                    case 'folder':
-                      _openFolder();
-                      break;
-                    case 'clear_cache':
-                      _clearCache(context);
-                      break;
-                    case 'delete':
-                      _deleteFile();
-                      break;
-                  }
-                },
-                itemBuilder: (context) => [
-                  if (_isCached)
-                    PopupMenuItem(
-                      value: 'rename',
-                      child: Row(
-                        children: [
-                          const Icon(Icons.edit, size: 20, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text(
-                            context.hujiL10n.actionRename,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'info',
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.info_outline,
-                          size: 20,
-                          color: Colors.white,
-                        ),
-                        SizedBox(width: 8),
-                        Text(
-                          context.hujiL10n.fileDetailsTitle,
-                          style: const TextStyle(color: Colors.white),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (path_utils.isExternalStorage(videoUrl))
-                    PopupMenuItem(
-                      value: 'folder',
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.folder_open,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 8),
-                          Text(context.hujiL10n.openFolder, style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                  if (_isCached)
-                    PopupMenuItem(
-                      value: 'clear_cache',
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.delete_sweep,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                          SizedBox(width: 8),
-                          Text(
-                            context.hujiL10n.clearCacheTitle,
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.delete, size: 20, color: Colors.red),
-                        SizedBox(width: 8),
-                        Text(
-                          context.hujiL10n.deleteFile,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+              TpActionMenuSpec.item(
+                value: 'info',
+                icon: Icons.info_outline,
+                label: context.hujiL10n.fileDetailsTitle,
+              ),
+              if (path_utils.isExternalStorage(videoUrl))
+                TpActionMenuSpec.item(
+                  value: 'folder',
+                  icon: Icons.folder_open,
+                  label: context.hujiL10n.openFolder,
+                ),
+              if (_isCached)
+                TpActionMenuSpec.item(
+                  value: 'clear_cache',
+                  icon: Icons.delete_sweep,
+                  label: context.hujiL10n.clearCacheTitle,
+                ),
+              TpActionMenuSpec.item(
+                value: 'delete',
+                icon: Icons.delete,
+                label: context.hujiL10n.deleteFile,
+                destructive: true,
               ),
             ],
+            onSelected: (value) {
+              switch (value) {
+                case 'rename':
+                  _renameFile(context);
+                  break;
+                case 'info':
+                  _showFileInfo(context);
+                  break;
+                case 'folder':
+                  _openFolder();
+                  break;
+                case 'clear_cache':
+                  _clearCache(context);
+                  break;
+                case 'delete':
+                  _deleteFile();
+                  break;
+              }
+            },
           ),
         ],
       ),
@@ -1081,69 +1045,22 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
   }
 
   Widget _buildSpeedMenu() {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return PopupMenuButton<bool>(
-          icon: const Icon(Icons.speed, color: Colors.white, size: 20),
-          offset: const Offset(0, 40),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          color: Colors.black.withValues(alpha: 0.9),
-          elevation: 8,
-          onSelected: (value) {
-            // 这个值不会被使用，我们通过子菜单处理
-          },
-          menuPadding: EdgeInsets.zero,
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              enabled: false,
-              child: Container(
-                padding: const EdgeInsets.all(0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildSpeedMenuItem('1x', 1.0),
-                    _buildSpeedMenuItem('2x', 2.0),
-                    _buildSpeedMenuItem('3x', 3.0),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Widget _buildSpeedMenuItem(String label, double speed) {
-    final isSelected = _playbackSpeed == speed;
-    return TpHover(
-      onTap: () {
-        _setPlaybackSpeed(speed);
-        Navigator.of(context).pop(); // 关闭菜单
-      },
-      borderRadius: BorderRadius.circular(16),
-      pressScale: 0.97,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.blue : Colors.black.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? Colors.blue
-                : Colors.white.withValues(alpha: 0.3),
-            width: 1,
+    return TpActionMenuButton(
+      icon: const Icon(Icons.speed, color: Colors.white, size: 20),
+      specs: [
+        for (final entry in const [('1x', 1.0), ('2x', 2.0), ('3x', 3.0)])
+          TpActionMenuSpec.item(
+            value: entry.$2,
+            icon: Icons.speed,
+            label: entry.$1,
+            selected: _playbackSpeed == entry.$2,
           ),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white,
-            fontSize: 12,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-          ),
-        ),
-      ),
+      ],
+      onSelected: (value) {
+        if (value is double) {
+          _setPlaybackSpeed(value);
+        }
+      },
     );
   }
 
@@ -1343,7 +1260,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
       );
       TaskStorage().addAndAsyncProcessTask(task);
       if (context.mounted) {
-        await showDialog(
+        await showTpDialog(
           context: context,
           builder: (context) => DownloadProgressDialog(task: task),
         );
@@ -1395,7 +1312,7 @@ class _VideoPlayerPageState extends State<VideoPlayerPage> {
 
   void _screenshot(BuildContext context) {
     final fileName = Uri.parse(videoUrl).pathSegments.last;
-    showDialog(
+    showTpDialog(
       context: context,
       builder: (context) => ScreenshotProgressDialog(
         videoPath: videoUrl,

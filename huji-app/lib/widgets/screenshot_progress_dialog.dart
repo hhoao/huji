@@ -232,10 +232,19 @@ class _ScreenshotProgressDialogState extends State<ScreenshotProgressDialog> {
       color: _isCompleted ? Colors.green : cs.primary,
       size: 24,
     );
-    final overflowMenu = PopupMenuButton<String>(
-      itemBuilder: (context) => [
-        PopupMenuItem(value: 'open_file', child: Text(l10n.openFile)),
-        PopupMenuItem(value: 'open_folder', child: Text(l10n.openFolder)),
+    final overflowMenu = TpActionMenuButton(
+      icon: const Icon(Icons.more_vert),
+      specs: [
+        TpActionMenuSpec.item(
+          value: 'open_file',
+          icon: Icons.insert_drive_file,
+          label: l10n.openFile,
+        ),
+        TpActionMenuSpec.item(
+          value: 'open_folder',
+          icon: Icons.folder_open,
+          label: l10n.openFolder,
+        ),
       ],
       onSelected: (value) {
         switch (value) {
