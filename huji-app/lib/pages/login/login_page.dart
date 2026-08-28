@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/pages/login/common.dart';
 import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
@@ -14,7 +15,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -152,7 +153,7 @@ class _LoginPageState extends State<LoginPage> {
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          child: Form(
+          child: TpForm(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -247,24 +248,13 @@ class _LoginPageState extends State<LoginPage> {
                 SizedBox(height: 32),
 
                 // 手机号/邮箱输入
-                TextFormField(
+                buildTextField(
+                  id: 'identifier',
+                  label: context.hujiL10n.loginIdentifierLabelOr,
+                  hint: context.hujiL10n.loginIdentifierLabelOr,
+                  icon: Icons.person_outline,
                   controller: _identifierController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
-                    labelText: context.hujiL10n.loginIdentifierLabelOr,
-                    prefixIcon: const Icon(Icons.person_outline),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.grey[300]!),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: Colors.deepPurple),
-                    ),
-                  ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return context.hujiL10n.loginValidationIdentifierRequired;
@@ -277,32 +267,19 @@ class _LoginPageState extends State<LoginPage> {
 
                 // 密码输入（密码登录时显示）
                 if (_isPasswordLogin)
-                  TextFormField(
+                  buildTextField(
+                    id: 'password',
+                    label: context.hujiL10n.loginPasswordLabel,
+                    hint: context.hujiL10n.loginPasswordLabel,
+                    icon: Icons.lock_outline,
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
-                    decoration: InputDecoration(
-                      labelText: context.hujiL10n.loginPasswordLabel,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        onPressed: () => setState(
-                          () => _isPasswordVisible = !_isPasswordVisible,
-                        ),
-                        icon: Icon(
-                          _isPasswordVisible
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                        ),
-                      ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.deepPurple),
+                    suffixIcon: TpIconButton(
+                      icon: _isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      onTap: () => setState(
+                        () => _isPasswordVisible = !_isPasswordVisible,
                       ),
                     ),
                     validator: (value) {
@@ -316,31 +293,23 @@ class _LoginPageState extends State<LoginPage> {
                 // 验证码输入（验证码登录时显示）
                 if (!_isPasswordLogin) ...[
                   Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: TextFormField(
+                        child: TpInputFormField(
+                          id: 'code',
                           controller: _codeController,
                           keyboardType: TextInputType.number,
+                          label: Text(context.hujiL10n.loginAuthCodeLabel),
                           decoration: InputDecoration(
-                            labelText: context.hujiL10n.loginAuthCodeLabel,
-                            prefixIcon: const Icon(Icons.security),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(
-                                color: Colors.deepPurple,
-                              ),
-                            ),
+                            hintText: context.hujiL10n.loginAuthCodeLabel,
+                            prefixIcon: const Icon(Icons.security, size: 20),
                           ),
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return context.hujiL10n.loginValidationAuthCodeRequired;
+                              return context
+                                  .hujiL10n
+                                  .loginValidationAuthCodeRequired;
                             }
                             return null;
                           },

@@ -30,7 +30,7 @@ class LoginForm extends StatefulWidget {
 }
 
 class _LoginFormState extends State<LoginForm> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -153,7 +153,7 @@ class _LoginFormState extends State<LoginForm> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Material(
-        child: Form(
+        child: TpForm(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -234,79 +234,78 @@ class _LoginFormState extends State<LoginForm> {
 
               // 账号输入
               buildTextField(
-                context,
-                context.hujiL10n.loginIdentifierLabel,
-                context.hujiL10n.loginIdentifierHint,
-                Icons.person,
-                _identifierController,
-                null,
-                false,
-                (value) => validateEmailOrPhone(context.hujiL10n, value),
+                id: 'identifier',
+                label: context.hujiL10n.loginIdentifierLabel,
+                hint: context.hujiL10n.loginIdentifierHint,
+                icon: Icons.person,
+                controller: _identifierController,
+                validator: (value) =>
+                    validateEmailOrPhone(context.hujiL10n, value),
               ),
 
               SizedBox(height: 16),
 
               // 密码/验证码输入
-              buildTextField(
-                context,
-                _loginType == LoginType.password
-                    ? context.hujiL10n.loginPasswordLabel
-                    : context.hujiL10n.loginAuthCodeLabel,
-                _loginType == LoginType.password
-                    ? context.hujiL10n.loginPasswordHint
-                    : context.hujiL10n.loginAuthCodeHint,
-                _loginType == LoginType.password ? Icons.lock : Icons.key,
-                _loginType == LoginType.password
-                    ? _passwordController
-                    : _codeController,
-                _loginType == LoginType.password
-                    ? IconButton(
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                        icon: Icon(
-                          _obscurePassword
-                              ? Icons.visibility
-                              : Icons.visibility_off,
-                          color: Colors.grey,
-                        ),
-                      )
-                    : TextButton(
-                        onPressed: _countdown > 0
-                            ? null
-                            : () {
-                                Throttles.throttle(
-                                  'get_verification_code',
-                                  const Duration(seconds: 1),
-                                  () => _getVerificationCode(context),
-                                );
-                              },
-                        child: Text(
-                          _countdown > 0
-                              ? context.hujiL10n.actionResendCodeCountdown(
-                                  _countdown,
-                                )
-                              : context.hujiL10n.actionGetVerificationCode,
-                          style: TextStyle(
-                            color: _countdown > 0 ? Colors.grey : Colors.blue,
-                          ),
-                        ),
+              if (_loginType == LoginType.password)
+                buildTextField(
+                  id: 'password',
+                  label: context.hujiL10n.loginPasswordLabel,
+                  hint: context.hujiL10n.loginPasswordHint,
+                  icon: Icons.lock,
+                  controller: _passwordController,
+                  suffixIcon: TpIconButton(
+                    icon: _obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                    onTap: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  obscureText: _obscurePassword,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return context.hujiL10n.loginValidationPasswordRequired;
+                    }
+                    return null;
+                  },
+                )
+              else
+                buildTextField(
+                  id: 'code',
+                  label: context.hujiL10n.loginAuthCodeLabel,
+                  hint: context.hujiL10n.loginAuthCodeHint,
+                  icon: Icons.key,
+                  controller: _codeController,
+                  suffixIcon: TextButton(
+                    onPressed: _countdown > 0
+                        ? null
+                        : () {
+                            Throttles.throttle(
+                              'get_verification_code',
+                              const Duration(seconds: 1),
+                              () => _getVerificationCode(context),
+                            );
+                          },
+                    child: Text(
+                      _countdown > 0
+                          ? context.hujiL10n.actionResendCodeCountdown(
+                              _countdown,
+                            )
+                          : context.hujiL10n.actionGetVerificationCode,
+                      style: TextStyle(
+                        color: _countdown > 0 ? Colors.grey : Colors.blue,
                       ),
-                _loginType == LoginType.password && _obscurePassword,
-                (value) {
-                  if (value == null || value.isEmpty) {
-                    return _loginType == LoginType.password
-                        ? context.hujiL10n.loginValidationPasswordRequired
-                        : context.hujiL10n.loginValidationAuthCodeRequired;
-                  }
-                  if (_loginType == LoginType.authCode) {
+                    ),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return context.hujiL10n.loginValidationAuthCodeRequired;
+                    }
                     return validateAuthCode(context.hujiL10n, value);
-                  }
-                  return null;
-                },
-              ),
+                  },
+                ),
 
               SizedBox(height: 16),
 

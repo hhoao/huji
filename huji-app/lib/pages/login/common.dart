@@ -84,46 +84,28 @@ String? validateEmailOrPhone(HujiLocalizations l10n, String? value) {
   return null;
 }
 
-TextFormField buildTextField(
-  BuildContext context,
-  String label,
-  String hint,
-  IconData icon,
-  TextEditingController controller,
+TpInputFormField buildTextField({
+  required String id,
+  required String label,
+  required String hint,
+  required IconData icon,
+  required TextEditingController controller,
   Widget? suffixIcon,
-  bool obscureText,
-  FormFieldValidator<String> validator,
-) {
-  final inputTheme = Theme.of(context).inputDecorationTheme;
-  return TextFormField(
+  bool obscureText = false,
+  required FormFieldValidator<String> validator,
+  TextInputType? keyboardType,
+}) {
+  return TpInputFormField(
+    id: id,
     controller: controller,
-    obscureText: obscureText,
-    decoration: InputDecoration(
-      labelText: label,
-      hintText: hint,
-      prefixIcon: Icon(icon, color: Colors.grey, size: 20),
-      suffixIcon: suffixIcon,
-      border: inputTheme.border ??
-          OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-      enabledBorder: inputTheme.enabledBorder ??
-          OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
-          ),
-      focusedBorder: inputTheme.focusedBorder ??
-          OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!, width: 1.0),
-          ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      filled: inputTheme.filled,
-      fillColor: inputTheme.fillColor,
-      iconColor: Colors.grey[100],
-      hintStyle: TextStyle(color: Colors.grey[500]!),
-      labelStyle: TextStyle(
-        color: Colors.grey[500]!,
-      ).copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-    ),
+    label: Text(label),
     validator: validator,
+    obscureText: obscureText,
+    keyboardType: keyboardType,
+    decoration: InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, size: 20),
+      suffixIcon: suffixIcon,
+    ),
   );
 }

@@ -24,7 +24,7 @@ class ForgotPasswordForm extends StatefulWidget {
 }
 
 class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _accountController = TextEditingController();
   final _verifyCodeController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -126,7 +126,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Material(
-        child: Form(
+        child: TpForm(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -142,25 +142,24 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
               SizedBox(height: 24),
               buildTextField(
-                context,
-                context.hujiL10n.loginIdentifierLabel,
-                context.hujiL10n.loginIdentifierHint,
-                Icons.email,
-                _accountController,
-                null,
-                false,
-                (value) => validateEmailOrPhone(context.hujiL10n, value),
+                id: 'identifier',
+                label: context.hujiL10n.loginIdentifierLabel,
+                hint: context.hujiL10n.loginIdentifierHint,
+                icon: Icons.email,
+                controller: _accountController,
+                validator: (value) =>
+                    validateEmailOrPhone(context.hujiL10n, value),
               ),
 
               SizedBox(height: 16),
 
               buildTextField(
-                context,
-                context.hujiL10n.loginAuthCodeLabel,
-                context.hujiL10n.loginAuthCodeHint,
-                Icons.key,
-                _verifyCodeController,
-                TextButton(
+                id: 'code',
+                label: context.hujiL10n.loginAuthCodeLabel,
+                hint: context.hujiL10n.loginAuthCodeHint,
+                icon: Icons.key,
+                controller: _verifyCodeController,
+                suffixIcon: TextButton(
                   onPressed: _countdown > 0
                       ? null
                       : () {
@@ -179,58 +178,51 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                     ),
                   ),
                 ),
-                false,
-                (value) => validateAuthCode(context.hujiL10n, value),
+                validator: (value) => validateAuthCode(context.hujiL10n, value),
               ),
 
               SizedBox(height: 16),
 
               buildTextField(
-                context,
-                context.hujiL10n.loginNewPassword,
-                context.hujiL10n.loginNewPasswordHint,
-                Icons.lock,
-                _newPasswordController,
-                IconButton(
-                  onPressed: () {
+                id: 'newPassword',
+                label: context.hujiL10n.loginNewPassword,
+                hint: context.hujiL10n.loginNewPasswordHint,
+                icon: Icons.lock,
+                controller: _newPasswordController,
+                suffixIcon: TpIconButton(
+                  icon: _obscureNewPassword
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  onTap: () {
                     setState(() {
                       _obscureNewPassword = !_obscureNewPassword;
                     });
                   },
-                  icon: Icon(
-                    _obscureNewPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: Colors.grey,
-                  ),
                 ),
-                _obscureNewPassword,
-                (value) => validatePassword(context.hujiL10n, value),
+                obscureText: _obscureNewPassword,
+                validator: (value) => validatePassword(context.hujiL10n, value),
               ),
 
               SizedBox(height: 16),
 
               buildTextField(
-                context,
-                context.hujiL10n.loginConfirmNewPassword,
-                context.hujiL10n.loginConfirmNewPasswordHint,
-                Icons.lock_outline,
-                _confirmPasswordController,
-                IconButton(
-                  onPressed: () {
+                id: 'confirmPassword',
+                label: context.hujiL10n.loginConfirmNewPassword,
+                hint: context.hujiL10n.loginConfirmNewPasswordHint,
+                icon: Icons.lock_outline,
+                controller: _confirmPasswordController,
+                suffixIcon: TpIconButton(
+                  icon: _obscureConfirmPassword
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  onTap: () {
                     setState(() {
                       _obscureConfirmPassword = !_obscureConfirmPassword;
                     });
                   },
-                  icon: Icon(
-                    _obscureConfirmPassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
-                    color: Colors.grey,
-                  ),
                 ),
-                _obscureConfirmPassword,
-                (value) {
+                obscureText: _obscureConfirmPassword,
+                validator: (value) {
                   if (value == null || value.isEmpty) {
                     return context.hujiL10n.loginConfirmNewPasswordHint;
                   }

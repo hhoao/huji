@@ -23,7 +23,7 @@ class RegisterForm extends StatefulWidget {
 }
 
 class _RegisterFormState extends State<RegisterForm> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _identifierController = TextEditingController();
   final _codeController = TextEditingController();
 
@@ -124,7 +124,7 @@ class _RegisterFormState extends State<RegisterForm> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Material(
-        child: Form(
+        child: TpForm(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -140,25 +140,24 @@ class _RegisterFormState extends State<RegisterForm> {
 
               SizedBox(height: 24),
               buildTextField(
-                context,
-                context.hujiL10n.loginIdentifierLabel,
-                context.hujiL10n.loginIdentifierHint,
-                Icons.person,
-                _identifierController,
-                null,
-                false,
-                (value) => validateEmailOrPhone(context.hujiL10n, value),
+                id: 'identifier',
+                label: context.hujiL10n.loginIdentifierLabel,
+                hint: context.hujiL10n.loginIdentifierHint,
+                icon: Icons.person,
+                controller: _identifierController,
+                validator: (value) =>
+                    validateEmailOrPhone(context.hujiL10n, value),
               ),
 
               SizedBox(height: 16),
 
               buildTextField(
-                context,
-                context.hujiL10n.loginAuthCodeLabel,
-                context.hujiL10n.loginAuthCodeHint,
-                Icons.key,
-                _codeController,
-                TextButton(
+                id: 'code',
+                label: context.hujiL10n.loginAuthCodeLabel,
+                hint: context.hujiL10n.loginAuthCodeHint,
+                icon: Icons.key,
+                controller: _codeController,
+                suffixIcon: TextButton(
                   onPressed: _countdown > 0
                       ? null
                       : () {
@@ -177,8 +176,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     ),
                   ),
                 ),
-                false,
-                (value) => validateAuthCode(context.hujiL10n, value),
+                validator: (value) => validateAuthCode(context.hujiL10n, value),
               ),
 
               SizedBox(height: 24),

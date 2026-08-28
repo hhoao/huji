@@ -21,7 +21,7 @@ class LoginDialog extends StatefulWidget {
 }
 
 class _LoginDialogState extends State<LoginDialog> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -132,7 +132,7 @@ class _LoginDialogState extends State<LoginDialog> {
         children: [
           TpDialogHeader(title: context.hujiL10n.loginTitle),
           SizedBox(height: context.tpSpacing.lg),
-          Form(
+          TpForm(
             key: _formKey,
             child: SingleChildScrollView(
               child: Column(
@@ -159,13 +159,13 @@ class _LoginDialogState extends State<LoginDialog> {
                     ),
                   ),
                   SizedBox(height: 20),
-                  TextFormField(
+                  TpInputFormField(
+                    id: 'identifier',
                     controller: _identifierController,
                     style: styles.md.copyWith(color: cs.onSurface),
-                    decoration: _inputDecoration(
-                      context,
-                      context.hujiL10n.loginIdentifierLabelOr,
-                      Icons.person_outline,
+                    decoration: InputDecoration(
+                      hintText: context.hujiL10n.loginIdentifierLabelOr,
+                      prefixIcon: const Icon(Icons.person_outline, size: 20),
                     ),
                     validator: (v) => (v == null || v.isEmpty)
                         ? context.hujiL10n.loginValidationIdentifierRequired
@@ -173,25 +173,20 @@ class _LoginDialogState extends State<LoginDialog> {
                   ),
                   SizedBox(height: 14),
                   if (_isPasswordLogin)
-                    TextFormField(
+                    TpInputFormField(
+                      id: 'password',
                       controller: _passwordController,
                       obscureText: !_isPasswordVisible,
                       style: styles.md.copyWith(color: cs.onSurface),
-                      decoration: _inputDecoration(
-                        context,
-                        context.hujiL10n.loginPasswordLabel,
-                        Icons.lock_outline,
-                      )
-                              .copyWith(
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible
-                                ? Icons.visibility
-                                : Icons.visibility_off,
-                            color: cs.outline,
-                            size: 18,
-                          ),
-                          onPressed: () => setState(
+                      decoration: InputDecoration(
+                        hintText: context.hujiL10n.loginPasswordLabel,
+                        prefixIcon: const Icon(Icons.lock_outline, size: 20),
+                        suffixIcon: TpIconButton(
+                          icon: _isPasswordVisible
+                              ? Icons.visibility
+                              : Icons.visibility_off,
+                          color: cs.outline,
+                          onTap: () => setState(
                             () => _isPasswordVisible = !_isPasswordVisible,
                           ),
                         ),
@@ -202,18 +197,21 @@ class _LoginDialogState extends State<LoginDialog> {
                     ),
                   if (!_isPasswordLogin)
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Expanded(
-                          child: TextFormField(
+                          child: TpInputFormField(
+                            id: 'code',
                             controller: _codeController,
                             style: styles.md.copyWith(color: cs.onSurface),
-                            decoration: _inputDecoration(
-                              context,
-                              context.hujiL10n.loginAuthCodeLabel,
-                              Icons.security,
+                            decoration: InputDecoration(
+                              hintText: context.hujiL10n.loginAuthCodeLabel,
+                              prefixIcon: const Icon(Icons.security, size: 20),
                             ),
                             validator: (v) => (v == null || v.isEmpty)
-                                ? context.hujiL10n.loginValidationAuthCodeRequired
+                                ? context
+                                    .hujiL10n
+                                    .loginValidationAuthCodeRequired
                                 : null,
                           ),
                         ),
@@ -260,28 +258,6 @@ class _LoginDialogState extends State<LoginDialog> {
           ),
         ],
       ),
-    );
-  }
-
-  InputDecoration _inputDecoration(
-    BuildContext context,
-    String hint,
-    IconData icon,
-  ) {
-    final cs = context.desktopColors;
-    final styles = TpTextStyles.of(context);
-
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: styles.mutedMd,
-      prefixIcon: Icon(icon, color: cs.outline, size: 18),
-      filled: true,
-      fillColor: cs.surfaceContainerHigh,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
-        borderSide: BorderSide.none,
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
     );
   }
 }
