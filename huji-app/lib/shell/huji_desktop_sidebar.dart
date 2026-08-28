@@ -237,13 +237,14 @@ class _AccountAreaState extends State<_AccountArea> {
                 children: [
                   Text(
                     displayName,
-                    style: styles.smSemibold,
+                    style: styles.mdSemibold.copyWith(height: 1.2),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,
                   ),
                   Text(
                     subtitle,
-                    style: styles.xs.copyWith(
+                    style: styles.sm.copyWith(
+                      height: 1.2,
                       color: cs.onSurfaceVariant.withValues(alpha: 0.9),
                     ),
                     overflow: TextOverflow.ellipsis,
