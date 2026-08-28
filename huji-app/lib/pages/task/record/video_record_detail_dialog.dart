@@ -36,267 +36,200 @@ class _VideoRecordDetailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 450, maxHeight: 700),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 标题栏 - 不需要重建
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: const BoxDecoration(
-                color: Colors.deepPurple,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(16),
-                  topRight: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.info_outline, color: Colors.white),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      l10n.recordDetailTitle,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+    return TpDialog(
+      maxWidth: 450,
+      maxHeight: 700,
+      child: TpDialogPinnedLayout(
+        header: TpDialogHeader(
+          title: l10n.recordDetailTitle,
+          trailing: const Icon(Icons.info_outline),
+          onClose: () => Navigator.of(context).pop(),
+        ),
+        body: BlocBuilder<VideoRecordDetailBloc, VideoRecordDetailState>(
+          buildWhen: (previous, current) =>
+              previous.isLoading != current.isLoading ||
+              previous.errorMessage != current.errorMessage ||
+              previous.inputVideo != current.inputVideo ||
+              previous.outputVideo != current.outputVideo,
+          builder: (context, state) {
+            if (state.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (state.errorMessage != null) {
+              return Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    children: [
+                      Text(
+                        state.errorMessage!,
+                        style: const TextStyle(color: Colors.red),
+                        textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.read<VideoRecordDetailBloc>().add(
+                            const VideoRecordDetailRetryEvent(),
+                          );
+                        },
+                        child: Text(context.hujiL10n.actionRetry),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildDetailSection(l10n, l10n.basicInfo, [
+                  _buildDetailRow(l10n, l10n.videoNameLabel, record.videoName),
+                  _buildDetailRow(
+                    l10n,
+                    l10n.filterSportType,
+                    l10n.sportTypeLabel(record.sportType),
+                  ),
+                  _buildDetailRow(
+                    l10n,
+                    l10n.createTimeLabel,
+                    timeStampToDateString(record.createTime),
+                  ),
+                ]),
+                const SizedBox(height: 16),
+                _buildDetailSection(l10n, l10n.filterProcessStatus, [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _getStatusColor(
+                            record.status,
+                          ).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: _getStatusColor(record.status),
+                          ),
+                        ),
+                        child: Text(
+                          l10n.processStatusLabel(record.status),
+                          style: TextStyle(
+                            color: _getStatusColor(record.status),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        l10n.progressPercentLabel(
+                          record.progress.toStringAsFixed(1),
+                        ),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    value: record.progress / 100,
+                    backgroundColor: Colors.grey[300],
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      _getStatusColor(record.status),
                     ),
                   ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close, color: Colors.white),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
+                ]),
+                const SizedBox(height: 16),
+                if (state.inputVideo != null && state.outputVideo != null)
+                  BlocBuilder<VideoRecordDetailBloc, VideoRecordDetailState>(
+                    buildWhen: (previous, current) =>
+                        previous.inputVideo != current.inputVideo ||
+                        previous.outputVideo != current.outputVideo,
+                    builder: (context, state) {
+                      return _buildVideoComparisonSection(l10n, state);
+                    },
                   ),
+                if (record.videoClipConfigReqVo != null) ...[
+                  const SizedBox(height: 16),
+                  _buildConfigSection(l10n, record.videoClipConfigReqVo!),
+                ],
+                if (record.extraInfo != null &&
+                    record.extraInfo!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildDetailSection(l10n, l10n.remarkInfoSection, [
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[100],
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        record.extraInfo!,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  ]),
+                ],
+              ],
+            );
+          },
+        ),
+        footer: TpDialogActions(
+          children: [
+            TpButton(
+              variant: TpButtonVariant.ghost,
+              onPressed: () {
+                Navigator.of(context).pop();
+                TpToast.show(
+                  context,
+                  message: l10n.namedFeatureInDevelopment(
+                    l10n.reprocessButton,
+                  ),
+                  variant: TpToastVariant.warning,
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.refresh, size: 18),
+                  const SizedBox(width: 6),
+                  Text(l10n.reprocessButton),
                 ],
               ),
             ),
-
-            // 内容区域 - 只在加载状态或数据变化时重建
-            Flexible(
-              child: BlocBuilder<VideoRecordDetailBloc, VideoRecordDetailState>(
-                buildWhen: (previous, current) =>
-                    previous.isLoading != current.isLoading ||
-                    previous.errorMessage != current.errorMessage ||
-                    previous.inputVideo != current.inputVideo ||
-                    previous.outputVideo != current.outputVideo,
-                builder: (context, state) {
-                  if (state.isLoading) {
-                    return Center(child: CircularProgressIndicator());
-                  }
-
-                  if (state.errorMessage != null) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            Text(
-                              state.errorMessage!,
-                              style: const TextStyle(color: Colors.red),
-                              textAlign: TextAlign.center,
-                            ),
-                            SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: () {
-                                context.read<VideoRecordDetailBloc>().add(
-                                  const VideoRecordDetailRetryEvent(),
-                                );
-                              },
-                              child: Text(context.hujiL10n.actionRetry),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  }
-
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 基本信息
-                        _buildDetailSection(l10n, l10n.basicInfo, [
-                          _buildDetailRow(l10n, l10n.videoNameLabel, record.videoName),
-                          _buildDetailRow(
-                            l10n,
-                            l10n.filterSportType,
-                            l10n.sportTypeLabel(record.sportType),
-                          ),
-                          _buildDetailRow(
-                            l10n,
-                            l10n.createTimeLabel,
-                            timeStampToDateString(record.createTime),
-                          ),
-                        ]),
-
-                        SizedBox(height: 16),
-
-                        // 处理状态
-                        _buildDetailSection(l10n, l10n.filterProcessStatus, [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: _getStatusColor(
-                                    record.status,
-                                  ).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: _getStatusColor(record.status),
-                                  ),
-                                ),
-                                child: Text(
-                                  l10n.processStatusLabel(record.status),
-                                  style: TextStyle(
-                                    color: _getStatusColor(record.status),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                              SizedBox(width: 12),
-                              Text(
-                                l10n.progressPercentLabel(
-                                  record.progress.toStringAsFixed(1),
-                                ),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 8),
-                          LinearProgressIndicator(
-                            value: record.progress / 100,
-                            backgroundColor: Colors.grey[300],
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              _getStatusColor(record.status),
-                            ),
-                          ),
-                        ]),
-
-                        SizedBox(height: 16),
-
-                        // 视频对比信息 - 只在视频数据变化时重建
-                        if (state.inputVideo != null &&
-                            state.outputVideo != null)
-                          BlocBuilder<
-                            VideoRecordDetailBloc,
-                            VideoRecordDetailState
-                          >(
-                            buildWhen: (previous, current) =>
-                                previous.inputVideo != current.inputVideo ||
-                                previous.outputVideo != current.outputVideo,
-                            builder: (context, state) {
-                              return _buildVideoComparisonSection(l10n, state);
-                            },
-                          ),
-
-                        // 配置信息
-                        if (record.videoClipConfigReqVo != null) ...[
-                          SizedBox(height: 16),
-                          _buildConfigSection(l10n, record.videoClipConfigReqVo!),
-                        ],
-
-                        // 备注信息
-                        if (record.extraInfo != null &&
-                            record.extraInfo!.isNotEmpty) ...[
-                          SizedBox(height: 16),
-                          _buildDetailSection(l10n, l10n.remarkInfoSection, [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Text(
-                                record.extraInfo!,
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                            ),
-                          ]),
-                        ],
-                      ],
-                    ),
+            TpButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (record.status == ProcessStatus.completed) {
+                  TpToast.show(
+                    context,
+                    message: l10n.videoProcessingCompletedViewOutput,
+                    variant: TpToastVariant.success,
                   );
-                },
-              ),
-            ),
-
-            // 底部按钮 - 不需要重建
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: const BorderRadius.only(
-                  bottomLeft: Radius.circular(16),
-                  bottomRight: Radius.circular(16),
-                ),
-              ),
+                } else {
+                  TpToast.show(
+                    context,
+                    message: l10n.videoStillProcessingTryLater,
+                    variant: TpToastVariant.info,
+                  );
+                }
+              },
               child: Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        if (record.status == ProcessStatus.completed) {
-                          TpToast.show(
-                            context,
-                            message: l10n.videoProcessingCompletedViewOutput,
-                            variant: TpToastVariant.success,
-                          );
-                        } else {
-                          TpToast.show(
-                            context,
-                            message: l10n.videoStillProcessingTryLater,
-                            variant: TpToastVariant.info,
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.play_arrow),
-                      label: Text(l10n.viewVideoButton),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.deepPurple,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        TpToast.show(
-                          context,
-                          message: l10n.namedFeatureInDevelopment(
-                            l10n.reprocessButton,
-                          ),
-                          variant: TpToastVariant.warning,
-                        );
-                      },
-                      icon: const Icon(Icons.refresh),
-                      label: Text(l10n.reprocessButton),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.deepPurple,
-                        side: const BorderSide(color: Colors.deepPurple),
-                      ),
-                    ),
-                  ),
+                  const Icon(Icons.play_arrow, size: 18),
+                  const SizedBox(width: 6),
+                  Text(l10n.viewVideoButton),
                 ],
               ),
             ),
