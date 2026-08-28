@@ -173,41 +173,16 @@ class _StatusButton extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
-      child: TextButton(
+      child: TpButton(
+        variant: selected
+            ? TpButtonVariant.primary
+            : TpButtonVariant.secondary,
         onPressed: onTap,
-        style: TextButton.styleFrom(
-          backgroundColor: selected ? Colors.black : Colors.grey[200],
-          minimumSize: const Size(64, 32),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
         child: Row(
           children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: selected ? Colors.white : Colors.black,
-                fontWeight: selected ? FontWeight.bold : FontWeight.normal,
-              ),
-            ),
+            Text(label),
             SizedBox(width: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: selected ? Colors.white : Colors.grey[300],
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                '$count',
-                style: TextStyle(
-                  color: selected ? Colors.black : Colors.grey[800],
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
+            Text('$count'),
           ],
         ),
       ),

@@ -12,6 +12,7 @@ import 'bloc/video_clip_progress_dialog_event.dart';
 import 'bloc/video_clip_progress_dialog_state.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoClipProgressDialog extends StatefulWidget {
   final Task task;
@@ -161,21 +162,17 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                             ),
                           ),
                         ),
-                        IconButton(
-                          onPressed: () {
+                        TpIconButton(
+                          onTap: () {
                             Throttles.throttle(
                               'video_clip_dialog_close_icon',
                               const Duration(milliseconds: 500),
                               () => Navigator.of(context).pop(),
                             );
                           },
-                          icon: const Icon(
-                            Icons.close,
-                            size: 20,
-                            color: Colors.black87,
-                          ),
-                          padding: EdgeInsets.zero,
-                          constraints: const BoxConstraints(),
+                          icon: Icons.close,
+                          iconSize: 20,
+                          color: Colors.black87,
                         ),
                       ],
                     ),
@@ -303,7 +300,7 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                     if (currentTask.status == TaskStatusEnum.completed)
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: TpButton(
                           onPressed: () {
                             Throttles.throttle(
                               'video_clip_dialog_play',
@@ -335,26 +332,18 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                               },
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
                           child: Text(
                             currentTask is VideoSegmentDetectTask
                                 ? l10n.editVideo
                                 : l10n.actionPlay,
-                            style: TextStyle(fontWeight: FontWeight.bold),
                           ),
                         ),
                       )
                     else if (currentTask.status == TaskStatusEnum.failed)
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: TpButton(
+                          variant: TpButtonVariant.destructive,
                           onPressed: () {
                             Throttles.throttle(
                               'video_clip_dialog_retry',
@@ -365,38 +354,19 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                               },
                             );
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(context.hujiL10n.actionRetry, style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
+                          child: Text(context.hujiL10n.actionRetry),
                         ),
                       )
                     else
                       SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
+                        child: TpButton(
+                          variant: TpButtonVariant.ghost,
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.grey[300],
-                            foregroundColor: Colors.grey[700],
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                          child: Text(context.hujiL10n.actionClose, style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.grey[700],
-                            ),
-                          ),
+                          child: Text(context.hujiL10n.actionClose),
+                        ),
                         ),
                       ),
                   ],

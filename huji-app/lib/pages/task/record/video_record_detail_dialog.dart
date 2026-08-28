@@ -68,7 +68,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                         textAlign: TextAlign.center,
                       ),
                       const SizedBox(height: 16),
-                      ElevatedButton(
+                      TpButton(
                         onPressed: () {
                           context.read<VideoRecordDetailBloc>().add(
                             const VideoRecordDetailRetryEvent(),

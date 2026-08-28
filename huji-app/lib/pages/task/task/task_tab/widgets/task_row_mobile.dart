@@ -10,6 +10,7 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_callbacks.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class TaskRowMobile extends StatelessWidget {
   static const double _imageSize = 60.0;
@@ -114,10 +115,11 @@ class TaskRowMobile extends StatelessWidget {
           ),
         };
 
-        return IconButton(
-          icon: Icon(icon, color: color),
+        return TpIconButton(
+          icon: icon,
+          color: color,
           tooltip: tooltip,
-          onPressed: () {
+          onTap: () {
             Throttles.throttle(
               'task_action_${action.name}_${currentTask.id}',
               const Duration(milliseconds: 500),
@@ -172,15 +174,17 @@ class TaskRowMobile extends StatelessWidget {
         final icon = _iconForTask(currentTask);
         final typeDesc = currentTask.type.localizedName(context.hujiL10n);
 
-        return Card(
-          margin: const EdgeInsets.symmetric(
+        return Padding(
+          padding: const EdgeInsets.symmetric(
             horizontal: _margin,
             vertical: 8,
           ),
-          color: isSelected
-              ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
-              : null,
-          child: InkWell(
+          child: TpCard(
+            padding: EdgeInsets.zero,
+            color: isSelected
+                ? Theme.of(context).primaryColor.withValues(alpha: 0.1)
+                : null,
+            child: InkWell(
             onTap: () {
               if (state.isBatchMode) {
                 callbacks.onToggleSelection(currentTask.id);
@@ -341,9 +345,10 @@ class TaskRowMobile extends StatelessWidget {
                     ),
                   ),
                   if (state.isBatchMode)
-                    IconButton(
-                      icon: const Icon(Icons.close, color: Colors.grey),
-                      onPressed: () {
+                    TpIconButton(
+                      icon: Icons.close,
+                      color: Colors.grey,
+                      onTap: () {
                         Throttles.throttle(
                           'delete_task_${currentTask.id}',
                           const Duration(milliseconds: 500),
@@ -356,6 +361,7 @@ class TaskRowMobile extends StatelessWidget {
                 ],
               ),
             ),
+          ),
           ),
         );
       },

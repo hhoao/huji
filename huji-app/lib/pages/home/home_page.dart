@@ -221,17 +221,16 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildMenuButton() {
-    return IconButton(
-      icon: const Icon(Icons.menu, color: Colors.black),
-      onPressed: () {
+    return TpIconButton(
+      icon: Icons.menu,
+      color: Colors.black,
+      onTap: () {
         Throttles.throttle(
           'home_menu',
           const Duration(milliseconds: 500),
           () => context.push(ProfileRoute.settings),
         );
       },
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 
@@ -243,17 +242,16 @@ class _HomePageState extends State<HomePage> {
 
       return Stack(
         children: [
-          IconButton(
-            icon: const Icon(Icons.mail_outline, color: Colors.black),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.mail_outline,
+            color: Colors.black,
+            onTap: () {
               Throttles.throttle(
                 'home_message',
                 const Duration(milliseconds: 500),
                 () => context.push(MessageRoute.message),
               );
             },
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
           if (unreadCount > 0)
             Positioned(

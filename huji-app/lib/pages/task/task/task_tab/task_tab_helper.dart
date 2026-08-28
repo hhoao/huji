@@ -125,9 +125,9 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.of(context).pop(),
+                TpIconButton(
+                  icon: Icons.close,
+                  onTap: () => Navigator.of(context).pop(),
                 ),
               ],
             ),
@@ -207,12 +207,12 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                                     ),
                                   ),
                                   const Spacer(),
-                                  IconButton(
-                                    icon: const Icon(Icons.save, size: 16),
-                                    onPressed: () =>
+                                  TpIconButton(
+                                    icon: Icons.save,
+                                    iconSize: 16,
+                                    size: 24,
+                                    onTap: () =>
                                         _saveImageToGallery(context, imagePath),
-                                    padding: EdgeInsets.zero,
-                                    constraints: const BoxConstraints(),
                                   ),
                                 ],
                               ),
@@ -232,7 +232,8 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: TpButton(
+                    variant: TpButtonVariant.outline,
                     onPressed: () {
                       Throttles.throttle(
                         'save_all_images',
@@ -240,13 +241,19 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                         () => _saveAllImagesToGallery(context, task.outputList),
                       );
                     },
-                    icon: const Icon(Icons.save_alt),
-                    label: Text(context.hujiL10n.saveAll),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.save_alt, size: 16),
+                        const SizedBox(width: 6),
+                        Text(context.hujiL10n.saveAll),
+                      ],
+                    ),
                   ),
                 ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: TpButton(
                     onPressed: () {
                       Throttles.throttle(
                         'open_image_folder',
@@ -254,13 +261,15 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                         () => _openImageFolder(context, task.outputList.first),
                       );
                     },
-                    icon: const Icon(Icons.folder_open),
-                    label: Text(context.hujiL10n.openFolder),
-            style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.folder_open, size: 16),
+                        const SizedBox(width: 6),
+                        Text(context.hujiL10n.openFolder),
+                      ],
                     ),
-          ),
+                  ),
                 ),
               ],
             ),

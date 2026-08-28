@@ -5,6 +5,7 @@ import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
 import 'package:huji_app/pages/video/video_list_tab_content.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoListPage extends StatefulWidget {
   final TabController? tabController;
@@ -30,24 +31,22 @@ class _VideoListPageState extends State<VideoListPage>
   }
 
   Widget _buildMenuButton() {
-    return IconButton(
-      icon: const Icon(Icons.menu, color: Colors.black),
-      onPressed: () {
+    return TpIconButton(
+      icon: Icons.menu,
+      color: Colors.black,
+      onTap: () {
         context.push(ProfileRoute.settings);
       },
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 
   Widget _buildFilterButton() {
-    return IconButton(
-      icon: const Icon(Icons.filter_list, color: Colors.black),
-      onPressed: () {
+    return TpIconButton(
+      icon: Icons.filter_list,
+      color: Colors.black,
+      onTap: () {
         _videoListKey.currentState?.showFilterDialog();
       },
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 

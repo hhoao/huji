@@ -5,6 +5,7 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoProgressPage extends StatefulWidget {
   final int? highlightProcessRecordId;
@@ -120,16 +121,18 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () => context.pop(),
+        leading: TpIconButton(
+          icon: Icons.arrow_back,
+          color: Colors.black87,
+          onTap: () => context.pop(),
         ),
         title: Text(context.hujiL10n.videoProcessingProgress, style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh, color: Colors.black87),
-            onPressed: _loadData,
+          TpIconButton(
+            icon: Icons.refresh,
+            color: Colors.black87,
+            onTap: _loadData,
           ),
         ],
       ),
@@ -147,7 +150,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                       style: const TextStyle(color: Colors.red),
                     ),
                     SizedBox(height: 16),
-                    ElevatedButton(
+                    TpButton(
                       onPressed: _loadData,
                       child: Text(context.hujiL10n.actionRetry),
                     ),
@@ -201,12 +204,10 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
         (widget.highlightProcessRecordId != null &&
             progress.videoProcessRecordId == widget.highlightProcessRecordId) ||
         (widget.highlightName != null && progress.name == widget.highlightName);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      color: isHighlight ? Colors.yellow[100] : null,
-      elevation: isHighlight ? 6 : 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TpCard(
+        color: isHighlight ? Colors.yellow[100] : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -299,10 +300,9 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
   }
 
   Widget _buildRecordCard(HujiLocalizations l10n, VideoProcessRecordVO record) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TpCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

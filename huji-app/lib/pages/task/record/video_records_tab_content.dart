@@ -270,19 +270,14 @@ class _VideoRecordsTabContent extends StatelessWidget {
         !state.hasActiveFilters && state.selectedStatButton == buttonKey;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-      child: TextButton(
+      child: TpButton(
+        variant: isSelected ? TpButtonVariant.primary : TpButtonVariant.ghost,
+        size: TpControlSize.small,
         onPressed: () {
           context.read<VideoRecordsTabBloc>().add(
             VideoRecordsTabSelectStatButtonEvent(buttonKey),
           );
         },
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected ? color : Colors.grey[200]!,
-          minimumSize: const Size(64, 32),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
         child: Row(
           children: [
             Icon(icon, color: isSelected ? Colors.white : color, size: 16),
@@ -319,9 +314,11 @@ class _VideoRecordsTabContent extends StatelessWidget {
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
     final cs = Theme.of(context).colorScheme;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
-      child: InkWell(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: TpCard(
+        padding: EdgeInsets.zero,
+        child: InkWell(
         onTap: () {
           _showRecordDetailDialog(context, record);
         },
@@ -449,6 +446,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
           ),
         ),
       ),
+      ),
     );
   }
 
@@ -525,7 +523,8 @@ class _FilterDialogState extends State<_FilterDialog> {
             children: [
               Text(context.hujiL10n.filterConditions, style: styles.xl,
               ),
-              TextButton(
+              TpButton(
+                variant: TpButtonVariant.ghost,
                 onPressed: () {
                   context.read<VideoRecordsTabBloc>().add(
                     const VideoRecordsTabResetFilterEvent(),
@@ -586,7 +585,8 @@ class _FilterDialogState extends State<_FilterDialog> {
           Row(
             children: [
               Expanded(
-                child: TextButton.icon(
+                child: TpButton(
+                  variant: TpButtonVariant.ghost,
                   onPressed: () async {
                     final date = await showDatePicker(
                       context: context,
@@ -600,16 +600,26 @@ class _FilterDialogState extends State<_FilterDialog> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(
-                    _tempStartDate?.toString().split(' ')[0] ??
-                        l10n.startDateLabel,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          _tempStartDate?.toString().split(' ')[0] ??
+                              l10n.startDateLabel,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
               Text(l10n.dateRangeTo),
               Expanded(
-                child: TextButton.icon(
+                child: TpButton(
+                  variant: TpButtonVariant.ghost,
                   onPressed: () async {
                     final date = await showDatePicker(
                       context: context,
@@ -623,9 +633,19 @@ class _FilterDialogState extends State<_FilterDialog> {
                       });
                     }
                   },
-                  icon: const Icon(Icons.calendar_today),
-                  label: Text(
-                    _tempEndDate?.toString().split(' ')[0] ?? l10n.endDateLabel,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.calendar_today),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          _tempEndDate?.toString().split(' ')[0] ??
+                              l10n.endDateLabel,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -636,7 +656,7 @@ class _FilterDialogState extends State<_FilterDialog> {
 
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: TpButton(
               onPressed: () {
                 context.read<VideoRecordsTabBloc>().add(
                   VideoRecordsTabUpdateFilterEvent(
@@ -648,12 +668,7 @@ class _FilterDialogState extends State<_FilterDialog> {
                 );
                 context.pop();
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(context.hujiL10n.applyFilter, style: styles.mdMedium.copyWith(color: Colors.white),
-              ),
+              child: Text(context.hujiL10n.applyFilter),
             ),
           ),
 

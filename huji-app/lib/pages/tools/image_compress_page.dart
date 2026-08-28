@@ -197,9 +197,11 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
   }
 
   Widget _buildCompressSettings() {
-    return Card(
-      margin: const EdgeInsets.all(16),
-      child: ExpansionTile(
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: TpCard(
+        padding: EdgeInsets.zero,
+        child: ExpansionTile(
         shape: const Border(), // 移除默认边框
         collapsedShape: const Border(), // 移除折叠时的边框
         maintainState: true, // 保持状态，避免重新构建
@@ -396,12 +398,11 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: TextFormField(
-                          key: const ValueKey('width_field'), // 添加key避免重建
-                          controller: _widthController, // 使用控制器
+                        child: TpInput(
+                          key: const ValueKey('width_field'),
+                          controller: _widthController,
                           decoration: const InputDecoration(
                             labelText: '宽度',
-                            border: OutlineInputBorder(),
                             suffixText: 'px',
                             labelStyle: TextStyle(fontSize: 13),
                           ),
@@ -419,12 +420,11 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: TextFormField(
-                          key: const ValueKey('height_field'), // 添加key避免重建
-                          controller: _heightController, // 使用控制器
+                        child: TpInput(
+                          key: const ValueKey('height_field'),
+                          controller: _heightController,
                           decoration: const InputDecoration(
                             labelText: '高度',
-                            border: OutlineInputBorder(),
                             suffixText: 'px',
                             labelStyle: TextStyle(fontSize: 13),
                           ),
@@ -448,6 +448,7 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
           ),
         ],
       ),
+      ),
     );
   }
 
@@ -464,10 +465,10 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
       appBar: AppBar(
         title: const Text('批量图片压缩'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.add_photo_alternate),
+          TpIconButton(
+            icon: Icons.add_photo_alternate,
             tooltip: '添加图片',
-            onPressed: () {
+            onTap: () {
               Throttles.throttle(
                 'pick_images',
                 const Duration(milliseconds: 500),
@@ -551,10 +552,9 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                     itemBuilder: (context, idx) {
                       final item = items[idx];
                       final originalSize = item.file.lengthSync();
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: TpCard(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -589,9 +589,10 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                                       ),
                                     ),
                                   ),
-                                  IconButton(
-                                    icon: const Icon(Icons.delete, size: 20),
-                                    onPressed: () {
+                                  TpIconButton(
+                                    icon: Icons.delete,
+                                    iconSize: 20,
+                                    onTap: () {
                                       Throttles.throttle(
                                         'remove_file_$idx',
                                         const Duration(milliseconds: 300),
@@ -679,7 +680,8 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton.icon(
+                  child: TpButton(
+                    variant: TpButtonVariant.outline,
                     onPressed: items.isEmpty
                         ? null
                         : () {
@@ -689,13 +691,19 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                               () => _clearAll(),
                             );
                           },
-                    icon: const Icon(Icons.clear_all),
-                    label: const Text('清空列表'),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.clear_all),
+                        SizedBox(width: 8),
+                        Text('清空列表'),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: TpButton(
                     onPressed: _pendingCount == 0
                         ? null
                         : () {
@@ -705,8 +713,14 @@ class _ImageCompressPageState extends State<ImageCompressPage> {
                               () => _addCompressTask(context),
                             );
                           },
-                    icon: const Icon(Icons.play_arrow),
-                    label: const Text('开始压缩'),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.play_arrow),
+                        SizedBox(width: 8),
+                        Text('开始压缩'),
+                      ],
+                    ),
                   ),
                 ),
               ],

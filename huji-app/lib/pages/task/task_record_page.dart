@@ -9,6 +9,7 @@ import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'task/task_tab/task_tab_content.dart';
 import 'record/video_records_tab_content.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 // 筛选回调接口
 abstract class FilterCallback {
@@ -94,13 +95,12 @@ class _TaskRecordPageState extends State<TaskRecordPage>
   }
 
   Widget _buildMenuButton() {
-    return IconButton(
-      icon: const Icon(Icons.menu, color: Colors.black),
-      onPressed: () {
+    return TpIconButton(
+      icon: Icons.menu,
+      color: Colors.black,
+      onTap: () {
         context.push(ProfileRoute.settings);
       },
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 
@@ -128,19 +128,16 @@ class _TaskRecordPageState extends State<TaskRecordPage>
     // 根据当前选中的 tab 来决定筛选功能
     if (_tabController.index == 0) {
       // 本地任务 tab - 显示本地任务筛选
-      return IconButton(
-        icon: const Icon(Icons.filter_list, color: Colors.black),
-        onPressed: _onLocalTaskFilter,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
+      return TpIconButton(
+        icon: Icons.filter_list,
+        color: Colors.black,
+        onTap: _onLocalTaskFilter,
       );
     } else {
-      // 剪辑记录 tab - 显示剪辑记录筛选
-      return IconButton(
-        icon: const Icon(Icons.filter_list, color: Colors.black),
-        onPressed: _onVideoRecordsFilter,
-        padding: EdgeInsets.zero,
-        constraints: const BoxConstraints(),
+      return TpIconButton(
+        icon: Icons.filter_list,
+        color: Colors.black,
+        onTap: _onVideoRecordsFilter,
       );
     }
   }

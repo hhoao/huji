@@ -4,6 +4,7 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class TaskFilter {
   Set<TaskTypeEnum> selectedTypes;
@@ -108,7 +109,8 @@ class _TaskTabContentFilterDialogState
                   ),
                 ),
                 if (widget.taskFilter.hasActiveFilters)
-                  TextButton(
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
                     onPressed: () {
                       Throttles.throttle(
                         'filter_clear_all',
@@ -121,14 +123,11 @@ class _TaskTabContentFilterDialogState
                         },
                       );
                     },
-                    child: Text(
-                      context.hujiL10n.clearAllFilters,
-                      style: TextStyle(color: Colors.red),
-                    ),
+                    child: Text(context.hujiL10n.clearAllFilters),
                   ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () {
+                TpIconButton(
+                  icon: Icons.close,
+                  onTap: () {
                     Throttles.throttle(
                       'filter_dialog_close',
                       const Duration(milliseconds: 500),
@@ -153,7 +152,8 @@ class _TaskTabContentFilterDialogState
             child: Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: TpButton(
+                    variant: TpButtonVariant.outline,
                     onPressed: () {
                       Throttles.throttle(
                         'filter_cancel',
@@ -166,7 +166,7 @@ class _TaskTabContentFilterDialogState
                 ),
                 SizedBox(width: 12),
                 Expanded(
-                  child: ElevatedButton(
+                  child: TpButton(
                     onPressed: () {
                       Throttles.throttle(
                         'filter_apply',
@@ -181,10 +181,6 @@ class _TaskTabContentFilterDialogState
                         },
                       );
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
                     child: Text(context.hujiL10n.applyFilter),
                   ),
                 ),
@@ -277,7 +273,8 @@ class _TaskTabContentFilterDialogState
         Row(
           children: [
             Expanded(
-              child: OutlinedButton.icon(
+              child: TpButton(
+                variant: TpButtonVariant.outline,
                 onPressed: () {
                   Throttles.throttle(
                     'filter_date_picker',
@@ -299,18 +296,27 @@ class _TaskTabContentFilterDialogState
                     },
                   );
                 },
-                icon: const Icon(Icons.date_range),
-                label: Text(
-                  widget.taskFilter.dateRange != null
-                      ? '${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.start)} ~ ${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.end)}'
-                      : l10n.selectTimeRange,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.date_range),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: Text(
+                        widget.taskFilter.dateRange != null
+                            ? '${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.start)} ~ ${DateFormat('MM-dd').format(widget.taskFilter.dateRange!.end)}'
+                            : l10n.selectTimeRange,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
             if (widget.taskFilter.dateRange != null)
-              IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
+              TpIconButton(
+                icon: Icons.clear,
+                onTap: () {
                   Throttles.throttle(
                     'filter_clear_date',
                     const Duration(milliseconds: 500),

@@ -430,9 +430,9 @@ class _VideoCompressPageState extends State<VideoCompressPage>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
+        leading: TpIconButton(
+          icon: Icons.arrow_back,
+          onTap: () => context.pop(),
         ),
         title: const Text(
           '压缩视频',
@@ -442,24 +442,8 @@ class _VideoCompressPageState extends State<VideoCompressPage>
         actions: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: ElevatedButton.icon(
-              icon: const Icon(Icons.add, size: 18),
-              label: const Text(
-                '选择视频',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber[100],
-                foregroundColor: Colors.brown,
-                elevation: 0,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 0,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
+            child: TpButton(
+              variant: TpButtonVariant.secondary,
               onPressed: _isCompressing
                   ? null
                   : () {
@@ -469,6 +453,14 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                         () => _pickVideo(),
                       );
                     },
+              child: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.add, size: 16),
+                  SizedBox(width: 6),
+                  Text('选择视频'),
+                ],
+              ),
             ),
           ),
         ],
@@ -490,7 +482,8 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                 child: Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: TpButton(
+                        variant: TpButtonVariant.outline,
                         onPressed: _isCompressing
                             ? null
                             : () {
@@ -500,22 +493,19 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                   () => _createPreviewClip(),
                                 );
                               },
-                        icon: const Icon(Icons.preview),
-                        label: const Text('预览效果'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.preview, size: 16),
+                            SizedBox(width: 6),
+                            Text('预览效果'),
+                          ],
                         ),
                       ),
                     ),
                     SizedBox(width: 16),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: TpButton(
                         onPressed: _isCompressing
                             ? null
                             : () {
@@ -525,16 +515,13 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                   () => _addCompressTask(context),
                                 );
                               },
-                        icon: const Icon(Icons.compress),
-                        label: const Text('开始压缩'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.compress, size: 16),
+                            SizedBox(width: 6),
+                            Text('开始压缩'),
+                          ],
                         ),
                       ),
                     ),
@@ -578,21 +565,16 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                   // 选择视频按钮
                   if (_originFile == null)
                     Center(
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.add),
-                        label: const Text('选择视频'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                      child: TpButton(
                         onPressed: _pickVideo,
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add, size: 16),
+                            SizedBox(width: 6),
+                            Text('选择视频'),
+                          ],
+                        ),
                       ),
                     ),
                   // 预览按钮（当有视频时显示）
@@ -615,13 +597,12 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                 ),
                               ],
                             ),
-                            child: IconButton(
-                              onPressed: _createPreviewClip,
-                              icon: const Icon(
-                                Icons.play_arrow,
-                                color: Colors.white,
-                                size: 32,
-                              ),
+                            child: TpIconButton(
+                              onTap: _createPreviewClip,
+                              icon: Icons.play_arrow,
+                              color: Colors.white,
+                              iconSize: 32,
+                              size: 50,
                             ),
                           ),
                           SizedBox(height: 3),
@@ -704,9 +685,10 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.edit, size: 20),
-                    onPressed: () async {
+                  TpIconButton(
+                    icon: Icons.edit,
+                    iconSize: 20,
+                    onTap: () async {
                       final controller = TextEditingController(
                         text:
                             _customFileName ??
@@ -754,11 +736,10 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                       }
                     },
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.info_outline, size: 20),
-                    onPressed: () {
-                      _showVideoInfoDialog();
-                    },
+                  TpIconButton(
+                    icon: Icons.info_outline,
+                    iconSize: 20,
+                    onTap: _showVideoInfoDialog,
                   ),
                 ],
               ),
@@ -876,13 +857,12 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               SizedBox(height: 8),
 
                               // 自定义比特率
-                              TextFormField(
+                              TpInput(
                                 initialValue:
                                     _compressConfig.customBitrate?.toString() ??
                                     '1000',
                                 decoration: const InputDecoration(
                                   labelText: '比特率',
-                                  border: OutlineInputBorder(),
                                   suffixText: 'kbps',
                                   helperText: '建议范围: 500-5000 kbps',
                                 ),
@@ -897,14 +877,13 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                               Row(
                                 children: [
                                   Expanded(
-                                    child: TextFormField(
+                                    child: TpInput(
                                       initialValue:
                                           _compressConfig.customWidth
                                               ?.toString() ??
                                           '',
                                       decoration: const InputDecoration(
                                         labelText: '宽度',
-                                        border: OutlineInputBorder(),
                                         suffixText: 'px',
                                       ),
                                       keyboardType: TextInputType.number,
@@ -918,14 +897,13 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                   ),
                                   SizedBox(width: 8),
                                   Expanded(
-                                    child: TextFormField(
+                                    child: TpInput(
                                       initialValue:
                                           _compressConfig.customHeight
                                               ?.toString() ??
                                           '',
                                       decoration: const InputDecoration(
                                         labelText: '高度',
-                                        border: OutlineInputBorder(),
                                         suffixText: 'px',
                                       ),
                                       keyboardType: TextInputType.number,
@@ -979,12 +957,11 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                             SizedBox(height: 8),
 
                             // 最大文件大小
-                            TextFormField(
+                            TpInput(
                               initialValue:
                                   _compressConfig.maxFileSize?.toString() ?? '',
                               decoration: const InputDecoration(
                                 labelText: '最大文件大小',
-                                border: OutlineInputBorder(),
                                 suffixText: 'MB',
                                 helperText: '留空则不限制文件大小',
                               ),
@@ -1021,9 +998,10 @@ class _VideoCompressPageState extends State<VideoCompressPage>
                                 style: const TextStyle(color: Colors.red),
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.close, size: 16),
-                              onPressed: () {
+                            TpIconButton(
+                              icon: Icons.close,
+                              iconSize: 16,
+                              onTap: () {
                                 setState(() {
                                   _errorMessage = null;
                                 });

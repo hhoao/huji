@@ -35,9 +35,10 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
+        leading: TpIconButton(
+          icon: Icons.arrow_back,
+          color: Colors.black87,
+          onTap: () {
             Throttles.throttle(
               'clip_type_back',
               const Duration(milliseconds: 500),

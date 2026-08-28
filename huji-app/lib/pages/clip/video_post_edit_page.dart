@@ -143,23 +143,9 @@ class _VideoPostEditPageState extends State<VideoPostEditPage> {
                         Positioned(
                           top: 12,
                           right: 80,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.pink,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 8,
-                              ),
-                            ),
+                          child: TpButton(
                             onPressed: () {},
-                            child: Text(context.hujiL10n.actionExport, style: TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
+                            child: Text(context.hujiL10n.actionExport),
                           ),
                         ),
                       ],

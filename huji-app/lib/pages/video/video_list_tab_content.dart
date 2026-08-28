@@ -204,7 +204,8 @@ class VideoListTabContentState extends State<VideoListTabContent>
             children: [
               Text(context.hujiL10n.filterConditions, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-              TextButton(
+              TpButton(
+                variant: TpButtonVariant.ghost,
                 onPressed: () {
                   setModalState(() {
                     _selectedProcessType = null;
@@ -289,19 +290,14 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: TpButton(
               onPressed: () {
                 // 应用筛选时，清除按钮选择状态（因为现在有活跃的筛选条件）
                 _selectedStatButton = null;
                 context.pop();
                 _loadVideos(refresh: true);
               },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-              ),
-              child: Text(context.hujiL10n.applyFilter, style: TextStyle(color: Colors.white, fontSize: 16),
-              ),
+              child: Text(context.hujiL10n.applyFilter),
             ),
           ),
 
@@ -401,16 +397,14 @@ class VideoListTabContentState extends State<VideoListTabContent>
                 ),
               ),
               // 右侧布局切换按钮
-              IconButton(
-                icon: Icon(
-                  _layoutMode == VideoLayoutMode.feed
-                      ? Icons.view_agenda
-                      : Icons.grid_view,
-                ),
+              TpIconButton(
+                icon: _layoutMode == VideoLayoutMode.feed
+                    ? Icons.view_agenda
+                    : Icons.grid_view,
                 tooltip: _layoutMode == VideoLayoutMode.feed
                     ? l10n.switchToListMode
                     : l10n.switchToGridMode,
-                onPressed: () {
+                onTap: () {
                   setState(() {
                     _layoutMode = _layoutMode == VideoLayoutMode.feed
                         ? VideoLayoutMode.list
@@ -945,7 +939,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
         !_hasActiveFilters() && _selectedStatButton == buttonKey;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
-      child: TextButton(
+      child: TpButton(
+        variant: isSelected ? TpButtonVariant.primary : TpButtonVariant.ghost,
+        size: TpControlSize.small,
         onPressed: () {
           setState(() {
             _selectedStatButton = buttonKey;
@@ -972,13 +968,6 @@ class VideoListTabContentState extends State<VideoListTabContent>
           // 重新加载数据
           _loadVideos(refresh: true);
         },
-        style: TextButton.styleFrom(
-          backgroundColor: isSelected ? color : Colors.grey[200]!,
-          minimumSize: const Size(64, 32),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
         child: Row(
           children: [
             Icon(icon, color: isSelected ? Colors.white : color, size: 16),

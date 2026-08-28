@@ -275,9 +275,10 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
           title: Text(context.hujiL10n.recordAndClip),
           backgroundColor: Colors.white,
           elevation: 0,
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black87),
-            onPressed: () {
+          leading: TpIconButton(
+            icon: Icons.arrow_back,
+            color: Colors.black87,
+            onTap: () {
               Throttles.throttle(
                 'record_clip_back',
                 const Duration(milliseconds: 500),
@@ -286,7 +287,8 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
             },
           ),
           actions: [
-            TextButton(
+            TpButton(
+              variant: TpButtonVariant.ghost,
               onPressed: () {
                 Throttles.throttle(
                   'record_clip_complete',
@@ -303,8 +305,7 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
                   },
                 );
               },
-              child: Text(context.hujiL10n.actionDone, style: TextStyle(color: Colors.blue, fontSize: 16),
-              ),
+              child: Text(context.hujiL10n.actionDone),
             ),
           ],
         ),

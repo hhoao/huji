@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 typedef DemoVideoTap = Future<void> Function(DemoVideo demo);
 
@@ -99,14 +100,10 @@ class _DemoChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final emoji = demo.sportTypeKey == 'ping_pong' ? '🏓' : '🏸';
-    return OutlinedButton(
+    return TpButton(
+      variant: TpButtonVariant.outline,
+      size: dense ? TpControlSize.small : TpControlSize.medium,
       onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        padding: EdgeInsets.symmetric(
-          horizontal: dense ? 12 : 14,
-          vertical: dense ? 8 : 10,
-        ),
-      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

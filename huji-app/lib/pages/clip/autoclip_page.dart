@@ -370,9 +370,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black87),
-          onPressed: () {
+        leading: TpIconButton(
+          icon: Icons.arrow_back,
+          color: Colors.black87,
+          onTap: () {
             Throttles.throttle(
               'autoclip_back',
               const Duration(milliseconds: 500),
@@ -547,112 +548,81 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                       // 云端剪辑按钮（根据设置显示）
                       if (_enableCloudClip) ...[
                         Expanded(
-                          child: SizedBox(
-                            height: 56,
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.deepPurple,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                padding: EdgeInsets.zero,
-                              ),
-                              onPressed: (isUploading || isProcessing)
-                                  ? null
-                                  : () {
-                                      _uploadThrottler.call(() {
-                                        _uploadAndProcessVideo();
-                                      });
-                                    },
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(16),
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Text(
-                                        isUploading
-                                            ? context.hujiL10n.uploading
-                                            : isProcessing
-                                            ? context.hujiL10n.processingNow
-                                            : rawRecord.clipMode ==
-                                                  ClipMode.recordAndClip
-                                            ? context.hujiL10n.recordAndClipCloud
-                                            : context.hujiL10n.cloudClip,
-                                        style: const TextStyle(
-                                          fontSize: 16,
-                                          color: Colors.white,
-                                        ),
-                                      ),
-                                    ),
-                                    // 右上角标签
-                                    Positioned(
-                                      top: 4,
-                                      right: 4,
-                                      child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 6,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.orange,
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                              blurRadius: 4,
-                                              offset: const Offset(0, 2),
-                                            ),
-                                          ],
-                                        ),
-                                        child: Text(context.hujiL10n.fasterAndMoreAccurate, style: TextStyle(
-                                            fontSize: 10,
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                          child: Stack(
+                            children: [
+                              SizedBox(
+                                width: double.infinity,
+                                child: TpButton(
+                                  onPressed: (isUploading || isProcessing)
+                                      ? null
+                                      : () {
+                                          _uploadThrottler.call(() {
+                                            _uploadAndProcessVideo();
+                                          });
+                                        },
+                                  child: Text(
+                                    isUploading
+                                        ? context.hujiL10n.uploading
+                                        : isProcessing
+                                        ? context.hujiL10n.processingNow
+                                        : rawRecord.clipMode ==
+                                              ClipMode.recordAndClip
+                                        ? context.hujiL10n.recordAndClipCloud
+                                        : context.hujiL10n.cloudClip,
+                                  ),
                                 ),
                               ),
-                            ),
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.orange,
+                                    borderRadius: BorderRadius.circular(8),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: Text(
+                                    context.hujiL10n.fasterAndMoreAccurate,
+                                    style: const TextStyle(
+                                      fontSize: 10,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        SizedBox(width: 12),
+                        const SizedBox(width: 12),
                       ],
-                      // 本地剪辑按钮
                       Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            onPressed: (isUploading || isProcessing)
-                                ? null
-                                : () {
-                                    _localClipThrottler.call(() {
-                                      _runLocalVideoClip();
-                                    });
-                                  },
-                            child: Text(
-                              isLocalProcessing
-                                  ? context.hujiL10n.processingNow
-                                  : rawRecord.clipMode == ClipMode.recordAndClip
-                                  ? context.hujiL10n.recordAndClipLocal
-                                  : context.hujiL10n.localClip,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                color: Colors.white,
-                              ),
-                            ),
+                        child: TpButton(
+                          onPressed: (isUploading || isProcessing)
+                              ? null
+                              : () {
+                                  _localClipThrottler.call(() {
+                                    _runLocalVideoClip();
+                                  });
+                                },
+                          child: Text(
+                            isLocalProcessing
+                                ? context.hujiL10n.processingNow
+                                : rawRecord.clipMode == ClipMode.recordAndClip
+                                ? context.hujiL10n.recordAndClipLocal
+                                : context.hujiL10n.localClip,
                           ),
                         ),
                       ),

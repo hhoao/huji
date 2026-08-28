@@ -71,7 +71,6 @@ class TaskBatchToolbar extends StatelessWidget {
     bool allSelected,
   ) {
     final cs = context.desktopColors;
-    final styles = TpTextStyles.of(context);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -84,36 +83,38 @@ class TaskBatchToolbar extends StatelessWidget {
         children: [
           Text(
             context.hujiL10n.selectedItemsCount(state.selectedTaskIds.length),
-            style: styles.md.copyWith(color: cs.primary),
+            style: TpTextStyles.of(context).md.copyWith(color: cs.primary),
           ),
           const Spacer(),
-          TextButton(
+          TpButton(
+            variant: TpButtonVariant.ghost,
             onPressed: allSelected ? onDeselectAll : onSelectAll,
             child: Text(
               allSelected
                   ? context.hujiL10n.deselectAll
                   : context.hujiL10n.selectAll,
-              style: styles.sm,
             ),
           ),
           SizedBox(width: 8),
-          ElevatedButton.icon(
+          TpButton(
+            variant: TpButtonVariant.destructive,
             onPressed: state.selectedTaskIds.isEmpty
                 ? null
                 : () => onBatchDelete(state.selectedTaskIds),
-            icon: const Icon(Icons.delete, size: 14),
-            label: Text(context.hujiL10n.actionDelete, style: styles.sm),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.delete, size: 16),
+                const SizedBox(width: 6),
+                Text(context.hujiL10n.actionDelete),
+              ],
             ),
           ),
           SizedBox(width: 8),
-          IconButton(
-            onPressed: onExitBatchMode,
-            icon: const Icon(Icons.close, size: 18),
-            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-            padding: EdgeInsets.zero,
+          TpIconButton(
+            onTap: onExitBatchMode,
+            icon: Icons.close,
+            iconSize: 18,
           ),
         ],
       ),
@@ -141,7 +142,8 @@ class TaskBatchToolbar extends StatelessWidget {
             style: TextStyle(color: primary, fontWeight: FontWeight.bold),
           ),
           const Spacer(),
-          TextButton(
+          TpButton(
+            variant: TpButtonVariant.ghost,
             onPressed: allSelected ? onDeselectAll : onSelectAll,
             child: Text(
               allSelected
@@ -150,7 +152,8 @@ class TaskBatchToolbar extends StatelessWidget {
             ),
           ),
           SizedBox(width: 8),
-          ElevatedButton.icon(
+          TpButton(
+            variant: TpButtonVariant.destructive,
             onPressed: state.selectedTaskIds.isEmpty
                 ? null
                 : () {
@@ -160,15 +163,17 @@ class TaskBatchToolbar extends StatelessWidget {
                       () => onBatchDelete(state.selectedTaskIds),
                     );
                   },
-            icon: const Icon(Icons.delete, size: 16),
-            label: Text(context.hujiL10n.actionDelete),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.delete, size: 16),
+                const SizedBox(width: 6),
+                Text(context.hujiL10n.actionDelete),
+              ],
             ),
           ),
           SizedBox(width: 8),
-          IconButton(onPressed: onExitBatchMode, icon: const Icon(Icons.close)),
+          TpIconButton(onTap: onExitBatchMode, icon: Icons.close),
         ],
       ),
     );

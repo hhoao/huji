@@ -134,9 +134,9 @@ class _RoundClipPageState extends State<RoundClipPage>
             title: context.hujiL10n.roundClip,
             leftWidget: Row(
               children: [
-                IconButton(
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
+                TpIconButton(
+                  icon: Icons.arrow_back,
+                  onTap: () {
                     // 使用 pop 返回上一页，如果无法 pop 则导航到任务页面
                     if (context.canPop()) {
                       context.pop();
@@ -155,7 +155,8 @@ class _RoundClipPageState extends State<RoundClipPage>
                     return previous.isSaving != current.isSaving;
                   },
                   builder: (context, state) {
-                    return TextButton(
+                    return TpButton(
+                      variant: TpButtonVariant.ghost,
                       onPressed: state.isSaving ? null : _saveVideoLocally,
                       child: Row(
                         children: [
@@ -318,38 +319,34 @@ class _RoundClipPageState extends State<RoundClipPage>
               ),
               SizedBox(width: 8),
               // 删除按钮（禁用时保持布局稳定）
-              Tooltip(
-                message: hasCurrentSegment ? l10n.deleteCurrentRound : '',
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  color: Colors.red,
-                  onPressed: hasCurrentSegment
-                      ? () {
-                          _roundClipBloc.add(
-                            DeleteSegmentEvent(state.currentPlayingSegment!),
-                          );
-                        }
-                      : null,
-                ),
+              TpIconButton(
+                icon: Icons.delete_outline,
+                iconSize: 20,
+                color: Colors.red,
+                tooltip: hasCurrentSegment ? l10n.deleteCurrentRound : null,
+                enabled: hasCurrentSegment,
+                onTap: hasCurrentSegment
+                    ? () {
+                        _roundClipBloc.add(
+                          DeleteSegmentEvent(state.currentPlayingSegment!),
+                        );
+                      }
+                    : null,
               ),
               SizedBox(width: 4),
               // 收藏按钮
-              Tooltip(
-                message: isCurrentFavorite
+              TpIconButton(
+                icon: isCurrentFavorite ? Icons.star : Icons.star_border,
+                iconSize: 20,
+                color: Colors.orange,
+                tooltip: isCurrentFavorite
                     ? l10n.unfavorite
                     : l10n.favoriteCurrentRound,
-                child: IconButton(
-                  icon: Icon(
-                    isCurrentFavorite ? Icons.star : Icons.star_border,
-                    size: 20,
-                  ),
-                  color: Colors.orange,
-                  onPressed: () {
-                    _roundClipBloc.add(
-                      const ToggleCurrentPlayingSegmentFavoriteEvent(),
-                    );
-                  },
-                ),
+                onTap: () {
+                  _roundClipBloc.add(
+                    const ToggleCurrentPlayingSegmentFavoriteEvent(),
+                  );
+                },
               ),
             ],
           );
@@ -837,19 +834,19 @@ class _RoundClipPageState extends State<RoundClipPage>
               ),
               SizedBox(width: 8),
               // 删除按钮（禁用时保持布局稳定）
-              Tooltip(
-                message: isCurrentFavorite ? l10n.removeFromFavorites : '',
-                child: IconButton(
-                  icon: const Icon(Icons.delete_outline, size: 20),
-                  color: Colors.red,
-                  onPressed: isCurrentFavorite
-                      ? () {
-                          _roundClipBloc.add(
-                            ToggleFavoriteEvent(state.currentPlayingSegment!),
-                          );
-                        }
-                      : null,
-                ),
+              TpIconButton(
+                icon: Icons.delete_outline,
+                iconSize: 20,
+                color: Colors.red,
+                tooltip: isCurrentFavorite ? l10n.removeFromFavorites : null,
+                enabled: isCurrentFavorite,
+                onTap: isCurrentFavorite
+                    ? () {
+                        _roundClipBloc.add(
+                          ToggleFavoriteEvent(state.currentPlayingSegment!),
+                        );
+                      }
+                    : null,
               ),
             ],
           );
@@ -971,16 +968,17 @@ class _RoundClipPageState extends State<RoundClipPage>
         children: [
           SizedBox(width: 16),
           Expanded(
-            child: ElevatedButton.icon(
+            child: TpButton(
               onPressed: _startEditing,
-              icon: const Icon(Icons.content_cut),
-              label: Text(context.hujiL10n.editRound),
-            style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.white,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.content_cut),
+                  const SizedBox(width: 8),
+                  Text(context.hujiL10n.editRound),
+                ],
               ),
-          ),
+            ),
           ),
         ],
       ),
