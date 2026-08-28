@@ -430,10 +430,19 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       size: 24,
     );
     final completedMenu = _isCompleted && _savedVideoPath != null
-        ? PopupMenuButton<String>(
-            itemBuilder: (context) => [
-              PopupMenuItem(value: 'open_file', child: Text(l10n.playVideo)),
-              PopupMenuItem(value: 'open_folder', child: Text(l10n.openFolder)),
+        ? TpActionMenuButton(
+            icon: const Icon(Icons.more_vert),
+            specs: [
+              TpActionMenuSpec.item(
+                value: 'open_file',
+                icon: Icons.play_arrow,
+                label: l10n.playVideo,
+              ),
+              TpActionMenuSpec.item(
+                value: 'open_folder',
+                icon: Icons.folder_open,
+                label: l10n.openFolder,
+              ),
             ],
             onSelected: (value) {
               switch (value) {
@@ -457,10 +466,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
             title: title,
             trailing: Row(
               mainAxisSize: MainAxisSize.min,
-              children: [
-                statusIcon,
-                if (completedMenu != null) completedMenu,
-              ],
+              children: [statusIcon, if (completedMenu != null) completedMenu],
             ),
             onClose: () => Navigator.of(context).pop(),
           ),

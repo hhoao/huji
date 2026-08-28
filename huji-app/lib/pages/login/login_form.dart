@@ -159,7 +159,9 @@ class _LoginFormState extends State<LoginForm> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // 标题
-              Text(context.hujiL10n.loginTitle, style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              Text(
+                context.hujiL10n.loginTitle,
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                 ),
@@ -190,7 +192,9 @@ class _LoginFormState extends State<LoginForm> {
                             ? Colors.blue
                             : Colors.black.withValues(alpha: 0.04),
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(context.hujiL10n.loginPasswordTab, style: TextStyle(
+                        child: Text(
+                          context.hujiL10n.loginPasswordTab,
+                          style: TextStyle(
                             color: _loginType == LoginType.password
                                 ? Colors.white
                                 : Colors.black87,
@@ -215,7 +219,9 @@ class _LoginFormState extends State<LoginForm> {
                             ? Colors.blue
                             : Colors.black.withValues(alpha: 0.04),
                         padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(context.hujiL10n.loginAuthCodeMode, style: TextStyle(
+                        child: Text(
+                          context.hujiL10n.loginAuthCodeMode,
+                          style: TextStyle(
                             color: _loginType == LoginType.authCode
                                 ? Colors.white
                                 : Colors.black87,
@@ -322,7 +328,9 @@ class _LoginFormState extends State<LoginForm> {
                             });
                           },
                         ),
-                        Text(context.hujiL10n.loginRememberPassword, style: TextStyle(color: Colors.grey, fontSize: 14),
+                        Text(
+                          context.hujiL10n.loginRememberPassword,
+                          style: TextStyle(color: Colors.grey, fontSize: 14),
                         ),
                       ],
                     ),
@@ -398,7 +406,9 @@ class _LoginFormState extends State<LoginForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(context.hujiL10n.loginNoAccount, style: TextStyle(color: Colors.grey, fontSize: 14),
+                  Text(
+                    context.hujiL10n.loginNoAccount,
+                    style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,
@@ -422,27 +432,4 @@ class _LoginFormState extends State<LoginForm> {
     _passwordController.clear();
     _codeController.clear();
   }
-
-  // Widget _buildSocialButton(IconData icon, Color color) {
-  //   return Container(
-  //     width: 40,
-  //     height: 40,
-  //     decoration: BoxDecoration(
-  //       border: Border.all(color: Colors.grey[300]!),
-  //       borderRadius: BorderRadius.circular(20),
-  //     ),
-  //     child: IconButton(
-  //       onPressed: () {
-  //         Get.snackbar(
-  //           '提示',
-  //           '暂未开放',
-  //           snackPosition: SnackPosition.TOP,
-  //           colorText: Colors.amber,
-  //         );
-  //       },
-  //       icon: Icon(icon, color: color, size: 20),
-  //       padding: EdgeInsets.zero,
-  //     ),
-  //   );
-  // }
 }

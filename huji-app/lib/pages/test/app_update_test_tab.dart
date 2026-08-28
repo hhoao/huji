@@ -261,8 +261,7 @@ class _AppUpdateTestTabState extends State<AppUpdateTestTab> {
       itemCount: _apps.length,
       itemBuilder: (context, index) {
         final app = _apps[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 8),
+        return TpCard(
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Column(
@@ -350,8 +349,7 @@ class _AppUpdateTestTabState extends State<AppUpdateTestTab> {
       itemCount: _changelogs.length,
       itemBuilder: (context, index) {
         final changelog = _changelogs[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 8),
+        return TpCard(
           child: ExpansionTile(
             title: Text('版本 ${changelog.version}'),
             subtitle: changelog.createTime != null

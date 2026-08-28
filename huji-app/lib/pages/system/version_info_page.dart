@@ -145,7 +145,9 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
     }
   }
 
-  Future<Map<String, String>> _getDetailedDeviceInfo(HujiLocalizations l10n) async {
+  Future<Map<String, String>> _getDetailedDeviceInfo(
+    HujiLocalizations l10n,
+  ) async {
     try {
       final deviceInfo = DeviceInfoPlugin();
       final Map<String, String> info = {};
@@ -155,7 +157,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         info[_DeviceInfoKeys.brand] = androidInfo.brand;
         info[_DeviceInfoKeys.model] = androidInfo.model;
         info[_DeviceInfoKeys.androidVersion] = androidInfo.version.release;
-        info[_DeviceInfoKeys.sdkVersion] = androidInfo.version.sdkInt.toString();
+        info[_DeviceInfoKeys.sdkVersion] = androidInfo.version.sdkInt
+            .toString();
         info[_DeviceInfoKeys.deviceId] = androidInfo.id;
         info[_DeviceInfoKeys.manufacturer] = androidInfo.manufacturer;
         info[_DeviceInfoKeys.productName] = androidInfo.product;
@@ -174,8 +177,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         final windowsInfo = await deviceInfo.windowsInfo;
         info[_DeviceInfoKeys.systemVersion] =
             'Windows ${windowsInfo.majorVersion}.${windowsInfo.minorVersion}';
-        info[_DeviceInfoKeys.buildVersion] =
-            windowsInfo.buildNumber.toString();
+        info[_DeviceInfoKeys.buildVersion] = windowsInfo.buildNumber.toString();
         info[_DeviceInfoKeys.computerName] = windowsInfo.computerName;
         info[_DeviceInfoKeys.userName] = windowsInfo.userName;
         info[_DeviceInfoKeys.productName] = windowsInfo.productName;
@@ -186,8 +188,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
         info[_DeviceInfoKeys.computerName] = macOsInfo.computerName;
         info[_DeviceInfoKeys.hostName] = macOsInfo.hostName;
         info[_DeviceInfoKeys.architecture] = macOsInfo.arch;
-        info[_DeviceInfoKeys.activeCpuCount] =
-            macOsInfo.activeCPUs.toString();
+        info[_DeviceInfoKeys.activeCpuCount] = macOsInfo.activeCPUs.toString();
         info[_DeviceInfoKeys.memorySize] = '${macOsInfo.memorySize} GB';
       } else if (Platform.isLinux) {
         final linuxInfo = await deviceInfo.linuxInfo;
@@ -205,7 +206,9 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       return info;
     } catch (e) {
       return {
-        _DeviceInfoKeys.error: l10n.deviceInfoFetchFailedWithError(e.toString()),
+        _DeviceInfoKeys.error: l10n.deviceInfoFetchFailedWithError(
+          e.toString(),
+        ),
       };
     }
   }
@@ -274,8 +277,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                     child: Text(l10n.taskStatusCancelledShort),
                   ),
                   TpButton(
-                    onPressed: () =>
-                        _verifyPassword(passwordController.text),
+                    onPressed: () => _verifyPassword(passwordController.text),
                     child: Text(l10n.actionConfirm),
                   ),
                 ],
@@ -401,7 +403,6 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.settingsVersionInfo),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
-        elevation: 0,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -431,8 +432,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   Widget _buildAppInfoCard() {
-    return Card(
-      elevation: 2,
+    return TpCard(
+      padding: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Align(
@@ -459,8 +460,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
 
   Widget _buildVersionDetailsCard(BuildContext context) {
     final l10n = context.hujiL10n;
-    return Card(
-      elevation: 2,
+    return TpCard(
+      padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12), // 与Card的默认圆角保持一致
         child: Column(
@@ -538,8 +539,8 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   Widget _buildDeveloperOptionsCard() {
-    return Card(
-      elevation: 2,
+    return TpCard(
+      padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
@@ -565,13 +566,17 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(context.hujiL10n.developerOptions, style: context.textTheme.titleMedium?.copyWith(
+                      Text(
+                        context.hujiL10n.developerOptions,
+                        style: context.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.w600,
                           color: Colors.orange,
                         ),
                       ),
                       SizedBox(height: 4),
-                      Text(context.hujiL10n.developerOptionsDescription, style: context.textTheme.bodySmall?.copyWith(
+                      Text(
+                        context.hujiL10n.developerOptionsDescription,
+                        style: context.textTheme.bodySmall?.copyWith(
                           color: context.theme.colorScheme.onSurface.withValues(
                             alpha: 0.6,
                           ),

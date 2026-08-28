@@ -430,7 +430,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                 style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
-              Card(
+              TpCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -474,7 +474,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
               const SizedBox(height: 16),
 
               // 模型配置
-              Card(
+              TpCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -494,14 +494,12 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                         children: [
                           const Text('模型名称: '),
                           Expanded(
-                            child: DropdownButton<String>(
-                              value: _selectedModelName,
-                              items: _availableModels.map((model) {
-                                return DropdownMenuItem(
-                                  value: model,
-                                  child: Text(model),
-                                );
-                              }).toList(),
+                            child: TpCompactSelect<String>(
+                              value:
+                                  _selectedModelName ?? _availableModels.first,
+                              entries: _availableModels
+                                  .map((model) => (model, model))
+                                  .toList(),
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
@@ -541,7 +539,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
 
               // 已选择的测试图片
               if (_selectedImagePath != null) ...[
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -619,7 +617,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
 
               // 预测结果
               if (_lastPredictionResult != null) ...[
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -668,7 +666,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
               ],
 
               // 资源管理
-              Card(
+              TpCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(
@@ -705,7 +703,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
               const SizedBox(height: 16),
 
               // 日志显示
-              Card(
+              TpCard(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
                   child: Column(

@@ -208,9 +208,21 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                     Text(l10n.permissionDiagnosticTime(diagnosis['timestamp'])),
                     SizedBox(height: 16),
                     Text(l10n.permissionDiagnosticStats),
-                    Text(l10n.permissionDiagnosticTotal(diagnosis['summary']['total'])),
-                    Text(l10n.permissionDiagnosticGranted(diagnosis['summary']['granted'])),
-                    Text(l10n.permissionDiagnosticDenied(diagnosis['summary']['denied'])),
+                    Text(
+                      l10n.permissionDiagnosticTotal(
+                        diagnosis['summary']['total'],
+                      ),
+                    ),
+                    Text(
+                      l10n.permissionDiagnosticGranted(
+                        diagnosis['summary']['granted'],
+                      ),
+                    ),
+                    Text(
+                      l10n.permissionDiagnosticDenied(
+                        diagnosis['summary']['denied'],
+                      ),
+                    ),
                     Text(
                       l10n.permissionDiagnosticPermanentlyDenied(
                         diagnosis['summary']['permanentlyDenied'],
@@ -225,7 +237,8 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                     Text(l10n.permissionDiagnosticDetailStatus),
                     ...diagnosis['permissions'].entries.map((entry) {
                       final permissionName = entry.key;
-                      final permissionData = entry.value as Map<String, dynamic>;
+                      final permissionData =
+                          entry.value as Map<String, dynamic>;
                       return Padding(
                         padding: const EdgeInsets.only(left: 16, top: 4),
                         child: Text(
@@ -269,10 +282,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
             icon: Icons.refresh,
             tooltip: context.hujiL10n.actionRefresh,
           ),
-          TpIconButton(
-            onTap: _showDiagnosticInfo,
-            icon: Icons.bug_report,
-          ),
+          TpIconButton(onTap: _showDiagnosticInfo, icon: Icons.bug_report),
         ],
       ),
       body: _isLoading
@@ -303,7 +313,9 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(context.hujiL10n.permissionDescriptionTitle, style: TextStyle(
+                                Text(
+                                  context.hujiL10n.permissionDescriptionTitle,
+                                  style: TextStyle(
                                     color: context
                                         .theme
                                         .colorScheme
@@ -312,7 +324,9 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                   ),
                                 ),
                                 SizedBox(height: 4),
-                                Text(context.hujiL10n.permissionDescriptionBody, style: TextStyle(
+                                Text(
+                                  context.hujiL10n.permissionDescriptionBody,
+                                  style: TextStyle(
                                     color: context
                                         .theme
                                         .colorScheme
@@ -341,8 +355,8 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                       final statusColor = _permissionService
                           .getPermissionStatusColor(status);
 
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 12),
+                      return TpCard(
+                        padding: EdgeInsets.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -461,7 +475,11 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                                       strokeWidth: 2,
                                                     ),
                                               )
-                                            : Text(context.hujiL10n.requestPermission),
+                                            : Text(
+                                                context
+                                                    .hujiL10n
+                                                    .requestPermission,
+                                              ),
                                       ),
                                     ),
                                     if (status.isPermanentlyDenied) ...[
@@ -470,7 +488,9 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                         child: TpButton(
                                           onPressed: () => _permissionService
                                               .openAppSettingsPage(),
-                                          child: Text(context.hujiL10n.goToSettings),
+                                          child: Text(
+                                            context.hujiL10n.goToSettings,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -488,15 +508,22 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton.icon(
+                          child: TpButton(
+                            variant: TpButtonVariant.outline,
                             onPressed: _loadPermissionStatuses,
-                            icon: const Icon(Icons.refresh),
-                            label: Text(context.hujiL10n.refreshStatus),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.refresh, size: 16),
+                                const SizedBox(width: 6),
+                                Text(context.hujiL10n.refreshStatus),
+                              ],
+                            ),
                           ),
                         ),
                         SizedBox(width: 12),
                         Expanded(
-                          child: ElevatedButton.icon(
+                          child: TpButton(
                             onPressed: () async {
                               for (final permission
                                   in _permissionService.requiredPermissions) {
@@ -506,8 +533,14 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                 }
                               }
                             },
-                            icon: const Icon(Icons.security),
-                            label: Text(context.hujiL10n.requestAllPermissions),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.security, size: 16),
+                                const SizedBox(width: 6),
+                                Text(context.hujiL10n.requestAllPermissions),
+                              ],
+                            ),
                           ),
                         ),
                       ],

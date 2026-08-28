@@ -154,11 +154,8 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                       _showImageDetail(context, imagePath, originalPath),
                   borderRadius: BorderRadius.circular(12),
                   pressScale: 0.97,
-                  child: Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
+                  child: TpCard(
+                    padding: EdgeInsets.zero,
                     child: Column(
                       children: [
                         Expanded(

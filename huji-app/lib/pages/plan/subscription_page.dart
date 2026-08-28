@@ -80,7 +80,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       });
     } catch (e) {
       setState(() {
-        _errorMessage = context.hujiL10n.loadSubscriptionFailed('${e.toString()}');
+        _errorMessage = context.hujiL10n.loadSubscriptionFailed(
+          '${e.toString()}',
+        );
         _isLoading = false;
       });
     }
@@ -148,7 +150,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
           // 时长套餐列表
           if (_minutesPackages.isNotEmpty) ...[
-            Text(context.hujiL10n.durationPackages, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            Text(
+              context.hujiL10n.durationPackages,
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 12),
             ..._minutesPackages.map(
@@ -194,7 +198,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       Text(plan.planName),
                       if (plan.planType == _userSubscription?.planType) ...[
                         SizedBox(width: 6),
-                        _buildCurrentPlanTag(context.hujiL10n.current, Colors.green),
+                        _buildCurrentPlanTag(
+                          context.hujiL10n.current,
+                          Colors.green,
+                        ),
                       ],
                       if (plan.recommended) ...[
                         SizedBox(width: 6),
@@ -205,7 +212,10 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       ],
                       if (plan.popular) ...[
                         SizedBox(width: 6),
-                        _buildCurrentPlanTag(context.hujiL10n.popular, Colors.red),
+                        _buildCurrentPlanTag(
+                          context.hujiL10n.popular,
+                          Colors.red,
+                        ),
                       ],
                     ],
                   ),
@@ -262,7 +272,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               ),
               SizedBox(width: 12),
               Expanded(
-                child: Text(context.hujiL10n.currentDuration, style: TextStyle(
+                child: Text(
+                  context.hujiL10n.currentDuration,
+                  style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF333333),
@@ -274,9 +286,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           SizedBox(height: 16),
           _buildInfoRow(
             context.hujiL10n.remainingDuration,
-            context.hujiL10n.minutesValue(
-              _totalRemainingMinutes.round(),
-            ),
+            context.hujiL10n.minutesValue(_totalRemainingMinutes.round()),
           ),
           _buildInfoRow(
             context.hujiL10n.usedDuration,
@@ -289,7 +299,6 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   Widget _buildMinutesPackageCard(AppMinutesPackageRespVO package) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.surfaceColor,
@@ -391,11 +400,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       child: Column(
         children: [
           // 方案卡片
-          Card(
-            elevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+          TpCard(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -626,7 +632,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         Navigator.of(ctx).pop();
                         TpToast.show(
                           context,
-                          message: context.hujiL10n.purchaseFeatureInDevelopment,
+                          message:
+                              context.hujiL10n.purchaseFeatureInDevelopment,
                           variant: TpToastVariant.warning,
                         );
                       },

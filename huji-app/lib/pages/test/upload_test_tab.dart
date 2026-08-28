@@ -202,7 +202,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           // 文件选择区域
-          Card(
+          TpCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -266,7 +266,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
           const SizedBox(height: 16),
 
           // 上传配置区域
-          Card(
+          TpCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -281,36 +281,22 @@ class _UploadTestTabState extends State<UploadTestTab> {
                     children: [
                       const Text('分片大小: '),
                       Expanded(
-                        child: DropdownButton<int>(
+                        child: TpCompactSelect<int>(
                           value: _chunkSize,
-                          isExpanded: true,
-                          items: [
-                            DropdownMenuItem(
-                              value: 1 * 1024 * 1024,
-                              child: Text('1MB'),
-                            ),
-                            DropdownMenuItem(
-                              value: 5 * 1024 * 1024,
-                              child: Text('5MB'),
-                            ),
-                            DropdownMenuItem(
-                              value: 10 * 1024 * 1024,
-                              child: Text('10MB'),
-                            ),
-                            DropdownMenuItem(
-                              value: 20 * 1024 * 1024,
-                              child: Text('20MB'),
-                            ),
+                          enabled: !_isUploading,
+                          entries: const [
+                            (1 * 1024 * 1024, '1MB'),
+                            (5 * 1024 * 1024, '5MB'),
+                            (10 * 1024 * 1024, '10MB'),
+                            (20 * 1024 * 1024, '20MB'),
                           ],
-                          onChanged: _isUploading
-                              ? null
-                              : (value) {
-                                  if (value != null) {
-                                    setState(() {
-                                      _chunkSize = value;
-                                    });
-                                  }
-                                },
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _chunkSize = value;
+                              });
+                            }
+                          },
                         ),
                       ),
                     ],
@@ -385,7 +371,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
           // 结果显示
           if (_uploadedFilePath != null) ...[
-            Card(
+            TpCard(
               color: Colors.green.shade50,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -409,7 +395,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
           ],
 
           if (_errorMessage != null) ...[
-            Card(
+            TpCard(
               color: Colors.red.shade50,
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
@@ -434,7 +420,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
           // 详细日志
           if (_showDetailedLogs && _logMessages.isNotEmpty) ...[
-            Card(
+            TpCard(
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

@@ -285,192 +285,202 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                   const SizedBox(height: 16),
 
                   // Stack trace card
-                    Container(
+                  Container(
                     constraints: const BoxConstraints(maxHeight: 300),
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.code,
-                                color: Colors.grey[600],
-                                size: 20,
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.code, color: Colors.grey[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Stack Trace',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Stack Trace',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: () async {
-                                  final stackTraceString = _formatStackTrace(
-                                    widget.stackTrace,
-                                  );
-                                  Clipboard.setData(
-                                    ClipboardData(text: stackTraceString),
-                                  );
-                                  setState(() {
-                                    _isCopied = true;
-                                  });
-                                },
-                                icon: Icon(
-                                  _isCopied ? Icons.check : Icons.copy,
-                                  size: 18,
-                                  color: _isCopied ? Colors.green : Colors.blue,
-                                ),
-                                label: Text(
-                                  _isCopied ? 'Copied!' : 'Copy',
-                                  style: TextStyle(
+                            ),
+                            const Spacer(),
+                            TpButton(
+                              variant: TpButtonVariant.ghost,
+                              onPressed: () async {
+                                final stackTraceString = _formatStackTrace(
+                                  widget.stackTrace,
+                                );
+                                Clipboard.setData(
+                                  ClipboardData(text: stackTraceString),
+                                );
+                                setState(() {
+                                  _isCopied = true;
+                                });
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isCopied ? Icons.check : Icons.copy,
+                                    size: 16,
                                     color: _isCopied
                                         ? Colors.green
                                         : Colors.blue,
-                                    fontWeight: FontWeight.w500,
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  _formatStackTrace(widget.stackTrace),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: 'monospace',
-                                    color: Colors.grey[800],
-                                    height: 1.3,
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _isCopied ? 'Copied!' : 'Copy',
+                                    style: TextStyle(
+                                      color: _isCopied
+                                          ? Colors.green
+                                          : Colors.blue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: SingleChildScrollView(
+                              child: Text(
+                                _formatStackTrace(widget.stackTrace),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'monospace',
+                                  color: Colors.grey[800],
+                                  height: 1.3,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
 
                   const SizedBox(height: 16),
 
                   // Stack trace card
-                    Container(
+                  Container(
                     constraints: const BoxConstraints(maxHeight: 300),
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.code,
-                                color: Colors.grey[600],
-                                size: 20,
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.05),
+                          blurRadius: 10,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.code, color: Colors.grey[600], size: 20),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'Pending Logs',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
                               ),
-                              const SizedBox(width: 8),
-                              const Text(
-                                'Pending Logs',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.black87,
-                                ),
-                              ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: () async {
-                                  final pendingLogs = await AppLogger.instance
-                                      .getPendingLogLines();
-                                  final pendingLogsString = pendingLogs.join(
-                                    '\n',
-                                  );
-                                  Clipboard.setData(
-                                    ClipboardData(text: pendingLogsString),
-                                  );
-                                  setState(() {
-                                    _isCopied = true;
-                                  });
-                                },
-                                icon: Icon(
-                                  _isCopied ? Icons.check : Icons.copy,
-                                  size: 18,
-                                  color: _isCopied ? Colors.green : Colors.blue,
-                                ),
-                                label: Text(
-                                  _isCopied ? 'Copied!' : 'Copy',
-                                  style: TextStyle(
+                            ),
+                            const Spacer(),
+                            TpButton(
+                              variant: TpButtonVariant.ghost,
+                              onPressed: () async {
+                                final pendingLogs = await AppLogger.instance
+                                    .getPendingLogLines();
+                                final pendingLogsString = pendingLogs.join(
+                                  '\n',
+                                );
+                                Clipboard.setData(
+                                  ClipboardData(text: pendingLogsString),
+                                );
+                                setState(() {
+                                  _isCopied = true;
+                                });
+                              },
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isCopied ? Icons.check : Icons.copy,
+                                    size: 16,
                                     color: _isCopied
                                         ? Colors.green
                                         : Colors.blue,
-                                    fontWeight: FontWeight.w500,
                                   ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Expanded(
-                            child: Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey[100],
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.grey[300]!),
-                              ),
-                              child: SingleChildScrollView(
-                                child: Text(
-                                  AppLogger.instance.getFormattedPendingLogs(),
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    fontFamily: 'monospace',
-                                    color: Colors.grey[800],
-                                    height: 1.3,
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    _isCopied ? 'Copied!' : 'Copy',
+                                    style: TextStyle(
+                                      color: _isCopied
+                                          ? Colors.green
+                                          : Colors.blue,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.grey[300]!),
+                            ),
+                            child: SingleChildScrollView(
+                              child: Text(
+                                AppLogger.instance.getFormattedPendingLogs(),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontFamily: 'monospace',
+                                  color: Colors.grey[800],
+                                  height: 1.3,
                                 ),
                               ),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
+                  ),
 
                   const SizedBox(height: 24),
 
@@ -480,7 +490,8 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
+                            child: TpButton(
+                              variant: TpButtonVariant.outline,
                               onPressed: () {
                                 // Try to restart the app or show restart dialog
                                 showTpDialog(
@@ -519,33 +530,30 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                   ),
                                 );
                               },
-                              icon: const Icon(Icons.refresh),
-                              label: const Text('Restart App'),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                              child: const Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.refresh, size: 16),
+                                  SizedBox(width: 6),
+                                  Text('Restart App'),
+                                ],
                               ),
                             ),
                           ),
                           const SizedBox(width: 12),
                           Expanded(
-                            child: ElevatedButton.icon(
+                            child: TpButton(
                               onPressed: _copyErrorToClipboard,
-                              icon: Icon(_isCopied ? Icons.check : Icons.copy),
-                              label: Text(_isCopied ? 'Copied!' : 'Copy Error'),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    _isCopied ? Icons.check : Icons.copy,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(_isCopied ? 'Copied!' : 'Copy Error'),
+                                ],
                               ),
                             ),
                           ),
@@ -554,7 +562,8 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                       const SizedBox(height: 12),
                       SizedBox(
                         width: double.infinity,
-                        child: OutlinedButton.icon(
+                        child: TpButton(
+                          variant: TpButtonVariant.outline,
                           onPressed: () async {
                             try {
                               // 使用 navigatorKey 确保能在独立的 MaterialApp 中导航
@@ -564,7 +573,8 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                 if (mounted) {
                                   TpToast.show(
                                     context,
-                                    message: context.hujiL10n
+                                    message: context
+                                        .hujiL10n
                                         .cannotOpenLogViewerNavigatorNotInitialized,
                                     variant: TpToastVariant.error,
                                   );
@@ -592,13 +602,13 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                               }
                             }
                           },
-                          icon: const Icon(Icons.description),
-                          label: Text(context.hujiL10n.viewLogsButton),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.description, size: 16),
+                              const SizedBox(width: 6),
+                              Text(context.hujiL10n.viewLogsButton),
+                            ],
                           ),
                         ),
                       ),

@@ -20,7 +20,6 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.developerOptions),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
-        elevation: 0,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -28,8 +27,8 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 开发者模式说明
-            Card(
-              elevation: 2,
+            TpCard(
+              padding: EdgeInsets.zero,
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
@@ -69,50 +68,55 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
             SizedBox(height: 24),
 
             // 开发工具
-            _buildSection(context, context.hujiL10n.devToolsSection, Icons.build, [
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.testPageTitle,
-                Icons.science,
-                context.hujiL10n.testPageAccessSubtitle,
-                () => context.push(ToolsRoute.test),
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.permissionTestTitle,
-                Icons.security,
-                context.hujiL10n.permissionTestSubtitle,
-                () => context.push('${ToolsRoute.test}?tab=permission'),
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.systemInfoTitle,
-                Icons.info,
-                context.hujiL10n.systemInfoSubtitle,
-                () => _showSystemInfo(context),
-              ),
-              ListTile(
-                leading: const Icon(Icons.bug_report),
-                title: Text(context.hujiL10n.testPageTitle),
-                subtitle: Text(context.hujiL10n.testPageForFeaturesSubtitle),
-                onTap: () {
-                  Navigator.pushNamed(context, '/test');
-                },
-              ),
-              ListTile(
-                leading: const Icon(Icons.text_snippet),
-                title: Text(context.hujiL10n.logViewerTitle),
-                subtitle: Text(context.hujiL10n.viewAppLogsSubtitle),
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const LogViewerPage(),
-                    ),
-                  );
-                },
-              ),
-            ]),
+            _buildSection(
+              context,
+              context.hujiL10n.devToolsSection,
+              Icons.build,
+              [
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.testPageTitle,
+                  Icons.science,
+                  context.hujiL10n.testPageAccessSubtitle,
+                  () => context.push(ToolsRoute.test),
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.permissionTestTitle,
+                  Icons.security,
+                  context.hujiL10n.permissionTestSubtitle,
+                  () => context.push('${ToolsRoute.test}?tab=permission'),
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.systemInfoTitle,
+                  Icons.info,
+                  context.hujiL10n.systemInfoSubtitle,
+                  () => _showSystemInfo(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bug_report),
+                  title: Text(context.hujiL10n.testPageTitle),
+                  subtitle: Text(context.hujiL10n.testPageForFeaturesSubtitle),
+                  onTap: () {
+                    Navigator.pushNamed(context, '/test');
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.text_snippet),
+                  title: Text(context.hujiL10n.logViewerTitle),
+                  subtitle: Text(context.hujiL10n.viewAppLogsSubtitle),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const LogViewerPage(),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
 
             SizedBox(height: 24),
 
@@ -122,29 +126,30 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
               context.hujiL10n.dataManagementSection,
               Icons.storage,
               [
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.resetAppTitle,
-                Icons.refresh,
-                context.hujiL10n.resetAppSubtitle,
-                () => _resetApp(context),
-                isDestructive: true,
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.clearCacheTitle,
-                Icons.cleaning_services,
-                context.hujiL10n.clearAppCacheSubtitle,
-                _clearCache,
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.exportLogsTitle,
-                Icons.download,
-                context.hujiL10n.exportLogsSubtitle,
-                _exportLogs,
-              ),
-            ]),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.resetAppTitle,
+                  Icons.refresh,
+                  context.hujiL10n.resetAppSubtitle,
+                  () => _resetApp(context),
+                  isDestructive: true,
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.clearCacheTitle,
+                  Icons.cleaning_services,
+                  context.hujiL10n.clearAppCacheSubtitle,
+                  _clearCache,
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.exportLogsTitle,
+                  Icons.download,
+                  context.hujiL10n.exportLogsSubtitle,
+                  _exportLogs,
+                ),
+              ],
+            ),
 
             SizedBox(height: 24),
 
@@ -154,28 +159,29 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
               context.hujiL10n.debugFeaturesSection,
               Icons.bug_report,
               [
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.performanceMonitorTitle,
-                Icons.speed,
-                context.hujiL10n.performanceMonitorSubtitle,
-                _showPerformanceMonitor,
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.networkDebugTitle,
-                Icons.network_check,
-                context.hujiL10n.networkDebugSubtitle,
-                _showNetworkDebug,
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.databaseDebugTitle,
-                Icons.storage,
-                context.hujiL10n.databaseDebugSubtitle,
-                _showDatabaseDebug,
-              ),
-            ]),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.performanceMonitorTitle,
+                  Icons.speed,
+                  context.hujiL10n.performanceMonitorSubtitle,
+                  _showPerformanceMonitor,
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.networkDebugTitle,
+                  Icons.network_check,
+                  context.hujiL10n.networkDebugSubtitle,
+                  _showNetworkDebug,
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.databaseDebugTitle,
+                  Icons.storage,
+                  context.hujiL10n.databaseDebugSubtitle,
+                  _showDatabaseDebug,
+                ),
+              ],
+            ),
 
             SizedBox(height: 24),
 
@@ -185,21 +191,22 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
               context.hujiL10n.experimentalFeaturesSection,
               Icons.science,
               [
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.experimentalFeatureATitle,
-                Icons.science,
-                context.hujiL10n.experimentalFeatureASubtitle,
-                _experimentalFeatureA,
-              ),
-              _buildDeveloperButton(
-                context,
-                context.hujiL10n.experimentalFeatureBTitle,
-                Icons.science,
-                context.hujiL10n.experimentalFeatureBSubtitle,
-                _experimentalFeatureB,
-              ),
-            ]),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.experimentalFeatureATitle,
+                  Icons.science,
+                  context.hujiL10n.experimentalFeatureASubtitle,
+                  _experimentalFeatureA,
+                ),
+                _buildDeveloperButton(
+                  context,
+                  context.hujiL10n.experimentalFeatureBTitle,
+                  Icons.science,
+                  context.hujiL10n.experimentalFeatureBSubtitle,
+                  _experimentalFeatureB,
+                ),
+              ],
+            ),
 
             SizedBox(height: 32),
           ],
@@ -246,8 +253,8 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
     VoidCallback onTap, {
     bool isDestructive = false,
   }) {
-    return Card(
-      elevation: 1,
+    return TpCard(
+      padding: EdgeInsets.zero,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -331,7 +338,9 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
                   ),
                   _buildInfoRow(
                     l10n.deviceLabel,
-                    GetPlatform.isMobile ? l10n.mobileDevice : l10n.desktopDevice,
+                    GetPlatform.isMobile
+                        ? l10n.mobileDevice
+                        : l10n.desktopDevice,
                   ),
                   _buildInfoRow(l10n.flutterVersionLabel, '3.16.0'),
                   _buildInfoRow(l10n.dartVersionLabel, '3.2.0'),
@@ -453,14 +462,10 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   }
 
   void _experimentalFeatureA() {
-    _showFeatureInDevelopment(
-      context.hujiL10n.experimentalFeatureATitle,
-    );
+    _showFeatureInDevelopment(context.hujiL10n.experimentalFeatureATitle);
   }
 
   void _experimentalFeatureB() {
-    _showFeatureInDevelopment(
-      context.hujiL10n.experimentalFeatureBTitle,
-    );
+    _showFeatureInDevelopment(context.hujiL10n.experimentalFeatureBTitle);
   }
 }

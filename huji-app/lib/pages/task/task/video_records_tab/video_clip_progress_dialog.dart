@@ -367,7 +367,6 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                           },
                           child: Text(context.hujiL10n.actionClose),
                         ),
-                        ),
                       ),
                   ],
                 ),

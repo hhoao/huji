@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:huji_app/api/models/autoclip/app_models.dart';
 import 'package:huji_app/services/app_update_service.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class ChangelogEntry {
   final String version;
@@ -231,101 +232,93 @@ class ChangelogData {
   }
 
   static Widget buildChangelogItem(BuildContext context, ChangelogEntry entry) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 版本标题和日期
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Color(
-                      ChangelogData.getTypeColor(entry.type),
-                    ).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Text(
-                    entry.version,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Color(ChangelogData.getTypeColor(entry.type)),
-                    ),
-                  ),
+    return TpCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 版本标题和日期
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  entry.date,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.6),
-                  ),
+                decoration: BoxDecoration(
+                  color: Color(
+                    ChangelogData.getTypeColor(entry.type),
+                  ).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                child: Text(
+                  entry.version,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Color(ChangelogData.getTypeColor(entry.type)),
                   ),
-                  decoration: BoxDecoration(
-                    color: Color(
-                      ChangelogData.getTypeColor(entry.type),
-                    ).withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    ChangelogData.getTypeDescription(entry.type),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Color(ChangelogData.getTypeColor(entry.type)),
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-
-            const SizedBox(height: 16),
-
-            // 更新内容列表
-            ...entry.changes.map(
-              (change) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      margin: const EdgeInsets.only(top: 8, right: 12),
-                      decoration: BoxDecoration(
-                        color: Color(
-                          ChangelogData.getTypeColor(entry.type),
-                        ).withValues(alpha: 0.6),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        change,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.bodyMedium?.copyWith(height: 1.4),
-                      ),
-                    ),
-                  ],
                 ),
               ),
+              const SizedBox(width: 12),
+              Text(
+                entry.date,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Color(
+                    ChangelogData.getTypeColor(entry.type),
+                  ).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  ChangelogData.getTypeDescription(entry.type),
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Color(ChangelogData.getTypeColor(entry.type)),
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // 更新内容列表
+          ...entry.changes.map(
+            (change) => Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 6,
+                    height: 6,
+                    decoration: BoxDecoration(
+                      color: Color(
+                        ChangelogData.getTypeColor(entry.type),
+                      ).withValues(alpha: 0.6),
+                    ),
+                  ),
+                  Expanded(
+                    child: Text(
+                      change,
+                      style: Theme.of(
+                        context,
+                      ).textTheme.bodyMedium?.copyWith(height: 1.4),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

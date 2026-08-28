@@ -3,6 +3,7 @@ import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/clip/types.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 // 视频配置组件
 class VideoConfigWidget extends StatefulWidget {
@@ -129,17 +130,13 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
           Text(item.label, style: const TextStyle(fontSize: 16)),
           const SizedBox(width: 16),
           Expanded(
-            child: DropdownButton<dynamic>(
-              value: item.value,
-              isExpanded: true,
-              items:
-                  item.selectOptions?.map((option) {
-                    return DropdownMenuItem(
-                      value: option.value,
-                      child: Text(option.label),
-                    );
-                  }).toList() ??
-                  [],
+            child: TpCompactSelect<Object>(
+              value: item.value as Object,
+              entries: [
+                for (final option
+                    in item.selectOptions ?? const <ConfigOption>[])
+                  (option.value as Object, option.label),
+              ],
               onChanged: (value) {
                 if (value != null) {
                   _updateValue(item.key, value);

@@ -166,7 +166,8 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      _userInfo?.nickname ?? context.hujiL10n.profileDefaultUsername,
+                      _userInfo?.nickname ??
+                          context.hujiL10n.profileDefaultUsername,
                       style: Theme.of(context).textTheme.headlineMedium
                           ?.copyWith(fontWeight: FontWeight.w600),
                     ),
@@ -192,41 +193,57 @@ class ProfilePageContentState extends State<ProfilePageContent> {
               const SizedBox(height: 24),
               // 功能入口分组卡片
               _buildCard([
-                _buildMenuRow(Icons.person_outline, context.hujiL10n.basicInfo, () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const BasicInfoPage(),
-                    ),
-                  ).then((_) => _loadUserInfo());
-                }),
+                _buildMenuRow(
+                  Icons.person_outline,
+                  context.hujiL10n.basicInfo,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const BasicInfoPage(),
+                      ),
+                    ).then((_) => _loadUserInfo());
+                  },
+                ),
                 _buildDivider(),
-                _buildMenuRow(Icons.security, context.hujiL10n.accountAndSecurity, () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SecuritySettingsPage(),
-                    ),
-                  );
-                }),
+                _buildMenuRow(
+                  Icons.security,
+                  context.hujiL10n.accountAndSecurity,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SecuritySettingsPage(),
+                      ),
+                    );
+                  },
+                ),
                 _buildDivider(),
-                _buildMenuRow(Icons.settings, context.hujiL10n.settingsTitle, () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SettingsPage(),
-                    ),
-                  );
-                }),
+                _buildMenuRow(
+                  Icons.settings,
+                  context.hujiL10n.settingsTitle,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsPage(),
+                      ),
+                    );
+                  },
+                ),
                 _buildDivider(),
-                _buildMenuRow(Icons.help_outline, context.hujiL10n.helpAndFeedback, () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const HelpFeedbackPage(),
-                    ),
-                  );
-                }),
+                _buildMenuRow(
+                  Icons.help_outline,
+                  context.hujiL10n.helpAndFeedback,
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const HelpFeedbackPage(),
+                      ),
+                    );
+                  },
+                ),
               ]),
             ],
           );

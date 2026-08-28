@@ -183,9 +183,6 @@ class VideoListTabContentState extends State<VideoListTabContent>
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
       builder: (context) => StatefulBuilder(
         builder: (context, setModalState) => _buildFilterDialog(setModalState),
       ),
@@ -202,7 +199,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(context.hujiL10n.filterConditions, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              Text(
+                context.hujiL10n.filterConditions,
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               TpButton(
                 variant: TpButtonVariant.ghost,
@@ -226,7 +225,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
           SizedBox(height: 20),
 
           // 视频处理类型
-          Text(context.hujiL10n.videoProcessType, style: TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            context.hujiL10n.videoProcessType,
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
           SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -247,7 +249,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
           SizedBox(height: 16),
 
           // 运动类型
-          Text(context.hujiL10n.filterSportType, style: TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            context.hujiL10n.filterSportType,
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
           SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -268,7 +273,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
           SizedBox(height: 16),
 
           // 比赛类型
-          Text(context.hujiL10n.matchType, style: TextStyle(fontWeight: FontWeight.w500)),
+          Text(
+            context.hujiL10n.matchType,
+            style: TextStyle(fontWeight: FontWeight.w500),
+          ),
           SizedBox(height: 8),
           Wrap(
             spacing: 8,
@@ -522,7 +530,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
                 children: [
                   SizedBox(height: 4),
                   Icon(Icons.timer_off, color: Colors.grey),
-                  Text(context.hujiL10n.expired, style: TextStyle(fontSize: 10, color: Colors.grey),
+                  Text(
+                    context.hujiL10n.expired,
+                    style: TextStyle(fontSize: 10, color: Colors.grey),
                   ),
                 ],
               ),
@@ -592,8 +602,8 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   Widget _buildVideoCard(VideoDisplayItem item) {
     final l10n = context.hujiL10n;
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return TpCard(
+      padding: EdgeInsets.zero,
       child: TpHover(
         onTap: () => _navigateToPlayer(item),
         borderRadius: BorderRadius.circular(12),
@@ -656,7 +666,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
                                   color: Colors.teal,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
-                                child: Text(context.hujiL10n.filterLocal, style: TextStyle(
+                                child: Text(
+                                  context.hujiL10n.filterLocal,
+                                  style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.w500,
@@ -707,7 +719,22 @@ class VideoListTabContentState extends State<VideoListTabContent>
                   ),
 
                   // 操作按钮
-                  PopupMenuButton<String>(
+                  TpActionMenuButton(
+                    icon: const Icon(Icons.more_vert),
+                    specs: [
+                      TpActionMenuSpec.item(
+                        value: 'play',
+                        icon: Icons.play_arrow,
+                        label: context.hujiL10n.actionPlay,
+                      ),
+                      if (item.isLocal)
+                        TpActionMenuSpec.item(
+                          value: 'delete',
+                          icon: Icons.delete,
+                          label: context.hujiL10n.actionDelete,
+                          destructive: true,
+                        ),
+                    ],
                     onSelected: (value) {
                       switch (value) {
                         case 'play':
@@ -720,33 +747,6 @@ class VideoListTabContentState extends State<VideoListTabContent>
                           break;
                       }
                     },
-                    itemBuilder: (context) => [
-                      PopupMenuItem(
-                        value: 'play',
-                        child: Row(
-                          children: [
-                            const Icon(Icons.play_arrow),
-                            const SizedBox(width: 8),
-                            Text(context.hujiL10n.actionPlay),
-                          ],
-                        ),
-                      ),
-                      if (item.isLocal)
-                        PopupMenuItem(
-                          value: 'delete',
-                          child: Row(
-                            children: [
-                              const Icon(Icons.delete, color: Colors.red),
-                              const SizedBox(width: 8),
-                              Text(
-                                context.hujiL10n.actionDelete,
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                    child: const Icon(Icons.more_vert),
                   ),
                 ],
               ),
@@ -763,11 +763,8 @@ class VideoListTabContentState extends State<VideoListTabContent>
       onTap: () => _navigateToPlayer(item),
       borderRadius: BorderRadius.circular(12),
       pressScale: 0.97,
-      child: Card(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
-        ),
-        elevation: 2,
+      child: TpCard(
+        padding: EdgeInsets.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -793,7 +790,9 @@ class VideoListTabContentState extends State<VideoListTabContent>
                         color: Colors.teal,
                         borderRadius: BorderRadius.circular(4),
                       ),
-                      child: Text(context.hujiL10n.filterLocal, style: TextStyle(fontSize: 9, color: Colors.white),
+                      child: Text(
+                        context.hujiL10n.filterLocal,
+                        style: TextStyle(fontSize: 9, color: Colors.white),
                       ),
                     ),
                   ),
@@ -922,7 +921,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
     return Padding(
       padding: EdgeInsets.all(16),
       child: Center(
-        child: Text(context.hujiL10n.noMoreData, style: TextStyle(color: Colors.grey)),
+        child: Text(
+          context.hujiL10n.noMoreData,
+          style: TextStyle(color: Colors.grey),
+        ),
       ),
     );
   }

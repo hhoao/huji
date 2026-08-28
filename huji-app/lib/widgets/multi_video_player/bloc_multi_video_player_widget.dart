@@ -87,7 +87,8 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
             aspectRatio: aspectRatio ?? state.aspectRatio ?? 16 / 9,
             child: Stack(
               children: [
-                if (PlatformCapability.isDesktop && controller is media_kit.Player)
+                if (PlatformCapability.isDesktop &&
+                    controller is media_kit.Player)
                   _buildDesktopVideo(bloc)
                 else if (controller is VideoPlayerController)
                   VideoPlayer(controller),
@@ -226,16 +227,23 @@ class _PlaybackControlsRow extends StatelessWidget {
         ),
         const SizedBox(width: 8),
         if (state.isFullscreen) ...[
-          PopupMenuButton<double>(
-            onSelected: (speed) => bloc.add(SetPlaybackSpeedEvent(speed)),
-            itemBuilder: (context) => const [
-              PopupMenuItem(value: 0.5, child: Text('0.5x')),
-              PopupMenuItem(value: 1.0, child: Text('1.0x')),
-              PopupMenuItem(value: 1.5, child: Text('1.5x')),
-              PopupMenuItem(value: 2.0, child: Text('2.0x')),
-            ],
+          TpActionMenuButton(
             tooltip: context.hujiL10n.playSpeed,
-            child: const Icon(Icons.speed, color: Colors.white, size: 20),
+            icon: const Icon(Icons.speed, color: Colors.white, size: 20),
+            specs: [
+              for (final speed in const [0.5, 1.0, 1.5, 2.0])
+                TpActionMenuSpec.item(
+                  value: speed,
+                  icon: Icons.speed,
+                  label: '${speed}x',
+                  selected: state.playbackSpeed == speed,
+                ),
+            ],
+            onSelected: (value) {
+              if (value is double) {
+                bloc.add(SetPlaybackSpeedEvent(value));
+              }
+            },
           ),
           const SizedBox(width: 8),
         ],

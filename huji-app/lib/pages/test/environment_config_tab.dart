@@ -51,7 +51,7 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
     final envName = EnvUtils.getEnvironmentDisplayName(_currentEnvironment);
     final envColor = Color(EnvUtils.getEnvironmentColor(_currentEnvironment));
 
-    return Card(
+    return TpCard(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -62,10 +62,7 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
                 Container(
                   width: 12,
                   height: 12,
-                  decoration: BoxDecoration(
-                    color: envColor,
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: BoxDecoration(color: envColor),
                 ),
                 SizedBox(width: 8),
                 Text(
@@ -95,7 +92,7 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
   }
 
   Widget _buildEnvironmentSelection() {
-    return Card(
+    return TpCard(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -147,7 +144,7 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
   }
 
   Widget _buildEnvironmentDetails() {
-    return Card(
+    return TpCard(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

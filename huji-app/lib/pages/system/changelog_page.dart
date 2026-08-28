@@ -51,7 +51,6 @@ class _ChangelogPageState extends State<ChangelogPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.changelog),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
-        elevation: 0,
         actions: [
           if (!_isLoading)
             TpIconButton(
@@ -103,8 +102,8 @@ class _ChangelogPageState extends State<ChangelogPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 关于更新日志的说明
-          Card(
-            elevation: 1,
+          TpCard(
+            padding: EdgeInsets.zero,
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(

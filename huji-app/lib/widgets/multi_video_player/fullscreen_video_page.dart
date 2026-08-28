@@ -368,24 +368,23 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
               const Spacer(),
 
               // 播放速度按钮
-              PopupMenuButton<double>(
-                onSelected: (speed) =>
-                    widget.bloc.add(SetPlaybackSpeedEvent(speed)),
-                itemBuilder: (context) => [
-                  const PopupMenuItem(value: 0.5, child: Text('0.5x')),
-                  const PopupMenuItem(value: 1.0, child: Text('1.0x')),
-                  const PopupMenuItem(value: 1.5, child: Text('1.5x')),
-                  const PopupMenuItem(value: 2.0, child: Text('2.0x')),
-                ],
+              TpActionMenuButton(
                 tooltip: context.hujiL10n.playSpeed,
-                child: Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: const Icon(Icons.speed, color: Colors.white, size: 16),
-                ),
+                icon: const Icon(Icons.speed, color: Colors.white, size: 16),
+                specs: [
+                  for (final speed in const [0.5, 1.0, 1.5, 2.0])
+                    TpActionMenuSpec.item(
+                      value: speed,
+                      icon: Icons.speed,
+                      label: '${speed}x',
+                      selected: state.playbackSpeed == speed,
+                    ),
+                ],
+                onSelected: (value) {
+                  if (value is double) {
+                    widget.bloc.add(SetPlaybackSpeedEvent(value));
+                  }
+                },
               ),
 
               SizedBox(width: 6),
@@ -430,13 +429,18 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
     final state = context.read<MultiVideoPlayerBloc>().state;
     if (state.isLoading) {
       return Center(
-        child: CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+        ),
       );
     }
     final controller = state.currentVideoController;
     if (controller == null || !state.isInitialized) {
       return Center(
-        child: Text(context.hujiL10n.desktopLibraryEmptyTitle, style: TextStyle(color: Colors.white, fontSize: 16)),
+        child: Text(
+          context.hujiL10n.desktopLibraryEmptyTitle,
+          style: TextStyle(color: Colors.white, fontSize: 16),
+        ),
       );
     }
     return Center(

@@ -154,8 +154,7 @@ class _StoragePathTestTabState extends State<StoragePathTestTab> {
   }
 
   Widget _buildPathCard(String title, String value) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return TpCard(
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

@@ -23,7 +23,7 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
       padding: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          Card(
+          TpCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -157,7 +157,7 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
           const SizedBox(height: 16),
 
           // 测试按钮区域
-          Card(
+          TpCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
@@ -204,7 +204,7 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
           const SizedBox(height: 16),
 
           // 说明信息
-          Card(
+          TpCard(
             color: Colors.blue[50],
             child: Padding(
               padding: const EdgeInsets.all(16.0),

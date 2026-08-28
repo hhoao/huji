@@ -104,8 +104,7 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
             final status = entry.value;
             final l10n = context.hujiL10n;
 
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
+            return TpCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(

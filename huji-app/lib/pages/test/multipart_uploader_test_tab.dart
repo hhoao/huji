@@ -280,7 +280,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
     return ListView(
       padding: EdgeInsets.all(16.0),
       children: [
-        Card(
+        TpCard(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -331,22 +331,12 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                   children: [
                     const Text('分片大小: '),
                     Expanded(
-                      child: DropdownButton<int>(
+                      child: TpCompactSelect<int>(
                         value: _chunkSize,
-                        isExpanded: true,
-                        items: [
-                          DropdownMenuItem(
-                            value: 1 * 1024 * 1024,
-                            child: Text('1MB'),
-                          ),
-                          DropdownMenuItem(
-                            value: 5 * 1024 * 1024,
-                            child: Text('5MB'),
-                          ),
-                          DropdownMenuItem(
-                            value: 10 * 1024 * 1024,
-                            child: Text('10MB'),
-                          ),
+                        entries: const [
+                          (1 * 1024 * 1024, '1MB'),
+                          (5 * 1024 * 1024, '5MB'),
+                          (10 * 1024 * 1024, '10MB'),
                         ],
                         onChanged: (value) {
                           if (value != null) {
@@ -358,14 +348,9 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                     const SizedBox(width: 10),
                     const Text('重试次数: '),
                     Expanded(
-                      child: DropdownButton<int>(
+                      child: TpCompactSelect<int>(
                         value: _maxRetries,
-                        isExpanded: true,
-                        items: [
-                          DropdownMenuItem(value: 1, child: Text('1次')),
-                          DropdownMenuItem(value: 3, child: Text('3次')),
-                          DropdownMenuItem(value: 5, child: Text('5次')),
-                        ],
+                        entries: const [(1, '1次'), (3, '3次'), (5, '5次')],
                         onChanged: (value) {
                           if (value != null) {
                             setState(() => _maxRetries = value);
@@ -395,7 +380,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
         const SizedBox(height: 16),
 
         // 批量操作
-        Card(
+        TpCard(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -445,7 +430,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
         const SizedBox(height: 16),
 
         // 上传统计
-        Card(
+        TpCard(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -475,7 +460,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
         const SizedBox(height: 16),
 
         // 上传任务列表
-        Card(
+        TpCard(
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
@@ -511,8 +496,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                             final uploadTask = _multipartUploader.getTaskById(
                               task.uploadTaskId,
                             )!;
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 4),
+                            return TpCard(
                               child: Padding(
                                 padding: const EdgeInsets.all(12),
                                 child: Column(
@@ -623,7 +607,7 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
         // 详细日志
         if (_showDetailedLogs && _logMessages.isNotEmpty) ...[
           const SizedBox(height: 16),
-          Card(
+          TpCard(
             child: Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(

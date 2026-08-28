@@ -119,27 +119,29 @@ class _LoginDialogState extends State<LoginDialog>
             position: _slideAnimation,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TpDialogHeader(
-                    title: context.hujiL10n.loginTitle,
-                    onClose: _closeDialog,
-                  ),
-                  SizedBox(height: context.tpSpacing.lg),
-                  Text(
-                    context.hujiL10n.emailLoginOnlyNotice,
-                    style: const TextStyle(
-                      color: Colors.orange,
-                      fontSize: 12,
-                      decoration: TextDecoration.none,
-                      fontWeight: FontWeight.normal,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TpDialogHeader(
+                      title: context.hujiL10n.loginTitle,
+                      onClose: _closeDialog,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  _buildCurrentForm(),
-                ],
+                    SizedBox(height: context.tpSpacing.lg),
+                    Text(
+                      context.hujiL10n.emailLoginOnlyNotice,
+                      style: const TextStyle(
+                        color: Colors.orange,
+                        fontSize: 12,
+                        decoration: TextDecoration.none,
+                        fontWeight: FontWeight.normal,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    _buildCurrentForm(),
+                  ],
+                ),
               ),
             ),
           );

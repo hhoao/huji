@@ -369,7 +369,7 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // 状态显示
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -411,7 +411,7 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                 const SizedBox(height: 16),
 
                 // 测试模式选择
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -461,7 +461,7 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
 
                 // 帧流配置（仅实时模式显示）
                 if (_isRealtimeMode) ...[
-                  Card(
+                  TpCard(
                     child: Padding(
                       padding: const EdgeInsets.all(16.0),
                       child: Column(
@@ -499,7 +499,7 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                 ],
 
                 // 配置设置
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
@@ -518,16 +518,15 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                         Row(
                           children: [
                             const Text('运动类型: '),
-                            DropdownButton<SportType>(
+                            TpCompactSelect<SportType>(
                               value: _selectedSportType,
-                              items: SportType.values.map((type) {
-                                return DropdownMenuItem(
-                                  value: type,
-                                  child: Text(
+                              entries: [
+                                for (final type in SportType.values)
+                                  (
+                                    type,
                                     type == SportType.pingpong ? '乒乓球' : '羽毛球',
                                   ),
-                                );
-                              }).toList(),
+                              ],
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
@@ -545,18 +544,17 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                         Row(
                           children: [
                             const Text('模式: '),
-                            DropdownButton<ModeEnum>(
+                            TpCompactSelect<ModeEnum>(
                               value: _mode,
-                              items: ModeEnum.values.map((mode) {
-                                return DropdownMenuItem(
-                                  value: mode,
-                                  child: Text(
+                              entries: [
+                                for (final mode in ModeEnum.values)
+                                  (
+                                    mode,
                                     mode == ModeEnum.backendClip
                                         ? '后端剪辑'
                                         : '自定义剪辑',
                                   ),
-                                );
-                              }).toList(),
+                              ],
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
@@ -574,18 +572,17 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                         Row(
                           children: [
                             const Text('比赛类型: '),
-                            DropdownButton<MatchType>(
+                            TpCompactSelect<MatchType>(
                               value: _matchType,
-                              items: MatchType.values.map((type) {
-                                return DropdownMenuItem(
-                                  value: type,
-                                  child: Text(
+                              entries: [
+                                for (final type in MatchType.values)
+                                  (
+                                    type,
                                     type == MatchType.singlesMatch
                                         ? '单打'
                                         : '双打',
                                   ),
-                                );
-                              }).toList(),
+                              ],
                               onChanged: (value) {
                                 if (value != null) {
                                   setState(() {
@@ -760,7 +757,7 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                 ],
 
                 // 日志显示
-                Card(
+                TpCard(
                   child: Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
