@@ -8,6 +8,7 @@ import 'package:huji_app/constants/file_extensions.dart';
 import '../../models/autoclip_models.dart';
 import '../../services/large_model_service.dart';
 import '../../widgets/file_picker/file_selection_page.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// 大模型服务测试页面
 class LargeModelServiceTestTab extends StatefulWidget {
@@ -584,17 +585,17 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    ElevatedButton(
+                    TpButton(
                       onPressed: _isLoading ? null : _initializeModel,
                       child: const Text('初始化模型'),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
+                    TpButton(
                       onPressed: _isLoading ? null : _selectTestImage,
                       child: const Text('选择测试图片'),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
+                    TpButton(
                       onPressed:
                           _isLoading ||
                               _currentPredictor == null ||
@@ -604,7 +605,7 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                       child: const Text('单张预测'),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
+                    TpButton(
                       onPressed: _isLoading || _currentPredictor == null
                           ? null
                           : _runBatchPredictionTest,
@@ -683,23 +684,15 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          ElevatedButton(
+                          TpButton(
                             onPressed: _isLoading || _currentPredictor == null
                                 ? null
                                 : _disposeModel,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.orange,
-                              foregroundColor: Colors.white,
-                            ),
                             child: const Text('释放模型资源'),
                           ),
                           const SizedBox(width: 8),
-                          ElevatedButton(
+                          TpButton(
                             onPressed: _clearLogs,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey,
-                              foregroundColor: Colors.white,
-                            ),
                             child: const Text('清空日志'),
                           ),
                         ],
@@ -728,7 +721,8 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          TextButton(
+                          TpButton(
+                            variant: TpButtonVariant.ghost,
                             onPressed: _clearLogs,
                             child: const Text('清空'),
                           ),

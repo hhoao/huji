@@ -9,6 +9,7 @@ import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import '../../utils/ffmpeg_manager.dart';
 import '../../utils/video_compress_utils.dart';
 import '../../widgets/video_player/video_player_page.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// FFmpeg工具测试页面
 class FFmpegTestPage extends StatefulWidget {
@@ -103,38 +104,48 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
       }
 
       // 显示文件选择对话框
-      final selectedFile = await showDialog<File>(
+      final selectedFile = await showTpDialog<File>(
         context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('选择要播放的输出视频'),
-          content: SizedBox(
-            width: double.maxFinite,
-            height: 300,
-            child: ListView.builder(
-              itemCount: files.length,
-              itemBuilder: (context, index) {
-                final file = files[index] as File;
-                final fileName = fileNameFromPath(file.path);
-                final fileSize = _formatFileSize(file.lengthSync());
-                final modifiedTime = DateTime.fromMillisecondsSinceEpoch(
-                  file.lastModifiedSync().millisecondsSinceEpoch,
-                ).toString().substring(0, 19);
+        builder: (ctx) => TpDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const TpDialogHeader(title: '选择要播放的输出视频'),
+              SizedBox(height: ctx.tpSpacing.lg),
+              SizedBox(
+                width: double.maxFinite,
+                height: 300,
+                child: ListView.builder(
+                  itemCount: files.length,
+                  itemBuilder: (context, index) {
+                    final file = files[index] as File;
+                    final fileName = fileNameFromPath(file.path);
+                    final fileSize = _formatFileSize(file.lengthSync());
+                    final modifiedTime = DateTime.fromMillisecondsSinceEpoch(
+                      file.lastModifiedSync().millisecondsSinceEpoch,
+                    ).toString().substring(0, 19);
 
-                return ListTile(
-                  title: Text(fileName),
-                  subtitle: Text('$fileSize • $modifiedTime'),
-                  trailing: const Icon(Icons.play_arrow),
-                  onTap: () => Navigator.of(context).pop(file),
-                );
-              },
-            ),
+                    return ListTile(
+                      title: Text(fileName),
+                      subtitle: Text('$fileSize • $modifiedTime'),
+                      trailing: const Icon(Icons.play_arrow),
+                      onTap: () => Navigator.of(context).pop(file),
+                    );
+                  },
+                ),
+              ),
+              TpDialogActions(
+                children: [
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: const Text('取消'),
+                  ),
+                ],
+              ),
+            ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('取消'),
-            ),
-          ],
         ),
       );
 
@@ -184,7 +195,9 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
         _logs.add('  帧率: ${inputInfo?.fps ?? "未知"} fps');
         _logs.add('');
         _logs.add('输出视频:');
-        _logs.add('  文件名: ${fileNameFromPath(_lastCompressResult!.outputPath!)}');
+        _logs.add(
+          '  文件名: ${fileNameFromPath(_lastCompressResult!.outputPath!)}',
+        );
         _logs.add(
           '  大小: ${_formatFileSize(_lastCompressResult!.compressedSize ?? 0)}',
         );
@@ -1033,35 +1046,40 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
     final TextEditingController commandController = TextEditingController();
     commandController.text = '-version';
 
-    final result = await showDialog<String>(
+    final result = await showTpDialog<String>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('执行FFmpeg命令'),
-        content: Column(
+      builder: (ctx) => TpDialog(
+        child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            const TpDialogHeader(title: '执行FFmpeg命令'),
+            SizedBox(height: ctx.tpSpacing.lg),
             const Text('请输入FFmpeg命令:'),
             const SizedBox(height: 8),
-            TextField(
+            TpTextarea(
               controller: commandController,
               decoration: const InputDecoration(
                 hintText: '例如: -version, -codecs, -formats',
-                border: OutlineInputBorder(),
               ),
-              maxLines: 3,
+              minHeight: 80,
+            ),
+            TpDialogActions(
+              children: [
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(ctx).pop(),
+                  child: const Text('取消'),
+                ),
+                TpButton(
+                  onPressed: () =>
+                      Navigator.of(ctx).pop(commandController.text),
+                  child: const Text('执行'),
+                ),
+              ],
             ),
           ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(commandController.text),
-            child: const Text('执行'),
-          ),
-        ],
       ),
     );
 
@@ -1312,7 +1330,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       ),
                     ),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _selectVideoFile,
                     child: const Text('选择文件'),
                   ),
@@ -1330,12 +1348,8 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       ),
                     ),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _generateTestVideo,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('生成测试视频'),
                   ),
                 ],
@@ -1386,14 +1400,10 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       ],
                     ),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading || _selectedVideoPath == null
                         ? null
                         : _playInputVideo,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('播放输入视频'),
                   ),
                 ],
@@ -1425,15 +1435,11 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       ],
                     ),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed:
                         _isLoading || _lastCompressResult?.outputPath == null
                         ? null
                         : _playOutputVideo,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('播放输出视频'),
                   ),
                 ],
@@ -1450,26 +1456,18 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                       ),
                     ),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _viewAllOutputVideos,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('查看所有输出视频'),
                   ),
                   const SizedBox(width: 8),
-                  ElevatedButton(
+                  TpButton(
                     onPressed:
                         _isLoading ||
                             _selectedVideoPath == null ||
                             _lastCompressResult?.outputPath == null
                         ? null
                         : _compareVideos,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('比较视频'),
                   ),
                 ],
@@ -1493,47 +1491,39 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _checkFFmpegStatus,
                     child: const Text('检查状态'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCodecs,
                     child: const Text('测试编码器'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testFormats,
                     child: const Text('测试格式'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testConfiguration,
                     child: const Text('获取配置'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testFeatures,
                     child: const Text('功能检查'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCodecFormatCheck,
                     child: const Text('编码器格式检查'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCustomCommand,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('自定义命令'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _runBatchTest,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                    ),
                     child: const Text('批量测试'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testProgressBar,
                     child: const Text('测试进度条'),
                   ),
@@ -1558,7 +1548,7 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testMediaInfo,
                     child: const Text('获取媒体信息'),
                   ),
@@ -1583,35 +1573,35 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testVideoCompress,
                     child: const Text('快速压缩'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testHighQualityCompress,
                     child: const Text('高质量压缩'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCustomCompress,
                     child: const Text('自定义压缩'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testUltraLowQualityCompress,
                     child: const Text('超低质量压缩'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCompressionSuggestion,
                     child: const Text('获取压缩建议'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testBatchCompress,
                     child: const Text('批量压缩'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _testCodecSupport,
                     child: const Text('检查编码器支持'),
                   ),
-                  ElevatedButton(
+                  TpButton(
                     onPressed: _isLoading ? null : _cleanupTempFiles,
                     child: const Text('清理临时文件'),
                   ),
@@ -1639,7 +1629,11 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
                     '测试日志:',
                     style: TextStyle(fontWeight: FontWeight.bold),
                   ),
-                  TextButton(onPressed: _clearLogs, child: const Text('清理')),
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: _clearLogs,
+                    child: const Text('清理'),
+                  ),
                 ],
               ),
               const SizedBox(height: 8),

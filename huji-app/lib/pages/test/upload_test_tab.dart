@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class UploadTestTab extends StatefulWidget {
   const UploadTestTab({super.key});
@@ -61,17 +62,17 @@ class _UploadTestTabState extends State<UploadTestTab> {
       }
     } catch (e) {
       _addLog('选择文件失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('选择文件失败: $e'), backgroundColor: Colors.red),
+      TpToast.show(
+        context,
+        message: '选择文件失败: $e',
+        variant: TpToastVariant.error,
       );
     }
   }
 
   Future<void> _uploadFile() async {
     if (_selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择文件'), backgroundColor: Colors.orange),
-      );
+      TpToast.show(context, message: '请先选择文件', variant: TpToastVariant.warning);
       return;
     }
 
@@ -115,11 +116,10 @@ class _UploadTestTabState extends State<UploadTestTab> {
       _addLog('上传完成! 耗时: ${duration.inSeconds}秒');
       _addLog('文件路径: $uploadedPath');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('上传成功! 耗时: ${duration.inSeconds}秒'),
-          backgroundColor: Colors.green,
-        ),
+      TpToast.show(
+        context,
+        message: '上传成功! 耗时: ${duration.inSeconds}秒',
+        variant: TpToastVariant.success,
       );
     } catch (e) {
       setState(() {
@@ -129,9 +129,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
       _addLog('上传失败: $e');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('上传失败: $e'), backgroundColor: Colors.red),
-      );
+      TpToast.show(context, message: '上传失败: $e', variant: TpToastVariant.error);
     }
   }
 
@@ -155,9 +153,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
       _addLog('创建了小文件测试: test_small_video.mp4');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已创建小文件测试'), backgroundColor: Colors.blue),
-      );
+      TpToast.show(context, message: '已创建小文件测试', variant: TpToastVariant.info);
     } catch (e) {
       _addLog('创建测试文件失败: $e');
     }
@@ -183,9 +179,7 @@ class _UploadTestTabState extends State<UploadTestTab> {
 
       _addLog('创建了大文件测试: test_large_video.mp4');
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('已创建大文件测试'), backgroundColor: Colors.blue),
-      );
+      TpToast.show(context, message: '已创建大文件测试', variant: TpToastVariant.info);
     } catch (e) {
       _addLog('创建测试文件失败: $e');
     }
@@ -224,29 +218,44 @@ class _UploadTestTabState extends State<UploadTestTab> {
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: TpButton(
                           onPressed: _isUploading ? null : _pickVideoFile,
-                          icon: const Icon(Icons.video_file),
-                          label: const Text('选择视频文件'),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.video_file, size: 16),
+                              SizedBox(width: 6),
+                              Text('选择视频文件'),
+                            ],
+                          ),
                         ),
                       ),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: ElevatedButton.icon(
+                        child: TpButton(
                           onPressed: _isUploading ? null : _testSmallFile,
-                          icon: const Icon(Icons.file_copy),
-                          label: const Text('小文件测试'),
+                          child: const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.file_copy, size: 16),
+                              SizedBox(width: 6),
+                              Text('小文件测试'),
+                            ],
+                          ),
                         ),
                       ),
                     ],
                   ),
                   const SizedBox(height: 10),
-                  ElevatedButton.icon(
+                  TpButton(
                     onPressed: _isUploading ? null : _testLargeFile,
-                    icon: const Icon(Icons.file_copy),
-                    label: const Text('大文件测试 (10MB)'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.orange,
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.file_copy, size: 16),
+                        SizedBox(width: 6),
+                        Text('大文件测试 (10MB)'),
+                      ],
                     ),
                   ),
                 ],
@@ -311,12 +320,9 @@ class _UploadTestTabState extends State<UploadTestTab> {
                     children: [
                       const Text('上传目录: '),
                       Expanded(
-                        child: TextField(
+                        child: TpInput(
                           enabled: !_isUploading,
-                          decoration: const InputDecoration(
-                            border: OutlineInputBorder(),
-                            hintText: '输入上传目录',
-                          ),
+                          decoration: const InputDecoration(hintText: '输入上传目录'),
                           controller: TextEditingController(
                             text: _uploadDirectory,
                           ),
@@ -349,22 +355,17 @@ class _UploadTestTabState extends State<UploadTestTab> {
           const SizedBox(height: 16),
 
           // 上传按钮
-          ElevatedButton.icon(
+          TpButton(
             onPressed: _isUploading || _selectedFile == null
                 ? null
                 : _uploadFile,
-            icon: _isUploading
-                ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.cloud_upload),
-            label: Text(_isUploading ? '上传中...' : '开始上传'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.all(16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.cloud_upload, size: 16),
+                SizedBox(width: 6),
+                Text(_isUploading ? '上传中...' : '开始上传'),
+              ],
             ),
           ),
 
@@ -449,7 +450,8 @@ class _UploadTestTabState extends State<UploadTestTab> {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        TextButton(
+                        TpButton(
+                          variant: TpButtonVariant.ghost,
                           onPressed: () {
                             setState(() {
                               _logMessages.clear();

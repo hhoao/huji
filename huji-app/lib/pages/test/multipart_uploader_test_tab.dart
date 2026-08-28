@@ -7,6 +7,7 @@ import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/task/video_upload_task_manager.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class FileUploaderTestTab extends StatefulWidget {
   const FileUploaderTestTab({super.key});
@@ -75,17 +76,17 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
       }
     } catch (e) {
       _addLog('选择文件失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('选择文件失败: $e'), backgroundColor: Colors.red),
+      TpToast.show(
+        context,
+        message: '选择文件失败: $e',
+        variant: TpToastVariant.error,
       );
     }
   }
 
   Future<void> _createUploadTask() async {
     if (_selectedFile == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('请先选择文件'), backgroundColor: Colors.orange),
-      );
+      TpToast.show(context, message: '请先选择文件', variant: TpToastVariant.warning);
       return;
     }
 
@@ -102,16 +103,17 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
       );
       await _taskStorage.addAndAsyncProcessTask(task);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('创建上传任务成功: ${task.name}'),
-          backgroundColor: Colors.green,
-        ),
+      TpToast.show(
+        context,
+        message: '创建上传任务成功: ${task.name}',
+        variant: TpToastVariant.success,
       );
     } catch (e) {
       _addLog('创建上传任务失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('创建上传任务失败: $e'), backgroundColor: Colors.red),
+      TpToast.show(
+        context,
+        message: '创建上传任务失败: $e',
+        variant: TpToastVariant.error,
       );
     } finally {
       setState(() => _isLoading = false);
@@ -127,8 +129,10 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
       }
     } catch (e) {
       _addLog('开始上传失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('开始上传失败: $e'), backgroundColor: Colors.red),
+      TpToast.show(
+        context,
+        message: '开始上传失败: $e',
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -142,8 +146,10 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
       }
     } catch (e) {
       _addLog('重试上传失败: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('重试上传失败: $e'), backgroundColor: Colors.red),
+      TpToast.show(
+        context,
+        message: '重试上传失败: $e',
+        variant: TpToastVariant.error,
       );
     }
   }
@@ -290,20 +296,32 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: TpButton(
                         onPressed: _isLoading ? null : _pickFile,
-                        icon: const Icon(Icons.file_upload),
-                        label: const Text('选择文件'),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.file_upload, size: 16),
+                            SizedBox(width: 6),
+                            Text('选择文件'),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Expanded(
-                      child: ElevatedButton.icon(
+                      child: TpButton(
                         onPressed: _isLoading || _selectedFile == null
                             ? null
                             : _createUploadTask,
-                        icon: const Icon(Icons.add_task),
-                        label: const Text('创建任务'),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.add_task, size: 16),
+                            SizedBox(width: 6),
+                            Text('创建任务'),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -383,28 +401,40 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
             child: Row(
               children: [
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: TpButton(
                     onPressed:
                         _uploadTasks
                             .where((t) => t.status == TaskStatusEnum.failed)
                             .isEmpty
                         ? null
                         : _retryAllFailed,
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('重试所有失败'),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.refresh, size: 16),
+                        SizedBox(width: 6),
+                        Text('重试所有失败'),
+                      ],
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: ElevatedButton.icon(
+                  child: TpButton(
                     onPressed:
                         _uploadTasks
                             .where((t) => t.status == TaskStatusEnum.completed)
                             .isEmpty
                         ? null
                         : _cleanupCompleted,
-                    icon: const Icon(Icons.cleaning_services),
-                    label: const Text('清理已完成'),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.cleaning_services, size: 16),
+                        SizedBox(width: 6),
+                        Text('清理已完成'),
+                      ],
+                    ),
                   ),
                 ),
               ],
@@ -542,43 +572,38 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                                       children: [
                                         if (task.status ==
                                             TaskStatusEnum.pending)
-                                          IconButton(
-                                            icon: const Icon(Icons.play_arrow),
-                                            onPressed: () =>
-                                                _startUpload(task.id),
+                                          TpIconButton(
+                                            icon: Icons.play_arrow,
+                                            onTap: () => _startUpload(task.id),
                                           ),
                                         if (task.status ==
                                             TaskStatusEnum.processing)
-                                          IconButton(
-                                            icon: const Icon(Icons.pause),
-                                            onPressed: () =>
-                                                _pauseUpload(task.id),
+                                          TpIconButton(
+                                            icon: Icons.pause,
+                                            onTap: () => _pauseUpload(task.id),
                                           ),
                                         if (task.status ==
                                             TaskStatusEnum.paused)
-                                          IconButton(
-                                            icon: const Icon(Icons.play_arrow),
-                                            onPressed: () =>
-                                                _resumeUpload(task.id),
+                                          TpIconButton(
+                                            icon: Icons.play_arrow,
+                                            onTap: () => _resumeUpload(task.id),
                                           ),
                                         if (task.status ==
                                                 TaskStatusEnum.failed &&
                                             uploadTask.canRetry)
-                                          IconButton(
-                                            icon: const Icon(Icons.refresh),
-                                            onPressed: () =>
-                                                _retryUpload(task.id),
+                                          TpIconButton(
+                                            icon: Icons.refresh,
+                                            onTap: () => _retryUpload(task.id),
                                           ),
                                         if (task.status ==
                                             TaskStatusEnum.processing)
-                                          IconButton(
-                                            icon: const Icon(Icons.stop),
-                                            onPressed: () =>
-                                                _cancelUpload(task.id),
+                                          TpIconButton(
+                                            icon: Icons.stop,
+                                            onTap: () => _cancelUpload(task.id),
                                           ),
-                                        IconButton(
-                                          icon: const Icon(Icons.delete),
-                                          onPressed: () =>
+                                        TpIconButton(
+                                          icon: Icons.delete,
+                                          onTap: () =>
                                               _deleteUploadTask(task.id),
                                         ),
                                       ],
@@ -614,7 +639,8 @@ class _FileUploaderTestTabState extends State<FileUploaderTestTab> {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                      TextButton(
+                      TpButton(
+                        variant: TpButtonVariant.ghost,
                         onPressed: () {
                           setState(() => _logMessages.clear());
                         },

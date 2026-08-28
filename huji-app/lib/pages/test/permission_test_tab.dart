@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/permission_service.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class PermissionTestTab extends StatefulWidget {
   const PermissionTestTab({super.key});
@@ -55,13 +56,10 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
     debugPrint('Permission diagnosis: $diagnosis');
 
     if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '诊断完成，授权率: ${diagnosis['summary']['grantedPercentage']}%',
-          ),
-          duration: const Duration(seconds: 3),
-        ),
+      TpToast.show(
+        context,
+        message: '诊断完成，授权率: ${diagnosis['summary']['grantedPercentage']}%',
+        variant: TpToastVariant.info,
       );
     }
   }
@@ -83,14 +81,14 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton(
+                child: TpButton(
                   onPressed: _loadPermissionStatuses,
                   child: const Text('检查所有权限'),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
-                child: ElevatedButton(
+                child: TpButton(
                   onPressed: _runDiagnostic,
                   child: const Text('运行诊断'),
                 ),
@@ -166,14 +164,15 @@ class _PermissionTestTabState extends State<PermissionTestTab> {
                     Row(
                       children: [
                         Expanded(
-                          child: OutlinedButton(
+                          child: TpButton(
+                            variant: TpButtonVariant.outline,
                             onPressed: () => _checkPermission(permission),
                             child: const Text('检查'),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: ElevatedButton(
+                          child: TpButton(
                             onPressed: () => _requestPermission(permission),
                             child: const Text('请求'),
                           ),

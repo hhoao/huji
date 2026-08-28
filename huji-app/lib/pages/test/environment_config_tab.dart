@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/config/env_utils.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class EnvironmentConfigTab extends StatefulWidget {
   const EnvironmentConfigTab({super.key});
@@ -198,17 +199,14 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
     return Row(
       children: [
         Expanded(
-          child: ElevatedButton(
+          child: TpButton(
             onPressed: () {
               EnvironmentConfig.setEnvironment(_currentEnvironment);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
+              TpToast.show(
+                context,
+                message:
                     '已切换到${EnvUtils.getEnvironmentDisplayName(_currentEnvironment)}',
-                  ),
-                  backgroundColor: Colors.green[100],
-                  behavior: SnackBarBehavior.floating,
-                ),
+                variant: TpToastVariant.success,
               );
             },
             child: Text('应用环境配置'),
@@ -216,14 +214,14 @@ class _EnvironmentConfigTabState extends State<EnvironmentConfigTab> {
         ),
         SizedBox(width: 16),
         Expanded(
-          child: OutlinedButton(
+          child: TpButton(
+            variant: TpButtonVariant.outline,
             onPressed: () {
               EnvUtils.printEnvironmentInfo();
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('环境信息已打印到控制台'),
-                  behavior: SnackBarBehavior.floating,
-                ),
+              TpToast.show(
+                context,
+                message: '环境信息已打印到控制台',
+                variant: TpToastVariant.info,
               );
             },
             child: Text('打印环境信息'),

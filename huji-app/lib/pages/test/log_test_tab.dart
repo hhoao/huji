@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/utils/logger_utils.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class LogTestTab extends StatefulWidget {
   const LogTestTab({super.key});
@@ -79,32 +80,34 @@ class _LogTestTabState extends State<LogTestTab> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: _testInfoLog,
                 child: const Text('信息日志'),
               ),
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: _testDebugLog,
                 child: const Text('调试日志'),
               ),
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: _testWarningLog,
                 child: const Text('警告日志'),
               ),
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: _testErrorLog,
                 child: const Text('错误日志'),
               ),
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.primary,
                 onPressed: _testMultipleLogs,
                 child: const Text('批量日志'),
               ),
-              ElevatedButton(
+              TpButton(
+                variant: TpButtonVariant.destructive,
                 onPressed: _clearResults,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
-                  foregroundColor: Colors.white,
-                ),
                 child: const Text('清空结果'),
               ),
             ],

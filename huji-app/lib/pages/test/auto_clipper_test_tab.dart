@@ -18,6 +18,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:uuid/uuid.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// 视频片段检测任务测试页面
 class AutoClipperTestTab extends StatefulWidget {
@@ -427,13 +428,8 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                         Row(
                           children: [
                             Expanded(
-                              child: ElevatedButton(
+                              child: TpButton(
                                 onPressed: _toggleTestMode,
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: _isRealtimeMode
-                                      ? Colors.blue
-                                      : Colors.grey,
-                                ),
                                 child: Text(
                                   _isRealtimeMode ? '实时测试' : '离线测试',
                                   style: TextStyle(
@@ -719,12 +715,12 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                   scrollDirection: Axis.horizontal,
                   child: Row(
                     children: [
-                      ElevatedButton(
+                      TpButton(
                         onPressed: _isLoading ? null : _selectVideoFile,
                         child: const Text('选择视频'),
                       ),
                       const SizedBox(width: 8),
-                      ElevatedButton(
+                      TpButton(
                         onPressed: _isLoading || _selectedVideoPath == null
                             ? null
                             : _runVideoSegmentDetectTest,
@@ -732,11 +728,9 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                       ),
                       if (_isRealtimeRunning) ...[
                         const SizedBox(width: 8),
-                        ElevatedButton(
+                        TpButton(
+                          variant: TpButtonVariant.destructive,
                           onPressed: _stopRealtimeTest,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
-                          ),
                           child: const Text(
                             '停止实时检测',
                             style: TextStyle(color: Colors.white),
@@ -755,12 +749,8 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        ElevatedButton(
+                        TpButton(
                           onPressed: _navigateToRoundClip,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.orange,
-                            foregroundColor: Colors.white,
-                          ),
                           child: const Text('处理回合'),
                         ),
                       ],
@@ -786,7 +776,8 @@ class _AutoClipperTestTabState extends State<AutoClipperTestTab> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            TextButton(
+                            TpButton(
+                              variant: TpButtonVariant.ghost,
                               onPressed: _clearLogs,
                               child: const Text('清空'),
                             ),

@@ -5,6 +5,7 @@ import 'package:huji_app/services/app_update_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/app_update_dialog.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class AppUpdateTestTab extends StatefulWidget {
   const AppUpdateTestTab({super.key});
@@ -196,25 +197,25 @@ class _AppUpdateTestTabState extends State<AppUpdateTestTab> {
             SizedBox(height: 16),
 
             // 测试按钮
-            ElevatedButton(
+            TpButton(
               onPressed: _isLoading ? null : _testCheckUpdate,
               child: Text('测试检查更新'),
             ),
             SizedBox(height: 8),
 
-            ElevatedButton(
+            TpButton(
               onPressed: _isLoading ? null : _testMinVersionCheck,
               child: Text('测试最低版本检查'),
             ),
             SizedBox(height: 8),
 
-            ElevatedButton(
+            TpButton(
               onPressed: _isLoading ? null : _testDownloadApp,
               child: Text('测试下载应用'),
             ),
             SizedBox(height: 8),
 
-            ElevatedButton(
+            TpButton(
               onPressed: _isLoading ? null : _loadData,
               child: Text('刷新数据'),
             ),
@@ -299,35 +300,16 @@ class _AppUpdateTestTabState extends State<AppUpdateTestTab> {
                         SizedBox(height: 8),
                         Row(
                           children: [
-                            ElevatedButton(
+                            TpButton(
                               onPressed: () => _testUpdateDialog(app),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                              ),
                               child: Text(
                                 '测试更新',
                                 style: TextStyle(fontSize: 12),
                               ),
                             ),
                             SizedBox(width: 8),
-                            ElevatedButton(
+                            TpButton(
                               onPressed: () => _setCurrentVersion(app),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor:
-                                    _currentTestVersionApp?.id == app.id
-                                    ? Colors.green
-                                    : Colors.blue,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  vertical: 8,
-                                ),
-                              ),
                               child: Text(
                                 _currentTestVersionApp?.id == app.id
                                     ? '当前版本'

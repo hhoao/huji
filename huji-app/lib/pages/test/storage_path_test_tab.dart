@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:huji_app/utils/file_utils.dart' as file_utils;
+import 'package:shared_ui/shared_ui.dart';
 
 class StoragePathTestTab extends StatefulWidget {
   const StoragePathTestTab({super.key});
@@ -119,9 +120,10 @@ class _StoragePathTestTabState extends State<StoragePathTestTab> {
       appBar: AppBar(
         title: const Text('存储路径测试'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
+          TpIconButton(
+            icon: Icons.refresh,
+            tooltip: '刷新',
+            onTap: () {
               setState(() {
                 _isLoading = true;
               });

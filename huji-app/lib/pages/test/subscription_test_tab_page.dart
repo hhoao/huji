@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/subscription.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class SubscriptionTestTab extends StatefulWidget {
   const SubscriptionTestTab({super.key});
@@ -22,7 +23,8 @@ class _SubscriptionTestTabState extends State<SubscriptionTestTab> {
             style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ElevatedButton(
+          TpButton(
+            variant: TpButtonVariant.primary,
             onPressed: () {
               context.push(SubscriptionRoute.subscription);
             },

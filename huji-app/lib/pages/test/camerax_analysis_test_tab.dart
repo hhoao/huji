@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/utils/image_utils.dart';
 import 'package:huji_app/widgets/camerax/bloc/camerax_bloc.dart';
 import 'package:huji_app/widgets/camerax/camera_widget.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// CameraX 图像分析测试页面
 class CameraXAnalysisTestTab extends StatefulWidget {
@@ -120,9 +121,9 @@ class _CameraXAnalysisTestTabState extends State<CameraXAnalysisTestTab> {
                         style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       const SizedBox(width: 8),
-                      IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        onPressed: _clearFrames,
+                      TpIconButton(
+                        icon: Icons.delete_outline,
+                        onTap: _clearFrames,
                         tooltip: '清空所有帧',
                       ),
                     ],

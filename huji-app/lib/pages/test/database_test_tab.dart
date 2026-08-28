@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class DatabaseTestTab extends StatefulWidget {
   const DatabaseTestTab({super.key});
@@ -27,28 +28,32 @@ Widget _buildDatabaseTestTab(BuildContext context) {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 16),
-        ElevatedButton(
+        TpButton(
+          variant: TpButtonVariant.primary,
           onPressed: () async {
             await LocalVideoStorage().resetDatabase();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('LocalVideoStorage数据库已重置'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            if (context.mounted) {
+              TpToast.show(
+                context,
+                message: 'LocalVideoStorage数据库已重置',
+                variant: TpToastVariant.info,
+              );
+            }
           },
           child: const Text('重置LocalVideoStorage数据库'),
         ),
         const SizedBox(height: 16),
-        ElevatedButton(
+        TpButton(
+          variant: TpButtonVariant.primary,
           onPressed: () async {
             await TaskStorage().resetDatabase();
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('TaskStorage数据库已重置'),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            if (context.mounted) {
+              TpToast.show(
+                context,
+                message: 'TaskStorage数据库已重置',
+                variant: TpToastVariant.info,
+              );
+            }
           },
           child: const Text('重置TaskStorage数据库'),
         ),

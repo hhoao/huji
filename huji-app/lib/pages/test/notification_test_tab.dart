@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/models/ffmpeg.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/models/task.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class NotificationTestTab extends StatefulWidget {
   const NotificationTestTab({super.key});
@@ -116,11 +117,9 @@ class _NotificationTestTabState extends State<NotificationTestTab> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 8),
-      child: ElevatedButton(
+      child: TpButton(
+        variant: TpButtonVariant.primary,
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-        ),
         child: Text(text),
       ),
     );

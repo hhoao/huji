@@ -3,6 +3,7 @@ import 'package:flutter_background_service/flutter_background_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/services/background_service.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class BackgroundServiceTestTab extends StatefulWidget {
   const BackgroundServiceTestTab({super.key});
@@ -139,41 +140,71 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _isLoading ? null : _checkServiceStatus,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh),
-                label: const Text('检查状态'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.refresh, size: 16),
+                    SizedBox(width: 6),
+                    Text('检查状态'),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _isLoading ? null : _startService,
-                icon: const Icon(Icons.play_arrow),
-                label: const Text('启动服务'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.play_arrow, size: 16),
+                    SizedBox(width: 6),
+                    Text('启动服务'),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _isLoading ? null : _stopService,
-                icon: const Icon(Icons.stop),
-                label: const Text('停止服务'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.stop, size: 16),
+                    SizedBox(width: 6),
+                    Text('停止服务'),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _isLoading ? null : _sendTestMessage,
-                icon: const Icon(Icons.send),
-                label: const Text('发送测试消息'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.send, size: 16),
+                    SizedBox(width: 6),
+                    Text('发送测试消息'),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _isLoading ? null : _reinitializeService,
-                icon: const Icon(Icons.restart_alt),
-                label: const Text('重新初始化'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.restart_alt, size: 16),
+                    SizedBox(width: 6),
+                    Text('重新初始化'),
+                  ],
+                ),
               ),
-              ElevatedButton.icon(
+              TpButton(
                 onPressed: _clearLogs,
-                icon: const Icon(Icons.clear),
-                label: const Text('清空日志'),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.clear, size: 16),
+                    SizedBox(width: 6),
+                    Text('清空日志'),
+                  ],
+                ),
               ),
             ],
           ),
@@ -236,12 +267,10 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
     } catch (e) {
       _addLog('启动服务失败: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('启动服务失败: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '启动服务失败: $e',
+          variant: TpToastVariant.error,
         );
       }
     } finally {
@@ -266,12 +295,10 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
     } catch (e) {
       _addLog('停止服务失败: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('停止服务失败: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '停止服务失败: $e',
+          variant: TpToastVariant.error,
         );
       }
     } finally {
@@ -285,11 +312,10 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
   Future<void> _sendTestMessage() async {
     if (!_isServiceRunning) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('服务未运行，无法发送测试消息'),
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '服务未运行，无法发送测试消息',
+          variant: TpToastVariant.info,
         );
       }
       return;
@@ -306,23 +332,19 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
       });
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('测试消息已发送'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '测试消息已发送',
+          variant: TpToastVariant.success,
         );
       }
     } catch (e) {
       _addLog('发送测试消息失败: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('发送测试消息失败: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '发送测试消息失败: $e',
+          variant: TpToastVariant.error,
         );
       }
     }
@@ -349,23 +371,19 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
 
       _addLog('服务重新初始化完成');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('服务重新初始化完成'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '服务重新初始化完成',
+          variant: TpToastVariant.success,
         );
       }
     } catch (e) {
       _addLog('重新初始化失败: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('重新初始化失败: $e'),
-            backgroundColor: Colors.red,
-            behavior: SnackBarBehavior.floating,
-          ),
+        TpToast.show(
+          context,
+          message: '重新初始化失败: $e',
+          variant: TpToastVariant.error,
         );
       }
     } finally {

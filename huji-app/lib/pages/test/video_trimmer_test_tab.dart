@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 class VideoTrimmerTestTab extends StatefulWidget {
   const VideoTrimmerTestTab({super.key});
@@ -66,14 +67,14 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
                               ],
                             ),
                           ),
-                          IconButton(
-                            onPressed: () {
+                          TpIconButton(
+                            icon: Icons.close,
+                            onTap: () {
                               setState(() {
                                 _selectedVideoFile = null;
                                 _errorMessage = null;
                               });
                             },
-                            icon: const Icon(Icons.close),
                             color: Colors.red,
                           ),
                         ],
@@ -111,17 +112,15 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
                     ),
                   ],
                   const SizedBox(height: 12),
-                  ElevatedButton.icon(
+                  TpButton(
                     onPressed: _pickVideoFile,
-                    icon: const Icon(Icons.video_library),
-                    label: const Text('选择视频文件'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[600],
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
-                      ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.video_library, size: 16),
+                        SizedBox(width: 6),
+                        Text('选择视频文件'),
+                      ],
                     ),
                   ),
                   if (_errorMessage != null) ...[
@@ -176,21 +175,17 @@ class _VideoTrimmerTestTabState extends State<VideoTrimmerTestTab> {
                   const SizedBox(height: 16),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton.icon(
+                    child: TpButton(
                       onPressed: _selectedVideoFile != null
                           ? _openTrimmer
                           : null,
-                      icon: const Icon(Icons.content_cut),
-                      label: const Text('打开视频修剪器'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: _selectedVideoFile != null
-                            ? Colors.green[600]
-                            : Colors.grey[400],
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 16,
-                        ),
+                      child: const Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.content_cut, size: 16),
+                          SizedBox(width: 6),
+                          Text('打开视频修剪器'),
+                        ],
                       ),
                     ),
                   ),
