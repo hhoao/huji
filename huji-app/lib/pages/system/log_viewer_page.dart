@@ -58,12 +58,9 @@ class FilterOptionsSheet extends StatelessWidget {
               Text(context.hujiL10n.logLevelLabel),
               const SizedBox(width: 8),
               Expanded(
-                child: DropdownButton<String>(
-                  isExpanded: true,
+                child: TpCompactSelect<String>(
                   value: selectedLevel,
-                  items: _logLevels.map((level) {
-                    return DropdownMenuItem(value: level, child: Text(level));
-                  }).toList(),
+                  entries: _logLevels.map((level) => (level, level)).toList(),
                   onChanged: (value) {
                     if (value != null) {
                       onLevelChanged(value);
@@ -79,15 +76,11 @@ class FilterOptionsSheet extends StatelessWidget {
               Text(context.hujiL10n.classNameLabel),
               const SizedBox(width: 8),
               Expanded(
-                child: DropdownButton<String>(
-                  isExpanded: true,
+                child: TpCompactSelect<String>(
                   value: selectedClass,
-                  items: availableClasses.map((className) {
-                    return DropdownMenuItem(
-                      value: className,
-                      child: Text(className),
-                    );
-                  }).toList(),
+                  entries: availableClasses
+                      .map((className) => (className, className))
+                      .toList(),
                   onChanged: (value) {
                     if (value != null) {
                       onClassChanged(value);
@@ -367,10 +360,14 @@ class _LogViewerPageState extends State<LogViewerPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.logViewerTitle),
         actions: [
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _loadLogFiles),
-          IconButton(
-            icon: const Icon(Icons.cleaning_services),
-            onPressed: _clearOldLogs,
+          TpIconButton(
+            icon: Icons.refresh,
+            onTap: _loadLogFiles,
+            tooltip: context.hujiL10n.actionRefresh,
+          ),
+          TpIconButton(
+            icon: Icons.cleaning_services,
+            onTap: _clearOldLogs,
           ),
         ],
       ),
@@ -388,28 +385,21 @@ class _LogViewerPageState extends State<LogViewerPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: DropdownButton<String>(
-                                isExpanded: true,
-                                value: _logFiles.isNotEmpty
-                                    ? _logFiles.first
-                                    : null,
-                                items: _logFiles.map((file) {
+                              child: TpCompactSelect<String>(
+                                value: _logFiles.first,
+                                entries: _logFiles.map((file) {
                                   String name;
                                   if (!AppLogger.instance
                                       .getFileLoggerInitialized()) {
                                     final pendingCount = AppLogger.instance
                                         .getPendingLogs()
                                         .length;
-                                    name = context.hujiL10n.pendingLogsWithCount(
-                                      pendingCount,
-                                    );
+                                    name = context.hujiL10n
+                                        .pendingLogsWithCount(pendingCount);
                                   } else {
                                     name = fileNameFromPath(file);
                                   }
-                                  return DropdownMenuItem(
-                                    value: file,
-                                    child: Text(name),
-                                  );
+                                  return (file, name);
                                 }).toList(),
                                 onChanged: (value) {
                                   if (value != null) {
@@ -418,9 +408,9 @@ class _LogViewerPageState extends State<LogViewerPage> {
                                 },
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.share),
-                              onPressed: () =>
+                            TpIconButton(
+                              icon: Icons.share,
+                              onTap: () =>
                                   _shareLogFile(context, _logFiles.first),
                             ),
                           ],
@@ -430,19 +420,16 @@ class _LogViewerPageState extends State<LogViewerPage> {
                         Row(
                           children: [
                             Expanded(
-                              child: TextField(
+                              child: TpInput(
                                 controller: _searchController,
                                 decoration: InputDecoration(
                                   hintText: context.hujiL10n.searchLogsHint,
-                                  isDense: true,
-                                  border: const OutlineInputBorder(),
                                   prefixIcon: const Icon(Icons.search),
                                 ),
                                 onChanged: (value) {
                                   setState(() {
                                     _searchText = value;
                                   });
-                                  // 使用防抖，等待用户停止输入500ms后再执行过滤
                                   Debounces.debounce(
                                     'log_search',
                                     const Duration(milliseconds: 500),
@@ -452,9 +439,9 @@ class _LogViewerPageState extends State<LogViewerPage> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            IconButton(
-                              icon: const Icon(Icons.filter_list),
-                              onPressed: () {
+                            TpIconButton(
+                              icon: Icons.filter_list,
+                              onTap: () {
                                 showModalBottomSheet(
                                   context: context,
                                   builder: (context) => FilterOptionsSheet(

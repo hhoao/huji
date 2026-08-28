@@ -18,7 +18,7 @@ class SecuritySettingsPage extends StatefulWidget {
 }
 
 class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
-  final _formKey = GlobalKey<FormState>();
+  final _formKey = GlobalKey<TpFormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
   final _codeController = TextEditingController();
@@ -230,7 +230,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.black87),
       ),
-      body: Form(
+      body: TpForm(
         key: _formKey,
         child: ListView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
@@ -255,6 +255,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                     context.hujiL10n.usernameLabel,
                     '',
                     child: _buildTextFormField(
+                      'identifier',
                       context.hujiL10n.loginIdentifierHint,
                       obscureText: false,
                       controller: _identifierController,
@@ -270,6 +271,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                       children: [
                         Expanded(
                           child: _buildTextFormField(
+                            'code',
                             context.hujiL10n.loginAuthCodeHint,
                             controller: _codeController,
                             validator: (value) =>
@@ -277,7 +279,8 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                           ),
                         ),
                         SizedBox(width: 8),
-                        TextButton(
+                        TpButton(
+                          variant: TpButtonVariant.ghost,
                           onPressed: _countdown > 0
                               ? null
                               : _sendVerificationCode,
@@ -314,6 +317,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                     context.hujiL10n.loginNewPassword,
                     '',
                     child: _buildTextFormField(
+                      'newPassword',
                       context.hujiL10n.loginNewPasswordHint,
                       controller: _newPasswordController,
                       obscureText: _isObscure,
@@ -327,16 +331,16 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         return null;
                       },
                     ),
-                    suffixIcon: IconButton(
-                      onPressed: () {
+                    suffixIcon: TpIconButton(
+                      onTap: () {
                         setState(() {
                           _isObscure = !_isObscure;
                         });
                       },
-                      icon: Icon(
-                        _isObscure ? Icons.visibility : Icons.visibility_off,
-                        size: 18,
-                      ),
+                      icon: _isObscure
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      iconSize: 18,
                     ),
                   ),
                   _buildDivider(),
@@ -344,6 +348,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                     context.hujiL10n.confirmPassword,
                     '',
                     child: _buildTextFormField(
+                      'confirmPassword',
                       context.hujiL10n.enterConfirmPassword,
                       controller: _confirmPasswordController,
                       obscureText: _isObscure,
@@ -357,16 +362,16 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         return null;
                       },
                     ),
-                    suffixIcon: IconButton(
-                      onPressed: () {
+                    suffixIcon: TpIconButton(
+                      onTap: () {
                         setState(() {
                           _isObscure = !_isObscure;
                         });
                       },
-                      icon: Icon(
-                        _isObscure ? Icons.visibility : Icons.visibility_off,
-                        size: 18,
-                      ),
+                      icon: _isObscure
+                          ? Icons.visibility
+                          : Icons.visibility_off,
+                      iconSize: 18,
                     ),
                   ),
                 ],
@@ -376,8 +381,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
             // 修改密码按钮
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
+              child: TpButton(
                 onPressed: _isLoading
                     ? null
                     : () {
@@ -391,28 +395,24 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                           ),
                         );
                       },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 0,
-                ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(context.hujiL10n.changePassword, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          color: Colors.white,
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                      ),
+                      )
+                    : Text(context.hujiL10n.changePassword),
               ),
             ),
             SizedBox(height: 16),
             // 退出登录按钮
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
+              child: TpButton(
+                variant: TpButtonVariant.outline,
                 onPressed: () {
                   Throttles.throttle(
                     'security_logout',
@@ -420,18 +420,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                     () => _logout(),
                   );
                 },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 0,
-                ),
-                child: Text(context.hujiL10n.accountLogout, style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                    color: Colors.white,
-                  ),
-                ),
+                child: Text(context.hujiL10n.accountLogout),
               ),
             ),
           ],
@@ -440,25 +429,19 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     );
   }
 
-  TextFormField _buildTextFormField(
+  TpInputFormField _buildTextFormField(
+    String id,
     String hintText, {
     bool obscureText = false,
     TextEditingController? controller,
     String? Function(String?)? validator,
   }) {
-    return TextFormField(
+    return TpInputFormField(
+      id: id,
       controller: controller,
       obscureText: obscureText,
-      decoration: InputDecoration(
-        hintText: hintText,
-        border: InputBorder.none,
-        filled: true,
-        fillColor: Theme.of(context).colorScheme.surface,
-        isDense: true,
-        contentPadding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-      ),
-      style: Theme.of(context).textTheme.bodyMedium,
       validator: validator,
+      decoration: InputDecoration(hintText: hintText),
     );
   }
 

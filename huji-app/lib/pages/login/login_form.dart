@@ -278,7 +278,8 @@ class _LoginFormState extends State<LoginForm> {
                   hint: context.hujiL10n.loginAuthCodeHint,
                   icon: Icons.key,
                   controller: _codeController,
-                  suffixIcon: TextButton(
+                  suffixIcon: TpButton(
+                    variant: TpButtonVariant.ghost,
                     onPressed: _countdown > 0
                         ? null
                         : () {
@@ -294,9 +295,6 @@ class _LoginFormState extends State<LoginForm> {
                               _countdown,
                             )
                           : context.hujiL10n.actionGetVerificationCode,
-                      style: TextStyle(
-                        color: _countdown > 0 ? Colors.grey : Colors.blue,
-                      ),
                     ),
                   ),
                   validator: (value) {
@@ -328,13 +326,13 @@ class _LoginFormState extends State<LoginForm> {
                         ),
                       ],
                     ),
-                    TextButton(
+                    TpButton(
+                      variant: TpButtonVariant.ghost,
                       onPressed: () {
                         _resetForm();
                         widget.onSwitchForm(FormType.forgotPassword);
                       },
-                      child: Text(context.hujiL10n.loginForgotPassword, style: TextStyle(color: Colors.blue, fontSize: 14),
-                      ),
+                      child: Text(context.hujiL10n.loginForgotPassword),
                     ),
                   ],
                 ),
@@ -342,42 +340,26 @@ class _LoginFormState extends State<LoginForm> {
               ],
 
               // 登录按钮
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          Throttles.throttle(
-                            'login_submit',
-                            const Duration(seconds: 2),
-                            () => _handleLogin(context),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(context.hujiL10n.loginTitle, style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+              TpButton(
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        Throttles.throttle(
+                          'login_submit',
+                          const Duration(seconds: 2),
+                          () => _handleLogin(context),
+                        );
+                      },
+                child: _isLoading
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                ),
+                      )
+                    : Text(context.hujiL10n.loginTitle),
               ),
 
               // SizedBox(height: 24),
@@ -418,13 +400,13 @@ class _LoginFormState extends State<LoginForm> {
                 children: [
                   Text(context.hujiL10n.loginNoAccount, style: TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                  TextButton(
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
                     onPressed: () {
                       _resetForm();
                       widget.onSwitchForm(FormType.register);
                     },
-                    child: Text(context.hujiL10n.loginRegisterNow, style: TextStyle(color: Colors.blue, fontSize: 14),
-                    ),
+                    child: Text(context.hujiL10n.loginRegisterNow),
                   ),
                 ],
               ),

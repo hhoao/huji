@@ -349,19 +349,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
+            child: TpButton(
               onPressed: () => _handlePurchaseMinutes(package),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 15, 23, 30),
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                elevation: 0,
-              ),
-              child: Text(context.hujiL10n.purchase, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-              ),
+              child: Text(context.hujiL10n.purchase),
             ),
           ),
         ],
@@ -491,33 +481,16 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   SizedBox(height: 20),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                    child: TpButton(
                       onPressed: isCurrentPlan && isActive
                           ? null
                           : () => _handleSubscribe(plan),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isCurrentPlan && isActive
-                            ? const Color(0xFFE8F5E8)
-                            : AppTheme.primaryColor,
-                        foregroundColor: isCurrentPlan && isActive
-                            ? const Color(0xFF333333)
-                            : Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        elevation: 0,
-                      ),
                       child: Text(
                         isCurrentPlan && isActive
                             ? context.hujiL10n.currentPlanLabel
                             : isCurrentPlan
                             ? context.hujiL10n.renew
                             : context.hujiL10n.subscribe,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
                       ),
                     ),
                   ),

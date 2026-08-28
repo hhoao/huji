@@ -54,9 +54,9 @@ class _ChangelogPageState extends State<ChangelogPage> {
         elevation: 0,
         actions: [
           if (!_isLoading)
-            IconButton(
-              icon: const Icon(Icons.refresh),
-              onPressed: _loadChangelog,
+            TpIconButton(
+              icon: Icons.refresh,
+              onTap: _loadChangelog,
               tooltip: context.hujiL10n.actionRefresh,
             ),
         ],

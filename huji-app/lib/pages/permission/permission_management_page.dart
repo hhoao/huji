@@ -264,13 +264,14 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.settingsPermissions),
         actions: [
-          IconButton(
-            onPressed: _loadPermissionStatuses,
-            icon: const Icon(Icons.refresh),
+          TpIconButton(
+            onTap: _loadPermissionStatuses,
+            icon: Icons.refresh,
+            tooltip: context.hujiL10n.actionRefresh,
           ),
-          IconButton(
-            onPressed: _showDiagnosticInfo,
-            icon: const Icon(Icons.bug_report),
+          TpIconButton(
+            onTap: _showDiagnosticInfo,
+            icon: Icons.bug_report,
           ),
         ],
       ),
@@ -444,14 +445,15 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: OutlinedButton(
+                                      child: TpButton(
+                                        variant: TpButtonVariant.outline,
                                         onPressed: _isLoading
                                             ? null
                                             : () => _requestPermission(
                                                 permission,
                                               ),
                                         child: _isLoading
-                                            ? SizedBox(
+                                            ? const SizedBox(
                                                 width: 16,
                                                 height: 16,
                                                 child:
@@ -465,7 +467,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                                     if (status.isPermanentlyDenied) ...[
                                       SizedBox(width: 8),
                                       Expanded(
-                                        child: ElevatedButton(
+                                        child: TpButton(
                                           onPressed: () => _permissionService
                                               .openAppSettingsPage(),
                                           child: Text(context.hujiL10n.goToSettings),

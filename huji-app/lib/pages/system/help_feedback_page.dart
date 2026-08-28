@@ -182,46 +182,26 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
               ],
             ),
             SizedBox(height: 12),
-            TextField(
+            TpInput(
               controller: _titleController,
               decoration: InputDecoration(
                 hintText: context.hujiL10n.feedbackTitleHint,
-                hintStyle: Theme.of(context).textTheme.bodyMedium,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
               ),
             ),
             SizedBox(height: 12),
-            TextField(
+            TpTextarea(
               controller: _descController,
-              maxLines: 5,
               decoration: InputDecoration(
                 hintText: context.hujiL10n.feedbackDescriptionHint,
-                hintStyle: Theme.of(context).textTheme.bodyMedium,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                contentPadding: const EdgeInsets.all(12),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
               ),
+              minHeight: 120,
             ),
             SizedBox(height: 12),
-            TextField(
+            TpInput(
               controller: _contactController,
               decoration: InputDecoration(
                 hintText: context.hujiL10n.contactOptionalHint,
-                hintStyle: Theme.of(context).textTheme.bodyMedium,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                prefixIcon: Icon(Icons.contact_mail),
-                filled: true,
-                fillColor: Theme.of(context).colorScheme.surface,
+                prefixIcon: const Icon(Icons.contact_mail),
               ),
             ),
             SizedBox(height: 12),
@@ -229,8 +209,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
               padding: const EdgeInsets.symmetric(vertical: 16),
               child: SizedBox(
                 width: double.infinity,
-                height: 48,
-                child: ElevatedButton(
+                child: TpButton(
                   onPressed: _isSubmitting
                       ? null
                       : () {
@@ -240,19 +219,16 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
                             () => _submitFeedback(),
                           );
                         },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: ThemeManager.to.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(25),
-                    ),
-                    elevation: 0,
-                  ),
                   child: _isSubmitting
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(context.hujiL10n.submitFeedback, style: Theme.of(
-                            context,
-                          ).textTheme.titleLarge?.copyWith(color: Colors.white),
-                        ),
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Theme.of(context).colorScheme.onPrimary,
+                          ),
+                        )
+                      : Text(context.hujiL10n.submitFeedback),
                 ),
               ),
             ),

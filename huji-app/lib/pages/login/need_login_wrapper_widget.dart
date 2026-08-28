@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/pages/login/login_dialog.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
@@ -61,24 +62,11 @@ class NeedLoginWrapperWidget extends StatelessWidget {
                   // 登录按钮
                   SizedBox(
                     width: double.infinity,
-                    height: 48,
-                    child: ElevatedButton(
+                    child: TpButton(
                       onPressed: () async {
                         await LoginDialog.show(context);
-                        // Bloc 会自动更新状态，不需要手动刷新
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(context.hujiL10n.loginLoginNow, style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      child: Text(context.hujiL10n.loginLoginNow),
                     ),
                   ),
                 ],

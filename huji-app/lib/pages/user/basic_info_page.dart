@@ -3,7 +3,6 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/pages/user/avatar_picker_widget.dart';
-import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -278,8 +277,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
             // 底部按钮
             SizedBox(
               width: double.infinity,
-              height: 50,
-              child: ElevatedButton(
+              child: TpButton(
                 onPressed: _isLoading
                     ? null
                     : () {
@@ -289,19 +287,16 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                           () => _updateBasicInfo(),
                         );
                       },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ThemeManager.to.primaryColor,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(25),
-                  ),
-                  elevation: 0,
-                ),
                 child: _isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : Text(context.hujiL10n.actionSave, style: Theme.of(
-                          context,
-                        ).textTheme.titleLarge?.copyWith(color: Colors.white),
-                      ),
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.onPrimary,
+                        ),
+                      )
+                    : Text(context.hujiL10n.actionSave),
               ),
             ),
           ],

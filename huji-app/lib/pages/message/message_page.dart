@@ -35,13 +35,12 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   Widget _buildBackButton() {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back, color: Colors.black),
-      onPressed: () {
+    return TpIconButton(
+      icon: Icons.arrow_back,
+      color: Colors.black,
+      onTap: () {
         Navigator.of(context).pop();
       },
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 
@@ -50,11 +49,10 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   Widget _buildMarkAllReadButton() {
-    return IconButton(
-      icon: const Icon(Icons.done_all, color: Colors.black),
-      onPressed: _markAllAsRead,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
+    return TpIconButton(
+      icon: Icons.done_all,
+      color: Colors.black,
+      onTap: _markAllAsRead,
     );
   }
 }

@@ -592,13 +592,11 @@ class _SettingsPageState extends State<SettingsPage> {
                                   color: Colors.grey,
                                 ),
                               ),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                  size: 20,
-                                ),
-                                onPressed: () {
+                              trailing: TpIconButton(
+                                icon: Icons.delete,
+                                color: Colors.red,
+                                iconSize: 20,
+                                onTap: () {
                                   Throttles.throttle(
                                     'settings_file_delete',
                                     const Duration(milliseconds: 500),

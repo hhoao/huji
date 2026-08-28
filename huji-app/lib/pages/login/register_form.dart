@@ -157,7 +157,8 @@ class _RegisterFormState extends State<RegisterForm> {
                 hint: context.hujiL10n.loginAuthCodeHint,
                 icon: Icons.key,
                 controller: _codeController,
-                suffixIcon: TextButton(
+                suffixIcon: TpButton(
+                  variant: TpButtonVariant.ghost,
                   onPressed: _countdown > 0
                       ? null
                       : () {
@@ -171,9 +172,6 @@ class _RegisterFormState extends State<RegisterForm> {
                     _countdown > 0
                         ? context.hujiL10n.actionResendCodeCountdown(_countdown)
                         : context.hujiL10n.actionGetVerificationCode,
-                    style: TextStyle(
-                      color: _countdown > 0 ? Colors.grey : Colors.blue,
-                    ),
                   ),
                 ),
                 validator: (value) => validateAuthCode(context.hujiL10n, value),
@@ -182,44 +180,30 @@ class _RegisterFormState extends State<RegisterForm> {
               SizedBox(height: 24),
 
               // 提交按钮
-              SizedBox(
-                height: 48,
-                child: ElevatedButton(
-                  onPressed: _isLoading
-                      ? null
-                      : () {
-                          Throttles.throttle(
-                            'register_submit',
-                            const Duration(seconds: 2),
-                            () => _handleRegister(context),
-                          );
-                        },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: _isLoading
-                      ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
-                            ),
-                          ),
-                        )
-                      : Text(
-                          _isLoading ? l10n.loginRegistering : l10n.loginRegisterNow,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
+              TpButton(
+                onPressed: _isLoading
+                    ? null
+                    : () {
+                        Throttles.throttle(
+                          'register_submit',
+                          const Duration(seconds: 2),
+                          () => _handleRegister(context),
+                        );
+                      },
+                child: _isLoading
+                    ? SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Theme.of(context).colorScheme.onPrimary,
                         ),
-                ),
+                      )
+                    : Text(
+                        _isLoading
+                            ? l10n.loginRegistering
+                            : l10n.loginRegisterNow,
+                      ),
               ),
 
               SizedBox(height: 16),
@@ -232,12 +216,10 @@ class _RegisterFormState extends State<RegisterForm> {
                     l10n.loginAlreadyHaveAccount,
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
-                  TextButton(
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
                     onPressed: _jump,
-                    child: Text(
-                      l10n.loginBackToLogin,
-                      style: const TextStyle(color: Colors.blue, fontSize: 14),
-                    ),
+                    child: Text(l10n.loginBackToLogin),
                   ),
                 ],
               ),

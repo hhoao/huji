@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/permission_service.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
@@ -212,7 +213,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
               if (_isChecking)
                 const CircularProgressIndicator()
               else
-                ElevatedButton(
+                TpButton(
                   onPressed: () {
                     if (widget.onComplete != null) {
                       widget.onComplete!();
