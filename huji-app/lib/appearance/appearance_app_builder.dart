@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:huji_app/platform/desktop_window_actions.dart';
 import 'package:window_manager/window_manager.dart';
 
@@ -54,15 +53,5 @@ class _DragToResizeWrapperState extends State<DragToResizeWrapper>
   Widget build(BuildContext context) {
     if (_isMaximized) return widget.child;
     return DragToResizeArea(child: widget.child);
-  }
-}
-
-/// Call once before runApp on desktop.
-Future<void> preloadSharedUiFonts() async {
-  try {
-    GoogleFonts.config.allowRuntimeFetching = false;
-    await GoogleFonts.pendingFonts([GoogleFonts.notoSansSc()]);
-  } on Object {
-    // Bundled fonts missing — fall back to system fonts.
   }
 }

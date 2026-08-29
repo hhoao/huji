@@ -2,7 +2,6 @@ import 'dart:io' show Platform;
 
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 import 'app_dialog_theme.dart';
@@ -138,6 +137,7 @@ ThemeData buildLightTheme([
   String? themeColorPreset,
   AppTypographyScale typographyScale = AppTypographyScale.standard,
   AppTypographyScale? iconScale,
+  ResolvedFonts? fonts,
 ]) => _applyTypography(
   FlexThemeData.light(
     colors: _flexSchemeColors(normalizeThemeColorPreset(themeColorPreset)),
@@ -151,12 +151,14 @@ ThemeData buildLightTheme([
   ),
   typographyScale: typographyScale,
   iconScale: iconScale,
+  fonts: fonts,
 );
 
 ThemeData buildDarkTheme([
   String? themeColorPreset,
   AppTypographyScale typographyScale = AppTypographyScale.standard,
   AppTypographyScale? iconScale,
+  ResolvedFonts? fonts,
 ]) => _applyTypography(
   FlexThemeData.dark(
     colors: _flexSchemeColors(normalizeThemeColorPreset(themeColorPreset)),
@@ -172,6 +174,7 @@ ThemeData buildDarkTheme([
   ),
   typographyScale: typographyScale,
   iconScale: iconScale,
+  fonts: fonts,
 );
 
 /// How far to pull [ColorScheme.onSurface] toward [surface] in dark mode.
@@ -220,9 +223,11 @@ ThemeData _applyTypography(
   ThemeData flexTheme, {
   AppTypographyScale typographyScale = AppTypographyScale.standard,
   AppTypographyScale? iconScale,
+  ResolvedFonts? fonts,
 }) {
   flexTheme = _withSoftenedForeground(flexTheme);
-  final resolvedIconScale = iconScale ??
+  final resolvedIconScale =
+      iconScale ??
       AppTypographyScale(
         multiplier: TpIconSizes.resolveIconMultiplier(
           effectiveTextMultiplier: typographyScale.multiplier,
@@ -230,6 +235,8 @@ ThemeData _applyTypography(
         ),
       );
   final typographyTheme = AppTypographyTheme.fromScale(typographyScale);
+  final resolvedFonts = fonts ?? AppFontResolver.resolve();
+  final fontTheme = buildTpFontTheme(resolvedFonts);
   final useRuntimeGoogleFonts = _googleFontsNetworkAllowed();
   final compactOutlinedButton = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
@@ -262,12 +269,11 @@ ThemeData _applyTypography(
         scale: resolvedIconScale.multiplier,
       ),
       textTheme: textTheme,
-      extensions: [
-        AppFontTheme.fallback,
-        buildTpFontTheme(uiFont: const TextStyle()),
-        typographyTheme,
-      ],
-      dialogTheme: buildAppDialogTheme(colorScheme: scheme, textTheme: textTheme),
+      extensions: [fontTheme, typographyTheme],
+      dialogTheme: buildAppDialogTheme(
+        colorScheme: scheme,
+        textTheme: textTheme,
+      ),
       tooltipTheme: buildAppTooltipTheme(
         textTheme: textTheme,
         brightness: flexTheme.brightness,
@@ -288,11 +294,14 @@ ThemeData _applyTypography(
     colorScheme: flexTheme.colorScheme,
     useMaterial3: true,
   );
-  final textTheme = buildAppUiTextTheme(typographySeed.textTheme);
+  final textTheme = buildAppUiTextTheme(
+    typographySeed.textTheme,
+    resolvedFonts,
+  );
   final primaryTextTheme = buildAppUiPrimaryTextTheme(
     typographySeed.primaryTextTheme,
+    resolvedFonts,
   );
-  final appUiFont = GoogleFonts.notoSansSc();
   final scheme = flexTheme.colorScheme;
   final mergedTextTheme = _textThemeWithForeground(
     applyAppInputTextStyles(
@@ -310,11 +319,7 @@ ThemeData _applyTypography(
     ),
     textTheme: mergedTextTheme,
     primaryTextTheme: primaryTextTheme,
-    extensions: [
-      buildAppFontTheme(uiFont: appUiFont),
-      buildTpFontTheme(uiFont: appUiFont),
-      typographyTheme,
-    ],
+    extensions: [fontTheme, typographyTheme],
     dialogTheme: buildAppDialogTheme(
       colorScheme: scheme,
       textTheme: mergedTextTheme,

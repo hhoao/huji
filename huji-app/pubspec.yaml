@@ -112,6 +112,7 @@ flutter:
   assets:
     - assets/images/
     - assets/google_fonts/
+    - assets/fonts/terminal/
     - assets/svg/
     - assets/icons/
     - assets/models/ping_pong/normal/

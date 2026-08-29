@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:huji_app/constants/theme.dart';
 import 'package:huji_app/init.dart';
@@ -18,10 +19,10 @@ import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:huji_app/appearance/appearance_app_builder.dart';
 import 'package:huji_app/appearance/appearance_cubit.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
 import 'package:huji_app/appearance/appearance_theme_bundle.dart';
+import 'package:huji_app/theme/app_font_prepare.dart';
 import 'package:huji_app/theme/huji_toast_config.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -30,11 +31,13 @@ void main(List<String> args) async {
   try {
     // 必须先初始化 Flutter 绑定，才能使用平台通道（如 path_provider）
     WidgetsFlutterBinding.ensureInitialized();
+    GoogleFonts.config.allowRuntimeFetching = false;
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
-      await preloadSharedUiFonts();
       await windowManager.ensureInitialized();
     }
+    // 首帧前注册打包字体（FontLoader，全平台）——见 app_font_prepare.dart
+    await prepareFontsForUse();
     await preInit();
     await postInit();
     final appearanceCubit = await AppearanceCubit.load();
