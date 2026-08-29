@@ -946,6 +946,34 @@
   "setupLater": "Set up later",
   "shareFeatureInDevelopment": "Share feature is under development...",
   "shareLogsFailed": "Failed to share logs: {error}",
+  "shortcutsCategoryMeta": "General",
+  "shortcutsCategoryNavigation": "Navigation",
+  "shortcutsCategoryView": "View",
+  "shortcutsChange": "Change",
+  "shortcutsCheatsheetSubtitle": "Press {chord} anytime to open this list",
+  "shortcutsCommandCloseOrBack": "Close / Back",
+  "shortcutsCommandNewClip": "New Clip",
+  "shortcutsCommandOpenSettings": "Open Settings",
+  "shortcutsCommandOpenTasks": "Open Tasks",
+  "shortcutsCommandShowCheatsheet": "Show Keyboard Shortcuts",
+  "shortcutsCommandToggleSidebar": "Toggle Sidebar",
+  "shortcutsConflictTooltip": "Conflicts with another command",
+  "shortcutsNotSet": "Not set",
+  "shortcutsPressNewChord": "Press a new key combination",
+  "shortcutsPressNewChordHint": "Esc to cancel · Backspace to clear",
+  "shortcutsRebind": "Change shortcut",
+  "shortcutsReplaceCancel": "Keep current",
+  "shortcutsReplaceConfirmBody": "{chord} is already used by \"{command}\". Replace it?",
+  "shortcutsReplaceConfirmTitle": "Replace shortcut?",
+  "shortcutsReplaceProceed": "Replace",
+  "shortcutsReset": "Reset to default",
+  "shortcutsResetAll": "Restore all defaults",
+  "shortcutsResetAllConfirmBody": "All customized shortcuts will be restored to their defaults.",
+  "shortcutsResetAllConfirmTitle": "Restore all defaults?",
+  "shortcutsSectionSubtitle": "View and customize keyboard shortcuts",
+  "shortcutsSectionTitle": "Keyboard Shortcuts",
+  "shortcutsUnbind": "Unbind",
+  "shortcutsViewCheatsheet": "View all shortcuts",
   "showSystemLogsLabel": "Show system logs",
   "sizeReducedLabel": "Size reduced",
   "slowMotion": "Slow motion",
@@ -2293,6 +2321,23 @@
   "@shareLogsFailed": {
     "placeholders": {
       "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@shortcutsCheatsheetSubtitle": {
+    "placeholders": {
+      "chord": {
+        "type": "String"
+      }
+    }
+  },
+  "@shortcutsReplaceConfirmBody": {
+    "placeholders": {
+      "chord": {
+        "type": "String"
+      },
+      "command": {
         "type": "String"
       }
     }

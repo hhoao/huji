@@ -852,6 +852,7 @@ class _SettingsPageState extends State<SettingsPage> {
     showTpDialog(
       context: context,
       barrierDismissible: !updateInfo.forceUpdate,
+      escapeDismissible: !updateInfo.forceUpdate,
       builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
     );
   }

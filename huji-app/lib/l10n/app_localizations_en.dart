@@ -3245,6 +3245,96 @@ class HujiLocalizationsEn extends HujiLocalizations {
   }
 
   @override
+  String get shortcutsCategoryMeta => 'General';
+
+  @override
+  String get shortcutsCategoryNavigation => 'Navigation';
+
+  @override
+  String get shortcutsCategoryView => 'View';
+
+  @override
+  String get shortcutsChange => 'Change';
+
+  @override
+  String shortcutsCheatsheetSubtitle(String chord) {
+    return 'Press $chord anytime to open this list';
+  }
+
+  @override
+  String get shortcutsCommandCloseOrBack => 'Close / Back';
+
+  @override
+  String get shortcutsCommandNewClip => 'New Clip';
+
+  @override
+  String get shortcutsCommandOpenSettings => 'Open Settings';
+
+  @override
+  String get shortcutsCommandOpenTasks => 'Open Tasks';
+
+  @override
+  String get shortcutsCommandShowCheatsheet => 'Show Keyboard Shortcuts';
+
+  @override
+  String get shortcutsCommandToggleSidebar => 'Toggle Sidebar';
+
+  @override
+  String get shortcutsConflictTooltip => 'Conflicts with another command';
+
+  @override
+  String get shortcutsNotSet => 'Not set';
+
+  @override
+  String get shortcutsPressNewChord => 'Press a new key combination';
+
+  @override
+  String get shortcutsPressNewChordHint => 'Esc to cancel · Backspace to clear';
+
+  @override
+  String get shortcutsRebind => 'Change shortcut';
+
+  @override
+  String get shortcutsReplaceCancel => 'Keep current';
+
+  @override
+  String shortcutsReplaceConfirmBody(String chord, String command) {
+    return '$chord is already used by \"$command\". Replace it?';
+  }
+
+  @override
+  String get shortcutsReplaceConfirmTitle => 'Replace shortcut?';
+
+  @override
+  String get shortcutsReplaceProceed => 'Replace';
+
+  @override
+  String get shortcutsReset => 'Reset to default';
+
+  @override
+  String get shortcutsResetAll => 'Restore all defaults';
+
+  @override
+  String get shortcutsResetAllConfirmBody =>
+      'All customized shortcuts will be restored to their defaults.';
+
+  @override
+  String get shortcutsResetAllConfirmTitle => 'Restore all defaults?';
+
+  @override
+  String get shortcutsSectionSubtitle =>
+      'View and customize keyboard shortcuts';
+
+  @override
+  String get shortcutsSectionTitle => 'Keyboard Shortcuts';
+
+  @override
+  String get shortcutsUnbind => 'Unbind';
+
+  @override
+  String get shortcutsViewCheatsheet => 'View all shortcuts';
+
+  @override
   String get showSystemLogsLabel => 'Show system logs';
 
   @override

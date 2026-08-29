@@ -16,6 +16,7 @@ import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:window_manager/window_manager.dart';
@@ -42,7 +43,13 @@ void main(List<String> args) async {
     await postInit();
     final appearanceCubit = await AppearanceCubit.load();
     if (PlatformCapability.isDesktop) {
-      runApp(DesktopApp(appearanceCubit: appearanceCubit));
+      final shortcutsCubit = await ShortcutsCubit.load();
+      runApp(
+        DesktopApp(
+          appearanceCubit: appearanceCubit,
+          shortcutsCubit: shortcutsCubit,
+        ),
+      );
     } else {
       runApp(MyApp(appearanceCubit: appearanceCubit));
     }

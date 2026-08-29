@@ -3164,6 +3164,94 @@ class HujiLocalizationsZh extends HujiLocalizations {
   }
 
   @override
+  String get shortcutsCategoryMeta => '通用';
+
+  @override
+  String get shortcutsCategoryNavigation => '导航';
+
+  @override
+  String get shortcutsCategoryView => '视图';
+
+  @override
+  String get shortcutsChange => '修改';
+
+  @override
+  String shortcutsCheatsheetSubtitle(String chord) {
+    return '随时按 $chord 打开此列表';
+  }
+
+  @override
+  String get shortcutsCommandCloseOrBack => '关闭 / 返回';
+
+  @override
+  String get shortcutsCommandNewClip => '新建剪辑';
+
+  @override
+  String get shortcutsCommandOpenSettings => '打开设置';
+
+  @override
+  String get shortcutsCommandOpenTasks => '打开任务';
+
+  @override
+  String get shortcutsCommandShowCheatsheet => '显示键盘快捷键';
+
+  @override
+  String get shortcutsCommandToggleSidebar => '切换侧栏';
+
+  @override
+  String get shortcutsConflictTooltip => '与其他命令冲突';
+
+  @override
+  String get shortcutsNotSet => '未设置';
+
+  @override
+  String get shortcutsPressNewChord => '按下新的组合键';
+
+  @override
+  String get shortcutsPressNewChordHint => '按 Esc 取消 · Backspace 清除';
+
+  @override
+  String get shortcutsRebind => '更改快捷键';
+
+  @override
+  String get shortcutsReplaceCancel => '保留当前';
+
+  @override
+  String shortcutsReplaceConfirmBody(String chord, String command) {
+    return '$chord 已被「$command」使用,要替换吗?';
+  }
+
+  @override
+  String get shortcutsReplaceConfirmTitle => '替换快捷键?';
+
+  @override
+  String get shortcutsReplaceProceed => '替换';
+
+  @override
+  String get shortcutsReset => '恢复默认';
+
+  @override
+  String get shortcutsResetAll => '恢复全部默认';
+
+  @override
+  String get shortcutsResetAllConfirmBody => '所有自定义快捷键将恢复为默认键位。';
+
+  @override
+  String get shortcutsResetAllConfirmTitle => '恢复全部默认?';
+
+  @override
+  String get shortcutsSectionSubtitle => '查看与自定义键盘快捷键';
+
+  @override
+  String get shortcutsSectionTitle => '键盘快捷键';
+
+  @override
+  String get shortcutsUnbind => '清除绑定';
+
+  @override
+  String get shortcutsViewCheatsheet => '查看全部快捷键';
+
+  @override
   String get showSystemLogsLabel => '显示系统日志';
 
   @override

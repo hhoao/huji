@@ -76,6 +76,7 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
     final result = await showTpDialog<bool>(
       context: context,
       barrierDismissible: false,
+      escapeDismissible: true,
       builder: (context) => const BackgroundServicePermissionDialog(),
     );
     return result ?? false;

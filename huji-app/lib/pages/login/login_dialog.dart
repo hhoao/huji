@@ -32,6 +32,7 @@ class LoginDialog extends StatefulWidget {
       final result = await showTpDialog<bool>(
         context: context,
         barrierDismissible: false,
+        escapeDismissible: true,
         builder: (context) => const LoginDialog(visible: true),
       );
       return result ?? false;

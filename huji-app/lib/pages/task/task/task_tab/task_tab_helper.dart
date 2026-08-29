@@ -25,6 +25,7 @@ void showVideoClipProgressDialog(BuildContext context, Task task) {
   showTpDialog(
     context: context,
     barrierDismissible: task.status == TaskStatusEnum.failed,
+    escapeDismissible: true,
     builder: (context) => VideoClipProgressDialog(task: task),
   );
 }

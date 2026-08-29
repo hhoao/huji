@@ -12,6 +12,7 @@ class LoginDialog extends StatefulWidget {
     return showTpDialog(
       context: context,
       barrierDismissible: false,
+      escapeDismissible: true,
       builder: (_) => const LoginDialog(),
     );
   }

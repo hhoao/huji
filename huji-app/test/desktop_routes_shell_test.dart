@@ -5,17 +5,31 @@ import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 void main() {
-  test('desktop routes keep navigation chrome in a ShellRoute', () {
+  test('desktop routes keep navigation chrome in a stateful shell', () {
     final routes = DesktopRoutes.getRoutes();
 
     expect(routes, hasLength(2));
     expect(routes.whereType<GoRoute>(), hasLength(1));
-    expect(routes.whereType<ShellRoute>(), hasLength(1));
+    expect(routes.whereType<StatefulShellRoute>(), hasLength(1));
+  });
+
+  test('desktop shell keeps one live branch per sidebar nav area', () {
+    final shell = DesktopRoutes
+        .getRoutes()
+        .whereType<StatefulShellRoute>()
+        .single;
+
+    expect(shell.branches, hasLength(3));
   });
 
   test('desktop shell child routes disable route-level page transitions', () {
-    final shell = DesktopRoutes.getRoutes().whereType<ShellRoute>().single;
-    final childRoutes = shell.routes.whereType<GoRoute>();
+    final shell = DesktopRoutes
+        .getRoutes()
+        .whereType<StatefulShellRoute>()
+        .single;
+    final childRoutes = shell.branches
+        .expand((branch) => branch.routes)
+        .whereType<GoRoute>();
 
     expect(childRoutes, isNotEmpty);
     for (final route in childRoutes) {

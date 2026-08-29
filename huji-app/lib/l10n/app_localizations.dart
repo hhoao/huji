@@ -5774,6 +5774,174 @@ abstract class HujiLocalizations {
   /// **'Failed to share logs: {error}'**
   String shareLogsFailed(String error);
 
+  /// No description provided for @shortcutsCategoryMeta.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get shortcutsCategoryMeta;
+
+  /// No description provided for @shortcutsCategoryNavigation.
+  ///
+  /// In en, this message translates to:
+  /// **'Navigation'**
+  String get shortcutsCategoryNavigation;
+
+  /// No description provided for @shortcutsCategoryView.
+  ///
+  /// In en, this message translates to:
+  /// **'View'**
+  String get shortcutsCategoryView;
+
+  /// No description provided for @shortcutsChange.
+  ///
+  /// In en, this message translates to:
+  /// **'Change'**
+  String get shortcutsChange;
+
+  /// No description provided for @shortcutsCheatsheetSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Press {chord} anytime to open this list'**
+  String shortcutsCheatsheetSubtitle(String chord);
+
+  /// No description provided for @shortcutsCommandCloseOrBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Close / Back'**
+  String get shortcutsCommandCloseOrBack;
+
+  /// No description provided for @shortcutsCommandNewClip.
+  ///
+  /// In en, this message translates to:
+  /// **'New Clip'**
+  String get shortcutsCommandNewClip;
+
+  /// No description provided for @shortcutsCommandOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get shortcutsCommandOpenSettings;
+
+  /// No description provided for @shortcutsCommandOpenTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Tasks'**
+  String get shortcutsCommandOpenTasks;
+
+  /// No description provided for @shortcutsCommandShowCheatsheet.
+  ///
+  /// In en, this message translates to:
+  /// **'Show Keyboard Shortcuts'**
+  String get shortcutsCommandShowCheatsheet;
+
+  /// No description provided for @shortcutsCommandToggleSidebar.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle Sidebar'**
+  String get shortcutsCommandToggleSidebar;
+
+  /// No description provided for @shortcutsConflictTooltip.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts with another command'**
+  String get shortcutsConflictTooltip;
+
+  /// No description provided for @shortcutsNotSet.
+  ///
+  /// In en, this message translates to:
+  /// **'Not set'**
+  String get shortcutsNotSet;
+
+  /// No description provided for @shortcutsPressNewChord.
+  ///
+  /// In en, this message translates to:
+  /// **'Press a new key combination'**
+  String get shortcutsPressNewChord;
+
+  /// No description provided for @shortcutsPressNewChordHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Esc to cancel · Backspace to clear'**
+  String get shortcutsPressNewChordHint;
+
+  /// No description provided for @shortcutsRebind.
+  ///
+  /// In en, this message translates to:
+  /// **'Change shortcut'**
+  String get shortcutsRebind;
+
+  /// No description provided for @shortcutsReplaceCancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Keep current'**
+  String get shortcutsReplaceCancel;
+
+  /// No description provided for @shortcutsReplaceConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'{chord} is already used by \"{command}\". Replace it?'**
+  String shortcutsReplaceConfirmBody(String chord, String command);
+
+  /// No description provided for @shortcutsReplaceConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace shortcut?'**
+  String get shortcutsReplaceConfirmTitle;
+
+  /// No description provided for @shortcutsReplaceProceed.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace'**
+  String get shortcutsReplaceProceed;
+
+  /// No description provided for @shortcutsReset.
+  ///
+  /// In en, this message translates to:
+  /// **'Reset to default'**
+  String get shortcutsReset;
+
+  /// No description provided for @shortcutsResetAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore all defaults'**
+  String get shortcutsResetAll;
+
+  /// No description provided for @shortcutsResetAllConfirmBody.
+  ///
+  /// In en, this message translates to:
+  /// **'All customized shortcuts will be restored to their defaults.'**
+  String get shortcutsResetAllConfirmBody;
+
+  /// No description provided for @shortcutsResetAllConfirmTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Restore all defaults?'**
+  String get shortcutsResetAllConfirmTitle;
+
+  /// No description provided for @shortcutsSectionSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'View and customize keyboard shortcuts'**
+  String get shortcutsSectionSubtitle;
+
+  /// No description provided for @shortcutsSectionTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Keyboard Shortcuts'**
+  String get shortcutsSectionTitle;
+
+  /// No description provided for @shortcutsUnbind.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbind'**
+  String get shortcutsUnbind;
+
+  /// No description provided for @shortcutsViewCheatsheet.
+  ///
+  /// In en, this message translates to:
+  /// **'View all shortcuts'**
+  String get shortcutsViewCheatsheet;
+
   /// No description provided for @showSystemLogsLabel.
   ///
   /// In en, this message translates to:

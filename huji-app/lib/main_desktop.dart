@@ -6,9 +6,13 @@ import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
-import 'package:huji_app/services/desktop_shortcuts.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/shortcuts/command_bus.dart';
+import 'package:huji_app/shortcuts/navigation_commands.dart';
+import 'package:huji_app/shortcuts/shortcut_dispatcher_host.dart';
+import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
+import 'package:huji_app/shortcuts/widgets/shortcut_cheatsheet_dialog.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/widgets/desktop/desktop_error_page.dart';
@@ -27,9 +31,14 @@ import 'package:huji_app/widgets/layout/ui_zoom.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class DesktopApp extends StatefulWidget {
-  const DesktopApp({super.key, required this.appearanceCubit});
+  const DesktopApp({
+    super.key,
+    required this.appearanceCubit,
+    required this.shortcutsCubit,
+  });
 
   final AppearanceCubit appearanceCubit;
+  final ShortcutsCubit shortcutsCubit;
 
   @override
   State<DesktopApp> createState() => _DesktopAppState();
@@ -38,6 +47,8 @@ class DesktopApp extends StatefulWidget {
 class _DesktopAppState extends State<DesktopApp> {
   late final GoRouter _router;
   late final WindowListener _windowListener;
+  late final CommandBus _commandBus = CommandBus();
+  void Function()? _disposeCommands;
 
   @override
   void initState() {
@@ -47,11 +58,25 @@ class _DesktopAppState extends State<DesktopApp> {
       routes: DesktopRoutes.getRoutes(),
       errorBuilder: (context, state) => DesktopErrorPage(state.error),
     );
+    _disposeCommands = registerDesktopNavigationCommands(
+      _commandBus,
+      go: _router.go,
+      canPop: _router.canPop,
+      pop: _router.pop,
+      showCheatsheet: _showCheatsheet,
+    );
     // TaskStorage / LocalVideoStorage are already initialized in postInit().
     NotificationManager().initialize();
 
     if (PlatformCapability.isDesktop) {
       _initWindowManager();
+    }
+  }
+
+  void _showCheatsheet() {
+    final context = _router.routerDelegate.navigatorKey.currentContext;
+    if (context != null) {
+      showShortcutCheatsheetDialog(context);
     }
   }
 
@@ -74,9 +99,11 @@ class _DesktopAppState extends State<DesktopApp> {
     final systemMq = systemView == null
         ? const MediaQueryData()
         : MediaQueryData.fromView(systemView);
-    final bundle = resolveAppearanceTheme(widget.appearanceCubit.state, systemMq);
-    final windowTitle =
-        lookupHujiLocalizations(bundle.locale).appTitle;
+    final bundle = resolveAppearanceTheme(
+      widget.appearanceCubit.state,
+      systemMq,
+    );
+    final windowTitle = lookupHujiLocalizations(bundle.locale).appTitle;
 
     final prefs = await SharedPreferences.getInstance();
     final savedX = prefs.getDouble('window_x');
@@ -117,28 +144,23 @@ class _DesktopAppState extends State<DesktopApp> {
       providers: [
         BlocProvider<UserBloc>.value(value: UserBlocInstance.instance),
         BlocProvider<AppearanceCubit>.value(value: widget.appearanceCubit),
+        BlocProvider<ShortcutsCubit>.value(value: widget.shortcutsCubit),
       ],
-      child: Shortcuts(
-        shortcuts: desktopShortcuts(),
-        child: Actions(
-          actions: <Type, Action<Intent>>{
-            NewClipIntent: NewClipAction(),
-            OpenSettingsIntent: OpenSettingsAction(),
-            CloseIntent: CloseAction(),
-            OpenTasksIntent: OpenTasksAction(),
-          },
-          child: BlocBuilder<AppearanceCubit, AppearancePreferences>(
-            builder: (context, prefs) {
-              final systemView =
-                  WidgetsBinding.instance.platformDispatcher.implicitView;
-              final systemMq = systemView == null
-                  ? const MediaQueryData()
-                  : MediaQueryData.fromView(systemView);
-              final bundle = resolveAppearanceTheme(prefs, systemMq);
+      child: RepositoryProvider<CommandBus>.value(
+        value: _commandBus,
+        child: BlocBuilder<AppearanceCubit, AppearancePreferences>(
+          builder: (context, prefs) {
+            final systemView =
+                WidgetsBinding.instance.platformDispatcher.implicitView;
+            final systemMq = systemView == null
+                ? const MediaQueryData()
+                : MediaQueryData.fromView(systemView);
+            final bundle = resolveAppearanceTheme(prefs, systemMq);
 
-              final l10n = lookupHujiLocalizations(bundle.locale);
+            final l10n = lookupHujiLocalizations(bundle.locale);
 
-              return TpToastWrapper(
+            return ShortcutDispatcherHost(
+              child: TpToastWrapper(
                 config: buildHujiToastConfig(),
                 child: MaterialApp.router(
                   title: l10n.appTitle,
@@ -173,9 +195,9 @@ class _DesktopAppState extends State<DesktopApp> {
                     );
                   },
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
       ),
     );
@@ -183,10 +205,12 @@ class _DesktopAppState extends State<DesktopApp> {
 
   @override
   void dispose() {
+    _disposeCommands?.call();
     if (PlatformCapability.isDesktop) {
       windowManager.removeListener(_windowListener);
     }
     widget.appearanceCubit.close();
+    widget.shortcutsCubit.close();
     super.dispose();
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
+import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
@@ -8,7 +9,7 @@ import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
 import 'package:huji_app/widgets/settings/workspace_section_layout.dart';
 import 'package:shared_ui/shared_ui.dart';
 
-enum _SettingsSection { general, appearance, account, network }
+enum _SettingsSection { general, appearance, shortcuts, account, network }
 
 /// Desktop settings — Teampilot Skills-style section layout in the main right pane.
 class DesktopSettingsPage extends StatefulWidget {
@@ -52,6 +53,13 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
             onTap: () => setState(() => _section = _SettingsSection.appearance),
           ),
           WorkspaceHubEntry(
+            title: l10n.shortcutsSectionTitle,
+            icon: Icons.keyboard_outlined,
+            selected: _section == _SettingsSection.shortcuts,
+            density: WorkspaceHubNavDensity.relaxed,
+            onTap: () => setState(() => _section = _SettingsSection.shortcuts),
+          ),
+          WorkspaceHubEntry(
             title: l10n.account,
             icon: Icons.person_outline,
             selected: _section == _SettingsSection.account,
@@ -75,6 +83,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     return switch (_section) {
       _SettingsSection.general => _buildGeneralBody(),
       _SettingsSection.appearance => const HujiAppearanceSettingsSection(),
+      _SettingsSection.shortcuts => const HujiShortcutsSettingsSection(),
       _SettingsSection.account => _buildAccountBody(),
       _SettingsSection.network => _buildNetworkBody(),
     };
@@ -194,9 +203,12 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
               subtitle: l10n.settingsDownloadConcurrencyDesc,
               trailing: TpCompactSelect<int>(
                 value: _downloadConcurrency,
-                entries: const [1, 2, 3, 5]
-                    .map((e) => (e, e.toString()))
-                    .toList(),
+                entries: const [
+                  1,
+                  2,
+                  3,
+                  5,
+                ].map((e) => (e, e.toString())).toList(),
                 onChanged: (v) {
                   if (v != null) setState(() => _downloadConcurrency = v);
                 },

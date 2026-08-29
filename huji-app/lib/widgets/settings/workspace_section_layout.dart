@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:huji_app/widgets/layout/workspace_route_transition.dart';
 import 'package:huji_app/widgets/settings/workspace_hub_title_bar.dart';
 
 /// Desktop section layout used by Skills / Plugins / MCP in the workspace home
@@ -33,9 +33,11 @@ class WorkspaceSectionLayout extends StatelessWidget {
 
     final animatedBody = bodyAnimationKey == null
         ? body
-        : body
-              .animate(key: bodyAnimationKey)
-              .fadeIn(duration: 180.ms, curve: Curves.easeOut);
+        : WorkspaceRouteTransition(
+            routeKey: bodyAnimationKey!,
+            slide: false,
+            child: body,
+          );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,

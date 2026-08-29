@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:huji_app/theme/workspace_surface_layers.dart';
+import 'package:huji_app/widgets/layout/workspace_route_transition.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Title row for identity / team right panes (Teampilot [HomeTeamHeader]).
@@ -191,15 +190,10 @@ class WorkspaceIdentityPane extends StatelessWidget {
           Divider(height: 1, color: cs.outlineVariant.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Expanded(
-            child: child
-                .animate(key: ValueKey(contentKey))
-                .fadeIn(duration: 180.ms, curve: Curves.easeOut)
-                .slideX(
-                  begin: 0.025,
-                  end: 0,
-                  duration: 220.ms,
-                  curve: Curves.easeOutCubic,
-                ),
+            child: WorkspaceRouteTransition(
+              routeKey: contentKey,
+              child: child,
+            ),
           ),
         ],
     );

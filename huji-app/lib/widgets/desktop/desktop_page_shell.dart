@@ -13,6 +13,7 @@ class DesktopPageShell extends StatelessWidget {
     required this.child,
     this.bodyPadding = EdgeInsets.zero,
     this.contentKey,
+    this.backgroundColor,
   });
 
   final String currentRoute;
@@ -23,6 +24,7 @@ class DesktopPageShell extends StatelessWidget {
   final Widget child;
   final EdgeInsets bodyPadding;
   final Object? contentKey;
+  final Color? backgroundColor;
 
   @override
   Widget build(BuildContext context) {
@@ -35,6 +37,7 @@ class DesktopPageShell extends StatelessWidget {
       actions: actions ?? const [],
       contentKey: contentKey ?? currentRoute,
       bodyPadding: bodyPadding,
+      backgroundColor: backgroundColor,
       child: child,
     );
   }

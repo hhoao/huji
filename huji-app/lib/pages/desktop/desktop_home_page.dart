@@ -316,7 +316,10 @@ class _VideoThumbnail extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final thumbPath = record.thumbnailPath;
-    if (thumbPath != null && File(thumbPath).existsSync()) {
+    // No existsSync() here — build must stay free of sync disk IO (called per
+    // card per rebuild, incl. every frame of pane animations). Missing files
+    // fall through to errorBuilder, which renders the same placeholder.
+    if (thumbPath != null) {
       return Image.file(
         File(thumbPath),
         fit: BoxFit.cover,

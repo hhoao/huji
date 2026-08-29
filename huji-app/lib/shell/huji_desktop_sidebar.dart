@@ -5,7 +5,9 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user.dart';
+import 'package:huji_app/shell/sidebar/sidebar.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
+import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 enum DesktopNav {
@@ -24,7 +26,7 @@ enum DesktopNav {
   };
 }
 
-/// Left rail assembled from [TpSidebar] primitives with huji navigation.
+/// Left rail assembled from huji sidebar chrome with app navigation.
 class HujiDesktopSidebar extends StatefulWidget {
   const HujiDesktopSidebar({required this.currentRoute, super.key});
 
@@ -68,70 +70,75 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    return TpSidebar(
-      variant: TpSidebarVariant.inset,
-      collapsible: TpSidebarCollapsible.icon,
-      child: Stack(
+    final cs = Theme.of(context).colorScheme;
+
+    return HujiSidebarThemeScope(
+      theme: HujiSidebarTheme.fromColorScheme(cs),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Column(
-            children: [
-              const TpSidebarHeader(child: _AccountArea()),
-              TpSidebarContent(
-                child: TpSidebarGroup(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      TpSidebarGroupLabel(label: l10n.desktopWorkspaceSection),
-                      TpSidebarMenu(
-                        children: [
-                          TpSidebarMenuItem(
-                            children: [
-                              TpSidebarMenuButton(
-                                icon: Icon(DesktopNav.library.icon),
-                                label: DesktopNav.library.label(l10n),
-                                isActive: _isActive('/'),
-                                onPressed: () => context.go('/'),
-                              ),
-                            ],
-                          ),
-                          TpSidebarMenuItem(
-                            children: [
-                              TpSidebarMenuButton(
-                                icon: Icon(DesktopNav.tasks.icon),
-                                label: DesktopNav.tasks.label(l10n),
-                                isActive: _isActive('/tasks'),
-                                onPressed: () => context.go('/tasks'),
-                              ),
-                              if (_processingCount > 0)
-                                TpSidebarMenuBadge(label: '$_processingCount'),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              TpSidebarFooter(
-                child: TpSidebarMenu(
-                  children: [
-                    TpSidebarMenuItem(
-                      children: [
-                        TpSidebarMenuButton(
-                          icon: Icon(DesktopNav.settings.icon),
-                          label: DesktopNav.settings.label(l10n),
-                          isActive: _isActive('/settings'),
-                          onPressed: () => context.go('/settings'),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
+          const HujiSidebarHeader(
+            padding: EdgeInsets.fromLTRB(12, 20, 12, 12),
+            child: _AccountArea(),
           ),
-          const TpSidebarRail(),
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
+              children: [
+                WorkspaceHubNavItem(
+                  title: DesktopNav.library.label(l10n),
+                  icon: DesktopNav.library.icon,
+                  selected: _isActive('/'),
+                  density: WorkspaceHubNavDensity.relaxed,
+                  onTap: () => context.go('/'),
+                ),
+                WorkspaceHubNavItem(
+                  title: DesktopNav.tasks.label(l10n),
+                  icon: DesktopNav.tasks.icon,
+                  selected: _isActive('/tasks'),
+                  density: WorkspaceHubNavDensity.relaxed,
+                  trailing: _processingCount > 0
+                      ? _NavCountBadge(count: _processingCount)
+                      : null,
+                  onTap: () => context.go('/tasks'),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+            child: WorkspaceHubNavItem(
+              title: DesktopNav.settings.label(l10n),
+              icon: DesktopNav.settings.icon,
+              selected: _isActive('/settings'),
+              density: WorkspaceHubNavDensity.relaxed,
+              onTap: () => context.go('/settings'),
+            ),
+          ),
         ],
+      ),
+    );
+  }
+}
+
+class _NavCountBadge extends StatelessWidget {
+  const _NavCountBadge({required this.count});
+
+  final int count;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final styles = TpTextStyles.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: cs.surfaceContainerHighest.withValues(alpha: 0.65),
+        borderRadius: BorderRadius.circular(999),
+      ),
+      child: Text(
+        '$count',
+        style: styles.smColored(cs.onSurfaceVariant),
       ),
     );
   }
@@ -176,20 +183,14 @@ class _AccountAreaState extends State<_AccountArea> {
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final scope = TpSidebarScope.of(context);
-    final config = TpSidebarConfig.of(context);
-    final iconCollapsed = !scope.isMobile &&
-        config.collapsible == TpSidebarCollapsible.icon &&
-        scope.state == TpSidebarDesktopState.collapsed;
     final displayName = _displayName(l10n);
     final subtitle = _isLoggedIn
         ? l10n.accountLoggedIn
         : l10n.accountTapToLogin;
 
-    // Brand-tinted mark (shadcn header icon slot) using product primary.
     final mark = Container(
-      width: iconCollapsed ? 28 : 32,
-      height: iconCollapsed ? 28 : 32,
+      width: 32,
+      height: 32,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
         gradient: LinearGradient(
@@ -201,67 +202,50 @@ class _AccountAreaState extends State<_AccountArea> {
       alignment: Alignment.center,
       child: Text(
         '弧',
-        style: (iconCollapsed ? styles.smSemibold : styles.mdSemibold)
-            .copyWith(color: cs.onPrimary),
+        style: styles.mdSemibold.copyWith(color: cs.onPrimary),
       ),
     );
 
-    final Widget account;
-    if (iconCollapsed) {
-      account = TpTooltip(
-        message: displayName,
-        child: TpHover(
-          onTap: _handleTap,
-          borderRadius: BorderRadius.circular(8),
-          pressScale: 0.97,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4),
-            child: Center(child: mark),
+    final account = TpHover(
+      onTap: _handleTap,
+      borderRadius: BorderRadius.circular(8),
+      pressScale: 0.97,
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      child: Row(
+        children: [
+          mark,
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  displayName,
+                  style: styles.mdSemibold.copyWith(height: 1.2),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+                Text(
+                  subtitle,
+                  style: styles.sm.copyWith(
+                    height: 1.2,
+                    color: cs.onSurfaceVariant.withValues(alpha: 0.9),
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    } else {
-      account = TpHover(
-        onTap: _handleTap,
-        borderRadius: BorderRadius.circular(8),
-        pressScale: 0.97,
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: Row(
-          children: [
-            mark,
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    displayName,
-                    style: styles.mdSemibold.copyWith(height: 1.2),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                  Text(
-                    subtitle,
-                    style: styles.sm.copyWith(
-                      height: 1.2,
-                      color: cs.onSurfaceVariant.withValues(alpha: 0.9),
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                    maxLines: 1,
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.unfold_more,
-              size: 16,
-              color: cs.onSurfaceVariant.withValues(alpha: 0.85),
-            ),
-          ],
-        ),
-      );
-    }
+          Icon(
+            Icons.unfold_more,
+            size: 16,
+            color: cs.onSurfaceVariant.withValues(alpha: 0.85),
+          ),
+        ],
+      ),
+    );
 
     if (!_isLoggedIn) return account;
 

@@ -87,6 +87,7 @@ dependencies:
   camerawesome: ^2.5.0
   image: ^4.3.0
   flutter_onnxruntime: ^1.8.0
+  panes: ^1.3.0
   
 
 dev_dependencies:

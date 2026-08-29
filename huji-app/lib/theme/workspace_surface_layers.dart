@@ -10,30 +10,35 @@ enum WorkspacePageChrome { home, workspace }
 ///
 /// Level 0 [workspacePage] -> scaffold / split backdrop.
 /// Level 1 [workspaceSubtleSurface] -> quiet panels or rows directly on page.
-/// Level 2 [workspaceCard] -> list & detail shells, settings cards.
+/// Level 2 [workspaceCard] -> floated cards / inset shells.
 /// Level 3 [workspaceInset] -> rows, chips, controls inside a card.
 /// Level 4 [workspaceCode] -> JSON / code blocks.
+///
+/// Light mode uses a wider step (`surfaceContainerHighest` → `surface`) because
+/// Flex-blended `surface` / `surfaceContainer` are nearly identical.
 extension WorkspaceSurfaceLayers on ColorScheme {
   /// Default page backdrop (home chrome). Prefer [workspacePageChrome] in routed UI.
-  Color get workspacePage => surface;
+  Color get workspacePage => brightness == Brightness.light
+      ? surfaceContainerHighest
+      : surfaceContainer;
 
   Color get workspaceSubtleSurface => surfaceContainerLow;
 
   /// Default card shell fill (home chrome). Prefer [workspaceCardChrome] in routed UI.
-  Color get workspaceCard => surfaceContainer;
+  Color get workspaceCard => surface;
 
   Color get workspaceInset => surfaceContainerHigh;
 
   Color get workspaceCode => surfaceContainerHighest;
 
   Color workspacePageChrome(WorkspacePageChrome chrome) => switch (chrome) {
-    WorkspacePageChrome.home => surface,
-    WorkspacePageChrome.workspace => surfaceContainer,
+    WorkspacePageChrome.home => workspacePage,
+    WorkspacePageChrome.workspace => workspaceCard,
   };
 
   Color workspaceCardChrome(WorkspacePageChrome chrome) => switch (chrome) {
-    WorkspacePageChrome.home => surfaceContainer,
-    WorkspacePageChrome.workspace => surface,
+    WorkspacePageChrome.home => workspaceCard,
+    WorkspacePageChrome.workspace => workspacePage,
   };
 }
 

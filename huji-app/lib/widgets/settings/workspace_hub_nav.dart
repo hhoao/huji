@@ -14,6 +14,7 @@ class WorkspaceHubEntry {
     this.key,
     this.selected = false,
     this.trailingIcon,
+    this.trailing,
     this.showLeaderBadge = false,
     this.density = WorkspaceHubNavDensity.standard,
   });
@@ -24,6 +25,7 @@ class WorkspaceHubEntry {
   final Key? key;
   final bool selected;
   final IconData? trailingIcon;
+  final Widget? trailing;
   final bool showLeaderBadge;
   final WorkspaceHubNavDensity density;
 }
@@ -36,6 +38,7 @@ class WorkspaceHubNavItem extends StatelessWidget {
     this.selected = false,
     this.hubStyle = false,
     this.trailingIcon,
+    this.trailing,
     this.showLeaderBadge = false,
     this.density = WorkspaceHubNavDensity.standard,
     super.key,
@@ -49,6 +52,7 @@ class WorkspaceHubNavItem extends StatelessWidget {
   final bool selected;
   final bool hubStyle;
   final IconData? trailingIcon;
+  final Widget? trailing;
   final bool showLeaderBadge;
   final WorkspaceHubNavDensity density;
 
@@ -59,7 +63,8 @@ class WorkspaceHubNavItem extends StatelessWidget {
     final normalFg = cs.onSurface.withValues(alpha: hubStyle ? 0.92 : 0.88);
     final muted = cs.onSurfaceVariant;
     final selectedColor = cs.primaryContainer;
-    final trailing = trailingIcon ?? (hubStyle ? Icons.chevron_right : null);
+    final resolvedTrailingIcon =
+        trailingIcon ?? (hubStyle ? Icons.chevron_right : null);
 
     final (height, iconSize, horizontalPadding, leftIndent) = switch (density) {
       WorkspaceHubNavDensity.standard => (
@@ -127,8 +132,10 @@ class WorkspaceHubNavItem extends StatelessWidget {
                   ),
                 ),
                 if (trailing != null)
+                  trailing!
+                else if (resolvedTrailingIcon != null)
                   Icon(
-                    trailing,
+                    resolvedTrailingIcon,
                     size: hubStyle ? 22 : 18,
                     color: selected ? selectedFg : muted,
                   ),
@@ -170,6 +177,7 @@ class WorkspaceHubNavList extends StatelessWidget {
         selected: entry.selected,
         hubStyle: hubStyle,
         trailingIcon: entry.trailingIcon,
+        trailing: entry.trailing,
         showLeaderBadge: entry.showLeaderBadge,
         density: entry.density,
         onTap: entry.onTap,

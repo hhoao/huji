@@ -549,6 +549,7 @@ class AppUpdateDialogHelper {
           showTpDialog(
             context: delayedContext,
             barrierDismissible: !updateInfo.forceUpdate,
+            escapeDismissible: !updateInfo.forceUpdate,
             builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
           );
         }
@@ -559,6 +560,7 @@ class AppUpdateDialogHelper {
     showTpDialog(
       context: context,
       barrierDismissible: !updateInfo.forceUpdate,
+      escapeDismissible: !updateInfo.forceUpdate,
       builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
     );
   }

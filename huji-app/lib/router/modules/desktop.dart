@@ -37,67 +37,84 @@ class DesktopRoutes {
         pageBuilder: (context, state) =>
             _noTransitionPage(state, const LoginPage()),
       ),
-      ShellRoute(
-        builder: (context, state, child) {
-          return HujiDesktopShell(currentRoute: state.uri.path, child: child);
+      // IndexedStack branches keep each nav area's pages alive so switching
+      // doesn't dispose + rebuild the destination subtree in one frame.
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return HujiDesktopShell(
+            currentRoute: state.uri.path,
+            child: navigationShell,
+          );
         },
-        routes: [
-          GoRoute(
-            path: '/',
-            name: 'desktop-home',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopHomePage()),
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/',
+                name: 'desktop-home',
+                pageBuilder: (context, state) =>
+                    _noTransitionPage(state, const DesktopHomePage()),
+              ),
+              GoRoute(
+                path: '/clip/new',
+                name: 'desktop-clip-new',
+                pageBuilder: (context, state) =>
+                    _noTransitionPage(state, const DesktopClipConfigPage()),
+              ),
+              GoRoute(
+                path: '/clip/:id/preview',
+                name: 'desktop-clip-preview',
+                // Note: Async guards are not supported in synchronous redirect.
+                // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
+                redirect: (context, state) => null,
+                pageBuilder: (context, state) {
+                  final clipId = state.pathParameters['id'] ?? 'unknown';
+                  return _noTransitionPage(
+                    state,
+                    DesktopPreviewExportPage(clipId: clipId),
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/clip/:id/edit',
+                name: 'desktop-clip-edit',
+                // Note: Async guards are not supported in synchronous redirect.
+                // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
+                redirect: (context, state) => null,
+                pageBuilder: (context, state) {
+                  final clipId = state.pathParameters['id'] ?? 'unknown';
+                  return _noTransitionPage(
+                    state,
+                    DesktopPrecisionEditPage(clipId: clipId),
+                  );
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/clip/new',
-            name: 'desktop-clip-new',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopClipConfigPage()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/tasks',
+                name: 'desktop-tasks',
+                pageBuilder: (context, state) {
+                  final clipTaskId = state.uri.queryParameters['clipTaskId'];
+                  return _noTransitionPage(
+                    state,
+                    DesktopTasksPage(clipTaskId: clipTaskId),
+                  );
+                },
+              ),
+            ],
           ),
-          GoRoute(
-            path: '/clip/:id/preview',
-            name: 'desktop-clip-preview',
-            // Note: Async guards are not supported in synchronous redirect.
-            // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
-            redirect: (context, state) => null,
-            pageBuilder: (context, state) {
-              final clipId = state.pathParameters['id'] ?? 'unknown';
-              return _noTransitionPage(
-                state,
-                DesktopPreviewExportPage(clipId: clipId),
-              );
-            },
-          ),
-          GoRoute(
-            path: '/clip/:id/edit',
-            name: 'desktop-clip-edit',
-            // Note: Async guards are not supported in synchronous redirect.
-            // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
-            redirect: (context, state) => null,
-            pageBuilder: (context, state) {
-              final clipId = state.pathParameters['id'] ?? 'unknown';
-              return _noTransitionPage(
-                state,
-                DesktopPrecisionEditPage(clipId: clipId),
-              );
-            },
-          ),
-          GoRoute(
-            path: '/tasks',
-            name: 'desktop-tasks',
-            pageBuilder: (context, state) {
-              final clipTaskId = state.uri.queryParameters['clipTaskId'];
-              return _noTransitionPage(
-                state,
-                DesktopTasksPage(clipTaskId: clipTaskId),
-              );
-            },
-          ),
-          GoRoute(
-            path: '/settings',
-            name: 'desktop-settings',
-            pageBuilder: (context, state) =>
-                _noTransitionPage(state, const DesktopSettingsPage()),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/settings',
+                name: 'desktop-settings',
+                pageBuilder: (context, state) =>
+                    _noTransitionPage(state, const DesktopSettingsPage()),
+              ),
+            ],
           ),
         ],
       ),

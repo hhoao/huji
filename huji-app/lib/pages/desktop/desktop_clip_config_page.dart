@@ -387,6 +387,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     return DesktopPageShell(
       currentRoute: '/clip/new',
       title: context.hujiL10n.desktopNewClip,
+      backgroundColor: Colors.transparent,
       breadcrumbs: [
         context.hujiL10n.desktopNavLibrary,
         context.hujiL10n.newClip,
@@ -415,29 +416,26 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
         children: [
           SizedBox(
             width: 320,
-            child: ColoredBox(
-              color: context.desktopColors.surfaceContainerLow,
-              child: Column(
-                children: [
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.all(22),
-                      children: [
-                        _buildConfigHeader(),
-                        SizedBox(height: 18),
-                        _buildSportType(),
-                        SizedBox(height: 22),
-                        _buildDetectionMode(),
-                        SizedBox(height: 22),
-                        _buildClipOptions(),
-                        SizedBox(height: 22),
-                        _buildMinDuration(),
-                      ],
-                    ),
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.all(22),
+                    children: [
+                      _buildConfigHeader(),
+                      SizedBox(height: 18),
+                      _buildSportType(),
+                      SizedBox(height: 22),
+                      _buildDetectionMode(),
+                      SizedBox(height: 22),
+                      _buildClipOptions(),
+                      SizedBox(height: 22),
+                      _buildMinDuration(),
+                    ],
                   ),
-                  _buildConfigFooter(),
-                ],
-              ),
+                ),
+                _buildConfigFooter(),
+              ],
             ),
           ),
           Expanded(
@@ -642,7 +640,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     return Container(
       padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
-        color: cs.surface,
         border: Border(top: BorderSide(color: context.desktopBorderLight)),
       ),
       child: Column(

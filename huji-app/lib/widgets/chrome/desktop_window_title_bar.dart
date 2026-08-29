@@ -28,7 +28,7 @@ class DesktopWindowTitleBar extends StatefulWidget {
 
   final String title;
 
-  /// Optional control before the title (e.g. [TpSidebarTrigger]).
+  /// Optional control before the title (e.g. [HujiSidebarTrigger]).
   final Widget? leading;
 
   @override
