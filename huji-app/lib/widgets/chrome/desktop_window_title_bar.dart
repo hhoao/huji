@@ -123,7 +123,12 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
       alignment: Alignment.centerLeft,
       child: Row(
         children: [
-          if (widget.leading != null) widget.leading!,
+          if (widget.leading != null) ...[
+            // Aligns the trigger with the sidebar card's left inset
+            // (sidebar pane padding in huji_desktop_shell).
+            const SizedBox(width: 12),
+            widget.leading!,
+          ],
           Flexible(child: title),
         ],
       ),
