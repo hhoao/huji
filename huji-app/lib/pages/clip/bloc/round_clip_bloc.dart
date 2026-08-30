@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../l10n/app_localizations.dart';
@@ -15,6 +16,10 @@ import 'round_clip_state.dart';
 class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
   final MultiVideoPlayerBloc _multiVideoPlayerBloc;
   final HujiLocalizations _l10n;
+
+  /// 高频编辑（拖拽 tick）落库的防抖定时器
+  Timer? _pendingEditsTimer;
+  static const _editsPersistDelay = Duration(milliseconds: 400);
 
   RoundClipBloc({
     required HujiLocalizations l10n,
@@ -37,6 +42,7 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     on<ShowErrorMessageEvent>(_onShowErrorMessage);
     on<MultiVideoPlayerStateChangedEvent>(_onMultiVideoPlayerStateChanged);
     on<UpdateEdittingVideoRecordEvent>(_onUpdateEdittingVideoRecord);
+    on<FlushPendingEditsEvent>(_onFlushPendingEdits);
     on<FlushStateEvent>(_flushState);
     on<ReorderSegmentsEvent>(_onReorderSegments);
   }
@@ -439,6 +445,13 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       return;
     }
 
+    // 先把防抖挂起的编辑落库，再从数据库重载，避免读到旧数据
+    _pendingEditsTimer?.cancel();
+    _pendingEditsTimer = null;
+    try {
+      await _persistEdits(state.videoRecord!);
+    } catch (_) {}
+
     final updatedRecord = await LocalVideoStorage().findById(
       state.videoRecord!.id,
     );
@@ -538,23 +551,15 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
       // 创建新的favoritesMatchSegments（保持编辑前的排序顺序）
       final newFavoritesMatchSegments = restoredFavorites;
 
-      // 保存到数据库
-      // 编辑过程中不通知监听器，避免触发全局刷新导致内存中 SegmentInfo 实例翻倍
-      final updatedRecord =
-          await LocalVideoStorage().update(
-                state.videoRecord!.id,
-                (record) {
-                  final edittingRecord = record as EdittingVideoRecord;
-                  return edittingRecord.copyWith(
-                    allMatchSegments: newAllMatchSegments,
-                    favoritesMatchSegments: newFavoritesMatchSegments,
-                  );
-                },
-                notifyChange: event.isFlushState, // 只有在刷新状态时才通知监听器
-              )
-              as EdittingVideoRecord;
+      // 编辑先落内存：isFlushState=false 来自拖拽等高频路径，
+      // 每个 tick 都做 DB 读写会堵塞事件队列造成卡顿，改由
+      // [_scheduleEditsPersist] 防抖持久化；isFlushState=true 立即落库
+      final updatedRecord = state.videoRecord!.copyWith(
+        allMatchSegments: newAllMatchSegments,
+        favoritesMatchSegments: newFavoritesMatchSegments,
+      );
 
-      // 无论 isFlushState 如何，都需要更新 videoRecord 和播放项列表
+      // 无论 isFlushState 如何，都需要更新 videoRecord，
       // 因为用户可能在编辑过程中点击播放，需要最新的数据
       emit(
         state.copyWith(
@@ -567,7 +572,47 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
         ),
       );
 
-      // 更新播放项列表
+      if (event.isFlushState) {
+        _pendingEditsTimer?.cancel();
+        _pendingEditsTimer = null;
+        await _persistEdits(updatedRecord);
+        add(const UpdatePlaybackItemsEvent());
+      } else {
+        _scheduleEditsPersist();
+      }
+    } catch (e) {
+      emit(state.copyWith(errorMessage: _l10n.saveSegmentFailedWithError(e.toString())));
+    }
+  }
+
+  /// 把 [record] 的当前片段写回数据库并通知监听器
+  Future<void> _persistEdits(EdittingVideoRecord record) async {
+    await LocalVideoStorage().update(record.id, (r) {
+      final edittingRecord = r as EdittingVideoRecord;
+      return edittingRecord.copyWith(
+        allMatchSegments: record.allMatchSegments,
+        favoritesMatchSegments: record.favoritesMatchSegments,
+      );
+    });
+  }
+
+  /// 防抖持久化：停止编辑一段时间后才写库
+  void _scheduleEditsPersist() {
+    _pendingEditsTimer?.cancel();
+    _pendingEditsTimer = Timer(_editsPersistDelay, () {
+      _pendingEditsTimer = null;
+      if (!isClosed) add(const FlushPendingEditsEvent());
+    });
+  }
+
+  Future<void> _onFlushPendingEdits(
+    FlushPendingEditsEvent event,
+    Emitter<RoundClipState> emit,
+  ) async {
+    final record = state.videoRecord;
+    if (record == null) return;
+    try {
+      await _persistEdits(record);
       add(const UpdatePlaybackItemsEvent());
     } catch (e) {
       emit(state.copyWith(errorMessage: _l10n.saveSegmentFailedWithError(e.toString())));
@@ -672,5 +717,19 @@ class RoundClipBloc extends Bloc<RoundClipEvent, RoundClipState> {
     } catch (e) {
       emit(state.copyWith(errorMessage: _l10n.reorderFailedWithError(e.toString())));
     }
+  }
+
+  @override
+  Future<void> close() {
+    // 关闭时把防抖挂起的编辑落库（尽力而为，失败不阻塞关闭）
+    if (_pendingEditsTimer?.isActive ?? false) {
+      _pendingEditsTimer!.cancel();
+      _pendingEditsTimer = null;
+      final record = state.videoRecord;
+      if (record != null) {
+        _persistEdits(record).catchError((_) {});
+      }
+    }
+    return super.close();
   }
 }

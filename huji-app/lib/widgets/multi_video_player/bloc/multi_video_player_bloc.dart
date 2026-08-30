@@ -14,6 +14,16 @@ import '../models/video_playback_item.dart';
 import 'multi_video_player_event.dart';
 import 'multi_video_player_state.dart';
 
+/// 逐项比较播放项（freezed 值相等）；List 的 == 是引用比较
+bool _sameItems(List<VideoPlaybackItem> a, List<VideoPlaybackItem> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 /// 多视频播放器 BLoC
 class MultiVideoPlayerBloc
     extends Bloc<MultiVideoPlayerEvent, MultiVideoPlayerState> {
@@ -76,6 +86,14 @@ class MultiVideoPlayerBloc
   ) async {
     await _operationLock.synchronized(() async {
       try {
+        // 内容未变化时跳过重建：SetItems 会暂停播放器并 seek 回 0，
+        // 高频编辑路径（拖拽 tick、收藏切换）反复触发会打断播放
+        if (state.items.isNotEmpty &&
+            _sameItems(state.items, event.items) &&
+            event.isLooping == state.isLooping) {
+          return;
+        }
+
         await _preloadVideos(event.items);
 
         emit(

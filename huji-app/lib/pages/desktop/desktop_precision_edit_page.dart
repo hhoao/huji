@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -48,6 +49,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   final Set<SegmentInfo> _thumbsInFlight = {};
   final List<SegmentInfo> _thumbQueue = [];
   bool _thumbQueueRunning = false;
+  Timer? _thumbQueueDebounce;
   String? _thumbVideoPath;
   String? _thumbDirPath;
 
@@ -148,8 +150,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   }
 
   /// 把当前列表里还没有缩略图的片段排入抽帧队列（去重、幂等，可在 build 中调用）。
+  ///
+  /// 拖拽分割线等高频编辑会让片段值持续变化：先丢弃队列里已不在当前列表的
+  /// 旧值，并防抖后才真正抽帧，避免拖拽期间连续起 ffmpeg 进程。
   void _enqueueSegmentThumbnails(List<SegmentInfo> segments) {
     if (_thumbVideoPath == null) return;
+    _thumbQueue.retainWhere(segments.contains);
     for (final s in segments) {
       if (_segmentThumbs.containsKey(s) ||
           _thumbsInFlight.contains(s) ||
@@ -158,7 +164,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       }
       _thumbQueue.add(s);
     }
-    _drainThumbQueue();
+    if (_thumbQueue.isEmpty) return;
+    _thumbQueueDebounce?.cancel();
+    _thumbQueueDebounce = Timer(
+      const Duration(milliseconds: 250),
+      _drainThumbQueue,
+    );
   }
 
   Future<void> _drainThumbQueue() async {
@@ -177,7 +188,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             // 以中点命名：相同中点即同一帧，编辑片段后也能复用/覆盖
             fileName: 'seg_${mid.toStringAsFixed(3)}.jpg',
             timeOffset: mid,
-            width: 240,
+            width: 480,
             format: 'jpg',
           );
           if (!mounted) return;
@@ -196,6 +207,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   @override
   void dispose() {
     _thumbQueue.clear();
+    _thumbQueueDebounce?.cancel();
     _disposeTrimmer();
     _roundClipBloc.close();
     _multiVideoPlayerBloc.close();
@@ -440,7 +452,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       pressScale: 0.97,
       child: Container(
         margin: const EdgeInsets.only(bottom: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           color: isActive ? cs.primary.withAlpha(31) : null,
           border: Border.all(
@@ -448,35 +460,25 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           ),
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Row(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(
-              width: 64,
-              height: 40,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(6),
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)],
-                ),
-              ),
-              alignment: Alignment.center,
+            // 顶部 - 回合缩略图
+            AspectRatio(
+              aspectRatio: 16 / 9,
               child: thumbPath != null
                   ? Image.file(
                       File(thumbPath),
-                      width: 64,
-                      height: 40,
                       fit: BoxFit.cover,
-                      cacheWidth: 128,
-                      cacheHeight: 80,
+                      cacheWidth: 480,
                       gaplessPlayback: true,
-                      errorBuilder: (_, __, ___) =>
-                          Text('\u{1F3D3}', style: styles.lg),
+                      errorBuilder: (_, __, ___) => _buildThumbPlaceholder(),
                     )
-                  : Text('\u{1F3D3}', style: styles.lg),
+                  : _buildThumbPlaceholder(),
             ),
-            SizedBox(width: 10),
-            Expanded(
+            // 底部 - 回合信息
+            Padding(
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -517,6 +519,18 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildThumbPlaceholder() {
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)],
+        ),
+      ),
+      alignment: Alignment.center,
+      child: Text('\u{1F3D3}', style: TpTextStyles.of(context).lg),
     );
   }
 

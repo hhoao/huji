@@ -138,6 +138,11 @@ class FlushStateEvent extends RoundClipEvent {
   const FlushStateEvent();
 }
 
+/// 把防抖挂起的编辑落库（拖拽 tick 只更新内存，由定时器触发本事件持久化）
+class FlushPendingEditsEvent extends RoundClipEvent {
+  const FlushPendingEditsEvent();
+}
+
 /// 重新排序片段事件
 class ReorderSegmentsEvent extends RoundClipEvent {
   final int oldIndex;
