@@ -32,13 +32,15 @@ void main(List<String> args) async {
   try {
     // 必须先初始化 Flutter 绑定，才能使用平台通道（如 path_provider）
     WidgetsFlutterBinding.ensureInitialized();
-    GoogleFonts.config.allowRuntimeFetching = false;
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
+      GoogleFonts.config.allowRuntimeFetching = false;
+      // 桌面端首帧前注册打包字体（FontLoader）——见 app_font_prepare.dart。
+      // 移动端不注册：Noto 全字重约 42MB，等待加载会拖慢冷启动，维持
+      // google_fonts 的 lazy 资源加载。
+      await prepareFontsForUse();
       await windowManager.ensureInitialized();
     }
-    // 首帧前注册打包字体（FontLoader，全平台）——见 app_font_prepare.dart
-    await prepareFontsForUse();
     await preInit();
     await postInit();
     final appearanceCubit = await AppearanceCubit.load();
