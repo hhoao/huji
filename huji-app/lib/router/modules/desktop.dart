@@ -1,4 +1,4 @@
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/desktop/desktop_home_page.dart';
 import 'package:huji_app/pages/desktop/desktop_clip_config_page.dart';
@@ -26,7 +26,16 @@ class DesktopRoutes {
       '/clip/${Uri.encodeComponent(clipId)}/edit';
 
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {
-    return NoTransitionPage<void>(key: state.pageKey, child: child);
+    // Pages are bare Columns without an opaque background, so taps in blank
+    // gaps (toolbar rows, header/content spacing) fall through to the route's
+    // non-dismissible ModalBarrier, which plays the desktop alert bell
+    // (SystemSoundType.alert → gdk_window_beep). A ColoredBox is
+    // HitTestBehavior.opaque even with a transparent color, so this absorbs
+    // those taps without changing the shell-provided visuals.
+    return NoTransitionPage<void>(
+      key: state.pageKey,
+      child: ColoredBox(color: Colors.transparent, child: child),
+    );
   }
 
   static List<RouteBase> getRoutes() {
