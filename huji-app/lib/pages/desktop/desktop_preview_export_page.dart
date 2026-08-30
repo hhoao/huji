@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
@@ -40,6 +41,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   LocalVideoRecord? _record;
   List<SegmentInfo> _segments = [];
+  final Map<int, String> _segmentThumbs = {};
   String _fileName = '';
   String _savePath = '';
   String _selectedQuality = _quality1080;
@@ -102,6 +104,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                 ),
               ),
             );
+            _generateSegmentThumbnails(r.id, r.filePath!, segments);
           }
         }
       } else {
@@ -109,6 +112,39 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  /// 逐段抽取回合中点帧作为缩略图，失败时保留占位样式。
+  Future<void> _generateSegmentThumbnails(
+    String clipId,
+    String videoPath,
+    List<SegmentInfo> segments,
+  ) async {
+    final dir = p.join(
+      Directory.systemTemp.path,
+      'huji_segment_thumbs',
+      clipId,
+    );
+    for (var i = 0; i < segments.length; i++) {
+      if (!mounted) return;
+      if (_segmentThumbs.containsKey(i)) continue;
+      final seg = segments[i];
+      final mid = seg.startSeconds + (seg.endSeconds - seg.startSeconds) / 2;
+      try {
+        final path = await VideoUtils.generateVideoThumbnail(
+          videoPath,
+          dirPath: dir,
+          fileName: 'segment_$i.jpg',
+          timeOffset: mid,
+          width: 240,
+          format: 'jpg',
+        );
+        if (!mounted) return;
+        setState(() => _segmentThumbs[i] = path);
+      } catch (_) {
+        // 抽帧失败时该回合继续显示占位图。
+      }
     }
   }
 
@@ -663,6 +699,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                       children: [
                         Expanded(
                           child: Container(
+                            clipBehavior: Clip.antiAlias,
                             decoration: const BoxDecoration(
                               borderRadius: BorderRadius.vertical(
                                 top: Radius.circular(5),
@@ -673,46 +710,58 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                                 end: Alignment.bottomRight,
                               ),
                             ),
-                            child: Stack(children: [
-                              Center(
-                                child: Text(
-                                  '🏓',
-                                  style: styles.lgSemibold,
-                                ),
-                              ),
-                              Positioned(
-                                bottom: 4,
-                                right: 4,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 5,
-                                    vertical: 1,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withAlpha(179),
-                                    borderRadius: BorderRadius.circular(2),
-                                  ),
-                                  child: Text(
-                                    '#${i + 1}',
-                                    style: styles.xs.copyWith(
-                                      color: cs.onSurface,
-                                      fontWeight: FontWeight.w600,
+                            child: Stack(
+                              fit: StackFit.expand,
+                              children: [
+                                if (_segmentThumbs.containsKey(i))
+                                  Image.file(
+                                    File(_segmentThumbs[i]!),
+                                    fit: BoxFit.cover,
+                                    gaplessPlayback: true,
+                                    errorBuilder: (_, __, ___) => Center(
+                                      child: Text('🏓', style: styles.lgSemibold),
+                                    ),
+                                  )
+                                else
+                                  Center(
+                                    child: Text(
+                                      '🏓',
+                                      style: styles.lgSemibold,
                                     ),
                                   ),
-                                ),
-                              ),
-                              if (active)
                                 Positioned(
-                                  top: 4,
-                                  left: 4,
-                                  child: Text(
-                                    l10n.playingNow,
-                                    style: styles.xs.copyWith(
-                                      color: cs.onSurface,
+                                  bottom: 4,
+                                  right: 4,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 5,
+                                      vertical: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withAlpha(179),
+                                      borderRadius: BorderRadius.circular(2),
+                                    ),
+                                    child: Text(
+                                      '#${i + 1}',
+                                      style: styles.xs.copyWith(
+                                        color: cs.onSurface,
+                                        fontWeight: FontWeight.w600,
+                                      ),
                                     ),
                                   ),
                                 ),
-                            ]),
+                                if (active)
+                                  Positioned(
+                                    top: 4,
+                                    left: 4,
+                                    child: Text(
+                                      l10n.playingNow,
+                                      style: styles.xs.copyWith(
+                                        color: cs.onSurface,
+                                      ),
+                                    ),
+                                  ),
+                              ]),
                           ),
                         ),
                         Padding(

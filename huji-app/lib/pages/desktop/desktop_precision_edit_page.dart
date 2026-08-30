@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
@@ -39,6 +41,15 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   SegmentInfo? _activeSegment;
   bool _trimmerLoading = false;
   bool _blocsInitialized = false;
+
+  // 回合缩略图缓存。按 SegmentInfo 值缓存（freezed 值相等），
+  // 片段被裁剪编辑后起点/终点变化会自动重新抽帧。
+  final Map<SegmentInfo, String> _segmentThumbs = {};
+  final Set<SegmentInfo> _thumbsInFlight = {};
+  final List<SegmentInfo> _thumbQueue = [];
+  bool _thumbQueueRunning = false;
+  String? _thumbVideoPath;
+  String? _thumbDirPath;
 
   @override
   void initState() {
@@ -101,6 +112,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     if (!file.existsSync()) return;
 
     _disposeTrimmer();
+    _thumbVideoPath = videoPath;
+    _thumbDirPath ??= p.join(
+      Directory.systemTemp.path,
+      'huji_segment_thumbs',
+      widget.clipId,
+    );
     setState(() => _trimmerLoading = true);
 
     final playBallSegments =
@@ -130,8 +147,55 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     _trimmerBlocManager = null;
   }
 
+  /// 把当前列表里还没有缩略图的片段排入抽帧队列（去重、幂等，可在 build 中调用）。
+  void _enqueueSegmentThumbnails(List<SegmentInfo> segments) {
+    if (_thumbVideoPath == null) return;
+    for (final s in segments) {
+      if (_segmentThumbs.containsKey(s) ||
+          _thumbsInFlight.contains(s) ||
+          _thumbQueue.contains(s)) {
+        continue;
+      }
+      _thumbQueue.add(s);
+    }
+    _drainThumbQueue();
+  }
+
+  Future<void> _drainThumbQueue() async {
+    if (_thumbQueueRunning) return;
+    _thumbQueueRunning = true;
+    try {
+      while (_thumbQueue.isNotEmpty && mounted) {
+        final seg = _thumbQueue.removeAt(0);
+        if (_segmentThumbs.containsKey(seg)) continue;
+        _thumbsInFlight.add(seg);
+        try {
+          final mid = seg.startSeconds + (seg.endSeconds - seg.startSeconds) / 2;
+          final path = await VideoUtils.generateVideoThumbnail(
+            _thumbVideoPath!,
+            dirPath: _thumbDirPath,
+            // 以中点命名：相同中点即同一帧，编辑片段后也能复用/覆盖
+            fileName: 'seg_${mid.toStringAsFixed(3)}.jpg',
+            timeOffset: mid,
+            width: 240,
+            format: 'jpg',
+          );
+          if (!mounted) return;
+          setState(() => _segmentThumbs[seg] = path);
+        } catch (_) {
+          // 抽帧失败时该回合继续显示占位图。
+        } finally {
+          _thumbsInFlight.remove(seg);
+        }
+      }
+    } finally {
+      _thumbQueueRunning = false;
+    }
+  }
+
   @override
   void dispose() {
+    _thumbQueue.clear();
     _disposeTrimmer();
     _roundClipBloc.close();
     _multiVideoPlayerBloc.close();
@@ -201,6 +265,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       child: BlocBuilder<RoundClipBloc, RoundClipState>(
         builder: (context, state) {
           final segments = state.playBallSegments;
+          if (segments.isNotEmpty && !state.isLoading) {
+            _enqueueSegmentThumbnails(segments);
+          }
 
           final currentActive = _activeSegment;
           final validActive = currentActive != null &&
@@ -362,6 +429,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final actionLabel = _formatActionType(context, segment.actionType);
     final actionColor = _actionTypeColor(segment.actionType);
     final actionBgColor = _actionTypeBgColor(segment.actionType);
+    final thumbPath = _segmentThumbs[segment];
 
     return TpHover(
       onTap: () {
@@ -383,16 +451,29 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         child: Row(
           children: [
             Container(
-              width: 56,
-              height: 36,
+              width: 64,
+              height: 40,
+              clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
                 gradient: const LinearGradient(
                   colors: [Color(0xFF2D2D35), Color(0xFF1A1A1D)],
                 ),
               ),
               alignment: Alignment.center,
-              child: Text('\u{1F3D3}', style: styles.lg),
+              child: thumbPath != null
+                  ? Image.file(
+                      File(thumbPath),
+                      width: 64,
+                      height: 40,
+                      fit: BoxFit.cover,
+                      cacheWidth: 128,
+                      cacheHeight: 80,
+                      gaplessPlayback: true,
+                      errorBuilder: (_, __, ___) =>
+                          Text('\u{1F3D3}', style: styles.lg),
+                    )
+                  : Text('\u{1F3D3}', style: styles.lg),
             ),
             SizedBox(width: 10),
             Expanded(
