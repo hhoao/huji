@@ -105,6 +105,9 @@ Future<void> postInit() async {
 
   AppLogger.instance.i('LocalVideoStorage initialized');
 
+  // 历史版本把缩略图写入系统临时目录会被 OS 清理，启动后异步补生成
+  unawaited(LocalVideoStorage().repairMissingThumbnails());
+
   // 初始化消息状态管理器
   Get.put(MessageStore(), permanent: true);
 

@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:watcher/watcher.dart';
 
 import '../models/autoclip_models.dart';
@@ -959,7 +960,7 @@ class VideoUtils {
   ///
   /// 参数:
   /// - videoPath: 输入视频文件路径
-  /// - dirPath: 输出目录路径
+   /// - dirPath: 输出目录路径（可选，默认为应用文档目录下的 thumbnails/）
   /// - fileName: 输出文件名（可选，默认为thumbnail.png）
   /// - timeOffset: 截取时间点（秒，可选，默认为1秒）
   /// - width: 缩略图宽度（可选，默认为320）
@@ -1030,9 +1031,7 @@ class VideoUtils {
   }
 
   static Future<Directory> _getDirPath(String? dirPath) async {
-    dirPath ??= (await Directory.systemTemp.createTemp(
-      'thumbnails_${DateTime.now().millisecondsSinceEpoch}',
-    )).path;
+    dirPath ??= await _defaultThumbnailDirPath();
 
     final outputDir = Directory(dirPath);
     if (!await outputDir.exists()) {
@@ -1040,6 +1039,23 @@ class VideoUtils {
     }
 
     return outputDir;
+  }
+
+  /// 缩略图默认目录：应用文档目录下的 thumbnails/。
+  /// 系统临时目录会被 OS 清理，导致数据库里的 thumbnailPath 失效、
+  /// 列表缩略图丢失，所以默认必须落盘到持久目录。
+  static Future<String> _defaultThumbnailDirPath() async {
+    try {
+      return path.join(
+        storage.getApplicationDocumentsDirectory().path,
+        'thumbnails',
+      );
+    } catch (_) {
+      // StorageService 未初始化的环境（如部分测试），退回系统临时目录
+      return (await Directory.systemTemp.createTemp(
+        'thumbnails_${DateTime.now().millisecondsSinceEpoch}',
+      )).path;
+    }
   }
 
   /// 批量生成视频缩略图（按时间间隔）
