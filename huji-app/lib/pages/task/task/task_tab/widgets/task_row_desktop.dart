@@ -108,7 +108,7 @@ class TaskRowDesktop extends StatelessWidget {
 
   Widget _buildTaskIcon(Task currentTask, Color primary) {
     final icon = _taskTypeIcon(currentTask);
-    return Icon(icon, size: 18, color: _iconColor(currentTask.status, primary));
+    return Icon(icon, size: 24, color: _iconColor(currentTask.status, primary));
   }
 
   bool _taskRowChanged(TaskTabState previous, TaskTabState current) {
@@ -186,11 +186,11 @@ class TaskRowDesktop extends StatelessWidget {
                     const SizedBox(width: 12),
                   ],
                   Container(
-                    width: 36,
-                    height: 36,
+                    width: 64,
+                    height: 64,
                     decoration: BoxDecoration(
                       color: _iconBgColor(status, cs.primary),
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     alignment: Alignment.center,
                     clipBehavior: Clip.antiAlias,
@@ -198,11 +198,11 @@ class TaskRowDesktop extends StatelessWidget {
                             currentTask.image!.isNotEmpty
                         ? Image.file(
                             File(currentTask.image!),
-                            width: 36,
-                            height: 36,
+                            width: 64,
+                            height: 64,
                             fit: BoxFit.cover,
-                            cacheWidth: 72,
-                            cacheHeight: 72,
+                            cacheWidth: 128,
+                            cacheHeight: 128,
                             gaplessPlayback: true,
                             errorBuilder: (_, __, ___) =>
                                 _buildTaskIcon(currentTask, cs.primary),
