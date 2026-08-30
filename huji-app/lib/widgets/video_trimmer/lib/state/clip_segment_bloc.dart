@@ -78,12 +78,12 @@ class ClipSegmentBloc extends Bloc<ClipSegmentEvent, ClipSegmentState> {
       return;
     }
 
-    add(
-      ClipSegmentUpdate([
-        leftSegment.copyWith(endTime: newTime),
-        rightSegment.copyWith(startTime: newTime),
-      ]),
-    );
+    // 拖拽是高频热路径，直接在本 handler 内 emit，
+    // 避免再排一个事件造成输入延迟
+    _applySegmentUpdates([
+      leftSegment.copyWith(endTime: newTime),
+      rightSegment.copyWith(startTime: newTime),
+    ], emit);
   }
 
   /// 初始化默认片段（覆盖整个视频时长）
@@ -846,9 +846,17 @@ class ClipSegmentBloc extends Bloc<ClipSegmentEvent, ClipSegmentState> {
   }
 
   void _onUpdate(ClipSegmentUpdate event, Emitter<ClipSegmentState> emit) {
+    _applySegmentUpdates(event.segments, emit);
+  }
+
+  /// 按片段 id 应用更新并发射新状态；供普通更新与拖拽热路径共用
+  void _applySegmentUpdates(
+    List<VideoClipSegment> updates,
+    Emitter<ClipSegmentState> emit,
+  ) {
     final updatedSegments = List<VideoClipSegment>.from(state.segments);
     VideoClipSegment? newSelectedSegment = state.selectedSegment;
-    for (final newSegment in event.segments) {
+    for (final newSegment in updates) {
       final segmentIndex = state.segments.indexWhere(
         (segment) => segment.id == newSegment.id,
       );

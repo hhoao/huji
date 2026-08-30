@@ -20,8 +20,9 @@ class ClipSegmentOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
       bloc: context.read<ClipSegmentBloc>(),
-      buildWhen: (previous, current) =>
-          previous.activeSegments != current.activeSegments,
+      // 用内容比较：state 每次 emit 都是新 List，引用比较会恒真，
+      // 导致选中变化等无关更新也触发整层重建
+      buildWhen: (previous, current) => !previous.sameSegments(current),
       builder: (context, state) {
         final segments = state.allSegments;
         if (segments.isEmpty) {
@@ -69,6 +70,12 @@ class _ClipSegmentOverlayContentState
     extends State<_ClipSegmentOverlayContent> {
   late MultiSplitViewController _controller;
 
+  /// 分割线拖拽进行中。multi_split_view 拖拽时自己维护布局，
+  /// 此时用 segments 回写 [MultiSplitViewController.areas] 会和手势
+  /// 相互对抗（每次 tick 重排、跟手感差），所以拖拽期间跳过同步，
+  /// 结束后一次性对齐。
+  bool _dividerDragging = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,7 +86,7 @@ class _ClipSegmentOverlayContentState
   @override
   void didUpdateWidget(_ClipSegmentOverlayContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.segments != widget.segments) {
+    if (oldWidget.segments != widget.segments && !_dividerDragging) {
       _updateController();
     }
   }
@@ -164,6 +171,12 @@ class _ClipSegmentOverlayContentState
     final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
     MultiSplitView multiSplitView = MultiSplitView(
+      onDividerDragStart: (_) => _dividerDragging = true,
+      onDividerDragEnd: (_) {
+        _dividerDragging = false;
+        // 拖拽期间跳过了同步，结束后用最新 segments 对齐一次
+        _updateController();
+      },
       onDividerDragUpdate: (dividerIndex) {
         final areas = _controller.areas;
 

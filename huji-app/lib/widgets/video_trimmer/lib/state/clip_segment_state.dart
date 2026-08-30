@@ -3,6 +3,17 @@ import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.d
 
 part 'clip_segment_state.freezed.dart';
 
+/// 逐项比较（freezed 值相等）。List 自带的 == 是引用比较，
+/// bloc 每次 emit 都会产生新 List，直接用 == 会导致 buildWhen/listenWhen 恒真。
+bool _segmentsContentEquals(List<VideoClipSegment> a, List<VideoClipSegment> b) {
+  if (identical(a, b)) return true;
+  if (a.length != b.length) return false;
+  for (var i = 0; i < a.length; i++) {
+    if (a[i] != b[i]) return false;
+  }
+  return true;
+}
+
 @freezed
 abstract class ClipSegmentState with _$ClipSegmentState {
   const factory ClipSegmentState({
@@ -29,6 +40,14 @@ abstract class ClipSegmentState with _$ClipSegmentState {
 
   /// 获取所有片段（包括填充区域）
   List<VideoClipSegment> get allSegments => segments;
+
+  /// [segments] 内容是否与 [other] 相同
+  bool sameSegments(ClipSegmentState other) =>
+      _segmentsContentEquals(segments, other.segments);
+
+  /// [activeSegments] 内容是否与 [other] 相同
+  bool sameActiveSegments(ClipSegmentState other) =>
+      _segmentsContentEquals(activeSegments, other.activeSegments);
 
   /// 获取所有收藏的片段
   List<VideoClipSegment> get favoriteSegments => segments

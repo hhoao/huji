@@ -166,8 +166,10 @@ class TrimmerEditor extends StatelessWidget {
     return MultiBlocListener(
       listeners: [
         BlocListener<ClipSegmentBloc, ClipSegmentState>(
+          // 内容比较；引用比较恒真会让选中变化等无关更新也触发
+          // onSegmentsChanged（下游是落库和播放项重建）
           listenWhen: (previous, current) =>
-              previous.activeSegments != current.activeSegments,
+              !previous.sameActiveSegments(current),
           listener: (context, state) {
             if (onSegmentsChanged != null) {
               onSegmentsChanged!(state.activeSegments);
@@ -410,14 +412,12 @@ class TrimmerEditor extends StatelessWidget {
         children: [
           Expanded(
             child: BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
-              buildWhen: (previous, current) {
-                final activeSegments = previous.activeSegments;
-                final activeSegments2 = current.activeSegments;
-                return activeSegments != activeSegments2 ||
-                    activeSegments.length != activeSegments2.length;
-              },
+              // 片段内容或选中态变化时才重建；引用比较恒真，
+              // 会让拖拽外的所有状态更新都重建整条片段条
+              buildWhen: (previous, current) =>
+                  !previous.sameActiveSegments(current) ||
+                  previous.selectedSegment != current.selectedSegment,
               builder: (context, state) => ListView.builder(
-                controller: ScrollController(),
                 scrollDirection: Axis.horizontal,
                 itemCount: state.activeSegments.length + 1,
                 itemBuilder: (context, index) {
