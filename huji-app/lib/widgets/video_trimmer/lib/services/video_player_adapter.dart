@@ -37,7 +37,6 @@ class VideoPlayerControllerAdapter implements UniversalVideoController {
 
   @override
   void addListener(VoidCallback listener) => _controller.addListener(listener);
-
   @override
   void removeListener(VoidCallback listener) =>
       _controller.removeListener(listener);
@@ -50,6 +49,10 @@ class VideoPlayerControllerAdapter implements UniversalVideoController {
 
   @override
   Duration get position => _controller.value.position;
+
+  // video_player 没有位置流，保持 null，TrimmerBloc 退回 50ms 轮询
+  @override
+  Stream<Duration>? get positionStream => null;
 
   @override
   double get aspectRatio => _controller.value.aspectRatio;

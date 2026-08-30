@@ -86,6 +86,9 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
   Duration get position => _player.state.position;
 
   @override
+  Stream<Duration> get positionStream => _player.stream.position;
+
+  @override
   double get aspectRatio {
     final w = _player.state.width;
     final h = _player.state.height;

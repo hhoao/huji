@@ -25,5 +25,8 @@ abstract class UniversalVideoController {
   double get aspectRatio;
   bool get isInitialized;
 
+  /// 播放中的位置更新流；平台不支持时返回 null（调用方退回轮询）。
+  Stream<Duration>? get positionStream => null;
+
   Widget buildVideoWidget();
 }
