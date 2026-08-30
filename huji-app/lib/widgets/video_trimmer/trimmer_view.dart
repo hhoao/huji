@@ -189,17 +189,12 @@ class TrimmerEditor extends StatelessWidget {
 
           return Column(
             children: [
-              Expanded(flex: 3, child: _buildVideoPreview(context)),
+              Expanded(child: _buildVideoPreview(context)),
               _buildSegmentOverview(context),
               _buildControls(context),
-              Expanded(
-                flex: 2,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: context.trimmerLayout.timelineContentHeight,
-                  ),
-                  child: _buildTrimViewer(context),
-                ),
+              SizedBox(
+                height: context.trimmerLayout.timelineContentHeight,
+                child: _buildTrimViewer(context),
               ),
               _buildVideoProgressControl(context),
               _buildBottomToolbar(context),
