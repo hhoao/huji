@@ -23,6 +23,7 @@ class DesktopWindowTitleBar extends StatefulWidget {
   const DesktopWindowTitleBar({
     this.title = 'TeamPilot',
     this.leading,
+    this.trailing,
     super.key,
   });
 
@@ -30,6 +31,9 @@ class DesktopWindowTitleBar extends StatefulWidget {
 
   /// Optional control before the title (e.g. [HujiSidebarTrigger]).
   final Widget? leading;
+
+  /// Optional controls on the right of the drag area (e.g. message bell).
+  final Widget? trailing;
 
   @override
   State<DesktopWindowTitleBar> createState() => _DesktopWindowTitleBarState();
@@ -124,12 +128,15 @@ class _DesktopWindowTitleBarState extends State<DesktopWindowTitleBar>
       child: Row(
         children: [
           if (widget.leading != null) ...[
-            // Aligns the trigger with the sidebar card's left inset
-            // (sidebar pane padding in huji_desktop_shell).
             const SizedBox(width: 12),
             widget.leading!,
           ],
-          Flexible(child: title),
+          Expanded(child: title),
+          if (widget.trailing != null) ...[
+            const SizedBox(width: 8),
+            widget.trailing!,
+            const SizedBox(width: 8),
+          ],
         ],
       ),
     );

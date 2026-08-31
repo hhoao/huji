@@ -8,6 +8,7 @@ import 'package:huji_app/shell/huji_desktop_sidebar.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/widgets/chrome/desktop_window_title_bar.dart';
+import 'package:huji_app/widgets/message/message_bell_button.dart';
 import 'package:huji_app/widgets/layout/workspace_right_pane.dart';
 import 'package:panes/panes.dart';
 
@@ -91,6 +92,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
                     selected: !sidebarVisible,
                     onPressed: _toggleSidebar,
                   ),
+                  trailing: const MessageBellButton(),
                 );
               },
             ),

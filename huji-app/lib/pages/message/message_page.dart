@@ -4,6 +4,7 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/common/page.dart';
 import 'package:huji_app/api/models/member/notify_models.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
+import 'package:huji_app/widgets/message/message_detail_dialog.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -233,42 +234,7 @@ class MessagePageContentState extends State<MessagePageContent> {
   }
 
   void _showMessageDetail(NotifyMessageVO message) {
-    showTpDialog(
-      context: context,
-      builder: (dialogContext) {
-        return TpDialog(
-          maxWidth: 400,
-          maxHeight: 600,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TpDialogHeader(title: message.templateNickname),
-              SizedBox(height: dialogContext.tpSpacing.lg),
-              Text(
-                context.hujiL10n.messageTimeLabel(
-                  timeStampToTimeAgo(message.createTime),
-                ),
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-              SizedBox(height: 16),
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Text(
-                    message.templateContent,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.5,
-                      color: Colors.black87,
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    showMessageDetailDialog(context, message);
   }
 
   Future<void> _handleMessageTap(NotifyMessageVO message) async {
