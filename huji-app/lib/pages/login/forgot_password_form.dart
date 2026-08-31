@@ -137,7 +137,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
             children: [
               Text(
                 context.hujiL10n.loginResetPasswordTitle,
-                style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
+                style: styles.mdBold.copyWith(color: LoginDialogColors.titleText),
                 textAlign: TextAlign.center,
               ),
 
@@ -268,7 +268,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 children: [
                   Text(
                     context.hujiL10n.loginRememberedPassword,
-                    style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
+                    style: styles.md.copyWith(color: LoginDialogColors.mutedText),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,

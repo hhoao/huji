@@ -1,6 +1,9 @@
 import 'package:equatable/equatable.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 
+/// Sentinel for [UserState.copyWith] so `user: null` can clear the field.
+const _userSentinel = Object();
+
 /// 用户状态
 class UserState extends Equatable {
   final bool isLoggedIn;
@@ -14,10 +17,13 @@ class UserState extends Equatable {
   }
 
   /// 复制并更新状态
-  UserState copyWith({bool? isLoggedIn, UserInfo? user}) {
+  UserState copyWith({
+    bool? isLoggedIn,
+    Object? user = _userSentinel,
+  }) {
     return UserState(
       isLoggedIn: isLoggedIn ?? this.isLoggedIn,
-      user: user ?? this.user,
+      user: identical(user, _userSentinel) ? this.user : user as UserInfo?,
     );
   }
 

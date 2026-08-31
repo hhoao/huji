@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/user_service.dart';
-import 'package:huji_app/store/user.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
+import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
+import 'package:huji_app/widgets/user/user_avatar.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 enum DesktopNav {
@@ -98,10 +101,9 @@ class _AccountArea extends StatefulWidget {
 class _AccountAreaState extends State<_AccountArea> {
   final MenuController _menuController = MenuController();
 
-  bool get _isLoggedIn => UserStore.isLoggedIn;
-
-  String _displayName(HujiLocalizations l10n) {
-    final user = UserStore.currentUser;
+  String _displayName(HujiLocalizations l10n, UserState userState) {
+    if (!userState.isLoggedIn) return l10n.accountNotLoggedIn;
+    final user = userState.user;
     if (user?.nickname != null && user!.nickname!.isNotEmpty) {
       return user.nickname!;
     }
@@ -109,8 +111,8 @@ class _AccountAreaState extends State<_AccountArea> {
     return l10n.accountNotLoggedIn;
   }
 
-  void _handleTap() {
-    if (_isLoggedIn) {
+  void _handleTap(bool isLoggedIn) {
+    if (isLoggedIn) {
       _menuController.open();
     } else {
       LoginDialog.show(context);
@@ -119,39 +121,37 @@ class _AccountAreaState extends State<_AccountArea> {
 
   Future<void> _handleLogout() async {
     await UserService.logout();
-    if (mounted) setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<UserBloc, UserState>(
+      buildWhen: (previous, current) =>
+          previous.isLoggedIn != current.isLoggedIn ||
+          previous.user != current.user,
+      builder: (context, userState) {
+        return _buildAccount(context, userState);
+      },
+    );
+  }
+
+  Widget _buildAccount(BuildContext context, UserState userState) {
+    final isLoggedIn = userState.isLoggedIn;
     final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final displayName = _displayName(l10n);
-    final subtitle = _isLoggedIn
+    final displayName = _displayName(l10n, userState);
+    final subtitle = isLoggedIn
         ? l10n.accountLoggedIn
         : l10n.accountTapToLogin;
 
-    final mark = Container(
-      width: 32,
-      height: 32,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [cs.primary, cs.secondary],
-        ),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        '弧',
-        style: styles.mdSemibold.copyWith(color: cs.onPrimary),
-      ),
+    final mark = UserAvatar(
+      avatarUrl: userState.user?.avatar,
+      size: 32,
     );
 
     final account = TpHover(
-      onTap: _handleTap,
+      onTap: () => _handleTap(isLoggedIn),
       borderRadius: BorderRadius.circular(8),
       pressScale: 0.97,
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
@@ -191,7 +191,7 @@ class _AccountAreaState extends State<_AccountArea> {
       ),
     );
 
-    if (!_isLoggedIn) return account;
+    if (!isLoggedIn) return account;
 
     return MenuAnchor(
       controller: _menuController,

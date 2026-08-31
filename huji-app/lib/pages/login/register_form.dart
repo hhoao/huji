@@ -134,7 +134,7 @@ class _RegisterFormState extends State<RegisterForm> {
             children: [
               Text(
                 context.hujiL10n.loginRegisterTitle,
-                style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
+                style: styles.mdBold.copyWith(color: LoginDialogColors.titleText),
                 textAlign: TextAlign.center,
               ),
 
@@ -216,7 +216,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 children: [
                   Text(
                     l10n.loginAlreadyHaveAccount,
-                    style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
+                    style: styles.md.copyWith(color: LoginDialogColors.mutedText),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,

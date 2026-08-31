@@ -116,11 +116,11 @@ class _LoginDialogState extends State<LoginDialog>
         shadowColor: Colors.black.withValues(alpha: 0.18),
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(LoginDialogLayout.controlRadius),
           side: const BorderSide(color: LoginDialogColors.cardBorder),
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 448),
+          constraints: const BoxConstraints(maxWidth: LoginDialogLayout.maxWidth),
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
@@ -137,13 +137,14 @@ class _LoginDialogState extends State<LoginDialog>
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (_currentForm == FormType.login) ...[
-                              const SizedBox(height: 16),
+                              const SizedBox(height: LoginDialogLayout.noticeTopGap),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: LoginDialogLayout.contentPadding,
+                                ),
                                 child: Text(
                                   l10n.emailLoginOnlyNotice,
-                                  style: styles.xs.copyWith(
+                                  style: styles.sm.copyWith(
                                     color: LoginDialogColors.orangeNotice,
                                     height: 1.5,
                                   ),
@@ -152,8 +153,12 @@ class _LoginDialogState extends State<LoginDialog>
                               ),
                             ],
                             Padding(
-                              padding:
-                                  const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                              padding: const EdgeInsets.fromLTRB(
+                                LoginDialogLayout.contentPadding,
+                                LoginDialogLayout.fieldGap,
+                                LoginDialogLayout.contentPadding,
+                                LoginDialogLayout.contentPadding,
+                              ),
                               child: _buildCurrentForm(),
                             ),
                           ],

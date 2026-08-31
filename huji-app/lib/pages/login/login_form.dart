@@ -43,8 +43,6 @@ class _LoginFormState extends State<LoginForm> {
   int _countdown = 0;
   Timer? _timer;
 
-  static const _inputHeight = 48.0;
-
   @override
   void dispose() {
     _identifierController.dispose();
@@ -148,22 +146,31 @@ class _LoginFormState extends State<LoginForm> {
     });
   }
 
-  InputDecoration _inputDecoration({
+  InputDecoration _inputDecoration(
+    BuildContext context, {
     required String hint,
     required IconData icon,
     Widget? suffixIcon,
   }) {
+    final styles = TpTextStyles.of(context);
     final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
+      borderRadius: BorderRadius.circular(LoginDialogLayout.controlRadius),
       borderSide: const BorderSide(color: LoginDialogColors.inputBorder),
     );
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: const TextStyle(color: LoginDialogColors.mutedText, fontSize: 14),
-      prefixIcon: Icon(icon, size: 20, color: LoginDialogColors.iconMuted),
+      hintStyle: styles.mutedMd.copyWith(color: LoginDialogColors.mutedText),
+      prefixIcon: Icon(
+        icon,
+        size: LoginDialogLayout.prefixIconSize,
+        color: LoginDialogColors.iconMuted,
+      ),
+      prefixIconConstraints: BoxConstraints(
+        minWidth: LoginDialogLayout.prefixIconSize + LoginDialogLayout.controlPaddingH,
+        minHeight: LoginDialogLayout.controlHeight,
+      ),
       suffixIcon: suffixIcon,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       filled: true,
       fillColor: LoginDialogColors.cardBackground,
       border: border,
@@ -193,10 +200,13 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           Text(
             l10n.loginTitle,
-            style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
+            style: styles.xl.copyWith(
+              fontWeight: FontWeight.w700,
+              color: LoginDialogColors.titleText,
+            ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: LoginDialogLayout.sectionGap),
           _LoginTypeTabs(
             loginType: _loginType,
             passwordLabel: l10n.loginPasswordTab,
@@ -206,26 +216,29 @@ class _LoginFormState extends State<LoginForm> {
               _switchLoginType(type);
             },
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: LoginDialogLayout.sectionGap),
           SizedBox(
-            height: _inputHeight,
+            height: LoginDialogLayout.controlHeight,
             child: TpInputFormField(
               id: 'identifier',
+              metrics: LoginDialogLayout.inputMetrics,
               controller: _identifierController,
               style: inputStyle,
               validator: (value) => validateEmailOrPhone(l10n, value),
               decoration: _inputDecoration(
+                context,
                 hint: l10n.loginIdentifierHint,
                 icon: Icons.person_outline,
               ),
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: LoginDialogLayout.fieldGap),
           if (_loginType == LoginType.password)
             SizedBox(
-              height: _inputHeight,
+              height: LoginDialogLayout.controlHeight,
               child: TpInputFormField(
                 id: 'password',
+                metrics: LoginDialogLayout.inputMetrics,
                 controller: _passwordController,
                 style: inputStyle,
                 obscureText: _obscurePassword,
@@ -236,6 +249,7 @@ class _LoginFormState extends State<LoginForm> {
                   return null;
                 },
                 decoration: _inputDecoration(
+                  context,
                   hint: l10n.loginPasswordHint,
                   icon: Icons.lock_outline,
                   suffixIcon: TpIconButton(
@@ -252,9 +266,10 @@ class _LoginFormState extends State<LoginForm> {
             )
           else
             SizedBox(
-              height: _inputHeight,
+              height: LoginDialogLayout.controlHeight,
               child: TpInputFormField(
                 id: 'code',
+                metrics: LoginDialogLayout.inputMetrics,
                 controller: _codeController,
                 style: inputStyle,
                 validator: (value) {
@@ -264,6 +279,7 @@ class _LoginFormState extends State<LoginForm> {
                   return validateAuthCode(l10n, value);
                 },
                 decoration: _inputDecoration(
+                  context,
                   hint: l10n.loginAuthCodeHint,
                   icon: Icons.key_outlined,
                   suffixIcon: TextButton(
@@ -286,14 +302,14 @@ class _LoginFormState extends State<LoginForm> {
                       _countdown > 0
                           ? l10n.actionResendCodeCountdown(_countdown)
                           : l10n.actionGetVerificationCode,
-                      style: styles.smMedium.copyWith(color: LoginDialogColors.primary),
+                      style: styles.mdMedium.copyWith(color: LoginDialogColors.primary),
                     ),
                   ),
                 ),
               ),
             ),
           if (_loginType == LoginType.password) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: LoginDialogLayout.fieldGap),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -320,7 +336,7 @@ class _LoginFormState extends State<LoginForm> {
                       const SizedBox(width: 8),
                       Text(
                         l10n.loginRememberPassword,
-                        style: styles.sm.copyWith(color: LoginDialogColors.bodyText),
+                        style: styles.md.copyWith(color: LoginDialogColors.bodyText),
                       ),
                     ],
                   ),
@@ -338,16 +354,15 @@ class _LoginFormState extends State<LoginForm> {
                   ),
                   child: Text(
                     l10n.loginForgotPassword,
-                    style: styles.sm.copyWith(color: LoginDialogColors.primary),
+                    style: styles.md.copyWith(color: LoginDialogColors.primary),
                   ),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 16),
+          const SizedBox(height: LoginDialogLayout.fieldGap),
           SizedBox(
             width: double.infinity,
-            height: _inputHeight,
             child: OutlinedButton(
               onPressed: _isLoading
                   ? null
@@ -364,8 +379,13 @@ class _LoginFormState extends State<LoginForm> {
                 disabledBackgroundColor: LoginDialogColors.cardBackground,
                 disabledForegroundColor: LoginDialogColors.mutedText,
                 side: const BorderSide(color: LoginDialogColors.buttonBorder),
+                padding: LoginDialogLayout.controlPadding,
+                minimumSize: const Size(
+                  double.infinity,
+                  LoginDialogLayout.controlHeight,
+                ),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4),
+                  borderRadius: BorderRadius.circular(LoginDialogLayout.controlRadius / 2),
                 ),
                 textStyle: styles.mdMedium,
               ),
@@ -378,7 +398,7 @@ class _LoginFormState extends State<LoginForm> {
                   : Text(l10n.loginTitle),
             ),
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: LoginDialogLayout.sectionGap),
           Row(
             children: [
               const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
@@ -386,13 +406,13 @@ class _LoginFormState extends State<LoginForm> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   l10n.loginSocialLoginDivider,
-                  style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
+                  style: styles.md.copyWith(color: LoginDialogColors.mutedText),
                 ),
               ),
               const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: LoginDialogLayout.fieldGap),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -400,25 +420,25 @@ class _LoginFormState extends State<LoginForm> {
                 icon: Icons.wechat_outlined,
                 onTap: () => _showSocialUnavailable(context),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
                 icon: Icons.chat_bubble_outline,
                 onTap: () => _showSocialUnavailable(context),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
                 icon: Icons.account_balance_wallet_outlined,
                 onTap: () => _showSocialUnavailable(context),
               ),
             ],
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: LoginDialogLayout.sectionGap),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 l10n.loginNoAccount,
-                style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
+                style: styles.md.copyWith(color: LoginDialogColors.mutedText),
               ),
               TextButton(
                 onPressed: () {
@@ -433,7 +453,7 @@ class _LoginFormState extends State<LoginForm> {
                 ),
                 child: Text(
                   l10n.loginRegisterNow,
-                  style: styles.sm.copyWith(color: LoginDialogColors.primary),
+                  style: styles.md.copyWith(color: LoginDialogColors.primary),
                 ),
               ),
             ],
@@ -482,7 +502,7 @@ class _LoginTypeTabs extends StatelessWidget {
           active: loginType == LoginType.password,
           onTap: () => onChanged(LoginType.password),
         ),
-        const SizedBox(width: 24),
+        const SizedBox(width: LoginDialogLayout.tabGap),
         _tab(
           context,
           label: authCodeLabel,
@@ -535,11 +555,18 @@ class _SocialLoginButton extends StatelessWidget {
     return TpHover(
       onTap: onTap,
       shape: TpPressableShape.circle,
-      width: 40,
-      height: 40,
+      width: LoginDialogLayout.socialButtonSize,
+      height: LoginDialogLayout.socialButtonSize,
       hoverColor: LoginDialogColors.socialHover,
       border: Border.all(color: LoginDialogColors.socialBorder),
-      child: Icon(icon, size: 22, color: LoginDialogColors.bodyText),
+      child: Padding(
+        padding: const EdgeInsets.all(LoginDialogLayout.socialIconPadding),
+        child: Icon(
+          icon,
+          size: LoginDialogLayout.socialIconSize,
+          color: LoginDialogColors.bodyText,
+        ),
+      ),
     );
   }
 }

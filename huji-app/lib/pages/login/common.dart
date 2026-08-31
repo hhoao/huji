@@ -102,7 +102,7 @@ TpInputFormField buildTextField({
   return TpInputFormField(
     id: id,
     controller: controller,
-    label: Text(label, style: styles.mdMedium),
+    label: Text(label, style: styles.md),
     style: styles.md.copyWith(color: cs.onSurface),
     validator: validator,
     obscureText: obscureText,
