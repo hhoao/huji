@@ -5,6 +5,7 @@ import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/exceptions/notify_exception.dart';
 import 'package:huji_app/pages/login/common.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
@@ -149,7 +150,7 @@ class _LoginFormState extends State<LoginForm> {
   InputDecoration _inputDecoration(
     BuildContext context, {
     required String hint,
-    required IconData icon,
+    required String iconAsset,
     Widget? suffixIcon,
   }) {
     final styles = TpTextStyles.of(context);
@@ -161,11 +162,7 @@ class _LoginFormState extends State<LoginForm> {
     return InputDecoration(
       hintText: hint,
       hintStyle: styles.mutedMd.copyWith(color: LoginDialogColors.mutedText),
-      prefixIcon: Icon(
-        icon,
-        size: LoginDialogLayout.prefixIconSize,
-        color: LoginDialogColors.iconMuted,
-      ),
+      prefixIcon: LoginDialogIcon(asset: iconAsset),
       prefixIconConstraints: BoxConstraints(
         minWidth: LoginDialogLayout.prefixIconSize + LoginDialogLayout.controlPaddingH,
         minHeight: LoginDialogLayout.controlHeight,
@@ -228,7 +225,7 @@ class _LoginFormState extends State<LoginForm> {
               decoration: _inputDecoration(
                 context,
                 hint: l10n.loginIdentifierHint,
-                icon: Icons.person_outline,
+                iconAsset: LoginDialogIcons.account,
               ),
             ),
           ),
@@ -251,7 +248,7 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: _inputDecoration(
                   context,
                   hint: l10n.loginPasswordHint,
-                  icon: Icons.lock_outline,
+                  iconAsset: LoginDialogIcons.lock,
                   suffixIcon: TpIconButton(
                     icon: _obscurePassword
                         ? Icons.visibility_off_outlined
@@ -281,7 +278,7 @@ class _LoginFormState extends State<LoginForm> {
                 decoration: _inputDecoration(
                   context,
                   hint: l10n.loginAuthCodeHint,
-                  icon: Icons.key_outlined,
+                  iconAsset: LoginDialogIcons.keyVariant,
                   suffixIcon: TextButton(
                     onPressed: _countdown > 0
                         ? null
@@ -417,17 +414,17 @@ class _LoginFormState extends State<LoginForm> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _SocialLoginButton(
-                icon: Icons.wechat_outlined,
+                iconAsset: LoginDialogIcons.wechat,
                 onTap: () => _showSocialUnavailable(context),
               ),
               const SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
-                icon: Icons.chat_bubble_outline,
+                iconAsset: LoginDialogIcons.qqchat,
                 onTap: () => _showSocialUnavailable(context),
               ),
               const SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
-                icon: Icons.account_balance_wallet_outlined,
+                iconAsset: LoginDialogIcons.alipay,
                 onTap: () => _showSocialUnavailable(context),
               ),
             ],
@@ -545,9 +542,9 @@ class _LoginTypeTabs extends StatelessWidget {
 }
 
 class _SocialLoginButton extends StatelessWidget {
-  const _SocialLoginButton({required this.icon, required this.onTap});
+  const _SocialLoginButton({required this.iconAsset, required this.onTap});
 
-  final IconData icon;
+  final String iconAsset;
   final VoidCallback onTap;
 
   @override
@@ -561,8 +558,8 @@ class _SocialLoginButton extends StatelessWidget {
       border: Border.all(color: LoginDialogColors.socialBorder),
       child: Padding(
         padding: const EdgeInsets.all(LoginDialogLayout.socialIconPadding),
-        child: Icon(
-          icon,
+        child: LoginDialogIcon(
+          asset: iconAsset,
           size: LoginDialogLayout.socialIconSize,
           color: LoginDialogColors.bodyText,
         ),

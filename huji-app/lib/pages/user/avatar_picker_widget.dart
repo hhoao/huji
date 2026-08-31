@@ -5,6 +5,7 @@ import 'dart:io';
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/services/user_service.dart';
 
@@ -104,6 +105,17 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
     }
   }
 
+  Widget _defaultAvatarImage() {
+    return ClipOval(
+      child: Image.asset(
+        LoginDialogIcons.defaultAvatar,
+        width: widget.size,
+        height: widget.size,
+        fit: BoxFit.cover,
+      ),
+    );
+  }
+
   void _showImageSourceDialog(BuildContext context) {
     if (_isUploading) return; // 上传中不允许选择新图片
 
@@ -158,21 +170,16 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
                     backgroundImage: imageProvider,
                   ),
                   fit: BoxFit.cover,
-                  placeholder: (context, url) => Icon(
-                    Icons.person,
-                    size: widget.size * 0.5,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  errorWidget: (context, url, error) => Icon(
-                    Icons.person,
-                    size: widget.size * 0.5,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
+                  placeholder: (context, url) => _defaultAvatarImage(),
+                  errorWidget: (context, url, error) => _defaultAvatarImage(),
                 )
-              : Icon(
-                  Icons.person,
-                  size: widget.size * 0.5,
-                  color: Theme.of(context).colorScheme.onPrimary,
+              : ClipOval(
+                  child: Image.asset(
+                    LoginDialogIcons.defaultAvatar,
+                    width: widget.size,
+                    height: widget.size,
+                    fit: BoxFit.cover,
+                  ),
                 ),
           // 上传进度指示器
           if (_isUploading && widget.showUploadProgress)

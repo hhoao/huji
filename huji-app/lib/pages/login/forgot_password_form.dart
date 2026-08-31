@@ -4,6 +4,7 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
@@ -147,7 +148,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 id: 'identifier',
                 label: context.hujiL10n.loginIdentifierLabel,
                 hint: context.hujiL10n.loginIdentifierHint,
-                icon: Icons.email,
+                iconAsset: LoginDialogIcons.email,
                 controller: _accountController,
                 validator: (value) =>
                     validateEmailOrPhone(context.hujiL10n, value),
@@ -160,7 +161,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 id: 'code',
                 label: context.hujiL10n.loginAuthCodeLabel,
                 hint: context.hujiL10n.loginAuthCodeHint,
-                icon: Icons.key,
+                iconAsset: LoginDialogIcons.keyVariant,
                 controller: _verifyCodeController,
                 suffixIcon: TpButton(
                   variant: TpButtonVariant.ghost,
@@ -189,7 +190,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 id: 'newPassword',
                 label: context.hujiL10n.loginNewPassword,
                 hint: context.hujiL10n.loginNewPasswordHint,
-                icon: Icons.lock,
+                iconAsset: LoginDialogIcons.lock,
                 controller: _newPasswordController,
                 suffixIcon: TpIconButton(
                   icon: _obscureNewPassword
@@ -212,7 +213,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 id: 'confirmPassword',
                 label: context.hujiL10n.loginConfirmNewPassword,
                 hint: context.hujiL10n.loginConfirmNewPasswordHint,
-                icon: Icons.lock_outline,
+                iconAsset: LoginDialogIcons.lockCheck,
                 controller: _confirmPasswordController,
                 suffixIcon: TpIconButton(
                   icon: _obscureConfirmPassword

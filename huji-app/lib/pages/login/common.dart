@@ -3,6 +3,7 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 
 Future<void> getVerificationCode(
   BuildContext context,
@@ -89,7 +90,7 @@ TpInputFormField buildTextField({
   required String id,
   required String label,
   required String hint,
-  required IconData icon,
+  required String iconAsset,
   required TextEditingController controller,
   Widget? suffixIcon,
   bool obscureText = false,
@@ -110,7 +111,7 @@ TpInputFormField buildTextField({
     decoration: InputDecoration(
       hintText: hint,
       hintStyle: styles.mutedMd,
-      prefixIcon: Icon(icon, size: 20, color: cs.onSurfaceVariant),
+      prefixIcon: LoginDialogIcon(asset: iconAsset),
       suffixIcon: suffixIcon,
     ),
   );

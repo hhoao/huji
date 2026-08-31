@@ -12,6 +12,7 @@ import 'package:huji_app/pages/user/security_settings_page.dart';
 import 'package:huji_app/pages/system/settings_page.dart';
 import 'package:huji_app/pages/plan/subscription_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -167,10 +168,13 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                                     backgroundImage: imageProvider,
                                   ),
                             )
-                          : Icon(
-                              Icons.person,
-                              size: 44,
-                              color: Theme.of(context).colorScheme.onPrimary,
+                          : ClipOval(
+                              child: Image.asset(
+                                LoginDialogIcons.defaultAvatar,
+                                width: 88,
+                                height: 88,
+                                fit: BoxFit.cover,
+                              ),
                             ),
                     ),
                     const SizedBox(height: 12),

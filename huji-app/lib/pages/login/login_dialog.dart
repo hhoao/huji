@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'login_form.dart';
 import 'register_form.dart';
@@ -168,9 +169,11 @@ class _LoginDialogState extends State<LoginDialog>
                         top: 8,
                         right: 8,
                         child: TpIconButton(
-                          icon: Icons.close_rounded,
+                          iconWidget: LoginDialogIcon(
+                            asset: LoginDialogIcons.close,
+                            color: LoginDialogColors.iconMuted,
+                          ),
                           compact: true,
-                          color: LoginDialogColors.iconMuted,
                           onTap: () => _closeDialog(loginSuccess: false),
                         ),
                       ),

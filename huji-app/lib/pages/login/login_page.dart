@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
@@ -253,7 +254,7 @@ class _LoginPageState extends State<LoginPage> {
                   id: 'identifier',
                   label: context.hujiL10n.loginIdentifierLabelOr,
                   hint: context.hujiL10n.loginIdentifierLabelOr,
-                  icon: Icons.person_outline,
+                  iconAsset: LoginDialogIcons.account,
                   controller: _identifierController,
                   keyboardType: TextInputType.emailAddress,
                   validator: (value) {
@@ -273,7 +274,7 @@ class _LoginPageState extends State<LoginPage> {
                     id: 'password',
                     label: context.hujiL10n.loginPasswordLabel,
                     hint: context.hujiL10n.loginPasswordLabel,
-                    icon: Icons.lock_outline,
+                    iconAsset: LoginDialogIcons.lock,
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
                     suffixIcon: TpIconButton(

@@ -1,7 +1,8 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 
-/// Circular user avatar matching mobile [ProfilePage] / [AvatarPickerWidget].
+/// Circular user avatar matching autoclip-web-front default [boy.png].
 class UserAvatar extends StatelessWidget {
   const UserAvatar({
     super.key,
@@ -31,10 +32,10 @@ class UserAvatar extends StatelessWidget {
               radius: size / 2,
               backgroundImage: imageProvider,
             ),
-            placeholder: (context, url) => _placeholder(context),
-            errorWidget: (context, url, error) => _placeholder(context),
+            placeholder: (context, url) => _defaultAvatar(),
+            errorWidget: (context, url, error) => _defaultAvatar(),
           )
-        : _placeholder(context);
+        : _defaultAvatar();
 
     if (!showShadow) return avatar;
 
@@ -49,15 +50,13 @@ class UserAvatar extends StatelessWidget {
     );
   }
 
-  Widget _placeholder(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    return CircleAvatar(
-      radius: size / 2,
-      backgroundColor: cs.primary,
-      child: Icon(
-        Icons.person,
-        size: size * 0.5,
-        color: cs.onPrimary,
+  Widget _defaultAvatar() {
+    return ClipOval(
+      child: Image.asset(
+        LoginDialogIcons.defaultAvatar,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
       ),
     );
   }

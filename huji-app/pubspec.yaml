@@ -88,6 +88,7 @@ dependencies:
   image: ^4.3.0
   flutter_onnxruntime: ^1.8.0
   panes: ^1.3.0
+  flutter_svg: ^2.0.0
   
 
 dev_dependencies:
@@ -112,6 +113,8 @@ flutter:
 
   assets:
     - assets/images/
+    - assets/imgs/
+    - assets/icons/login/
     - assets/google_fonts/
     - assets/fonts/terminal/
     - assets/svg/

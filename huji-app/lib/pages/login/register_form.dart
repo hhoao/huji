@@ -3,6 +3,7 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_icons.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
@@ -144,7 +145,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 id: 'identifier',
                 label: context.hujiL10n.loginIdentifierLabel,
                 hint: context.hujiL10n.loginIdentifierHint,
-                icon: Icons.person,
+                iconAsset: LoginDialogIcons.account,
                 controller: _identifierController,
                 validator: (value) =>
                     validateEmailOrPhone(context.hujiL10n, value),
@@ -157,7 +158,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 id: 'code',
                 label: context.hujiL10n.loginAuthCodeLabel,
                 hint: context.hujiL10n.loginAuthCodeHint,
-                icon: Icons.key,
+                iconAsset: LoginDialogIcons.keyVariant,
                 controller: _codeController,
                 suffixIcon: TpButton(
                   variant: TpButtonVariant.ghost,
