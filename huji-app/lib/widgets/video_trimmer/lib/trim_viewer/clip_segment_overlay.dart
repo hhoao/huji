@@ -18,6 +18,9 @@ class ClipSegmentOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Depend on trimmer theme so light/dark and palette changes rebuild overlays.
+    final _ = context.trimmerTheme;
+
     return BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
       bloc: context.read<ClipSegmentBloc>(),
       // 用内容比较：state 每次 emit 都是新 List，引用比较会恒真，
@@ -133,7 +136,9 @@ class _ClipSegmentOverlayContentState
     final borderWidth = isSelected
         ? layout.segmentSelectedBorderWidth
         : layout.segmentBorderWidth;
-    final borderColor = trimmerTheme.segmentBorder;
+    final borderColor = isSelected
+        ? trimmerTheme.segmentSelectedBorder
+        : trimmerTheme.segmentBorder.withValues(alpha: 0.65);
 
     return GestureDetector(
       onTap: () {
@@ -145,10 +150,10 @@ class _ClipSegmentOverlayContentState
       },
       child: DecoratedBox(
         decoration: BoxDecoration(
-          border: Border.all(
-            color: borderColor.withValues(alpha: isSelected ? 1.0 : 0.65),
-            width: borderWidth,
-          ),
+          color: isSelected
+              ? trimmerTheme.segmentSelectedOverlay
+              : trimmerTheme.segmentUnselectedOverlay,
+          border: Border.all(color: borderColor, width: borderWidth),
         ),
       ),
     );
@@ -156,19 +161,22 @@ class _ClipSegmentOverlayContentState
 
   @override
   Widget build(BuildContext context) {
+    // Depend on trimmer theme so divider handles track palette changes.
+    final trimmerTheme = context.trimmerTheme;
+
     final segments = widget.segments;
     if (segments.isEmpty) {
       return const SizedBox.shrink();
     }
 
-    return _buildMultiSplitView(context, segments);
+    return _buildMultiSplitView(context, segments, trimmerTheme);
   }
 
   Widget _buildMultiSplitView(
     BuildContext context,
     List<VideoClipSegment> segments,
+    TrimmerThemeData trimmerTheme,
   ) {
-    final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
     MultiSplitView multiSplitView = MultiSplitView(
       onDividerDragStart: (_) => _dividerDragging = true,
@@ -213,20 +221,11 @@ class _ClipSegmentOverlayContentState
     );
 
     MultiSplitViewTheme theme = MultiSplitViewTheme(
-      data: MultiSplitViewThemeData(
-        dividerThickness: 0,
-        dividerHandleBuffer: layout.dividerHandleBuffer,
-        dividerPainter: CustomDividerPainters.roundedRect(
-          size: layout.dividerHandleSize,
-          thickness: layout.dividerHandleThickness,
-          highlightedSize: widget.thumbnailHeight,
-          highlightedThickness: layout.dividerHandleThickness + 2,
-          backgroundColor: trimmerTheme.handleBackground,
-          highlightedBackgroundColor: trimmerTheme.handleBackground,
-          dividerColor: trimmerTheme.handleForeground,
-          highlightedDividerColor: trimmerTheme.handleForeground,
-          borderRadius: 6,
-        ),
+      data: _dividerThemeData(
+        trimmerTheme: trimmerTheme,
+        layout: layout,
+        thumbnailHeight: widget.thumbnailHeight,
+        isActive: true,
       ),
       child: multiSplitView,
     );
@@ -277,29 +276,12 @@ class _ConditionalDivider extends StatelessWidget {
 
         final trimmerTheme = context.trimmerTheme;
         final layout = context.trimmerLayout;
-        final handleBg = trimmerTheme.handleBackground;
-        final handleFg = trimmerTheme.handleForeground;
-        final inactiveHandleBg = handleBg.withValues(alpha: 0.72);
-        final inactiveHandleFg = handleFg.withValues(alpha: 0.85);
 
-        final themeData = MultiSplitViewThemeData(
-          dividerThickness: 0,
-          dividerHandleBuffer: layout.dividerHandleBuffer,
-          dividerPainter: CustomDividerPainters.roundedRect(
-            size: isActive
-                ? layout.dividerHandleSize
-                : layout.dividerHandleSize * 0.88,
-            thickness: isActive
-                ? layout.dividerHandleThickness
-                : layout.dividerHandleThickness - 2,
-            highlightedSize: thumbnailHeight,
-            highlightedThickness: layout.dividerHandleThickness + 2,
-            backgroundColor: isActive ? handleBg : inactiveHandleBg,
-            highlightedBackgroundColor: handleBg,
-            dividerColor: isActive ? handleFg : inactiveHandleFg,
-            highlightedDividerColor: handleFg,
-            borderRadius: 6,
-          ),
+        final themeData = _dividerThemeData(
+          trimmerTheme: trimmerTheme,
+          layout: layout,
+          thumbnailHeight: thumbnailHeight,
+          isActive: isActive,
         );
 
         return DividerWidget(
@@ -313,4 +295,36 @@ class _ConditionalDivider extends StatelessWidget {
       },
     );
   }
+}
+
+MultiSplitViewThemeData _dividerThemeData({
+  required TrimmerThemeData trimmerTheme,
+  required TrimmerLayoutMetrics layout,
+  required double thumbnailHeight,
+  required bool isActive,
+}) {
+  final handleBg = trimmerTheme.handleBackground;
+  final handleFg = trimmerTheme.handleForeground;
+  final activeBg = isActive ? trimmerTheme.active : handleBg.withValues(alpha: 0.72);
+  final activeFg = isActive ? trimmerTheme.onActive : handleFg.withValues(alpha: 0.85);
+
+  return MultiSplitViewThemeData(
+    dividerThickness: 0,
+    dividerHandleBuffer: layout.dividerHandleBuffer,
+    dividerPainter: CustomDividerPainters.roundedRect(
+      size: isActive
+          ? layout.dividerHandleSize
+          : layout.dividerHandleSize * 0.88,
+      thickness: isActive
+          ? layout.dividerHandleThickness
+          : layout.dividerHandleThickness - 2,
+      highlightedSize: thumbnailHeight,
+      highlightedThickness: layout.dividerHandleThickness + 2,
+      backgroundColor: activeBg,
+      highlightedBackgroundColor: isActive ? trimmerTheme.active : handleBg,
+      dividerColor: activeFg,
+      highlightedDividerColor: isActive ? trimmerTheme.onActive : handleFg,
+      borderRadius: 6,
+    ),
+  );
 }
