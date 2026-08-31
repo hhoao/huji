@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
+import 'package:huji_app/shortcuts/key_chord.dart';
+import 'package:huji_app/shortcuts/key_chord_formatter.dart';
 import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -49,11 +51,19 @@ void main() {
     await tester.pumpWidget(_host(const HujiShortcutsSettingsSection()));
     await tester.pumpAndSettle();
 
-    await tester.enterText(find.byType(TextField), 'Ctrl+T');
+    // Search text derives from the formatter so the expectation holds on any
+    // host platform (macOS renders mod as ⌘, others as Ctrl).
+    const tasksChord = KeyChord('t', [KeyChordMod.mod]);
+    final tasksNeedle = formatKeyChord(tasksChord, isMacOS: false);
+    const newClipChord = KeyChord('n', [KeyChordMod.mod]);
+    final newClipNeedle = formatKeyChord(newClipChord, isMacOS: false);
+
+    await tester.enterText(find.byType(TextField), tasksNeedle);
     await tester.pumpAndSettle();
 
     expect(find.text('Open Tasks'), findsOneWidget);
     expect(find.text('New Clip'), findsNothing);
+    expect(newClipNeedle, isNot(tasksNeedle));
   });
 
   group('parseImportedBindings', () {
