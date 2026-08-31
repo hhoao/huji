@@ -8,7 +8,6 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
-import 'package:huji_app/widgets/desktop/desktop_home_tools_section.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
@@ -111,8 +110,6 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
           itemCount: _records.isEmpty ? null : _records.length,
         ),
         const SizedBox(height: 16),
-        const DesktopHomeToolsSection(),
-        const SizedBox(height: 16),
         Expanded(
           child: _records.isEmpty
               ? _buildEmptyState(context)
@@ -167,6 +164,117 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   }
 }
 
+Future<void> _showVideoContextMenu(
+  BuildContext context,
+  LocalVideoRecord record,
+  TapDownDetails details,
+) async {
+  final l10n = context.hujiL10n;
+  final hasVideoFile = record.filePath != null;
+
+  final action = await showTpActionMenuFromSpecsAtTap<String>(
+    context: context,
+    tapDetails: details,
+    specs: [
+      TpActionMenuSpec.item(
+        value: 'compress',
+        icon: Icons.video_file_outlined,
+        label: l10n.taskTypeVideoCompress,
+        enabled: hasVideoFile,
+      ),
+      TpActionMenuSpec.item(
+        value: 'delete',
+        icon: Icons.delete_outline,
+        label: l10n.actionDelete,
+        destructive: true,
+      ),
+    ],
+  );
+
+  if (!context.mounted || action == null) return;
+
+  switch (action) {
+    case 'compress':
+      await _openVideoCompress(context, record);
+    case 'delete':
+      await _deleteLocalVideo(context, record);
+  }
+}
+
+Future<void> _openVideoCompress(
+  BuildContext context,
+  LocalVideoRecord record,
+) async {
+  final path = record.filePath;
+  if (path == null) return;
+
+  final file = File(path);
+  if (!await file.exists()) {
+    if (context.mounted) {
+      TpToast.show(
+        context,
+        message: context.hujiL10n.videoCompressInputNotFound(path),
+        variant: TpToastVariant.warning,
+      );
+    }
+    return;
+  }
+
+  if (!context.mounted) return;
+  context.go(DesktopRoutes.videoCompress, extra: file);
+}
+
+Future<void> _deleteLocalVideo(
+  BuildContext context,
+  LocalVideoRecord record,
+) async {
+  final l10n = context.hujiL10n;
+  final confirmed = await showTpDialog<bool>(
+    context: context,
+    builder: (ctx) => TpDialog(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TpDialogHeader(title: l10n.confirmDelete),
+          SizedBox(height: ctx.tpSpacing.lg),
+          Text(l10n.confirmDeleteLocalVideoMessage),
+          TpDialogActions(
+            children: [
+              TpButton(
+                variant: TpButtonVariant.ghost,
+                onPressed: () => Navigator.of(ctx).pop(false),
+                child: Text(l10n.taskStatusCancelledShort),
+              ),
+              TpButton(
+                variant: TpButtonVariant.destructive,
+                onPressed: () => Navigator.of(ctx).pop(true),
+                child: Text(l10n.actionDelete),
+              ),
+            ],
+          ),
+        ],
+      ),
+    ),
+  );
+
+  if (confirmed != true || !context.mounted) return;
+
+  final path = record.filePath;
+  if (path != null) {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+      }
+    } catch (e) {
+      AppLogger().w('Failed to delete video file: $path, $e');
+    }
+  }
+
+  await LocalVideoStorage().removeById(record.id);
+}
+
 class _VideoCard extends StatelessWidget {
   final LocalVideoRecord record;
   const _VideoCard({required this.record});
@@ -186,6 +294,8 @@ class _VideoCard extends StatelessWidget {
       onTap: _isNavigable
           ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
           : null,
+      onSecondaryTapDown: (details) =>
+          _showVideoContextMenu(context, record, details),
       borderRadius: BorderRadius.circular(10),
       pressScale: 0.97,
       child: Container(
@@ -264,6 +374,8 @@ class _VideoListTile extends StatelessWidget {
       onTap: _isNavigable
           ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
           : null,
+      onSecondaryTapDown: (details) =>
+          _showVideoContextMenu(context, record, details),
       borderRadius: BorderRadius.circular(10),
       backgroundColor: cs.surfaceContainer,
       child: Padding(

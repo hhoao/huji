@@ -9,6 +9,7 @@ import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
 import 'package:huji_app/pages/system/settings_update_actions.dart';
 import 'package:huji_app/router/modules/profile.dart';
 import 'package:huji_app/router/modules/subscription.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -233,13 +234,8 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     );
   }
 
-  Future<void> _openVideoCompress() async {
-    final files = await FileSelection.selectVideos(
-      context: context,
-      allowMultiple: false,
-    );
-    if (!mounted || files == null || files.isEmpty) return;
-    context.push(ToolsRoute.videoCompress, extra: File(files.first.path));
+  void _openVideoCompress() {
+    context.go(DesktopRoutes.videoCompress);
   }
 
   Widget _buildAccountBody() {

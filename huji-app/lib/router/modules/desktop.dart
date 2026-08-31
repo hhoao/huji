@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/desktop/desktop_home_page.dart';
 import 'package:huji_app/pages/desktop/desktop_clip_config_page.dart';
+import 'package:huji_app/pages/desktop/desktop_video_compress_page.dart';
 import 'package:huji_app/pages/desktop/desktop_preview_export_page.dart';
 import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
 import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
@@ -18,6 +21,7 @@ class DesktopRoutes {
 
   static const String home = '/';
   static const String clipNew = '/clip/new';
+  static const String videoCompress = '/tools/video-compress';
   static const String clipPreview = '/clip/:id/preview';
   static const String clipEdit = '/clip/:id/edit';
   static const String tasks = '/tasks';
@@ -71,6 +75,17 @@ class DesktopRoutes {
                 name: 'desktop-clip-new',
                 pageBuilder: (context, state) =>
                     _noTransitionPage(state, const DesktopClipConfigPage()),
+              ),
+              GoRoute(
+                path: '/tools/video-compress',
+                name: 'desktop-video-compress',
+                pageBuilder: (context, state) {
+                  final initialFile = state.extra as File?;
+                  return _noTransitionPage(
+                    state,
+                    DesktopVideoCompressPage(initialFile: initialFile),
+                  );
+                },
               ),
               GoRoute(
                 path: '/clip/:id/preview',
@@ -131,7 +146,7 @@ class DesktopRoutes {
       ),
       ...MessageRoute().getRoutes(),
       ...ProfileRoute().getRoutes(),
-      ...ToolsRoute().getRoutes(),
+      ...ToolsRoute(includeVideoCompress: false).getRoutes(),
       ...SubscriptionRoute().getRoutes(),
     ];
   }

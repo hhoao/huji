@@ -10,6 +10,10 @@ class ToolsRoute implements RouteModule {
   static const String videoCompress = '/tools/video-compress';
   static const String test = '/tools/test';
 
+  final bool includeVideoCompress;
+
+  ToolsRoute({this.includeVideoCompress = true});
+
   @override
   List<GoRoute> getRoutes() {
     return [
@@ -23,15 +27,16 @@ class ToolsRoute implements RouteModule {
         },
       ),
 
-      // 视频压缩页
-      GoRoute(
-        path: videoCompress,
-        name: 'videoCompress',
-        builder: (context, state) {
-          final initialFile = state.extra as File?;
-          return VideoCompressPage(initialFile: initialFile);
-        },
-      ),
+      if (includeVideoCompress)
+        // 视频压缩页（移动端）
+        GoRoute(
+          path: videoCompress,
+          name: 'videoCompress',
+          builder: (context, state) {
+            final initialFile = state.extra as File?;
+            return VideoCompressPage(initialFile: initialFile);
+          },
+        ),
 
       // 测试页
       GoRoute(
