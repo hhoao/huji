@@ -550,10 +550,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
     final duration = segment.endSeconds - segment.startSeconds;
-    final actionLabel = _formatActionType(context, segment.actionType);
-    final actionColor = _actionTypeColor(segment.actionType);
-    final actionBgColor = _actionTypeBgColor(segment.actionType);
     final thumbPath = _segmentThumbs[segment];
+    final line =
+        '#$index  ${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s';
 
     return TpHover(
       onTap: () {
@@ -591,41 +590,11 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             // 底部 - 回合信息
             Padding(
               padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '#$index',
-                        style: styles.sm.copyWith(
-                          color: cs.onSurface,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1,
-                        ),
-                        decoration: BoxDecoration(
-                          color: actionBgColor,
-                          borderRadius: BorderRadius.circular(3),
-                        ),
-                        child: Text(
-                          actionLabel,
-                          style: styles.xs.copyWith(color: actionColor),
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 2),
-                  Text(
-                    '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
-                    style: styles.mono.copyWith(color: cs.outline),
-                  ),
-                ],
+              child: Text(
+                line,
+                style: styles.xs.copyWith(color: cs.onSurface),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],

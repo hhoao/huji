@@ -196,7 +196,8 @@ class TrimmerEditor extends StatelessWidget {
           return Column(
             children: [
               Expanded(child: _buildVideoPreview(context)),
-              _buildSegmentOverview(context),
+              if (!PlatformCapability.isDesktop)
+                _buildSegmentOverview(context),
               _buildControls(context),
               SizedBox(
                 height: context.trimmerLayout.timelineContentHeight,
