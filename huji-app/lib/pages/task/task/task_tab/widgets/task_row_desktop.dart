@@ -147,25 +147,13 @@ class TaskRowDesktop extends StatelessWidget {
           final showProgress =
               TaskTabListUtils.shouldShowInlineProgress(currentTask);
 
-          return TpHover(
-            onTap: isBatchMode ? onToggleSelect : onTap,
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? cs.primary.withAlpha(20)
-                    : cs.surfaceContainer,
-                border: Border.all(
-                  color: isSelected
-                      ? cs.primary.withAlpha(102)
-                      : status == TaskStatusEnum.processing
-                      ? cs.primary.withAlpha(102)
-                      : context.desktopBorderLight,
-                ),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
+          return _TaskRowDesktopShell(
+            isBatchMode: isBatchMode,
+            isSelected: isSelected,
+            status: status,
+            onTap: onTap,
+            onToggleSelect: onToggleSelect,
+            child: Row(
                 children: [
                   if (isBatchMode) ...[
                     Container(
@@ -257,11 +245,66 @@ class TaskRowDesktop extends StatelessWidget {
                   const SizedBox(width: 14),
                   Row(children: _buildActions(context, currentTask)),
                 ],
-              ),
             ),
           );
         },
       ),
+    );
+  }
+}
+
+class _TaskRowDesktopShell extends StatefulWidget {
+  const _TaskRowDesktopShell({
+    required this.isBatchMode,
+    required this.isSelected,
+    required this.status,
+    required this.onTap,
+    required this.onToggleSelect,
+    required this.child,
+  });
+
+  final bool isBatchMode;
+  final bool isSelected;
+  final TaskStatusEnum status;
+  final VoidCallback onTap;
+  final VoidCallback onToggleSelect;
+  final Widget child;
+
+  @override
+  State<_TaskRowDesktopShell> createState() => _TaskRowDesktopShellState();
+}
+
+class _TaskRowDesktopShellState extends State<_TaskRowDesktopShell> {
+  bool _hovered = false;
+
+  Color _borderColor(BuildContext context) {
+    final cs = context.desktopColors;
+    if (widget.isSelected || widget.status == TaskStatusEnum.processing) {
+      return cs.primary.withAlpha(_hovered ? 140 : 102);
+    }
+    if (_hovered) {
+      return cs.primary.withAlpha(102);
+    }
+    return context.desktopBorderLight;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+
+    return TpHover(
+      onTap: widget.isBatchMode ? widget.onToggleSelect : widget.onTap,
+      borderRadius: BorderRadius.circular(8),
+      padding: const EdgeInsets.all(16),
+      backgroundColor: widget.isSelected
+          ? cs.primary.withAlpha(20)
+          : cs.surfaceContainer,
+      border: Border.all(color: _borderColor(context)),
+      onHoverChanged: (hovered) {
+        if (_hovered == hovered) return;
+        setState(() => _hovered = hovered);
+      },
+      child: widget.child,
     );
   }
 }

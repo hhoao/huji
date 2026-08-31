@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
-import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/user_service.dart';
-import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
@@ -27,44 +25,14 @@ enum DesktopNav {
 }
 
 /// Left rail assembled from huji sidebar chrome with app navigation.
-class HujiDesktopSidebar extends StatefulWidget {
+class HujiDesktopSidebar extends StatelessWidget {
   const HujiDesktopSidebar({required this.currentRoute, super.key});
 
   final String currentRoute;
 
-  @override
-  State<HujiDesktopSidebar> createState() => _HujiDesktopSidebarState();
-}
-
-class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
-  int _processingCount = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _updateBadge();
-    TaskStorage().addListener(_updateBadge);
-  }
-
-  @override
-  void dispose() {
-    TaskStorage().removeListener(_updateBadge);
-    super.dispose();
-  }
-
-  void _updateBadge() {
-    if (!mounted) return;
-    final counts = TaskStorage().getTaskCounts();
-    final next =
-        (counts[TaskStatusEnum.processing] ?? 0) +
-        (counts[TaskStatusEnum.pending] ?? 0);
-    if (next == _processingCount) return;
-    setState(() => _processingCount = next);
-  }
-
   bool _isActive(String route) {
-    if (route == '/') return widget.currentRoute == '/';
-    return widget.currentRoute.startsWith(route);
+    if (route == '/') return currentRoute == '/';
+    return currentRoute.startsWith(route);
   }
 
   @override
@@ -97,9 +65,6 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
                   icon: DesktopNav.tasks.icon,
                   selected: _isActive('/tasks'),
                   density: WorkspaceHubNavDensity.relaxed,
-                  trailing: _processingCount > 0
-                      ? _NavCountBadge(count: _processingCount)
-                      : null,
                   onTap: () => context.go('/tasks'),
                 ),
               ],
@@ -116,29 +81,6 @@ class _HujiDesktopSidebarState extends State<HujiDesktopSidebar> {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _NavCountBadge extends StatelessWidget {
-  const _NavCountBadge({required this.count});
-
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: cs.surfaceContainerHighest.withValues(alpha: 0.65),
-        borderRadius: BorderRadius.circular(999),
-      ),
-      child: Text(
-        '$count',
-        style: styles.smColored(cs.onSurfaceVariant),
       ),
     );
   }
