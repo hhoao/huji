@@ -103,6 +103,7 @@ class _DemoChip extends StatelessWidget {
     return TpButton(
       variant: TpButtonVariant.outline,
       size: dense ? TpControlSize.small : TpControlSize.medium,
+      fitContentHeight: true,
       onPressed: onTap,
       child: Row(
         mainAxisSize: MainAxisSize.min,
