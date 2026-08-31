@@ -8,6 +8,7 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/widgets/desktop/desktop_home_tools_section.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
@@ -109,7 +110,9 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
           onNewClip: () => context.go('/clip/new'),
           itemCount: _records.isEmpty ? null : _records.length,
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
+        const DesktopHomeToolsSection(),
+        const SizedBox(height: 16),
         Expanded(
           child: _records.isEmpty
               ? _buildEmptyState(context)

@@ -18,6 +18,7 @@ import '../video_records_tab/video_clip_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/widgets/feature_stub_actions.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Opens the shared video clip progress dialog for a task.
@@ -424,13 +425,7 @@ Future<void> _saveAllImagesToGallery(
 }
 
 void _openImageFolder(BuildContext context, String imagePath) {
-  // 这里可以添加打开文件夹的逻辑
-  // 由于平台限制，可能需要使用第三方插件
-  TpToast.show(
-    context,
-    message: context.hujiL10n.featureInDevelopment,
-    variant: TpToastVariant.warning,
-  );
+  FeatureStubActions.showOpenFolder(context);
 }
 
 Widget _buildDetailRow(String label, String value) {

@@ -9,8 +9,9 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/permission_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
-import 'package:huji_app/constants/app_setting_constants.dart';
+import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/utils/file_utils.dart';
+import 'package:huji_app/widgets/clip/clip_config_preset_footer.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/upload.dart';
 import 'package:huji_app/models/video.dart';
@@ -51,11 +52,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
   bool isLocalProcessing = false;
   VideoSegmentDetectTask? _currentLocalTask;
 
-  // 应用设置相关状态
-  bool _enableCloudClip = true; // 默认启用云端剪辑
-  bool _isLoadingSettings = true;
-
-  // 节流器
+  // 应用设置相关状态 — loaded globally via [FeatureVisibility].
   final Throttler _uploadThrottler = Throttler(
     tag: 'autoclip_upload',
     duration: const Duration(seconds: 2),
@@ -82,31 +79,6 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
     if (rawRecord.clipMode == ClipMode.existingVideo &&
         rawRecord.filePath != null) {
       initPlayer(rawRecord.filePath!);
-    }
-
-    // 加载应用设置
-    _loadAppSettings();
-  }
-
-  Future<void> _loadAppSettings() async {
-    try {
-      final enableCloudClip = await Api.appSetting.getSettingValueAsBoolean(
-        AppSettingCodes.enableCloudClip,
-      );
-      if (mounted) {
-        setState(() {
-          _enableCloudClip = enableCloudClip;
-          _isLoadingSettings = false;
-        });
-      }
-    } catch (e) {
-      // 如果加载失败，使用默认值
-      if (mounted) {
-        setState(() {
-          _enableCloudClip = true;
-          _isLoadingSettings = false;
-        });
-      }
     }
   }
 
@@ -471,6 +443,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                         onConfigChanged: _onConfigChanged,
                       ),
                     ),
+                    ClipConfigPresetFooter(
+                      presetLabel: context.hujiL10n.defaultPreset,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                    ),
                   ],
                 ),
               ),
@@ -490,145 +466,151 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                 ),
               ],
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 状态显示（在按钮上方）
-                if (isUploading || isProcessing)
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue[200]!),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            const CircularProgressIndicator(),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: Text(
-                                isUploading
-                                    ? uploadStatus ?? ''
-                                    : processStatus ?? '',
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (isUploading && uploadProgress > 0)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: LinearProgressIndicator(
-                              value: uploadProgress,
-                              backgroundColor: Colors.grey[300],
-                              valueColor: const AlwaysStoppedAnimation<Color>(
-                                Colors.blue,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                // 按钮区域
-                if (_isLoadingSettings)
-                  Center(
+            child: ListenableBuilder(
+              listenable: FeatureVisibility.instance,
+              builder: (context, _) {
+                final enableCloudClip =
+                    FeatureVisibility.instance.cloudClipAvailable;
+                if (!FeatureVisibility.instance.loaded) {
+                  return const Center(
                     child: Padding(
-                      padding: EdgeInsets.all(16.0),
+                      padding: EdgeInsets.all(16),
                       child: CircularProgressIndicator(),
                     ),
-                  )
-                else
-                  Row(
-                    children: [
-                      // 云端剪辑按钮（根据设置显示）
-                      if (_enableCloudClip) ...[
-                        Expanded(
-                          child: Stack(
-                            children: [
-                              SizedBox(
-                                width: double.infinity,
-                                child: TpButton(
-                                  onPressed: (isUploading || isProcessing)
-                                      ? null
-                                      : () {
-                                          _uploadThrottler.call(() {
-                                            _uploadAndProcessVideo();
-                                          });
-                                        },
+                  );
+                }
+                return Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isUploading || isProcessing)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: Colors.blue[200]!),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                const CircularProgressIndicator(),
+                                SizedBox(width: 16),
+                                Expanded(
                                   child: Text(
                                     isUploading
-                                        ? context.hujiL10n.uploading
-                                        : isProcessing
-                                        ? context.hujiL10n.processingNow
-                                        : rawRecord.clipMode ==
-                                              ClipMode.recordAndClip
-                                        ? context.hujiL10n.recordAndClipCloud
-                                        : context.hujiL10n.cloudClip,
+                                        ? uploadStatus ?? ''
+                                        : processStatus ?? '',
+                                    style: const TextStyle(fontSize: 16),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            if (isUploading && uploadProgress > 0)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: LinearProgressIndicator(
+                                  value: uploadProgress,
+                                  backgroundColor: Colors.grey[300],
+                                  valueColor:
+                                      const AlwaysStoppedAnimation<Color>(
+                                    Colors.blue,
                                   ),
                                 ),
                               ),
-                              Positioned(
-                                top: 0,
-                                right: 0,
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 6,
-                                    vertical: 2,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.orange,
-                                    borderRadius: BorderRadius.circular(8),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        blurRadius: 4,
-                                        offset: const Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Text(
-                                    context.hujiL10n.fasterAndMoreAccurate,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
+                          ],
+                        ),
+                      ),
+                    Row(
+                      children: [
+                        if (enableCloudClip) ...[
+                          Expanded(
+                            child: Stack(
+                              children: [
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: TpButton(
+                                    onPressed: (isUploading || isProcessing)
+                                        ? null
+                                        : () {
+                                            _uploadThrottler.call(() {
+                                              _uploadAndProcessVideo();
+                                            });
+                                          },
+                                    child: Text(
+                                      isUploading
+                                          ? context.hujiL10n.uploading
+                                          : isProcessing
+                                          ? context.hujiL10n.processingNow
+                                          : rawRecord.clipMode ==
+                                                ClipMode.recordAndClip
+                                          ? context
+                                                .hujiL10n.recordAndClipCloud
+                                          : context.hujiL10n.cloudClip,
                                     ),
                                   ),
                                 ),
-                              ),
-                            ],
+                                Positioned(
+                                  top: 0,
+                                  right: 0,
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.orange,
+                                      borderRadius: BorderRadius.circular(8),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.black.withValues(
+                                            alpha: 0.2,
+                                          ),
+                                          blurRadius: 4,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Text(
+                                      context.hujiL10n.fasterAndMoreAccurate,
+                                      style: const TextStyle(
+                                        fontSize: 10,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: TpButton(
+                            onPressed: (isUploading || isProcessing)
+                                ? null
+                                : () {
+                                    _localClipThrottler.call(() {
+                                      _runLocalVideoClip();
+                                    });
+                                  },
+                            child: Text(
+                              isLocalProcessing
+                                  ? context.hujiL10n.processingNow
+                                  : rawRecord.clipMode == ClipMode.recordAndClip
+                                  ? context.hujiL10n.recordAndClipLocal
+                                  : context.hujiL10n.localClip,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 12),
                       ],
-                      Expanded(
-                        child: TpButton(
-                          onPressed: (isUploading || isProcessing)
-                              ? null
-                              : () {
-                                  _localClipThrottler.call(() {
-                                    _runLocalVideoClip();
-                                  });
-                                },
-                          child: Text(
-                            isLocalProcessing
-                                ? context.hujiL10n.processingNow
-                                : rawRecord.clipMode == ClipMode.recordAndClip
-                                ? context.hujiL10n.recordAndClipLocal
-                                : context.hujiL10n.localClip,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-              ],
+                    ),
+                  ],
+                );
+              },
             ),
           ),
         ],

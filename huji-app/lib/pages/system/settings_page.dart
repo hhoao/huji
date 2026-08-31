@@ -7,14 +7,14 @@ import 'package:huji_app/constants/theme_manager.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/modules/profile.dart';
-import 'package:huji_app/services/app_update_service.dart';
 import 'package:huji_app/services/storage_manager.dart';
 import 'package:huji_app/settings/settings_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
-import 'package:huji_app/widgets/app_update_dialog.dart';
 import 'package:huji_app/appearance/appearance_cubit.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/pages/system/settings_update_actions.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
+import 'package:huji_app/widgets/feature_stub_actions.dart';
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
@@ -169,17 +169,17 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ],
               ),
-              onTap: () => checkUpdate(context),
+              onTap: () => SettingsUpdateActions.checkUpdate(context),
             ),
             _buildSettingRow(
               Icons.privacy_tip_outlined,
               l10n.settingsPrivacyPolicy,
-              onTap: _showPrivacyPolicy,
+              onTap: () => FeatureStubActions.showPrivacyPolicy(context),
             ),
             _buildSettingRow(
               Icons.description_outlined,
               l10n.settingsUserAgreement,
-              onTap: _showUserAgreement,
+              onTap: () => FeatureStubActions.showUserAgreement(context),
               showDividerBelow: false,
             ),
           ]),
@@ -823,37 +823,4 @@ class _SettingsPageState extends State<SettingsPage> {
     }
   }
 
-  void _showPrivacyPolicy() {
-    TpToast.show(
-      context,
-      message: context.hujiL10n.featureInDevelopment,
-      variant: TpToastVariant.warning,
-    );
-  }
-
-  void _showUserAgreement() {
-    TpToast.show(
-      context,
-      message: context.hujiL10n.featureInDevelopment,
-      variant: TpToastVariant.warning,
-    );
-  }
-
-  void checkUpdate(context) async {
-    final updateInfo = await AppUpdateService.instance.checkForUpdate();
-    if (updateInfo == null || !updateInfo.hasUpdate) {
-      TpToast.show(
-        context,
-        message: context.hujiL10n.settingsAlreadyLatestVersion,
-        variant: TpToastVariant.info,
-      );
-      return;
-    }
-    showTpDialog(
-      context: context,
-      barrierDismissible: !updateInfo.forceUpdate,
-      escapeDismissible: !updateInfo.forceUpdate,
-      builder: (context) => AppUpdateDialog(updateInfo: updateInfo),
-    );
-  }
 }

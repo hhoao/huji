@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/widgets/feature_stub_actions.dart';
 
 class DeveloperOptionsPage extends StatefulWidget {
   const DeveloperOptionsPage({super.key});
@@ -434,11 +435,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   }
 
   void _showFeatureInDevelopment(String featureName) {
-    TpToast.show(
-      context,
-      message: context.hujiL10n.namedFeatureInDevelopment(featureName),
-      variant: TpToastVariant.warning,
-    );
+    FeatureStubActions.showInDevelopment(context, featureName: featureName);
   }
 
   void _clearCache() {

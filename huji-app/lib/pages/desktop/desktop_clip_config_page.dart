@@ -7,6 +7,7 @@ import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
+import 'package:huji_app/widgets/clip/clip_config_preset_footer.dart';
 import 'package:huji_app/widgets/desktop/desktop_drop_zone.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
@@ -15,6 +16,7 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
 
 import 'package:huji_app/services/demo_video_service.dart';
+import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -57,6 +59,27 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   void initState() {
     super.initState();
     _checkLocalModels();
+    FeatureVisibility.instance.addListener(_onFeatureVisibilityChanged);
+  }
+
+  @override
+  void dispose() {
+    FeatureVisibility.instance.removeListener(_onFeatureVisibilityChanged);
+    super.dispose();
+  }
+
+  void _onFeatureVisibilityChanged() {
+    if (!mounted) return;
+    if (!FeatureVisibility.instance.cloudClipAvailable &&
+        _detectionMode == 'cloud') {
+      setState(() {
+        _detectionMode = _localModelStatus == LocalModelStatus.available
+            ? 'local'
+            : 'cloud';
+      });
+      return;
+    }
+    setState(() {});
   }
 
   void _checkLocalModels() {
@@ -159,6 +182,21 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       TpToast.show(
         context,
         message: context.hujiL10n.selectVideoFileFirst,
+        variant: TpToastVariant.warning,
+      );
+      return;
+    }
+
+    if (_detectionMode == 'cloud' &&
+        !FeatureVisibility.instance.cloudClipAvailable) {
+      if (_localModelStatus == LocalModelStatus.available) {
+        setState(() => _detectionMode = 'local');
+        await _startLocalDetection(file);
+        return;
+      }
+      TpToast.show(
+        context,
+        message: context.hujiL10n.cloudClipUnavailable,
         variant: TpToastVariant.warning,
       );
       return;
@@ -525,20 +563,22 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
     final localAvailable = _localModelStatus == LocalModelStatus.available;
+    final cloudAvailable = FeatureVisibility.instance.cloudClipAvailable;
     return _ConfigSection(
       label: context.hujiL10n.detectionMode,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _DetectionOption(
-            label: context.hujiL10n.cloudDetection,
-            emoji: '☁️',
-            help: context.hujiL10n.cloudDetectionHelp,
-            selected: _detectionMode == 'cloud',
-            onTap: () => setState(() => _detectionMode = 'cloud'),
-          ),
+          if (cloudAvailable)
+            _DetectionOption(
+              label: context.hujiL10n.cloudDetection,
+              emoji: '☁️',
+              help: context.hujiL10n.cloudDetectionHelp,
+              selected: _detectionMode == 'cloud',
+              onTap: () => setState(() => _detectionMode = 'cloud'),
+            ),
+          if (cloudAvailable && localAvailable) SizedBox(height: 6),
           if (localAvailable) ...[
-            SizedBox(height: 6),
             _DetectionOption(
               label: context.hujiL10n.localDetection,
               emoji: '💻',
@@ -553,7 +593,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 ? _detectionMode == 'local'
                       ? context.hujiL10n.localOnnxDetectionHint
                       : context.hujiL10n.cloudDetectionHint
-                : context.hujiL10n.localModelNotFoundFallback,
+                : cloudAvailable
+                ? context.hujiL10n.localModelNotFoundFallback
+                : context.hujiL10n.cloudClipUnavailable,
             style: styles.xs.copyWith(color: cs.outline),
           ),
         ],
@@ -635,43 +677,13 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   }
 
   Widget _buildConfigFooter() {
-    final cs = context.desktopColors;
-    final styles = TpTextStyles.of(context);
     return Container(
-      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         border: Border(top: BorderSide(color: context.desktopBorderLight)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            context.hujiL10n.configPresetMismatch(
-              4,
-              context.hujiL10n.defaultPreset,
-            ),
-            style: styles.xs.copyWith(color: cs.onSurfaceVariant),
-          ),
-          SizedBox(height: 10),
-          TpButton(
-            variant: TpButtonVariant.outline,
-            onPressed: () {
-              TpToast.show(
-                context,
-                message: context.hujiL10n.presetComingSoon,
-                variant: TpToastVariant.warning,
-              );
-            },
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.save_outlined, size: 16),
-                const SizedBox(width: 6),
-                Text(context.hujiL10n.saveAsPreset),
-              ],
-            ),
-          ),
-        ],
+      child: ClipConfigPresetFooter(
+        presetLabel: _presetLabel(context.hujiL10n, _selectedPreset),
+        outlined: true,
       ),
     );
   }

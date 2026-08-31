@@ -10,6 +10,7 @@ import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/services/app_update_checker.dart';
 import 'package:huji_app/services/error_log_service.dart';
+import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/permission_service.dart';
 import 'package:huji_app/services/storage_manager.dart';
@@ -132,4 +133,8 @@ Future<void> postInit() async {
   AppUpdateChecker.instance.startAutoCheck();
 
   AppLogger.instance.i('AppUpdateChecker initialized');
+
+  await FeatureVisibility.instance.load();
+
+  AppLogger.instance.i('FeatureVisibility initialized');
 }

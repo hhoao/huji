@@ -4,7 +4,7 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/api/models/autoclip/subscription_models.dart';
-import 'package:huji_app/constants/app_setting_constants.dart';
+import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/pages/login/need_login_wrapper_widget.dart';
 import 'package:huji_app/pages/user/basic_info_page.dart';
 import 'package:huji_app/pages/system/help_feedback_page.dart';
@@ -51,13 +51,26 @@ class ProfilePageContentState extends State<ProfilePageContent> {
   double _totalRemainingMinutes = 0;
   double _totalUsedMinutes = 0;
   bool _isLoading = true;
-  bool _showSubscriptionPage = true; // 默认显示订阅页面
 
   @override
   void initState() {
     super.initState();
     _loadUserInfo();
+    FeatureVisibility.instance.addListener(_onFeatureVisibilityChanged);
   }
+
+  @override
+  void dispose() {
+    FeatureVisibility.instance.removeListener(_onFeatureVisibilityChanged);
+    super.dispose();
+  }
+
+  void _onFeatureVisibilityChanged() {
+    if (mounted) setState(() {});
+  }
+
+  bool get _showSubscriptionPage =>
+      FeatureVisibility.instance.showSubscriptionPage;
 
   Future<void> _loadUserInfo() async {
     try {
@@ -67,9 +80,6 @@ class ProfilePageContentState extends State<ProfilePageContent> {
         Api.subscription.getUserSubscriptionInfo(),
         Api.minutes.getMyTotalRemainingMinutes(),
         Api.minutes.getMyTotalUsedMinutes(),
-        Api.appSetting.getSettingValueAsBoolean(
-          AppSettingCodes.showSubscriptionPage,
-        ),
       ]);
       if (!mounted) {
         return;
@@ -79,7 +89,6 @@ class ProfilePageContentState extends State<ProfilePageContent> {
         _userSubscription = results[1] as UserSubscriptionRespVO;
         _totalRemainingMinutes = results[2] as double;
         _totalUsedMinutes = results[3] as double;
-        _showSubscriptionPage = results[4] as bool;
         _isLoading = false;
       });
     } catch (e) {

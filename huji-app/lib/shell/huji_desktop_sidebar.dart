@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/message.dart';
+import 'package:huji_app/router/modules/subscription.dart';
+import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
@@ -11,6 +14,7 @@ import 'package:shared_ui/shared_ui.dart';
 enum DesktopNav {
   library(icon: Icons.video_library_outlined, route: '/'),
   tasks(icon: Icons.assignment_outlined, route: '/tasks'),
+  messages(icon: Icons.mail_outline, route: '/message'),
   settings(icon: Icons.settings_outlined, route: '/settings');
 
   final IconData icon;
@@ -20,6 +24,7 @@ enum DesktopNav {
   String label(HujiLocalizations l10n) => switch (this) {
     DesktopNav.library => l10n.desktopNavLibrary,
     DesktopNav.tasks => l10n.desktopNavTasks,
+    DesktopNav.messages => l10n.messagesTitle,
     DesktopNav.settings => l10n.desktopNavSettings,
   };
 }
@@ -66,6 +71,13 @@ class HujiDesktopSidebar extends StatelessWidget {
                   selected: _isActive('/tasks'),
                   density: WorkspaceHubNavDensity.relaxed,
                   onTap: () => context.go('/tasks'),
+                ),
+                WorkspaceHubNavItem(
+                  title: DesktopNav.messages.label(l10n),
+                  icon: DesktopNav.messages.icon,
+                  selected: _isActive(MessageRoute.message),
+                  density: WorkspaceHubNavDensity.relaxed,
+                  onTap: () => context.push(MessageRoute.message),
                 ),
               ],
             ),
@@ -194,6 +206,11 @@ class _AccountAreaState extends State<_AccountArea> {
     return MenuAnchor(
       controller: _menuController,
       menuChildren: [
+        if (FeatureVisibility.instance.showSubscriptionPage)
+          MenuItemButton(
+            onPressed: () => context.push(SubscriptionRoute.subscription),
+            child: Text(l10n.subscriptionPlans),
+          ),
         MenuItemButton(
           onPressed: _handleLogout,
           child: Text(l10n.accountLogout),

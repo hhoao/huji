@@ -7,6 +7,10 @@ import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
 import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
 import 'package:huji_app/pages/desktop/desktop_settings_page.dart';
 import 'package:huji_app/pages/login/login_page.dart';
+import 'package:huji_app/router/modules/message.dart';
+import 'package:huji_app/router/modules/profile.dart';
+import 'package:huji_app/router/modules/subscription.dart';
+import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/shell/huji_desktop_shell.dart';
 
 class DesktopRoutes {
@@ -46,8 +50,6 @@ class DesktopRoutes {
         pageBuilder: (context, state) =>
             _noTransitionPage(state, const LoginPage()),
       ),
-      // IndexedStack branches keep each nav area's pages alive so switching
-      // doesn't dispose + rebuild the destination subtree in one frame.
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return HujiDesktopShell(
@@ -127,6 +129,10 @@ class DesktopRoutes {
           ),
         ],
       ),
+      ...MessageRoute().getRoutes(),
+      ...ProfileRoute().getRoutes(),
+      ...ToolsRoute().getRoutes(),
+      ...SubscriptionRoute().getRoutes(),
     ];
   }
 }
