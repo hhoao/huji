@@ -1793,6 +1793,13 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get loginRememberPassword => 'Remember password';
 
   @override
+  String get loginSocialLoginDivider => 'Or sign in with (coming soon)';
+
+  @override
+  String get loginSocialLoginUnavailable =>
+      'This sign-in method is not available yet';
+
+  @override
   String get loginRememberedPassword => 'Remember your password? ';
 
   @override

@@ -33,6 +33,7 @@ class LoginDialog extends StatefulWidget {
         context: context,
         barrierDismissible: false,
         escapeDismissible: true,
+        barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => const LoginDialog(visible: true),
       );
       return result ?? false;
@@ -111,8 +112,15 @@ class _LoginDialogState extends State<LoginDialog>
   Widget build(BuildContext context) {
     if (!widget.visible) return const SizedBox.shrink();
 
+    final cs = Theme.of(context).colorScheme;
+    final l10n = context.hujiL10n;
+    final styles = TpTextStyles.of(context);
+
     return TpDialog(
-      maxWidth: 480,
+      maxWidth: 448,
+      contentPadding: EdgeInsets.zero,
+      backgroundColor: cs.surface,
+      showBorder: true,
       child: AnimatedBuilder(
         animation: _animationController,
         builder: (context, child) {
@@ -120,29 +128,46 @@ class _LoginDialogState extends State<LoginDialog>
             position: _slideAnimation,
             child: FadeTransition(
               opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    TpDialogHeader(
-                      title: context.hujiL10n.loginTitle,
-                      onClose: _closeDialog,
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (_currentForm == FormType.login) ...[
+                          const SizedBox(height: 16),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Text(
+                              l10n.emailLoginOnlyNotice,
+                              style: styles.sm.copyWith(
+                                color: Colors.orange.shade400,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        ],
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                          child: _buildCurrentForm(),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: context.tpSpacing.lg),
-                    Text(
-                      context.hujiL10n.emailLoginOnlyNotice,
-                      style: const TextStyle(
-                        color: Colors.orange,
-                        fontSize: 12,
-                        decoration: TextDecoration.none,
-                        fontWeight: FontWeight.normal,
-                      ),
-                      textAlign: TextAlign.center,
+                  ),
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: TpIconButton(
+                      icon: Icons.close_rounded,
+                      compact: true,
+                      color: cs.onSurfaceVariant,
+                      onTap: () => _closeDialog(loginSuccess: false),
                     ),
-                    _buildCurrentForm(),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );

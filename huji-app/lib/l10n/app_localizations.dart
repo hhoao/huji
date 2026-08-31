@@ -3254,6 +3254,18 @@ abstract class HujiLocalizations {
   /// **'Remember password'**
   String get loginRememberPassword;
 
+  /// No description provided for @loginSocialLoginDivider.
+  ///
+  /// In en, this message translates to:
+  /// **'Or sign in with (coming soon)'**
+  String get loginSocialLoginDivider;
+
+  /// No description provided for @loginSocialLoginUnavailable.
+  ///
+  /// In en, this message translates to:
+  /// **'This sign-in method is not available yet'**
+  String get loginSocialLoginUnavailable;
+
   /// No description provided for @loginRememberedPassword.
   ///
   /// In en, this message translates to:

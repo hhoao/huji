@@ -85,6 +85,7 @@ String? validateEmailOrPhone(HujiLocalizations l10n, String? value) {
 }
 
 TpInputFormField buildTextField({
+  required BuildContext context,
   required String id,
   required String label,
   required String hint,
@@ -95,16 +96,21 @@ TpInputFormField buildTextField({
   required FormFieldValidator<String> validator,
   TextInputType? keyboardType,
 }) {
+  final styles = TpTextStyles.of(context);
+  final cs = Theme.of(context).colorScheme;
+
   return TpInputFormField(
     id: id,
     controller: controller,
-    label: Text(label),
+    label: Text(label, style: styles.mdMedium),
+    style: styles.md.copyWith(color: cs.onSurface),
     validator: validator,
     obscureText: obscureText,
     keyboardType: keyboardType,
     decoration: InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, size: 20),
+      hintStyle: styles.mutedMd,
+      prefixIcon: Icon(icon, size: 20, color: cs.onSurfaceVariant),
       suffixIcon: suffixIcon,
     ),
   );

@@ -526,6 +526,8 @@
   "loginRegisterTitle": "用户注册",
   "loginRegistering": "注册中...",
   "loginRememberPassword": "记住密码",
+  "loginSocialLoginDivider": "或使用其他方式登录(暂未开放)",
+  "loginSocialLoginUnavailable": "该登录方式暂未开放",
   "loginRememberedPassword": "想起密码了？ ",
   "loginRequiredForClipHistory": "需要登录才能查看剪辑记录",
   "loginResetPasswordFailed": "密码重置失败: {error}",

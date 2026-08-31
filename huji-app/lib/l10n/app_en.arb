@@ -526,6 +526,8 @@
   "loginRegisterTitle": "Create account",
   "loginRegistering": "Signing up...",
   "loginRememberPassword": "Remember password",
+  "loginSocialLoginDivider": "Or sign in with (coming soon)",
+  "loginSocialLoginUnavailable": "This sign-in method is not available yet",
   "loginRememberedPassword": "Remember your password? ",
   "loginRequiredForClipHistory": "Sign in to view clip history",
   "loginResetPasswordFailed": "Password reset failed: {error}",

@@ -123,6 +123,9 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
   @override
   Widget build(BuildContext context) {
+    final styles = TpTextStyles.of(context);
+    final cs = Theme.of(context).colorScheme;
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: Material(
@@ -131,17 +134,15 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 标题
-              Text(context.hujiL10n.loginResetPasswordTitle, style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              Text(
+                context.hujiL10n.loginResetPasswordTitle,
+                style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
                 textAlign: TextAlign.center,
               ),
 
               SizedBox(height: 24),
               buildTextField(
+                context: context,
                 id: 'identifier',
                 label: context.hujiL10n.loginIdentifierLabel,
                 hint: context.hujiL10n.loginIdentifierHint,
@@ -154,6 +155,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               SizedBox(height: 16),
 
               buildTextField(
+                context: context,
                 id: 'code',
                 label: context.hujiL10n.loginAuthCodeLabel,
                 hint: context.hujiL10n.loginAuthCodeHint,
@@ -182,6 +184,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               SizedBox(height: 16),
 
               buildTextField(
+                context: context,
                 id: 'newPassword',
                 label: context.hujiL10n.loginNewPassword,
                 hint: context.hujiL10n.loginNewPasswordHint,
@@ -204,6 +207,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               SizedBox(height: 16),
 
               buildTextField(
+                context: context,
                 id: 'confirmPassword',
                 label: context.hujiL10n.loginConfirmNewPassword,
                 hint: context.hujiL10n.loginConfirmNewPasswordHint,
@@ -261,7 +265,9 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(context.hujiL10n.loginRememberedPassword, style: TextStyle(color: Colors.grey, fontSize: 14),
+                  Text(
+                    context.hujiL10n.loginRememberedPassword,
+                    style: styles.md.copyWith(color: cs.onSurfaceVariant),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,

@@ -32,7 +32,7 @@ void main() {
     expect(title.style?.color, theme.colorScheme.onSurface);
     expect(
       identifierField.decoration?.fillColor,
-      theme.inputDecorationTheme.fillColor ?? theme.colorScheme.surfaceContainer,
+      theme.colorScheme.surface,
     );
   });
 }

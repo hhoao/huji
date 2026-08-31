@@ -249,6 +249,7 @@ class _LoginPageState extends State<LoginPage> {
 
                 // 手机号/邮箱输入
                 buildTextField(
+                  context: context,
                   id: 'identifier',
                   label: context.hujiL10n.loginIdentifierLabelOr,
                   hint: context.hujiL10n.loginIdentifierLabelOr,
@@ -268,6 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                 // 密码输入（密码登录时显示）
                 if (_isPasswordLogin)
                   buildTextField(
+                    context: context,
                     id: 'password',
                     label: context.hujiL10n.loginPasswordLabel,
                     hint: context.hujiL10n.loginPasswordLabel,

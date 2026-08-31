@@ -42,6 +42,9 @@ class _LoginFormState extends State<LoginForm> {
   int _countdown = 0;
   Timer? _timer;
 
+  static const _inputHeight = 48.0;
+  static const _inputRadius = 8.0;
+
   @override
   void dispose() {
     _identifierController.dispose();
@@ -93,7 +96,6 @@ class _LoginFormState extends State<LoginForm> {
       );
 
       if (_loginType == LoginType.password) {
-        // 密码登录
         await UserService.loginWithPassword(
           loginPasswordParams: LoginPasswordParams(
             identifier: _identifierController.text,
@@ -102,7 +104,6 @@ class _LoginFormState extends State<LoginForm> {
           ),
         );
       } else {
-        // 验证码登录
         await UserService.loginWithCode(
           loginAuthCodeParams: LoginAuthCodeParams(
             identifier: _identifierController.text,
@@ -119,7 +120,6 @@ class _LoginFormState extends State<LoginForm> {
           variant: TpToastVariant.success,
         );
       }
-      // 调用登录成功回调，如果没有则调用普通关闭回调
       if (widget.onLoginSuccess != null) {
         widget.onLoginSuccess!();
       } else {
@@ -148,142 +148,129 @@ class _LoginFormState extends State<LoginForm> {
     });
   }
 
+  InputDecoration _inputDecoration(
+    BuildContext context, {
+    required String hint,
+    required IconData icon,
+    Widget? suffixIcon,
+  }) {
+    final cs = Theme.of(context).colorScheme;
+    final styles = TpTextStyles.of(context);
+    final border = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(_inputRadius),
+      borderSide: BorderSide(color: cs.outlineVariant),
+    );
+
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: styles.mutedMd,
+      prefixIcon: Icon(icon, size: 20, color: cs.onSurfaceVariant),
+      suffixIcon: suffixIcon,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+      filled: true,
+      fillColor: cs.surface,
+      border: border,
+      enabledBorder: border,
+      focusedBorder: border.copyWith(
+        borderSide: BorderSide(color: cs.primary, width: 1.5),
+      ),
+      errorBorder: border.copyWith(borderSide: BorderSide(color: cs.error)),
+      focusedErrorBorder: border.copyWith(
+        borderSide: BorderSide(color: cs.error, width: 1.5),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-      child: Material(
-        child: TpForm(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // 标题
-              Text(
-                context.hujiL10n.loginTitle,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
+    final l10n = context.hujiL10n;
+    final cs = Theme.of(context).colorScheme;
+    final styles = TpTextStyles.of(context);
+    final inputStyle = styles.md.copyWith(color: cs.onSurface);
+
+    return TpForm(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.loginTitle,
+            style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 24),
+          _LoginTypeTabs(
+            loginType: _loginType,
+            passwordLabel: l10n.loginPasswordTab,
+            authCodeLabel: l10n.loginAuthCodeMode,
+            onChanged: (type) {
+              _resetForm();
+              _switchLoginType(type);
+            },
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            height: _inputHeight,
+            child: TpInputFormField(
+              id: 'identifier',
+              controller: _identifierController,
+              style: inputStyle,
+              validator: (value) => validateEmailOrPhone(l10n, value),
+              decoration: _inputDecoration(
+                context,
+                hint: l10n.loginIdentifierHint,
+                icon: Icons.person_outline,
               ),
-
-              SizedBox(height: 24),
-
-              // 登录方式切换
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.grey[100],
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: TpHover(
-                        onTap: () {
-                          _resetForm();
-                          _switchLoginType(LoginType.password);
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        backgroundColor: _loginType == LoginType.password
-                            ? Colors.blue
-                            : Colors.transparent,
-                        hoverColor: _loginType == LoginType.password
-                            ? Colors.blue
-                            : Colors.black.withValues(alpha: 0.04),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          context.hujiL10n.loginPasswordTab,
-                          style: TextStyle(
-                            color: _loginType == LoginType.password
-                                ? Colors.white
-                                : Colors.black87,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TpHover(
-                        onTap: () {
-                          _resetForm();
-                          _switchLoginType(LoginType.authCode);
-                        },
-                        borderRadius: BorderRadius.circular(8),
-                        backgroundColor: _loginType == LoginType.authCode
-                            ? Colors.blue
-                            : Colors.transparent,
-                        hoverColor: _loginType == LoginType.authCode
-                            ? Colors.blue
-                            : Colors.black.withValues(alpha: 0.04),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          context.hujiL10n.loginAuthCodeMode,
-                          style: TextStyle(
-                            color: _loginType == LoginType.authCode
-                                ? Colors.white
-                                : Colors.black87,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              SizedBox(height: 24),
-
-              // 账号输入
-              buildTextField(
-                id: 'identifier',
-                label: context.hujiL10n.loginIdentifierLabel,
-                hint: context.hujiL10n.loginIdentifierHint,
-                icon: Icons.person,
-                controller: _identifierController,
-                validator: (value) =>
-                    validateEmailOrPhone(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 16),
-
-              // 密码/验证码输入
-              if (_loginType == LoginType.password)
-                buildTextField(
-                  id: 'password',
-                  label: context.hujiL10n.loginPasswordLabel,
-                  hint: context.hujiL10n.loginPasswordHint,
-                  icon: Icons.lock,
-                  controller: _passwordController,
+            ),
+          ),
+          const SizedBox(height: 16),
+          if (_loginType == LoginType.password)
+            SizedBox(
+              height: _inputHeight,
+              child: TpInputFormField(
+                id: 'password',
+                controller: _passwordController,
+                style: inputStyle,
+                obscureText: _obscurePassword,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return l10n.loginValidationPasswordRequired;
+                  }
+                  return null;
+                },
+                decoration: _inputDecoration(
+                  context,
+                  hint: l10n.loginPasswordHint,
+                  icon: Icons.lock_outline,
                   suffixIcon: TpIconButton(
                     icon: _obscurePassword
-                        ? Icons.visibility
-                        : Icons.visibility_off,
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                    color: cs.onSurfaceVariant,
                     onTap: () {
-                      setState(() {
-                        _obscurePassword = !_obscurePassword;
-                      });
+                      setState(() => _obscurePassword = !_obscurePassword);
                     },
                   ),
-                  obscureText: _obscurePassword,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return context.hujiL10n.loginValidationPasswordRequired;
-                    }
-                    return null;
-                  },
-                )
-              else
-                buildTextField(
-                  id: 'code',
-                  label: context.hujiL10n.loginAuthCodeLabel,
-                  hint: context.hujiL10n.loginAuthCodeHint,
-                  icon: Icons.key,
-                  controller: _codeController,
+                ),
+              ),
+            )
+          else
+            SizedBox(
+              height: _inputHeight,
+              child: TpInputFormField(
+                id: 'code',
+                controller: _codeController,
+                style: inputStyle,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return l10n.loginValidationAuthCodeRequired;
+                  }
+                  return validateAuthCode(l10n, value);
+                },
+                decoration: _inputDecoration(
+                  context,
+                  hint: l10n.loginAuthCodeHint,
+                  icon: Icons.key_outlined,
                   suffixIcon: TpButton(
                     variant: TpButtonVariant.ghost,
                     onPressed: _countdown > 0
@@ -297,133 +284,156 @@ class _LoginFormState extends State<LoginForm> {
                           },
                     child: Text(
                       _countdown > 0
-                          ? context.hujiL10n.actionResendCodeCountdown(
-                              _countdown,
-                            )
-                          : context.hujiL10n.actionGetVerificationCode,
+                          ? l10n.actionResendCodeCountdown(_countdown)
+                          : l10n.actionGetVerificationCode,
+                      style: styles.mdMedium.copyWith(color: cs.primary),
                     ),
                   ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return context.hujiL10n.loginValidationAuthCodeRequired;
-                    }
-                    return validateAuthCode(context.hujiL10n, value);
-                  },
                 ),
-
-              SizedBox(height: 16),
-
-              // 记住密码和忘记密码（仅密码登录时显示）
-              if (_loginType == LoginType.password) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Checkbox(
+              ),
+            ),
+          if (_loginType == LoginType.password) ...[
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                TpHover(
+                  onTap: () =>
+                      setState(() => _rememberPassword = !_rememberPassword),
+                  padding: const EdgeInsets.symmetric(vertical: 2),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
                           value: _rememberPassword,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          visualDensity: VisualDensity.compact,
                           onChanged: (value) {
-                            setState(() {
-                              _rememberPassword = value ?? false;
-                            });
+                            setState(() => _rememberPassword = value ?? false);
                           },
                         ),
-                        Text(
-                          context.hujiL10n.loginRememberPassword,
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
-                        ),
-                      ],
-                    ),
-                    TpButton(
-                      variant: TpButtonVariant.ghost,
-                      onPressed: () {
-                        _resetForm();
-                        widget.onSwitchForm(FormType.forgotPassword);
-                      },
-                      child: Text(context.hujiL10n.loginForgotPassword),
-                    ),
-                  ],
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        l10n.loginRememberPassword,
+                        style: styles.md.copyWith(color: cs.onSurfaceVariant),
+                      ),
+                    ],
+                  ),
                 ),
-                SizedBox(height: 16),
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () {
+                    _resetForm();
+                    widget.onSwitchForm(FormType.forgotPassword);
+                  },
+                  child: Text(
+                    l10n.loginForgotPassword,
+                    style: styles.mdMedium.copyWith(color: cs.primary),
+                  ),
+                ),
               ],
-
-              // 登录按钮
-              TpButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        Throttles.throttle(
-                          'login_submit',
-                          const Duration(seconds: 2),
-                          () => _handleLogin(context),
-                        );
-                      },
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )
-                    : Text(context.hujiL10n.loginTitle),
-              ),
-
-              // SizedBox(height: 24),
-
-              // // 分割线
-              // Row(
-              //   children: [
-              //     Expanded(child: Divider(color: Colors.grey[300])),
-              //     Padding(
-              //       padding: const EdgeInsets.symmetric(horizontal: 16),
-              //       child: Text(
-              //         '或使用其他方式登录(暂未开放)',
-              //         style: TextStyle(color: Colors.grey[600], fontSize: 12),
-              //       ),
-              //     ),
-              //     Expanded(child: Divider(color: Colors.grey[300])),
-              //   ],
-              // ),
-
-              // SizedBox(height: 16),
-
-              // 社交登录按钮
-              // Row(
-              //   mainAxisAlignment: MainAxisAlignment.center,
-              //   children: [
-              //     _buildSocialButton(Icons.wechat, Colors.green),
-              //     SizedBox(width: 16),
-              //     _buildSocialButton(Icons.chat, Colors.blue),
-              //     SizedBox(width: 16),
-              //     _buildSocialButton(Icons.payment, Colors.orange),
-              //   ],
-              // ),
-              SizedBox(height: 24),
-
-              // 注册链接
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    context.hujiL10n.loginNoAccount,
-                    style: TextStyle(color: Colors.grey, fontSize: 14),
-                  ),
-                  TpButton(
-                    variant: TpButtonVariant.ghost,
-                    onPressed: () {
-                      _resetForm();
-                      widget.onSwitchForm(FormType.register);
+            ),
+          ],
+          const SizedBox(height: 16),
+          SizedBox(
+            width: double.infinity,
+            height: _inputHeight,
+            child: TpButton(
+              size: TpControlSize.large,
+              onPressed: _isLoading
+                  ? null
+                  : () {
+                      Throttles.throttle(
+                        'login_submit',
+                        const Duration(seconds: 2),
+                        () => _handleLogin(context),
+                      );
                     },
-                    child: Text(context.hujiL10n.loginRegisterNow),
-                  ),
-                ],
+              child: _isLoading
+                  ? SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: cs.onPrimary,
+                      ),
+                    )
+                  : Text(
+                      l10n.loginTitle,
+                      style: styles.mdMedium,
+                    ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(child: Divider(color: cs.outlineVariant)),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: Text(
+                  l10n.loginSocialLoginDivider,
+                  style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+                ),
+              ),
+              Expanded(child: Divider(color: cs.outlineVariant)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _SocialLoginButton(
+                icon: Icons.wechat_outlined,
+                onTap: () => _showSocialUnavailable(context),
+              ),
+              const SizedBox(width: 8),
+              _SocialLoginButton(
+                icon: Icons.chat_bubble_outline,
+                onTap: () => _showSocialUnavailable(context),
+              ),
+              const SizedBox(width: 8),
+              _SocialLoginButton(
+                icon: Icons.account_balance_wallet_outlined,
+                onTap: () => _showSocialUnavailable(context),
               ),
             ],
           ),
-        ),
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                l10n.loginNoAccount,
+                style: styles.md.copyWith(color: cs.onSurfaceVariant),
+              ),
+              TpButton(
+                variant: TpButtonVariant.ghost,
+                onPressed: () {
+                  _resetForm();
+                  widget.onSwitchForm(FormType.register);
+                },
+                child: Text(
+                  l10n.loginRegisterNow,
+                  style: styles.mdMedium.copyWith(color: cs.primary),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+    );
+  }
+
+  void _showSocialUnavailable(BuildContext context) {
+    TpToast.show(
+      context,
+      message: context.hujiL10n.loginSocialLoginUnavailable,
+      variant: TpToastVariant.warning,
     );
   }
 
@@ -431,5 +441,100 @@ class _LoginFormState extends State<LoginForm> {
     _identifierController.clear();
     _passwordController.clear();
     _codeController.clear();
+  }
+}
+
+class _LoginTypeTabs extends StatelessWidget {
+  const _LoginTypeTabs({
+    required this.loginType,
+    required this.passwordLabel,
+    required this.authCodeLabel,
+    required this.onChanged,
+  });
+
+  final LoginType loginType;
+  final String passwordLabel;
+  final String authCodeLabel;
+  final ValueChanged<LoginType> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _tab(
+          context,
+          label: passwordLabel,
+          active: loginType == LoginType.password,
+          onTap: () => onChanged(LoginType.password),
+          primary: cs.primary,
+          inactive: cs.onSurface,
+        ),
+        const SizedBox(width: 24),
+        _tab(
+          context,
+          label: authCodeLabel,
+          active: loginType == LoginType.authCode,
+          onTap: () => onChanged(LoginType.authCode),
+          primary: cs.primary,
+          inactive: cs.onSurface,
+        ),
+      ],
+    );
+  }
+
+  Widget _tab(
+    BuildContext context, {
+    required String label,
+    required bool active,
+    required VoidCallback onTap,
+    required Color primary,
+    required Color inactive,
+  }) {
+    final styles = TpTextStyles.of(context);
+
+    return TpHover(
+      onTap: onTap,
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: active ? primary : Colors.transparent,
+              width: 2,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: styles.mdMedium.copyWith(
+            color: active ? primary : inactive,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SocialLoginButton extends StatelessWidget {
+  const _SocialLoginButton({required this.icon, required this.onTap});
+
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+
+    return TpHover(
+      onTap: onTap,
+      shape: TpPressableShape.circle,
+      width: 40,
+      height: 40,
+      border: Border.all(color: cs.outlineVariant),
+      child: Icon(icon, size: 22, color: cs.onSurfaceVariant),
+    );
   }
 }

@@ -121,6 +121,8 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
+    final styles = TpTextStyles.of(context);
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: Material(
@@ -129,17 +131,15 @@ class _RegisterFormState extends State<RegisterForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // 标题
-              Text(context.hujiL10n.loginRegisterTitle, style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              Text(
+                context.hujiL10n.loginRegisterTitle,
+                style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
                 textAlign: TextAlign.center,
               ),
 
               SizedBox(height: 24),
               buildTextField(
+                context: context,
                 id: 'identifier',
                 label: context.hujiL10n.loginIdentifierLabel,
                 hint: context.hujiL10n.loginIdentifierHint,
@@ -152,6 +152,7 @@ class _RegisterFormState extends State<RegisterForm> {
               SizedBox(height: 16),
 
               buildTextField(
+                context: context,
                 id: 'code',
                 label: context.hujiL10n.loginAuthCodeLabel,
                 hint: context.hujiL10n.loginAuthCodeHint,
@@ -214,7 +215,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 children: [
                   Text(
                     l10n.loginAlreadyHaveAccount,
-                    style: const TextStyle(color: Colors.grey, fontSize: 14),
+                    style: styles.md.copyWith(color: cs.onSurfaceVariant),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,

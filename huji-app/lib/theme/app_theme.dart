@@ -4,6 +4,7 @@ import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_ui/shared_ui.dart';
 
+import 'app_desktop_cursor_theme.dart';
 import 'app_dialog_theme.dart';
 import 'app_list_tile_theme.dart';
 import 'app_tooltip_theme.dart';
@@ -261,7 +262,7 @@ ThemeData _applyTypography(
       ),
       scheme,
     );
-    return flexTheme.copyWith(
+    return withDesktopClickCursors(flexTheme.copyWith(
       visualDensity: VisualDensity.compact,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       iconTheme: TpIconSizes.iconTheme(
@@ -287,7 +288,7 @@ ThemeData _applyTypography(
         colorScheme: scheme,
         textTheme: textTheme,
       ),
-    );
+    ));
   }
   final typographySeed = ThemeData(
     brightness: flexTheme.brightness,
@@ -310,7 +311,7 @@ ThemeData _applyTypography(
     scheme,
   );
 
-  return flexTheme.copyWith(
+  return withDesktopClickCursors(flexTheme.copyWith(
     visualDensity: VisualDensity.compact,
     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     iconTheme: TpIconSizes.iconTheme(
@@ -337,5 +338,5 @@ ThemeData _applyTypography(
       colorScheme: scheme,
       textTheme: mergedTextTheme,
     ),
-  );
+  ));
 }

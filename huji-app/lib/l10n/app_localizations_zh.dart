@@ -1748,6 +1748,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get loginRememberPassword => '记住密码';
 
   @override
+  String get loginSocialLoginDivider => '或使用其他方式登录(暂未开放)';
+
+  @override
+  String get loginSocialLoginUnavailable => '该登录方式暂未开放';
+
+  @override
   String get loginRememberedPassword => '想起密码了？ ';
 
   @override
