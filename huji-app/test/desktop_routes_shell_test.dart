@@ -8,8 +8,10 @@ void main() {
   test('desktop routes keep navigation chrome in a stateful shell', () {
     final routes = DesktopRoutes.getRoutes();
 
-    expect(routes, hasLength(2));
-    expect(routes.whereType<GoRoute>(), hasLength(1));
+    // Login stays outside the shell; the nav chrome owns one stateful shell,
+    // and feature modules (message/profile/tools/subscription) append after.
+    expect(routes.first, isA<GoRoute>());
+    expect((routes.first as GoRoute).path, '/login');
     expect(routes.whereType<StatefulShellRoute>(), hasLength(1));
   });
 

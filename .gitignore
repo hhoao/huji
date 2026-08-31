@@ -5,3 +5,10 @@
 
 # Legacy RestCut tree (migrated to huji-app); local copy may remain untracked
 restcut_app/
+
+# IDE/tool-local metadata
+.teampilot/
+.zcode/
+
+# Vendored package clones (not wired into the build)
+huji-app/packages/flutter-shadcn-ui/

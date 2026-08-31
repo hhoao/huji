@@ -27,7 +27,10 @@ class LoginDialog extends StatefulWidget {
     try {
       final result = await showTpDialog<bool>(
         context: context,
-        barrierDismissible: false,
+        // Tapping outside dismisses (pops with null → treated as login
+        // failure), which also silences the desktop alert bell the framework
+        // plays on non-dismissible barrier taps (SystemSoundType.alert).
+        barrierDismissible: true,
         escapeDismissible: true,
         barrierColor: Colors.black.withValues(alpha: 0.5),
         builder: (context) => const LoginDialog(visible: true),
