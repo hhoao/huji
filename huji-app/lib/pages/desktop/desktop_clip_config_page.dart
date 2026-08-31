@@ -690,11 +690,21 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildWarning() {
     final styles = TpTextStyles.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark
+        ? const Color(0xFFEAB308).withAlpha(20)
+        : const Color(0xFFFEF9C3);
+    final borderColor = isDark
+        ? const Color(0xFFEAB308).withAlpha(64)
+        : const Color(0xFFFACC15).withValues(alpha: 0.6);
+    final textColor =
+        isDark ? const Color(0xFFFDE68A) : const Color(0xFF854D0E);
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFEAB308).withAlpha(20),
-        border: Border.all(color: const Color(0xFFEAB308).withAlpha(64)),
+        color: bgColor,
+        border: Border.all(color: borderColor),
         borderRadius: BorderRadius.circular(7),
       ),
       child: Row(
@@ -706,7 +716,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             child: Text(
               context.hujiL10n.videoQualityWarning,
               style: styles.sm.copyWith(
-                color: const Color(0xFFFDE68A),
+                color: textColor,
                 height: 1.6,
               ),
             ),
