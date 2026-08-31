@@ -12,7 +12,6 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
-import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';

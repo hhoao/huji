@@ -459,12 +459,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         if (!userState.isLoggedIn) {
           return _buildLoginRequiredShell(context);
         }
-        return _buildEditor(context);
+        return _buildPrecisionEditPage(context);
       },
     );
   }
 
-  Widget _buildEditor(BuildContext context) {
+  Widget _buildPrecisionEditPage(BuildContext context) {
     final trimmerManager = _trimmerBlocManager;
 
     return MultiBlocProvider(

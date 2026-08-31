@@ -193,8 +193,13 @@ class _StatusButton extends StatelessWidget {
 /// Dark-theme login placeholder for desktop tabs that require auth.
 class DesktopLoginPlaceholder extends StatelessWidget {
   final VoidCallback onLogin;
+  final String? message;
 
-  const DesktopLoginPlaceholder({super.key, required this.onLogin});
+  const DesktopLoginPlaceholder({
+    super.key,
+    required this.onLogin,
+    this.message,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -208,7 +213,7 @@ class DesktopLoginPlaceholder extends StatelessWidget {
           Icon(Icons.person_outline, size: 64, color: cs.outline),
           SizedBox(height: 16),
           Text(
-            context.hujiL10n.loginRequiredForClipHistory,
+            message ?? context.hujiL10n.loginRequiredForClipHistory,
             style: styles.md.copyWith(color: cs.onSurfaceVariant),
           ),
           SizedBox(height: 8),
