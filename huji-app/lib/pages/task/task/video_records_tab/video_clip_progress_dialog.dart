@@ -10,8 +10,9 @@ import '../../../../models/task.dart';
 import 'bloc/video_clip_progress_dialog_bloc.dart';
 import 'bloc/video_clip_progress_dialog_event.dart';
 import 'bloc/video_clip_progress_dialog_state.dart';
-import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class VideoClipProgressDialog extends StatefulWidget {
@@ -133,174 +134,147 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
           builder: (context, state) {
             final currentTask = state.task ?? widget.task;
             final l10n = context.hujiL10n;
+            final isDesktop = PlatformCapability.isDesktop;
+            final cs = isDesktop
+                ? context.desktopColors
+                : Theme.of(context).colorScheme;
+            final styles = TpTextStyles.of(context);
+            final thumbnailHeight = isDesktop ? 240.0 : 180.0;
 
-            return Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Container(
-                width: 320,
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // 标题
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.cut,
-                          color: _getStatusColor(currentTask.status),
-                          size: 24,
-                        ),
-                        SizedBox(width: 12),
-                        Expanded(
-                          child: Text(
-                            l10n.videoClipProgressTitle,
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                        TpIconButton(
-                          onTap: () {
-                            Throttles.throttle(
-                              'video_clip_dialog_close_icon',
-                              const Duration(milliseconds: 500),
-                              () => Navigator.of(context).pop(),
-                            );
-                          },
-                          icon: Icons.close,
-                          iconSize: 20,
-                          color: Colors.black87,
-                        ),
-                      ],
+            return TpDialog(
+              maxWidth: isDesktop ? 520 : 360,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TpDialogHeader(
+                    title: l10n.videoClipProgressTitle,
+                    onClose: () {
+                      Throttles.throttle(
+                        'video_clip_dialog_close_icon',
+                        const Duration(milliseconds: 500),
+                        () => Navigator.of(context).pop(),
+                      );
+                    },
+                    trailing: Icon(
+                      Icons.cut,
+                      color: _getStatusColor(currentTask.status),
+                      size: 24,
                     ),
-                    SizedBox(height: 20),
+                  ),
+                  SizedBox(height: context.tpSpacing.lg),
 
-                    // 视频缩略图
-                    Container(
-                      width: double.infinity,
-                      height: 180,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Colors.grey[100],
-                      ),
-                      child: state.isGeneratingThumbnail
-                          ? Center(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  CircularProgressIndicator(),
-                                  SizedBox(height: 8),
-                                  Text(l10n.generatingThumbnail),
-                                ],
-                              ),
-                            )
-                          : state.thumbnailPath != null
-                          ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
-                              child: Image.file(
-                                File(state.thumbnailPath!),
-                                fit: BoxFit.cover,
-                                width: double.infinity,
-                                height: double.infinity,
-                              ),
-                            )
-                          : Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(12),
-                                color: Colors.grey[300],
-                              ),
-                              child: Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.video_file,
-                                      size: 48,
-                                      color: Colors.grey,
-                                    ),
-                                    SizedBox(height: 8),
-                                    Text(
-                                      l10n.cannotGenerateThumbnail,
-                                      style: TextStyle(color: Colors.grey),
-                                    ),
-                                  ],
+                  Container(
+                    width: double.infinity,
+                    height: thumbnailHeight,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      color: cs.surfaceContainerHighest,
+                    ),
+                    child: state.isGeneratingThumbnail
+                        ? Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                CircularProgressIndicator(),
+                                SizedBox(height: context.tpSpacing.sm),
+                                Text(
+                                  l10n.generatingThumbnail,
+                                  style: styles.sm.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                    ),
-                    SizedBox(height: 20),
+                          )
+                        : state.thumbnailPath != null
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(state.thumbnailPath!),
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                            ),
+                          )
+                        : Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.video_file,
+                                  size: 48,
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                SizedBox(height: context.tpSpacing.sm),
+                                Text(
+                                  l10n.cannotGenerateThumbnail,
+                                  style: styles.sm.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                  ),
+                  SizedBox(height: context.tpSpacing.lg),
 
-                    // 文件名
-                    Text(
-                      currentTask.name,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
+                  Text(
+                    currentTask.name,
+                    style: styles.mdSemibold.copyWith(color: cs.onSurface),
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  SizedBox(height: context.tpSpacing.md),
+
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            _getStatusText(l10n, currentTask.status),
+                            style: styles.mdMedium.copyWith(
+                              color: _getStatusColor(currentTask.status),
+                            ),
+                          ),
+                          Text(
+                            '${(currentTask.progress * 100).toStringAsFixed(0)}%',
+                            style: styles.mdSemibold.copyWith(
+                              color: cs.onSurface,
+                            ),
+                          ),
+                        ],
                       ),
-                      textAlign: TextAlign.center,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    SizedBox(height: 16),
-
-                    // 进度条
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              _getStatusText(l10n, currentTask.status),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                color: _getStatusColor(currentTask.status),
-                              ),
-                            ),
-                            Text(
-                              '${(currentTask.progress * 100).toStringAsFixed(0)}%',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                      SizedBox(height: context.tpSpacing.sm),
+                      LinearProgressIndicator(
+                        value: currentTask.progress,
+                        minHeight: 8,
+                        backgroundColor: isDesktop
+                            ? context.desktopBorderMedium
+                            : cs.surfaceContainerHighest,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          _getStatusColor(currentTask.status),
                         ),
-                        SizedBox(height: 8),
-                        LinearProgressIndicator(
-                          value: currentTask.progress,
-                          minHeight: 8,
-                          backgroundColor: Colors.grey[200],
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            _getStatusColor(currentTask.status),
-                          ),
+                      ),
+                      SizedBox(height: context.tpSpacing.sm),
+                      Text(
+                        _getProgressDescription(
+                          l10n,
+                          currentTask.status,
+                          currentTask.progress,
                         ),
-                        SizedBox(height: 8),
-                        Text(
-                          _getProgressDescription(
-                            l10n,
-                            currentTask.status,
-                            currentTask.progress,
-                          ),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 20),
-
-                    // 操作按钮
-                    if (currentTask.status == TaskStatusEnum.completed)
-                      SizedBox(
-                        width: double.infinity,
-                        child: TpButton(
+                        style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                  TpDialogActions(
+                    children: [
+                      if (currentTask.status == TaskStatusEnum.completed)
+                        TpButton(
                           onPressed: () {
                             Throttles.throttle(
                               'video_clip_dialog_play',
@@ -337,12 +311,9 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                 ? l10n.editVideo
                                 : l10n.actionPlay,
                           ),
-                        ),
-                      )
-                    else if (currentTask.status == TaskStatusEnum.failed)
-                      SizedBox(
-                        width: double.infinity,
-                        child: TpButton(
+                        )
+                      else if (currentTask.status == TaskStatusEnum.failed)
+                        TpButton(
                           variant: TpButtonVariant.destructive,
                           onPressed: () {
                             Throttles.throttle(
@@ -355,21 +326,18 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                             );
                           },
                           child: Text(context.hujiL10n.actionRetry),
-                        ),
-                      )
-                    else
-                      SizedBox(
-                        width: double.infinity,
-                        child: TpButton(
+                        )
+                      else
+                        TpButton(
                           variant: TpButtonVariant.ghost,
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
                           child: Text(context.hujiL10n.actionClose),
                         ),
-                      ),
-                  ],
-                ),
+                    ],
+                  ),
+                ],
               ),
             );
           },
