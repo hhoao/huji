@@ -126,7 +126,6 @@ class _ClipSegmentOverlayContentState
   }
 
   Widget _buildSegmentWidget(VideoClipSegment segment) {
-    final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
     if (segment.isDeleted) {
       return Container(height: widget.thumbnailHeight);
@@ -136,14 +135,8 @@ class _ClipSegmentOverlayContentState
     final borderWidth = isSelected
         ? layout.segmentSelectedBorderWidth
         : layout.segmentBorderWidth;
-    final scheme = context.trimmerColorScheme;
-    // Timeline overlays sit on busy thumbnails; use higher-contrast borders
-    // than the chip list below (which has a solid surface behind it).
-    final borderColor = isSelected
-        ? trimmerTheme.segmentSelectedBorder
-        : scheme.brightness == Brightness.dark
-        ? trimmerTheme.segmentBorder
-        : scheme.onSurface.withValues(alpha: 0.88);
+    // Fixed white border on thumbnail tiles; no fill so frames stay visible.
+    const borderColor = Colors.white;
 
     return GestureDetector(
       onTap: () {
@@ -155,9 +148,6 @@ class _ClipSegmentOverlayContentState
       },
       child: DecoratedBox(
         decoration: BoxDecoration(
-          color: isSelected
-              ? trimmerTheme.segmentSelectedOverlay
-              : trimmerTheme.segmentUnselectedOverlay,
           border: Border.all(color: borderColor, width: borderWidth),
         ),
       ),
@@ -227,7 +217,6 @@ class _ClipSegmentOverlayContentState
 
     MultiSplitViewTheme theme = MultiSplitViewTheme(
       data: _dividerThemeData(
-        trimmerTheme: trimmerTheme,
         layout: layout,
         thumbnailHeight: widget.thumbnailHeight,
         isActive: true,
@@ -279,11 +268,9 @@ class _ConditionalDivider extends StatelessWidget {
             currentSegments[dividerIndex + 1].isSelected;
         final isActive = leftSegmentSelected || rightSegmentSelected;
 
-        final trimmerTheme = context.trimmerTheme;
         final layout = context.trimmerLayout;
 
         final themeData = _dividerThemeData(
-          trimmerTheme: trimmerTheme,
           layout: layout,
           thumbnailHeight: thumbnailHeight,
           isActive: isActive,
@@ -303,15 +290,15 @@ class _ConditionalDivider extends StatelessWidget {
 }
 
 MultiSplitViewThemeData _dividerThemeData({
-  required TrimmerThemeData trimmerTheme,
   required TrimmerLayoutMetrics layout,
   required double thumbnailHeight,
   required bool isActive,
 }) {
-  final handleBg = trimmerTheme.handleBackground;
-  final handleFg = trimmerTheme.handleForeground;
-  final activeBg = isActive ? trimmerTheme.active : handleBg.withValues(alpha: 0.72);
-  final activeFg = isActive ? trimmerTheme.onActive : handleFg.withValues(alpha: 0.85);
+  // Fixed dark-theme handle chrome: white pill + dark center line on thumbnails.
+  const handleBg = Colors.white;
+  const handleFg = Color(0xFF1A1A1D);
+  final activeBg = isActive ? handleBg : handleBg.withValues(alpha: 0.72);
+  final activeFg = isActive ? handleFg : handleFg.withValues(alpha: 0.85);
 
   return MultiSplitViewThemeData(
     dividerThickness: 0,
@@ -326,9 +313,9 @@ MultiSplitViewThemeData _dividerThemeData({
       highlightedSize: thumbnailHeight,
       highlightedThickness: layout.dividerHandleThickness + 2,
       backgroundColor: activeBg,
-      highlightedBackgroundColor: isActive ? trimmerTheme.active : handleBg,
+      highlightedBackgroundColor: handleBg,
       dividerColor: activeFg,
-      highlightedDividerColor: isActive ? trimmerTheme.onActive : handleFg,
+      highlightedDividerColor: handleFg,
       borderRadius: 6,
     ),
   );
