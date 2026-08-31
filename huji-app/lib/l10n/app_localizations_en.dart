@@ -3245,6 +3245,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   }
 
   @override
+  String get shortcutsCategoryEditing => 'Editing';
+
+  @override
   String get shortcutsCategoryMeta => 'General';
 
   @override
@@ -3280,7 +3283,64 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get shortcutsCommandToggleSidebar => 'Toggle Sidebar';
 
   @override
+  String get shortcutsCommandPrecisionPlayPause => 'Play / Pause';
+
+  @override
+  String get shortcutsCommandPrecisionSplit => 'Split at playhead';
+
+  @override
+  String get shortcutsCommandPrecisionAddSegment => 'Add segment';
+
+  @override
+  String get shortcutsCommandPrecisionDeleteSegment => 'Delete segment';
+
+  @override
+  String get shortcutsCommandPrecisionPlaySelectedOnly =>
+      'Play selected segment only';
+
+  @override
+  String get shortcutsCommandPrecisionToggleSlowMotion => 'Toggle slow motion';
+
+  @override
+  String get shortcutsCommandPrecisionPrevRound => 'Previous round';
+
+  @override
+  String get shortcutsCommandPrecisionNextRound => 'Next round';
+
+  @override
+  String get shortcutsCommandPrecisionSeekBackward => 'Seek backward 1s';
+
+  @override
+  String get shortcutsCommandPrecisionSeekForward => 'Seek forward 1s';
+
+  @override
   String get shortcutsConflictTooltip => 'Conflicts with another command';
+
+  @override
+  String get shortcutsExport => 'Export';
+
+  @override
+  String get shortcutsExportFailed => 'Failed to export shortcuts';
+
+  @override
+  String get shortcutsExportSuccess => 'Shortcuts exported';
+
+  @override
+  String get shortcutsImport => 'Import';
+
+  @override
+  String shortcutsImportConflictMessage(int count) {
+    return '$count imported bindings conflict with existing commands. Replace them?';
+  }
+
+  @override
+  String get shortcutsImportConflictTitle => 'Conflicts detected';
+
+  @override
+  String get shortcutsImportInvalidFile => 'Not a valid shortcuts file';
+
+  @override
+  String get shortcutsImportSuccess => 'Shortcuts imported';
 
   @override
   String get shortcutsNotSet => 'Not set';
@@ -3293,6 +3353,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get shortcutsRebind => 'Change shortcut';
+
+  @override
+  String get shortcutsReplaceAction => 'Replace all';
 
   @override
   String get shortcutsReplaceCancel => 'Keep current';
@@ -3320,6 +3383,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get shortcutsResetAllConfirmTitle => 'Restore all defaults?';
+
+  @override
+  String get shortcutsSearchHint => 'Search shortcuts';
 
   @override
   String get shortcutsSectionSubtitle =>

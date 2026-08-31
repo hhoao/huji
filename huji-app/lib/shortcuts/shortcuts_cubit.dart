@@ -8,6 +8,16 @@ import 'keybinding_resolver.dart';
 import 'shortcuts_preferences_store.dart';
 import 'shortcuts_state.dart';
 
+/// Result of [ShortcutsCubit.importOverrides]: whether the import applied,
+/// and any conflicts discovered against the current bindings (returned for a
+/// "replace all" confirm when not applied).
+class ImportResult {
+  const ImportResult({required this.applied, this.conflicts = const []});
+
+  final bool applied;
+  final List<KeybindingConflict> conflicts;
+}
+
 class ShortcutsCubit extends Cubit<ShortcutsState> {
   ShortcutsCubit({ShortcutsPreferencesStore? store, ShortcutsState? initial})
     : _store = store ?? ShortcutsPreferencesStore(),
@@ -63,6 +73,64 @@ class ShortcutsCubit extends Cubit<ShortcutsState> {
 
   Future<void> resetAll() async {
     await _apply(const {});
+  }
+
+  /// Applies imported overrides.
+  ///
+  /// When the import would steal chords from commands outside
+  /// [importedOverrides] and [replaceConflicts] is `false`, the state is left
+  /// unchanged and the conflicts are returned for the caller to present a
+  /// replace-all confirm. With `replaceConflicts`, the conflicting chords are
+  /// cleared from the other commands and the import applies.
+  Future<ImportResult> importOverrides(
+    Map<String, List<KeyChord>> importedOverrides, {
+    bool replaceConflicts = false,
+  }) async {
+    final importedIds = importedOverrides.keys.toSet();
+    final tentativeOverrides = Map<String, List<KeyChord>>.of(state.overrides);
+    tentativeOverrides.addAll({
+      for (final entry in importedOverrides.entries)
+        entry.key: List<KeyChord>.of(entry.value),
+    });
+
+    final tentativeEffective = KeybindingResolver.effectiveBindings(
+      catalog: appCommandCatalog,
+      overrides: tentativeOverrides,
+    );
+    final conflicts = KeybindingResolver.findConflicts(
+      tentativeEffective,
+    ).where((c) => c.commandIds.any(importedIds.contains)).toList();
+
+    if (conflicts.isNotEmpty && !replaceConflicts) {
+      return ImportResult(applied: false, conflicts: conflicts);
+    }
+
+    var finalOverrides = tentativeOverrides;
+    if (conflicts.isNotEmpty) {
+      finalOverrides = Map<String, List<KeyChord>>.of(tentativeOverrides);
+      for (final conflict in conflicts) {
+        for (final commandId in conflict.commandIds) {
+          if (importedIds.contains(commandId)) continue;
+          final currentChords =
+              finalOverrides[commandId] ?? _defaultChordsFor(commandId);
+          finalOverrides[commandId] = currentChords
+              .where((chord) => chord != conflict.chord)
+              .toList();
+        }
+      }
+    }
+
+    await _apply(finalOverrides);
+    return ImportResult(applied: true, conflicts: conflicts);
+  }
+
+  List<KeyChord> _defaultChordsFor(String commandId) {
+    for (final definition in appCommandCatalog) {
+      if (definition.id == commandId) {
+        return List<KeyChord>.of(definition.defaultChords);
+      }
+    }
+    return const [];
   }
 
   Future<void> _apply(Map<String, List<KeyChord>> overrides) async {

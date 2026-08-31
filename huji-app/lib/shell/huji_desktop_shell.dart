@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
+import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
 import 'package:huji_app/shell/huji_desktop_sidebar.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
@@ -70,6 +71,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
 
   @override
   Widget build(BuildContext context) {
+    ShortcutRouteScope.instance.update(widget.currentRoute);
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: cs.workspacePage,

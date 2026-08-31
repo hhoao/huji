@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 
 import 'command_definition.dart';
+import 'command_scope.dart';
 import 'key_chord.dart';
 import 'shortcut_context.dart';
 
@@ -31,6 +32,7 @@ abstract final class KeybindingResolver {
     required bool isMacOS,
   }) {
     for (final definition in catalog) {
+      if (!commandScopeMatches(definition.scope, context.route)) continue;
       for (final chord in effectiveByCommand[definition.id] ?? const []) {
         if (context.inTextField && !chord.hasTextSafeModifier) continue;
         if (chord

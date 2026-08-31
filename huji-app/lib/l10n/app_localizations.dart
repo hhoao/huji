@@ -5774,6 +5774,12 @@ abstract class HujiLocalizations {
   /// **'Failed to share logs: {error}'**
   String shareLogsFailed(String error);
 
+  /// No description provided for @shortcutsCategoryEditing.
+  ///
+  /// In en, this message translates to:
+  /// **'Editing'**
+  String get shortcutsCategoryEditing;
+
   /// No description provided for @shortcutsCategoryMeta.
   ///
   /// In en, this message translates to:
@@ -5840,11 +5846,119 @@ abstract class HujiLocalizations {
   /// **'Toggle Sidebar'**
   String get shortcutsCommandToggleSidebar;
 
+  /// No description provided for @shortcutsCommandPrecisionPlayPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Play / Pause'**
+  String get shortcutsCommandPrecisionPlayPause;
+
+  /// No description provided for @shortcutsCommandPrecisionSplit.
+  ///
+  /// In en, this message translates to:
+  /// **'Split at playhead'**
+  String get shortcutsCommandPrecisionSplit;
+
+  /// No description provided for @shortcutsCommandPrecisionAddSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Add segment'**
+  String get shortcutsCommandPrecisionAddSegment;
+
+  /// No description provided for @shortcutsCommandPrecisionDeleteSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete segment'**
+  String get shortcutsCommandPrecisionDeleteSegment;
+
+  /// No description provided for @shortcutsCommandPrecisionPlaySelectedOnly.
+  ///
+  /// In en, this message translates to:
+  /// **'Play selected segment only'**
+  String get shortcutsCommandPrecisionPlaySelectedOnly;
+
+  /// No description provided for @shortcutsCommandPrecisionToggleSlowMotion.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle slow motion'**
+  String get shortcutsCommandPrecisionToggleSlowMotion;
+
+  /// No description provided for @shortcutsCommandPrecisionPrevRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous round'**
+  String get shortcutsCommandPrecisionPrevRound;
+
+  /// No description provided for @shortcutsCommandPrecisionNextRound.
+  ///
+  /// In en, this message translates to:
+  /// **'Next round'**
+  String get shortcutsCommandPrecisionNextRound;
+
+  /// No description provided for @shortcutsCommandPrecisionSeekBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek backward 1s'**
+  String get shortcutsCommandPrecisionSeekBackward;
+
+  /// No description provided for @shortcutsCommandPrecisionSeekForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek forward 1s'**
+  String get shortcutsCommandPrecisionSeekForward;
+
   /// No description provided for @shortcutsConflictTooltip.
   ///
   /// In en, this message translates to:
   /// **'Conflicts with another command'**
   String get shortcutsConflictTooltip;
+
+  /// No description provided for @shortcutsExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get shortcutsExport;
+
+  /// No description provided for @shortcutsExportFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to export shortcuts'**
+  String get shortcutsExportFailed;
+
+  /// No description provided for @shortcutsExportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts exported'**
+  String get shortcutsExportSuccess;
+
+  /// No description provided for @shortcutsImport.
+  ///
+  /// In en, this message translates to:
+  /// **'Import'**
+  String get shortcutsImport;
+
+  /// No description provided for @shortcutsImportConflictMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} imported bindings conflict with existing commands. Replace them?'**
+  String shortcutsImportConflictMessage(int count);
+
+  /// No description provided for @shortcutsImportConflictTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Conflicts detected'**
+  String get shortcutsImportConflictTitle;
+
+  /// No description provided for @shortcutsImportInvalidFile.
+  ///
+  /// In en, this message translates to:
+  /// **'Not a valid shortcuts file'**
+  String get shortcutsImportInvalidFile;
+
+  /// No description provided for @shortcutsImportSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shortcuts imported'**
+  String get shortcutsImportSuccess;
 
   /// No description provided for @shortcutsNotSet.
   ///
@@ -5869,6 +5983,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Change shortcut'**
   String get shortcutsRebind;
+
+  /// No description provided for @shortcutsReplaceAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Replace all'**
+  String get shortcutsReplaceAction;
 
   /// No description provided for @shortcutsReplaceCancel.
   ///
@@ -5917,6 +6037,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Restore all defaults?'**
   String get shortcutsResetAllConfirmTitle;
+
+  /// No description provided for @shortcutsSearchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search shortcuts'**
+  String get shortcutsSearchHint;
 
   /// No description provided for @shortcutsSectionSubtitle.
   ///

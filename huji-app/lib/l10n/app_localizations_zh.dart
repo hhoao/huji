@@ -3164,6 +3164,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   }
 
   @override
+  String get shortcutsCategoryEditing => '剪辑';
+
+  @override
   String get shortcutsCategoryMeta => '通用';
 
   @override
@@ -3199,7 +3202,63 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get shortcutsCommandToggleSidebar => '切换侧栏';
 
   @override
+  String get shortcutsCommandPrecisionPlayPause => '播放 / 暂停';
+
+  @override
+  String get shortcutsCommandPrecisionSplit => '在当前位置分割';
+
+  @override
+  String get shortcutsCommandPrecisionAddSegment => '添加片段';
+
+  @override
+  String get shortcutsCommandPrecisionDeleteSegment => '删除片段';
+
+  @override
+  String get shortcutsCommandPrecisionPlaySelectedOnly => '仅播放选中片段';
+
+  @override
+  String get shortcutsCommandPrecisionToggleSlowMotion => '切换慢放';
+
+  @override
+  String get shortcutsCommandPrecisionPrevRound => '上一个回合';
+
+  @override
+  String get shortcutsCommandPrecisionNextRound => '下一个回合';
+
+  @override
+  String get shortcutsCommandPrecisionSeekBackward => '后退 1 秒';
+
+  @override
+  String get shortcutsCommandPrecisionSeekForward => '前进 1 秒';
+
+  @override
   String get shortcutsConflictTooltip => '与其他命令冲突';
+
+  @override
+  String get shortcutsExport => '导出';
+
+  @override
+  String get shortcutsExportFailed => '导出快捷键失败';
+
+  @override
+  String get shortcutsExportSuccess => '快捷键已导出';
+
+  @override
+  String get shortcutsImport => '导入';
+
+  @override
+  String shortcutsImportConflictMessage(int count) {
+    return '有 $count 个导入的键位与现有命令冲突,要替换吗?';
+  }
+
+  @override
+  String get shortcutsImportConflictTitle => '检测到冲突';
+
+  @override
+  String get shortcutsImportInvalidFile => '无效的快捷键文件';
+
+  @override
+  String get shortcutsImportSuccess => '快捷键已导入';
 
   @override
   String get shortcutsNotSet => '未设置';
@@ -3212,6 +3271,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get shortcutsRebind => '更改快捷键';
+
+  @override
+  String get shortcutsReplaceAction => '全部替换';
 
   @override
   String get shortcutsReplaceCancel => '保留当前';
@@ -3238,6 +3300,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get shortcutsResetAllConfirmTitle => '恢复全部默认?';
+
+  @override
+  String get shortcutsSearchHint => '搜索快捷键';
 
   @override
   String get shortcutsSectionSubtitle => '查看与自定义键盘快捷键';

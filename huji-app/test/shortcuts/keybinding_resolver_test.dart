@@ -1,14 +1,20 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/shortcuts/command_definition.dart';
+import 'package:huji_app/shortcuts/command_scope.dart';
 import 'package:huji_app/shortcuts/key_chord.dart';
 import 'package:huji_app/shortcuts/keybinding_resolver.dart';
 import 'package:huji_app/shortcuts/shortcut_context.dart';
 
-CommandDefinition _def(String id, List<KeyChord> chords) => CommandDefinition(
+CommandDefinition _def(
+  String id,
+  List<KeyChord> chords, {
+  CommandScope scope = CommandScope.global,
+}) => CommandDefinition(
   id: id,
   category: CommandCategory.navigation,
   defaultChords: chords,
+  scope: scope,
   title: (l10n) => id,
 );
 
@@ -37,8 +43,8 @@ KeyDownEvent _keyDown(LogicalKeyboardKey key) => KeyDownEvent(
   timeStamp: Duration.zero,
 );
 
-ShortcutContext _ctx({bool inTextField = false}) =>
-    ShortcutContext(inTextField: inTextField);
+ShortcutContext _ctx({bool inTextField = false, String? route}) =>
+    ShortcutContext(inTextField: inTextField, route: route);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -164,6 +170,76 @@ void main() {
       isMacOS: false,
     );
     expect(id, isNull);
+  });
+
+  group('scope', () {
+    final scopedCatalog = [
+      _def('global_cmd', const [KeyChord('space')]),
+      _def(
+        'edit_cmd',
+        const [KeyChord('space')],
+        scope: CommandScope.precisionEdit,
+      ),
+    ];
+
+    test('scoped command ignored off-route', () {
+      final effective = KeybindingResolver.effectiveBindings(
+        catalog: scopedCatalog,
+        overrides: const {},
+      );
+      final id = KeybindingResolver.match(
+        event: _keyDown(LogicalKeyboardKey.space),
+        catalog: scopedCatalog,
+        effectiveByCommand: effective,
+        context: _ctx(route: '/'),
+        isMacOS: false,
+      );
+      expect(id, 'global_cmd');
+    });
+
+    test('scoped command matches on precision-edit route', () {
+      final catalog = [
+        _def(
+          'edit_only',
+          const [KeyChord('s')],
+          scope: CommandScope.precisionEdit,
+        ),
+      ];
+      final effective = KeybindingResolver.effectiveBindings(
+        catalog: catalog,
+        overrides: const {},
+      );
+      final id = KeybindingResolver.match(
+        event: _keyDown(LogicalKeyboardKey.keyS),
+        catalog: catalog,
+        effectiveByCommand: effective,
+        context: _ctx(route: '/clip/test-id/edit'),
+        isMacOS: false,
+      );
+      expect(id, 'edit_only');
+    });
+
+    test('scoped command does not match on other routes', () {
+      final catalog = [
+        _def(
+          'edit_only',
+          const [KeyChord('s')],
+          scope: CommandScope.precisionEdit,
+        ),
+      ];
+      final effective = KeybindingResolver.effectiveBindings(
+        catalog: catalog,
+        overrides: const {},
+      );
+      final id = KeybindingResolver.match(
+        event: _keyDown(LogicalKeyboardKey.keyS),
+        catalog: catalog,
+        effectiveByCommand: effective,
+        context: _ctx(route: '/settings'),
+        isMacOS: false,
+      );
+      expect(id, isNull);
+    });
   });
 
   group('findConflicts', () {

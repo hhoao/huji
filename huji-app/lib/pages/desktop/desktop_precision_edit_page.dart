@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/shortcuts/command_bus.dart';
+import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
@@ -20,11 +22,13 @@ import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
 import 'package:huji_app/widgets/video_trimmer/trimmer_view.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 
 class DesktopPrecisionEditPage extends StatefulWidget {
   final String clipId;
@@ -42,6 +46,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   SegmentInfo? _activeSegment;
   bool _trimmerLoading = false;
   bool _blocsInitialized = false;
+  bool _commandsRegistered = false;
+  CommandBus? _commandBus;
+  final List<(String, CommandHandler)> _commandHandlers = [];
 
   // 回合缩略图缓存。按 SegmentInfo 值缓存（freezed 值相等），
   // 片段被裁剪编辑后起点/终点变化会自动重新抽帧。
@@ -62,6 +69,11 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (!_commandsRegistered) {
+      _commandsRegistered = true;
+      _commandBus = context.read<CommandBus>();
+      _registerPrecisionEditCommands();
+    }
     if (!_blocsInitialized) {
       _blocsInitialized = true;
       _roundClipBloc = RoundClipBloc(
@@ -206,6 +218,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   @override
   void dispose() {
+    _unregisterPrecisionEditCommands();
     _thumbQueue.clear();
     _thumbQueueDebounce?.cancel();
     _disposeTrimmer();
@@ -258,6 +271,105 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     _trimmerBlocManager!.trimmerBloc.add(
       TrimmerSeekTo(Duration(milliseconds: (segment.startSeconds * 1000).round())),
     );
+  }
+
+  void _registerPrecisionEditCommands() {
+    final bus = _commandBus;
+    if (bus == null) return;
+
+    void reg(String id, CommandHandler handler) {
+      bus.register(id, handler);
+      _commandHandlers.add((id, handler));
+    }
+
+    reg(CommandIds.precisionPlayPause, _shortcutPlayPause);
+    reg(CommandIds.precisionSplit, _shortcutSplit);
+    reg(CommandIds.precisionAddSegment, _shortcutAddSegment);
+    reg(CommandIds.precisionDeleteSegment, _shortcutDeleteSegment);
+    reg(CommandIds.precisionPlaySelectedOnly, _shortcutPlaySelectedOnly);
+    reg(CommandIds.precisionToggleSlowMotion, _shortcutToggleSlowMotion);
+    reg(CommandIds.precisionPrevRound, () => _shortcutSelectRound(-1));
+    reg(CommandIds.precisionNextRound, () => _shortcutSelectRound(1));
+    reg(CommandIds.precisionSeekBackward, () => _shortcutSeekBySeconds(-1));
+    reg(CommandIds.precisionSeekForward, () => _shortcutSeekBySeconds(1));
+  }
+
+  void _unregisterPrecisionEditCommands() {
+    final bus = _commandBus;
+    if (bus == null) return;
+    for (final (id, handler) in _commandHandlers) {
+      bus.unregister(id, handler);
+    }
+    _commandHandlers.clear();
+  }
+
+  void _shortcutPlayPause() {
+    _trimmerBlocManager?.trimmerBloc.add(TrimmerTogglePlayPause());
+  }
+
+  void _shortcutSplit() {
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+    final ms = manager.trimmerBloc.state.currentMilliseconds;
+    manager.clipSegmentBloc.add(ClipSegmentSplitAt(ms));
+  }
+
+  void _shortcutAddSegment() {
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+    manager.clipSegmentBloc.add(
+      ClipSegmentAddAt(
+        startTimeMs: manager.trimmerBloc.state.currentMilliseconds,
+      ),
+    );
+  }
+
+  void _shortcutDeleteSegment() {
+    Throttles.throttle(
+      'precision_edit_delete_segment',
+      const Duration(milliseconds: 500),
+      () {
+        _trimmerBlocManager?.clipSegmentBloc.add(ClipSegmentDeleteSelected());
+      },
+    );
+  }
+
+  void _shortcutPlaySelectedOnly() {
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+    if (manager.clipSegmentBloc.state.activeSegments.isEmpty) return;
+    manager.trimmerBloc.add(TrimmerTogglePlaySelectedSegmentOnly());
+  }
+
+  void _shortcutToggleSlowMotion() {
+    _trimmerBlocManager?.trimmerBloc.add(TrimmerToggleSlowMotion());
+  }
+
+  void _shortcutSelectRound(int delta) {
+    final segments = _roundClipBloc.state.playBallSegments;
+    if (segments.isEmpty) return;
+
+    final current = _activeSegment;
+    var index = current != null ? segments.indexWhere((s) => s == current) : -1;
+    if (index < 0) {
+      index = 0;
+    } else {
+      index = (index + delta).clamp(0, segments.length - 1);
+    }
+
+    final segment = segments[index];
+    setState(() => _activeSegment = segment);
+    _seekToSegmentInTrimmer(segment);
+  }
+
+  void _shortcutSeekBySeconds(int deltaSeconds) {
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+    final trimmer = manager.trimmerBloc;
+    final current = trimmer.state.currentMilliseconds;
+    final total = trimmer.state.totalDuration.round();
+    final next = (current + deltaSeconds * 1000).clamp(0, total);
+    trimmer.add(TrimmerSeekTo(Duration(milliseconds: next)));
   }
 
   @override

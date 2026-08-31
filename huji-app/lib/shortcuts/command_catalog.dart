@@ -2,12 +2,14 @@ import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/shortcuts/command_definition.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/key_chord.dart';
+import 'package:huji_app/shortcuts/precision_edit_command_catalog.dart';
 
 /// All desktop commands with their default chords.
 ///
 /// Declaration order is match priority: when two commands share a chord, the
 /// earlier one wins. Every default carries a Mod qualifier (Meta on macOS,
-/// Control elsewhere) so plain typing is never intercepted.
+/// Control elsewhere) so plain typing is never intercepted — except for
+/// page-scoped editing chords, which only match on their route.
 final List<CommandDefinition> appCommandCatalog = [
   CommandDefinition(
     id: CommandIds.showCheatsheet,
@@ -57,6 +59,7 @@ final List<CommandDefinition> appCommandCatalog = [
     ],
     title: (l10n) => l10n.shortcutsCommandToggleSidebar,
   ),
+  ...precisionEditCommandCatalog,
 ];
 
 String commandCategoryTitle(CommandCategory category, HujiLocalizations l10n) {
@@ -65,6 +68,8 @@ String commandCategoryTitle(CommandCategory category, HujiLocalizations l10n) {
       return l10n.shortcutsCategoryNavigation;
     case CommandCategory.view:
       return l10n.shortcutsCategoryView;
+    case CommandCategory.editing:
+      return l10n.shortcutsCategoryEditing;
     case CommandCategory.meta:
       return l10n.shortcutsCategoryMeta;
   }

@@ -83,6 +83,84 @@ void main() {
     expect(await store.load(), isEmpty);
   });
 
+  group('importOverrides', () {
+    test('applies conflict-free imports and persists them', () async {
+      final store = ShortcutsPreferencesStore();
+      final cubit = ShortcutsCubit(store: store);
+
+      final result = await cubit.importOverrides({
+        CommandIds.newClip: const [
+          KeyChord('j', [KeyChordMod.ctrl]),
+        ],
+      });
+
+      expect(result.applied, isTrue);
+      expect(cubit.state.chordsFor(CommandIds.newClip), [
+        const KeyChord('j', [KeyChordMod.ctrl]),
+      ]);
+      final reloaded = await ShortcutsCubit.load(store: store);
+      expect(reloaded.state.chordsFor(CommandIds.newClip), [
+        const KeyChord('j', [KeyChordMod.ctrl]),
+      ]);
+    });
+
+    test('conflicting import is rejected with conflicts listed', () async {
+      final cubit = ShortcutsCubit();
+      // Default newClip is Ctrl+N; importing tasks onto Ctrl+N conflicts.
+      final result = await cubit.importOverrides({
+        CommandIds.openTasks: const [
+          KeyChord('n', [KeyChordMod.mod]),
+        ],
+      });
+
+      expect(result.applied, isFalse);
+      expect(result.conflicts, hasLength(1));
+      // State untouched.
+      expect(
+        cubit.state.chordsFor(CommandIds.openTasks),
+        appCommandCatalog
+            .firstWhere((d) => d.id == CommandIds.openTasks)
+            .defaultChords,
+      );
+    });
+
+    test('replaceConflicts clears the chord from the other command', () async {
+      final cubit = ShortcutsCubit();
+
+      final result = await cubit.importOverrides({
+        CommandIds.openTasks: const [
+          KeyChord('n', [KeyChordMod.mod]),
+        ],
+      }, replaceConflicts: true);
+
+      expect(result.applied, isTrue);
+      expect(cubit.state.chordsFor(CommandIds.openTasks), [
+        const KeyChord('n', [KeyChordMod.mod]),
+      ]);
+      // newClip lost the conflicting chord and is now unbound.
+      expect(cubit.state.chordsFor(CommandIds.newClip), isEmpty);
+      expect(cubit.state.conflicts, isEmpty);
+    });
+
+    test('import keeps pre-existing overrides for other commands', () async {
+      final cubit = ShortcutsCubit();
+      await cubit.rebind(
+        CommandIds.toggleSidebar,
+        const KeyChord('u', [KeyChordMod.ctrl]),
+      );
+
+      await cubit.importOverrides({
+        CommandIds.newClip: const [
+          KeyChord('j', [KeyChordMod.ctrl]),
+        ],
+      });
+
+      expect(cubit.state.chordsFor(CommandIds.toggleSidebar), [
+        const KeyChord('u', [KeyChordMod.ctrl]),
+      ]);
+    });
+  });
+
   test('load drops persisted bindings for unknown commands and keys', () async {
     SharedPreferences.setMockInitialValues(<String, Object>{
       'shortcuts.bindings.v1':

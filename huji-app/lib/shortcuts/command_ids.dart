@@ -9,4 +9,16 @@ abstract final class CommandIds {
   static const openTasks = 'app.openTasks';
   static const closeOrBack = 'app.closeOrBack';
   static const toggleSidebar = 'shell.toggleSidebar';
+
+  // Precision edit (scoped to /clip/:id/edit)
+  static const precisionPlayPause = 'precisionEdit.playPause';
+  static const precisionSplit = 'precisionEdit.split';
+  static const precisionAddSegment = 'precisionEdit.addSegment';
+  static const precisionDeleteSegment = 'precisionEdit.deleteSegment';
+  static const precisionPlaySelectedOnly = 'precisionEdit.playSelectedOnly';
+  static const precisionToggleSlowMotion = 'precisionEdit.toggleSlowMotion';
+  static const precisionPrevRound = 'precisionEdit.prevRound';
+  static const precisionNextRound = 'precisionEdit.nextRound';
+  static const precisionSeekBackward = 'precisionEdit.seekBackward';
+  static const precisionSeekForward = 'precisionEdit.seekForward';
 }
