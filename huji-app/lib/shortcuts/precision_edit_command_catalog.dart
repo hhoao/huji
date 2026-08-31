@@ -3,16 +3,8 @@ import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/command_scope.dart';
 import 'package:huji_app/shortcuts/key_chord.dart';
 
-/// Precision-edit commands — only match on `/clip/:id/edit` (see
-/// [CommandScope.precisionEdit]).
+/// Precision-edit-only commands — only match on `/clip/:id/edit`.
 final List<CommandDefinition> precisionEditCommandCatalog = [
-  CommandDefinition(
-    id: CommandIds.precisionPlayPause,
-    category: CommandCategory.editing,
-    scope: CommandScope.precisionEdit,
-    defaultChords: const [KeyChord('space')],
-    title: (l10n) => l10n.shortcutsCommandPrecisionPlayPause,
-  ),
   CommandDefinition(
     id: CommandIds.precisionSplit,
     category: CommandCategory.editing,
@@ -47,33 +39,5 @@ final List<CommandDefinition> precisionEditCommandCatalog = [
     scope: CommandScope.precisionEdit,
     defaultChords: const [KeyChord('m')],
     title: (l10n) => l10n.shortcutsCommandPrecisionToggleSlowMotion,
-  ),
-  CommandDefinition(
-    id: CommandIds.precisionPrevRound,
-    category: CommandCategory.editing,
-    scope: CommandScope.precisionEdit,
-    defaultChords: const [KeyChord('arrowUp')],
-    title: (l10n) => l10n.shortcutsCommandPrecisionPrevRound,
-  ),
-  CommandDefinition(
-    id: CommandIds.precisionNextRound,
-    category: CommandCategory.editing,
-    scope: CommandScope.precisionEdit,
-    defaultChords: const [KeyChord('arrowDown')],
-    title: (l10n) => l10n.shortcutsCommandPrecisionNextRound,
-  ),
-  CommandDefinition(
-    id: CommandIds.precisionSeekBackward,
-    category: CommandCategory.editing,
-    scope: CommandScope.precisionEdit,
-    defaultChords: const [KeyChord('arrowLeft')],
-    title: (l10n) => l10n.shortcutsCommandPrecisionSeekBackward,
-  ),
-  CommandDefinition(
-    id: CommandIds.precisionSeekForward,
-    category: CommandCategory.editing,
-    scope: CommandScope.precisionEdit,
-    defaultChords: const [KeyChord('arrowRight')],
-    title: (l10n) => l10n.shortcutsCommandPrecisionSeekForward,
   ),
 ];

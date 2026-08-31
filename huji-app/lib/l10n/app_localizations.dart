@@ -5804,6 +5804,12 @@ abstract class HujiLocalizations {
   /// **'Navigation'**
   String get shortcutsCategoryNavigation;
 
+  /// No description provided for @shortcutsCategoryPlayback.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback'**
+  String get shortcutsCategoryPlayback;
+
   /// No description provided for @shortcutsCategoryView.
   ///
   /// In en, this message translates to:
@@ -5858,6 +5864,36 @@ abstract class HujiLocalizations {
   /// **'Toggle Sidebar'**
   String get shortcutsCommandToggleSidebar;
 
+  /// No description provided for @shortcutsCommandPlaybackPlayPause.
+  ///
+  /// In en, this message translates to:
+  /// **'Play / Pause'**
+  String get shortcutsCommandPlaybackPlayPause;
+
+  /// No description provided for @shortcutsCommandPlaybackSeekBackward.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek backward'**
+  String get shortcutsCommandPlaybackSeekBackward;
+
+  /// No description provided for @shortcutsCommandPlaybackSeekForward.
+  ///
+  /// In en, this message translates to:
+  /// **'Seek forward'**
+  String get shortcutsCommandPlaybackSeekForward;
+
+  /// No description provided for @shortcutsCommandPlaybackPrevSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Previous segment'**
+  String get shortcutsCommandPlaybackPrevSegment;
+
+  /// No description provided for @shortcutsCommandPlaybackNextSegment.
+  ///
+  /// In en, this message translates to:
+  /// **'Next segment'**
+  String get shortcutsCommandPlaybackNextSegment;
+
   /// No description provided for @shortcutsCommandPrecisionPlayPause.
   ///
   /// In en, this message translates to:
@@ -5909,13 +5945,13 @@ abstract class HujiLocalizations {
   /// No description provided for @shortcutsCommandPrecisionSeekBackward.
   ///
   /// In en, this message translates to:
-  /// **'Seek backward 1s'**
+  /// **'Seek backward 0.1s (hold to accelerate)'**
   String get shortcutsCommandPrecisionSeekBackward;
 
   /// No description provided for @shortcutsCommandPrecisionSeekForward.
   ///
   /// In en, this message translates to:
-  /// **'Seek forward 1s'**
+  /// **'Seek forward 0.1s (hold to accelerate)'**
   String get shortcutsCommandPrecisionSeekForward;
 
   /// No description provided for @shortcutsConflictTooltip.

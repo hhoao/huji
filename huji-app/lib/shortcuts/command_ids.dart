@@ -10,6 +10,13 @@ abstract final class CommandIds {
   static const closeOrBack = 'app.closeOrBack';
   static const toggleSidebar = 'shell.toggleSidebar';
 
+  // Shared video playback (preview, clip config, compress, precision edit)
+  static const playbackPlayPause = 'playback.playPause';
+  static const playbackSeekBackward = 'playback.seekBackward';
+  static const playbackSeekForward = 'playback.seekForward';
+  static const playbackPrevSegment = 'playback.prevSegment';
+  static const playbackNextSegment = 'playback.nextSegment';
+
   // Precision edit (scoped to /clip/:id/edit)
   static const precisionPlayPause = 'precisionEdit.playPause';
   static const precisionSplit = 'precisionEdit.split';

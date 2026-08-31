@@ -3179,6 +3179,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get shortcutsCategoryNavigation => '导航';
 
   @override
+  String get shortcutsCategoryPlayback => '播放';
+
+  @override
   String get shortcutsCategoryView => '视图';
 
   @override
@@ -3208,6 +3211,21 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get shortcutsCommandToggleSidebar => '切换侧栏';
 
   @override
+  String get shortcutsCommandPlaybackPlayPause => '播放 / 暂停';
+
+  @override
+  String get shortcutsCommandPlaybackSeekBackward => '后退';
+
+  @override
+  String get shortcutsCommandPlaybackSeekForward => '前进';
+
+  @override
+  String get shortcutsCommandPlaybackPrevSegment => '上一段';
+
+  @override
+  String get shortcutsCommandPlaybackNextSegment => '下一段';
+
+  @override
   String get shortcutsCommandPrecisionPlayPause => '播放 / 暂停';
 
   @override
@@ -3232,10 +3250,10 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get shortcutsCommandPrecisionNextRound => '下一个回合';
 
   @override
-  String get shortcutsCommandPrecisionSeekBackward => '后退 1 秒';
+  String get shortcutsCommandPrecisionSeekBackward => '后退 0.1 秒（长按加速）';
 
   @override
-  String get shortcutsCommandPrecisionSeekForward => '前进 1 秒';
+  String get shortcutsCommandPrecisionSeekForward => '前进 0.1 秒（长按加速）';
 
   @override
   String get shortcutsConflictTooltip => '与其他命令冲突';

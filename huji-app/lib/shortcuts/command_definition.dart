@@ -3,7 +3,7 @@ import 'package:huji_app/shortcuts/command_scope.dart';
 import 'package:huji_app/shortcuts/key_chord.dart';
 
 /// Grouping used by the cheatsheet and the settings section, in display order.
-enum CommandCategory { navigation, view, editing, meta }
+enum CommandCategory { navigation, view, playback, editing, meta }
 
 /// A declarative shortcut command: stable id, default chords and a localized
 /// title. Handlers are wired separately on the [CommandBus] (see

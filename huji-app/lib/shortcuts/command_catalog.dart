@@ -3,6 +3,7 @@ import 'package:huji_app/shortcuts/command_definition.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/key_chord.dart';
 import 'package:huji_app/shortcuts/precision_edit_command_catalog.dart';
+import 'package:huji_app/shortcuts/playback_command_catalog.dart';
 
 /// All desktop commands with their default chords.
 ///
@@ -59,6 +60,7 @@ final List<CommandDefinition> appCommandCatalog = [
     ],
     title: (l10n) => l10n.shortcutsCommandToggleSidebar,
   ),
+  ...playbackCommandCatalog,
   ...precisionEditCommandCatalog,
 ];
 
@@ -68,6 +70,8 @@ String commandCategoryTitle(CommandCategory category, HujiLocalizations l10n) {
       return l10n.shortcutsCategoryNavigation;
     case CommandCategory.view:
       return l10n.shortcutsCategoryView;
+    case CommandCategory.playback:
+      return l10n.shortcutsCategoryPlayback;
     case CommandCategory.editing:
       return l10n.shortcutsCategoryEditing;
     case CommandCategory.meta:

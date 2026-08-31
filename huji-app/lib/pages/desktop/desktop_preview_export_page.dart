@@ -11,7 +11,10 @@ import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
+import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
@@ -20,6 +23,8 @@ import 'package:huji_app/widgets/multi_video_player/bloc_multi_video_player_widg
 import 'package:huji_app/widgets/multi_video_player/segment_playback_factory.dart';
 import 'package:huji_app/widgets/video_export_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/shortcuts/command_bus.dart';
+import 'package:huji_app/shortcuts/playback_command_registration.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
@@ -46,6 +51,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   String _savePath = '';
   String _selectedQuality = _quality1080;
   bool _isLoading = true;
+  bool _commandsRegistered = false;
+  PlaybackCommandRegistration? _playbackRegistration;
 
   String _qualityLabel(HujiLocalizations l10n) => switch (_selectedQuality) {
     _qualityOriginal => l10n.exportQualityOriginal,
@@ -65,10 +72,24 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       final home = Platform.environment['HOME'] ?? '/tmp';
       _savePath = '$home/Videos/${context.hujiL10n.videosFolderName}';
     }
+    if (!_commandsRegistered) {
+      _commandsRegistered = true;
+      _playbackRegistration = PlaybackCommandRegistration(
+        context.read<CommandBus>(),
+      );
+      _playbackRegistration!.register(
+        playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
+        seekBackward: () => seekMultiVideoPlayerBySeconds(_playerBloc, -1),
+        seekForward: () => seekMultiVideoPlayerBySeconds(_playerBloc, 1),
+        prevSegment: () => goToPreviousMultiVideoPlayerSegment(_playerBloc),
+        nextSegment: () => goToNextMultiVideoPlayerSegment(_playerBloc),
+      );
+    }
   }
 
   @override
   void dispose() {
+    _playbackRegistration?.unregister();
     _playerBloc.close();
     super.dispose();
   }
@@ -245,6 +266,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     }
   }
 
+  Future<void> _openPrecisionEdit(BuildContext context) async {
+    if (!context.read<UserBloc>().state.isLoggedIn) {
+      await LoginDialog.show(context);
+      if (!context.mounted) return;
+      if (!context.read<UserBloc>().state.isLoggedIn) return;
+    }
+    context.go(DesktopRoutes.clipEditPath(widget.clipId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
@@ -267,7 +297,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           SizedBox(width: 8),
           TpButton(
             variant: TpButtonVariant.outline,
-            onPressed: () => context.go(DesktopRoutes.clipEditPath(widget.clipId)),
+            onPressed: () => _openPrecisionEdit(context),
             child: Text(l10n.precisionEditButton),
           ),
           SizedBox(width: 8),

@@ -1,5 +1,15 @@
 typedef CommandHandler = void Function();
 
+/// Set for the duration of [CommandBus.invoke] so repeat-sensitive handlers
+/// (e.g. precision-edit seek) can distinguish key-down from key-repeat.
+class CommandInvocationScope {
+  CommandInvocationScope._();
+
+  static final instance = CommandInvocationScope._();
+
+  bool isRepeat = false;
+}
+
 /// Registry of commandId → handler.
 ///
 /// Handlers are registered for the lifetime of their owning widget/feature —
@@ -21,10 +31,17 @@ class CommandBus {
   }
 
   /// Invokes the handler for [id]; returns whether one was registered.
-  bool invoke(String id) {
+  bool invoke(String id, {bool isRepeat = false}) {
     final handler = _handlers[id];
     if (handler == null) return false;
-    handler();
+    final scope = CommandInvocationScope.instance;
+    final previous = scope.isRepeat;
+    scope.isRepeat = isRepeat;
+    try {
+      handler();
+    } finally {
+      scope.isRepeat = previous;
+    }
     return true;
   }
 }

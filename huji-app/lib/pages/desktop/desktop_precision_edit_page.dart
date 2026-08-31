@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
+import 'package:huji_app/shortcuts/playback_command_registration.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
@@ -15,10 +16,15 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/desktop/precision_edit_round_nav.dart';
+import 'package:huji_app/pages/desktop/precision_edit_seek_accelerator.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_bloc.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_event.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_state.dart';
+import 'package:huji_app/store/user/user_bloc.dart';
+import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dart';
+import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
@@ -41,6 +47,8 @@ class DesktopPrecisionEditPage extends StatefulWidget {
 }
 
 class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
+  static const _roundListWidth = 240.0;
+
   late final MultiVideoPlayerBloc _multiVideoPlayerBloc;
   late final RoundClipBloc _roundClipBloc;
   VideoTrimmerBlocManager? _trimmerBlocManager;
@@ -51,6 +59,9 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   bool _commandsRegistered = false;
   CommandBus? _commandBus;
   final List<(String, CommandHandler)> _commandHandlers = [];
+  PlaybackCommandRegistration? _playbackRegistration;
+  final PrecisionEditSeekAccelerator _seekAccelerator =
+      PrecisionEditSeekAccelerator();
 
   // 回合缩略图缓存。按 SegmentInfo 值缓存（freezed 值相等），
   // 片段被裁剪编辑后起点/终点变化会自动重新抽帧。
@@ -313,19 +324,25 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       _commandHandlers.add((id, handler));
     }
 
-    reg(CommandIds.precisionPlayPause, _shortcutPlayPause);
     reg(CommandIds.precisionSplit, _shortcutSplit);
     reg(CommandIds.precisionAddSegment, _shortcutAddSegment);
     reg(CommandIds.precisionDeleteSegment, _shortcutDeleteSegment);
     reg(CommandIds.precisionPlaySelectedOnly, _shortcutPlaySelectedOnly);
     reg(CommandIds.precisionToggleSlowMotion, _shortcutToggleSlowMotion);
-    reg(CommandIds.precisionPrevRound, () => _shortcutSelectRound(-1));
-    reg(CommandIds.precisionNextRound, () => _shortcutSelectRound(1));
-    reg(CommandIds.precisionSeekBackward, () => _shortcutSeekBySeconds(-1));
-    reg(CommandIds.precisionSeekForward, () => _shortcutSeekBySeconds(1));
+
+    _playbackRegistration = PlaybackCommandRegistration(bus);
+    _playbackRegistration!.register(
+      playPause: _shortcutPlayPause,
+      seekBackward: () => _shortcutSeek(-1),
+      seekForward: () => _shortcutSeek(1),
+      prevSegment: () => _shortcutSelectRound(-1),
+      nextSegment: () => _shortcutSelectRound(1),
+    );
   }
 
   void _unregisterPrecisionEditCommands() {
+    _playbackRegistration?.unregister();
+    _playbackRegistration = null;
     final bus = _commandBus;
     if (bus == null) return;
     for (final (id, handler) in _commandHandlers) {
@@ -395,18 +412,59 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     _selectRoundAtIndex(nextIndex, segments);
   }
 
-  void _shortcutSeekBySeconds(int deltaSeconds) {
+  void _shortcutSeek(int direction) {
     final manager = _trimmerBlocManager;
     if (manager == null) return;
+    final stepMs = _seekAccelerator.stepMsFor(
+      isRepeat: CommandInvocationScope.instance.isRepeat,
+      direction: direction,
+    );
     final trimmer = manager.trimmerBloc;
     final current = trimmer.state.currentMilliseconds;
     final total = trimmer.state.totalDuration.round();
-    final next = (current + deltaSeconds * 1000).clamp(0, total);
+    final next = (current + direction * stepMs).clamp(0, total);
     trimmer.add(TrimmerSeekTo(Duration(milliseconds: next)));
+  }
+
+  Widget _buildLoginRequiredShell(BuildContext context) {
+    final l10n = context.hujiL10n;
+    return DesktopPageShell(
+      currentRoute: DesktopRoutes.clipEditPath(widget.clipId),
+      title: l10n.precisionEditTitle,
+      breadcrumbs: [
+        l10n.desktopNavLibrary,
+        l10n.editBreadcrumb,
+        l10n.precisionEditTitle,
+      ],
+      actions: [
+        TpButton(
+          variant: TpButtonVariant.outline,
+          onPressed: () =>
+              context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
+          child: Text(l10n.backToPreview),
+        ),
+      ],
+      child: DesktopLoginPlaceholder(
+        message: l10n.loginNeedLoginTitle,
+        onLogin: () => LoginDialog.show(context),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    return BlocBuilder<UserBloc, UserState>(
+      buildWhen: (prev, curr) => prev.isLoggedIn != curr.isLoggedIn,
+      builder: (context, userState) {
+        if (!userState.isLoggedIn) {
+          return _buildLoginRequiredShell(context);
+        }
+        return _buildEditor(context);
+      },
+    );
+  }
+
+  Widget _buildEditor(BuildContext context) {
     final trimmerManager = _trimmerBlocManager;
 
     return MultiBlocProvider(
@@ -481,14 +539,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                 ),
               ),
             ],
-            child: Row(
-              children: [
-                _buildRoundList(context, state, segments, resolvedIndex),
-                Expanded(
-                    child: _buildEditor(
-                        context, activeSegment, state, segments,
-                        trimmerManager)),
-              ],
+            child: _buildBorderedGrid(
+              context,
+              state,
+              segments,
+              resolvedIndex,
+              activeSegment,
+              trimmerManager,
             ),
           );
         },
@@ -496,7 +553,108 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     );
   }
 
-  Widget _buildRoundList(
+  BorderSide _panelBorderSide(BuildContext context) => BorderSide(
+        color: context.desktopBorderMedium,
+        width: 2,
+      );
+
+  Widget _buildBorderedGrid(
+    BuildContext context,
+    RoundClipState state,
+    List<SegmentInfo> segments,
+    int activeRoundIndex,
+    SegmentInfo? activeSegment,
+    VideoTrimmerBlocManager? trimmerManager,
+  ) {
+    final divider = _panelBorderSide(context);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        border: Border.all(color: divider.color, width: divider.width),
+      ),
+      child: Column(
+        children: [
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: _roundListWidth,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(border: Border(right: divider)),
+                    child: _buildRoundListHeader(context, segments),
+                  ),
+                ),
+                Expanded(
+                  child: activeSegment != null
+                      ? _buildInfoRow(activeSegment, segments)
+                      : const SizedBox.shrink(),
+                ),
+              ],
+            ),
+          ),
+          Divider(height: 2, thickness: 2, color: divider.color),
+          Expanded(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  width: _roundListWidth,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(border: Border(right: divider)),
+                    child: _buildRoundListBody(
+                      context,
+                      state,
+                      segments,
+                      activeRoundIndex,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: _buildEditor(
+                    context,
+                    activeSegment,
+                    state,
+                    segments,
+                    trimmerManager,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoundListHeader(
+    BuildContext context,
+    List<SegmentInfo> segments,
+  ) {
+    final cs = context.desktopColors;
+    final styles = TpTextStyles.of(context);
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            context.hujiL10n.roundList,
+            style: styles.md.copyWith(
+              color: cs.onSurface,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            context.hujiL10n.roundCountBadge(segments.length),
+            style: styles.xs.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRoundListBody(
     BuildContext context,
     RoundClipState state,
     List<SegmentInfo> segments,
@@ -504,89 +662,53 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   ) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
-    return SizedBox(
-      width: 240,
-      child: ColoredBox(
-        color: cs.surfaceContainerLow,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                border: Border(
-                  bottom: BorderSide(color: context.desktopBorderLight),
-                ),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    context.hujiL10n.roundList,
-                    style: styles.md.copyWith(
-                      color: cs.onSurface,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    context.hujiL10n.roundCountBadge(segments.length),
-                    style: styles.xs.copyWith(color: cs.onSurfaceVariant),
-                  ),
-                ],
-              ),
-            ),
-            Expanded(
-              child: state.isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : state.errorMessage != null
-                      ? Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Text(
-                            state.errorMessage!,
-                            style: styles.sm.copyWith(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
-                        )
-                      : segments.isEmpty
-                          ? Center(
-                              child: Text(
-                                context.hujiL10n.noRoundSegments,
-                                style: styles.md.copyWith(
-                                  color: cs.onSurfaceVariant,
-                                ),
-                              ),
-                            )
-                          : ListView(
-                              padding: const EdgeInsets.all(8),
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8,
-                                    vertical: 6,
-                                  ),
-                                  child: Text(
-                                    context.hujiL10n.selectedRounds,
-                                    style: styles.xs.copyWith(
-                                      color: cs.outline,
-                                      letterSpacing: 0.6,
-                                    ),
-                                  ),
-                                ),
-                                ...List.generate(
-                                  segments.length,
-                                  (i) => _buildRoundItem(
-                                    context,
-                                    segments[i],
-                                    i + 1,
-                                    activeRoundIndex == i,
-                                    () => _selectRoundAtIndex(i, segments),
-                                  ),
-                                ),
-                              ],
-                            ),
-            ),
-          ],
+
+    if (state.isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (state.errorMessage != null) {
+      return Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          state.errorMessage!,
+          style: styles.sm.copyWith(color: Colors.red),
+          textAlign: TextAlign.center,
         ),
-      ),
+      );
+    }
+    if (segments.isEmpty) {
+      return Center(
+        child: Text(
+          context.hujiL10n.noRoundSegments,
+          style: styles.md.copyWith(color: cs.onSurfaceVariant),
+        ),
+      );
+    }
+
+    return ListView(
+      padding: const EdgeInsets.all(8),
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          child: Text(
+            context.hujiL10n.selectedRounds,
+            style: styles.xs.copyWith(
+              color: cs.outline,
+              letterSpacing: 0.6,
+            ),
+          ),
+        ),
+        ...List.generate(
+          segments.length,
+          (i) => _buildRoundItem(
+            context,
+            segments[i],
+            i + 1,
+            activeRoundIndex == i,
+            () => _selectRoundAtIndex(i, segments),
+          ),
+        ),
+      ],
     );
   }
 
@@ -710,21 +832,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       );
     }
 
-    return Column(
-      children: [
-        _buildInfoRow(activeSegment, segments),
-        SizedBox(height: 8),
-        Expanded(
-          child: TrimmerEditor(
-            onSegmentsChanged: (updatedSegments) {
-              _roundClipBloc.add(UpdateEdittingVideoRecordEvent(
-                updatedSegments,
-                isFlushState: false,
-              ));
-            },
-          ),
-        ),
-      ],
+    return TrimmerEditor(
+      onSegmentsChanged: (updatedSegments) {
+        _roundClipBloc.add(UpdateEdittingVideoRecordEvent(
+          updatedSegments,
+          isFlushState: false,
+        ));
+      },
     );
   }
 
@@ -735,46 +849,43 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final indexLabel = segmentIndex >= 0 ? '#${segmentIndex + 1}' : '#?';
     final duration = segment.endSeconds - segment.startSeconds;
 
-    return ColoredBox(
-      color: cs.surfaceContainerLow,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Text(
-                  context.hujiL10n.currentEditingRound(indexLabel),
-                  style: styles.mdMedium.copyWith(
-                    color: cs.onSurface,
-                    fontWeight: FontWeight.w600,
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                context.hujiL10n.currentEditingRound(indexLabel),
+                style: styles.mdMedium.copyWith(
+                  color: cs.onSurface,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(width: 10),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _actionTypeBgColor(segment.actionType),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  _formatActionType(context, segment.actionType),
+                  style: styles.xs.copyWith(
+                    color: _actionTypeColor(segment.actionType),
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                SizedBox(width: 10),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: _actionTypeBgColor(segment.actionType),
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Text(
-                    _formatActionType(context, segment.actionType),
-                    style: styles.xs.copyWith(
-                      color: _actionTypeColor(segment.actionType),
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Text(
-              '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
-              style: styles.mono.copyWith(color: cs.onSurfaceVariant),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          Text(
+            '${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s',
+            style: styles.mono.copyWith(color: cs.onSurfaceVariant),
+          ),
+        ],
       ),
     );
   }

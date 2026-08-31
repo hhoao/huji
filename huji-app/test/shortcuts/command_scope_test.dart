@@ -18,6 +18,26 @@ void main() {
     });
   });
 
+  group('isPreviewExportRoute', () {
+    test('matches preview paths', () {
+      expect(isPreviewExportRoute('/clip/abc/preview'), isTrue);
+    });
+
+    test('rejects non-preview paths', () {
+      expect(isPreviewExportRoute('/clip/abc/edit'), isFalse);
+      expect(isPreviewExportRoute('/clip/new'), isFalse);
+    });
+  });
+
+  group('isVideoPlaybackRoute', () {
+    test('matches configured playback routes', () {
+      expect(isVideoPlaybackRoute('/clip/a/preview'), isTrue);
+      expect(isVideoPlaybackRoute('/clip/new'), isTrue);
+      expect(isVideoPlaybackRoute('/tools/video-compress'), isTrue);
+      expect(isVideoPlaybackRoute('/clip/a/edit'), isTrue);
+    });
+  });
+
   group('commandScopeMatches', () {
     test('global scope always matches', () {
       expect(commandScopeMatches(CommandScope.global, '/'), isTrue);
@@ -30,6 +50,23 @@ void main() {
         isTrue,
       );
       expect(commandScopeMatches(CommandScope.precisionEdit, '/'), isFalse);
+    });
+
+    test('video playback scope matches all playback surfaces', () {
+      expect(
+        commandScopeMatches(CommandScope.videoPlayback, '/clip/x/preview'),
+        isTrue,
+      );
+      expect(commandScopeMatches(CommandScope.videoPlayback, '/clip/new'), isTrue);
+      expect(
+        commandScopeMatches(CommandScope.videoPlayback, '/tools/video-compress'),
+        isTrue,
+      );
+      expect(
+        commandScopeMatches(CommandScope.videoPlayback, '/clip/x/edit'),
+        isTrue,
+      );
+      expect(commandScopeMatches(CommandScope.videoPlayback, '/'), isFalse);
     });
   });
 }

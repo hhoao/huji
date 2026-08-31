@@ -1,9 +1,16 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:desktop_drop/desktop_drop.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/constants/file_extensions.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/shortcuts/command_bus.dart';
+import 'package:huji_app/shortcuts/media_kit_playback_commands.dart';
+import 'package:huji_app/shortcuts/playback_command_registration.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
@@ -41,12 +48,29 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
   media_kit_video.VideoController? _videoController;
   bool _isVideoLoading = false;
   bool _isVideoReady = false;
+  bool _isPlaying = false;
+  int _positionMs = 0;
+  int _durationMs = 0;
+  bool _scrubbing = false;
+  double? _scrubFraction;
   String? _loadedPath;
+  PlaybackCommandRegistration? _playbackRegistration;
+  bool _hasCommandBus = false;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+  StreamSubscription<bool>? _playingSub;
 
   @override
   void initState() {
     super.initState();
     _initPlayer(widget.file?.path);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _hasCommandBus = true;
+    _syncPlaybackCommands();
   }
 
   @override
@@ -59,6 +83,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
 
   @override
   void dispose() {
+    _playbackRegistration?.unregister();
     _player?.dispose();
     _player = null;
     _videoController = null;
@@ -66,15 +91,53 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
   }
 
   Future<void> _disposePlayer() async {
+    _detachPlayerStreams();
     final player = _player;
     _player = null;
     _videoController = null;
     _isVideoLoading = false;
     _isVideoReady = false;
+    _isPlaying = false;
+    _positionMs = 0;
+    _durationMs = 0;
+    _scrubbing = false;
+    _scrubFraction = null;
     _loadedPath = null;
+    _syncPlaybackCommands();
     if (player != null) {
       await player.dispose();
     }
+  }
+
+  void _detachPlayerStreams() {
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    _playingSub?.cancel();
+    _positionSub = null;
+    _durationSub = null;
+    _playingSub = null;
+  }
+
+  void _attachPlayerStreams(media_kit.Player player) {
+    _detachPlayerStreams();
+    _positionMs = player.state.position.inMilliseconds;
+    final initialDuration = player.state.duration;
+    if (initialDuration > Duration.zero) {
+      _durationMs = initialDuration.inMilliseconds;
+    }
+
+    _positionSub = player.stream.position.listen((position) {
+      if (!mounted || _scrubbing) return;
+      setState(() => _positionMs = position.inMilliseconds);
+    });
+    _durationSub = player.stream.duration.listen((duration) {
+      if (!mounted || duration == Duration.zero) return;
+      setState(() => _durationMs = duration.inMilliseconds);
+    });
+    _playingSub = player.stream.playing.listen((playing) {
+      if (!mounted) return;
+      setState(() => _isPlaying = playing);
+    });
   }
 
   Future<void> _initPlayer(String? path) async {
@@ -106,15 +169,51 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
       setState(() {
         _isVideoLoading = false;
         _isVideoReady = true;
+        _isPlaying = false;
       });
+      _attachPlayerStreams(player);
+      _syncPlaybackCommands();
     } catch (e, st) {
       AppLogger().e('Failed to load desktop preview video: $e', st, e);
       if (!mounted || _loadedPath != path) return;
       setState(() {
         _isVideoLoading = false;
         _isVideoReady = false;
+        _isPlaying = false;
       });
+      _syncPlaybackCommands();
     }
+  }
+
+  void _syncPlaybackCommands() {
+    _playbackRegistration?.unregister();
+    _playbackRegistration = null;
+    if (!PlatformCapability.isDesktop || !_hasCommandBus) return;
+    final player = _player;
+    if (!_isVideoReady || player == null) return;
+
+    final registration = PlaybackCommandRegistration(context.read<CommandBus>());
+    registration.register(
+      playPause: () => _togglePlayPause(),
+      seekBackward: () => seekMediaKitPlayerBySeconds(player, -1),
+      seekForward: () => seekMediaKitPlayerBySeconds(player, 1),
+    );
+    _playbackRegistration = registration;
+  }
+
+  Future<void> _togglePlayPause() async {
+    final player = _player;
+    if (player == null) return;
+    await player.playOrPause();
+  }
+
+  Future<void> _seekToFraction(double fraction) async {
+    final player = _player;
+    if (player == null || _durationMs <= 0) return;
+    final ms = (fraction * _durationMs).round().clamp(0, _durationMs);
+    await player.seek(Duration(milliseconds: ms));
+    if (!mounted) return;
+    setState(() => _positionMs = ms);
   }
 
   bool _isVideoFile(String path) {
@@ -233,15 +332,41 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
               child: ColoredBox(
                 color: cs.surfaceContainer,
                 child: _isVideoReady && _videoController != null
-                    ? media_kit_video.Video(
-                        controller: _videoController!,
-                        controls: media_kit_video.NoVideoControls,
-                        fit: BoxFit.contain,
+                    ? GestureDetector(
+                        onTap: _togglePlayPause,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            media_kit_video.Video(
+                              controller: _videoController!,
+                              controls: media_kit_video.NoVideoControls,
+                              fit: BoxFit.contain,
+                            ),
+                            if (!_isPlaying)
+                              Container(
+                                width: 56,
+                                height: 56,
+                                decoration: BoxDecoration(
+                                  color: Colors.black.withValues(alpha: 0.45),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.play_arrow,
+                                  color: Colors.white,
+                                  size: 32,
+                                ),
+                              ),
+                          ],
+                        ),
                       )
                     : _buildVideoPlaceholder(context),
               ),
             ),
           ),
+          if (_isVideoReady && _durationMs > 0) ...[
+            const SizedBox(height: 10),
+            _buildProgressBar(context),
+          ],
           const SizedBox(height: 12),
           Row(
             children: [
@@ -272,6 +397,79 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildProgressBar(BuildContext context) {
+    final cs = context.desktopColors;
+    final styles = TpTextStyles.of(context);
+    final displayMs = _scrubbing && _scrubFraction != null
+        ? (_scrubFraction! * _durationMs).round()
+        : _positionMs;
+    final fraction = _durationMs > 0
+        ? (_scrubbing
+                ? (_scrubFraction ?? (_positionMs / _durationMs))
+                : (_positionMs / _durationMs))
+            .clamp(0.0, 1.0)
+        : 0.0;
+
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text(
+              formatTime(displayMs / 1000),
+              style: styles.mono.copyWith(color: cs.onSurfaceVariant),
+            ),
+            const Spacer(),
+            Text(
+              formatTime(_durationMs / 1000),
+              style: styles.mono.copyWith(color: cs.outline),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Row(
+          children: [
+            TpIconButton(
+              icon: _isPlaying ? Icons.pause : Icons.play_arrow,
+              iconSize: 18,
+              size: TpIconButton.kCompactSize,
+              compact: true,
+              color: cs.onSurface,
+              onTap: _togglePlayPause,
+              tooltip: context.hujiL10n.shortcutsCommandPlaybackPlayPause,
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                  activeTrackColor: cs.primary,
+                  inactiveTrackColor: cs.surfaceContainerHighest,
+                  thumbColor: cs.primary,
+                  overlayColor: cs.primary.withValues(alpha: 0.12),
+                  trackHeight: 3,
+                  thumbShape: RoundSliderThumbShape(
+                    enabledThumbRadius: _scrubbing ? 7 : 5,
+                  ),
+                ),
+                child: Slider(
+                  value: fraction,
+                  onChangeStart: (_) => setState(() => _scrubbing = true),
+                  onChanged: (value) => setState(() => _scrubFraction = value),
+                  onChangeEnd: (value) {
+                    setState(() {
+                      _scrubbing = false;
+                      _scrubFraction = null;
+                    });
+                    _seekToFraction(value);
+                  },
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 

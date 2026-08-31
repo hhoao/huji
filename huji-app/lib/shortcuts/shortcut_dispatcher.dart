@@ -47,7 +47,8 @@ class ShortcutDispatcher {
   /// Returns whether the event was consumed by a matched command.
   bool handle(KeyEvent event) {
     if (!enabled) return false;
-    if (event is! KeyDownEvent) return false;
+    final isRepeat = event is KeyRepeatEvent;
+    if (!isRepeat && event is! KeyDownEvent) return false;
 
     final commandId = KeybindingResolver.match(
       event: event,
@@ -58,7 +59,7 @@ class ShortcutDispatcher {
     );
     if (commandId == null) return false;
 
-    _bus.invoke(commandId);
+    _bus.invoke(commandId, isRepeat: isRepeat);
     return true;
   }
 }

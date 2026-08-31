@@ -3261,6 +3261,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get shortcutsCategoryNavigation => 'Navigation';
 
   @override
+  String get shortcutsCategoryPlayback => 'Playback';
+
+  @override
   String get shortcutsCategoryView => 'View';
 
   @override
@@ -3290,6 +3293,21 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get shortcutsCommandToggleSidebar => 'Toggle Sidebar';
 
   @override
+  String get shortcutsCommandPlaybackPlayPause => 'Play / Pause';
+
+  @override
+  String get shortcutsCommandPlaybackSeekBackward => 'Seek backward';
+
+  @override
+  String get shortcutsCommandPlaybackSeekForward => 'Seek forward';
+
+  @override
+  String get shortcutsCommandPlaybackPrevSegment => 'Previous segment';
+
+  @override
+  String get shortcutsCommandPlaybackNextSegment => 'Next segment';
+
+  @override
   String get shortcutsCommandPrecisionPlayPause => 'Play / Pause';
 
   @override
@@ -3315,10 +3333,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get shortcutsCommandPrecisionNextRound => 'Next round';
 
   @override
-  String get shortcutsCommandPrecisionSeekBackward => 'Seek backward 1s';
+  String get shortcutsCommandPrecisionSeekBackward =>
+      'Seek backward 0.1s (hold to accelerate)';
 
   @override
-  String get shortcutsCommandPrecisionSeekForward => 'Seek forward 1s';
+  String get shortcutsCommandPrecisionSeekForward =>
+      'Seek forward 0.1s (hold to accelerate)';
 
   @override
   String get shortcutsConflictTooltip => 'Conflicts with another command';

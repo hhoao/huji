@@ -42,4 +42,18 @@ void main() {
     expect(bus.invoke('cmd'), isFalse);
     expect(calls, 1);
   });
+
+  test('invoke exposes isRepeat via CommandInvocationScope', () {
+    final bus = CommandBus();
+    var sawRepeat = false;
+    bus.register('cmd', () {
+      sawRepeat = CommandInvocationScope.instance.isRepeat;
+    });
+
+    bus.invoke('cmd');
+    expect(sawRepeat, isFalse);
+
+    bus.invoke('cmd', isRepeat: true);
+    expect(sawRepeat, isTrue);
+  });
 }

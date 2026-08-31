@@ -6,6 +6,7 @@ import 'package:huji_app/shortcuts/command_catalog.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/keybinding_resolver.dart';
 import 'package:huji_app/shortcuts/shortcut_dispatcher.dart';
+import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -123,5 +124,25 @@ void main() {
     await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
 
     expect(invoked, 0);
+  });
+
+  testWidgets('key repeat invokes handler with isRepeat', (tester) async {
+    var repeatCount = 0;
+    bus.register(CommandIds.playbackSeekForward, () {
+      if (CommandInvocationScope.instance.isRepeat) repeatCount++;
+    });
+
+    ShortcutRouteScope.instance.update('/clip/test-id/edit');
+
+    final handled = dispatcher.handle(
+      KeyRepeatEvent(
+        logicalKey: LogicalKeyboardKey.arrowRight,
+        physicalKey: const PhysicalKeyboardKey(0x00000000),
+        timeStamp: Duration.zero,
+      ),
+    );
+
+    expect(handled, isTrue);
+    expect(repeatCount, 1);
   });
 }
