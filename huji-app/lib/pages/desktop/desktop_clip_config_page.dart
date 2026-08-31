@@ -838,48 +838,63 @@ class _CheckOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: context.desktopBorderLight,
-        border: Border.all(color: context.desktopBorderLight),
-        borderRadius: BorderRadius.circular(6),
-      ),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 20,
-            height: 20,
-            child: Checkbox(
-              value: value,
-              onChanged: onChanged,
-              fillColor: WidgetStateProperty.resolveWith((s) {
-                if (s.contains(WidgetState.selected)) return cs.primary;
-                return Colors.transparent;
-              }),
-              side: BorderSide(
-                color: value ? cs.primary : cs.outline,
-                width: 1.5,
-              ),
-              checkColor: cs.onPrimary,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(3),
-              ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: TpHover(
+        onTap: () => onChanged(!value),
+        borderRadius: BorderRadius.circular(desktopRadiusMd),
+        pressScale: 0.97,
+        child: Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: value
+                ? cs.primary.withAlpha(20)
+                : context.desktopBorderLight,
+            border: Border.all(
+              color: value ? cs.primary : context.desktopBorderLight,
+              width: value ? 1.5 : 1.0,
             ),
+            borderRadius: BorderRadius.circular(6),
           ),
-          SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: styles.md.copyWith(color: cs.onSurface)),
-                SizedBox(height: 2),
-                Text(help, style: styles.xs.copyWith(color: cs.outline)),
-              ],
-            ),
+          child: Row(
+            children: [
+              SizedBox(
+                width: 20,
+                height: 20,
+                child: Checkbox(
+                  value: value,
+                  onChanged: onChanged,
+                  fillColor: WidgetStateProperty.resolveWith((s) {
+                    if (s.contains(WidgetState.selected)) return cs.primary;
+                    return Colors.transparent;
+                  }),
+                  side: BorderSide(
+                    color: value ? cs.primary : cs.outline,
+                    width: 1.5,
+                  ),
+                  checkColor: cs.onPrimary,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+              SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: styles.md.copyWith(color: cs.onSurface),
+                    ),
+                    SizedBox(height: 2),
+                    Text(help, style: styles.xs.copyWith(color: cs.outline)),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
