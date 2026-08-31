@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 
 /// Semantic color tokens for the video trimmer UI.
@@ -91,8 +92,8 @@ class TrimmerThemeData extends ThemeExtension<TrimmerThemeData> {
       segmentChipSelectedBackground: scheme.primary,
       segmentSelectedOverlay: scheme.primary.withValues(alpha: 0.28),
       segmentUnselectedOverlay: isDark
-          ? Colors.black.withValues(alpha: 0.32)
-          : scheme.scrim.withValues(alpha: 0.12),
+          ? Colors.black.withValues(alpha: 0.24)
+          : scheme.scrim.withValues(alpha: 0.08),
       playheadColor: scheme.primary,
       rulerTickColor: scheme.outline,
       rulerLabelColor: scheme.onSurface,
@@ -248,7 +249,8 @@ class TrimmerThemeData extends ThemeExtension<TrimmerThemeData> {
 /// Attaches [TrimmerThemeData] derived from [ThemeData.colorScheme].
 ThemeData withTrimmerTheme(ThemeData theme) {
   final trimmer = TrimmerThemeData.from(theme.colorScheme);
-  final layout = TrimmerLayoutMetrics.standard;
+  final typography = theme.extension<AppTypographyTheme>();
+  final layout = TrimmerLayoutMetrics.resolve(typography: typography);
   final extensions = theme.extensions.values
       .where(
         (extension) =>

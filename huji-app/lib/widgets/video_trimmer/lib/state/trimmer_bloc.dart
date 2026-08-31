@@ -93,7 +93,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
           timeIntervalSeconds: timeInterval,
           quality: 1, // 最高质量
           format: 'png', // PNG 无损压缩，更清晰
-          width: TrimmerLayoutMetrics.standard.thumbnailGenerateWidth,
+          width: TrimmerLayoutMetrics.forPlatform().thumbnailGenerateWidth,
         );
 
         // 初始化状态，不再一次性生成所有缩略图
@@ -165,7 +165,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
     final numberOfThumbnails =
         (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+    final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
     final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
     // 时间对应的像素位置（在缩略图区域中）
@@ -195,7 +195,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
     final numberOfThumbnails =
         (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+    final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
     final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
     // 根据滚动位置在缩略图区域中的比例计算时间
@@ -249,7 +249,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
         final numberOfThumbnails =
             (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-        final thumbnailTileSize = TrimmerLayoutMetrics.standard.thumbnailTileSize;
+        final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
         final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
 
         final latestTimeChange =

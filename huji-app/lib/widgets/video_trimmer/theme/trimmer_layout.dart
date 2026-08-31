@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 
 /// Layout metrics for the video trimmer timeline.
 ///
 /// Registered on [ThemeData] via [withTrimmerTheme]; widgets read through
-/// [BuildContext.trimmerLayout]. [TrimmerLayoutMetrics.standard] is the single
+/// [BuildContext.trimmerLayout]. [TrimmerLayoutMetrics.resolve] is the single
 /// source of truth for scroll/sync math in [TrimmerBloc].
 @immutable
 class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
@@ -20,6 +22,14 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
     required this.playheadWidth,
     required this.scrollStripHeight,
     required this.thumbnailGenerateWidth,
+    required this.rulerLabelFontSize,
+    required this.microLabelFontSize,
+    required this.segmentLabelFontSize,
+    required this.muteIconSize,
+    required this.toolbarHeight,
+    required this.segmentOverviewHeight,
+    required this.segmentChipFooterHeight,
+    required this.segmentChipMinWidth,
   });
 
   /// Canonical timeline tile width/height in logical pixels.
@@ -38,6 +48,15 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
   /// FFmpeg thumbnail width; scaled with [thumbnailTileSize] for crisp tiles.
   final int thumbnailGenerateWidth;
 
+  final double rulerLabelFontSize;
+  final double microLabelFontSize;
+  final double segmentLabelFontSize;
+  final double muteIconSize;
+  final double toolbarHeight;
+  final double segmentOverviewHeight;
+  final double segmentChipFooterHeight;
+  final double segmentChipMinWidth;
+
   double get timelineContentHeight =>
       timeRulerHeight + thumbnailTileSize + bottomSpanHeight;
 
@@ -54,7 +73,56 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
     playheadWidth: 3,
     scrollStripHeight: 20,
     thumbnailGenerateWidth: 320,
+    rulerLabelFontSize: 10,
+    microLabelFontSize: 8,
+    segmentLabelFontSize: 11,
+    muteIconSize: 18,
+    toolbarHeight: 56,
+    segmentOverviewHeight: 60,
+    segmentChipFooterHeight: 20,
+    segmentChipMinWidth: 60,
   );
+
+  static const desktop = TrimmerLayoutMetrics(
+    thumbnailTileSize: 88,
+    timeRulerHeight: 56,
+    bottomSpanHeight: 68,
+    leftWidgetWidth: 268,
+    segmentBorderWidth: 2,
+    segmentSelectedBorderWidth: 3,
+    dividerHandleSize: 60,
+    dividerHandleThickness: 14,
+    dividerHandleBuffer: 22,
+    playheadWidth: 3,
+    scrollStripHeight: 24,
+    thumbnailGenerateWidth: 384,
+    rulerLabelFontSize: 12,
+    microLabelFontSize: 11,
+    segmentLabelFontSize: 13,
+    muteIconSize: 22,
+    toolbarHeight: 64,
+    segmentOverviewHeight: 72,
+    segmentChipFooterHeight: 24,
+    segmentChipMinWidth: 72,
+  );
+
+  /// Picks mobile vs desktop structural metrics, then scales typography tokens
+  /// from [AppTypographyTheme] so timeline text tracks appearance settings.
+  static TrimmerLayoutMetrics resolve({AppTypographyTheme? typography}) {
+    final base = PlatformCapability.isDesktop ? desktop : standard;
+    final type =
+        typography ?? AppTypographyTheme.fromScale(AppTypographyScale.standard);
+    final textRatio = type.labelSmall / AppTypographyScale.standard.labelSmall;
+    return base.copyWith(
+      rulerLabelFontSize: base.rulerLabelFontSize * textRatio,
+      microLabelFontSize: base.microLabelFontSize * textRatio,
+      segmentLabelFontSize: base.segmentLabelFontSize * textRatio,
+      muteIconSize: base.muteIconSize * textRatio,
+    );
+  }
+
+  /// Structural + typography layout for the current platform (no theme context).
+  static TrimmerLayoutMetrics forPlatform() => resolve();
 
   @override
   TrimmerLayoutMetrics copyWith({
@@ -70,6 +138,14 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
     double? playheadWidth,
     double? scrollStripHeight,
     int? thumbnailGenerateWidth,
+    double? rulerLabelFontSize,
+    double? microLabelFontSize,
+    double? segmentLabelFontSize,
+    double? muteIconSize,
+    double? toolbarHeight,
+    double? segmentOverviewHeight,
+    double? segmentChipFooterHeight,
+    double? segmentChipMinWidth,
   }) {
     return TrimmerLayoutMetrics(
       thumbnailTileSize: thumbnailTileSize ?? this.thumbnailTileSize,
@@ -87,6 +163,17 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
       scrollStripHeight: scrollStripHeight ?? this.scrollStripHeight,
       thumbnailGenerateWidth:
           thumbnailGenerateWidth ?? this.thumbnailGenerateWidth,
+      rulerLabelFontSize: rulerLabelFontSize ?? this.rulerLabelFontSize,
+      microLabelFontSize: microLabelFontSize ?? this.microLabelFontSize,
+      segmentLabelFontSize:
+          segmentLabelFontSize ?? this.segmentLabelFontSize,
+      muteIconSize: muteIconSize ?? this.muteIconSize,
+      toolbarHeight: toolbarHeight ?? this.toolbarHeight,
+      segmentOverviewHeight:
+          segmentOverviewHeight ?? this.segmentOverviewHeight,
+      segmentChipFooterHeight:
+          segmentChipFooterHeight ?? this.segmentChipFooterHeight,
+      segmentChipMinWidth: segmentChipMinWidth ?? this.segmentChipMinWidth,
     );
   }
 
@@ -114,6 +201,17 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
           (thumbnailGenerateWidth +
                   (other.thumbnailGenerateWidth - thumbnailGenerateWidth) * t)
               .round(),
+      rulerLabelFontSize: l(rulerLabelFontSize, other.rulerLabelFontSize),
+      microLabelFontSize: l(microLabelFontSize, other.microLabelFontSize),
+      segmentLabelFontSize:
+          l(segmentLabelFontSize, other.segmentLabelFontSize),
+      muteIconSize: l(muteIconSize, other.muteIconSize),
+      toolbarHeight: l(toolbarHeight, other.toolbarHeight),
+      segmentOverviewHeight:
+          l(segmentOverviewHeight, other.segmentOverviewHeight),
+      segmentChipFooterHeight:
+          l(segmentChipFooterHeight, other.segmentChipFooterHeight),
+      segmentChipMinWidth: l(segmentChipMinWidth, other.segmentChipMinWidth),
     );
   }
 }
@@ -121,6 +219,6 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
 extension TrimmerLayoutContext on BuildContext {
   TrimmerLayoutMetrics get trimmerLayout {
     final extension = Theme.of(this).extension<TrimmerLayoutMetrics>();
-    return extension ?? TrimmerLayoutMetrics.standard;
+    return extension ?? TrimmerLayoutMetrics.forPlatform();
   }
 }

@@ -3,6 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/shortcuts/command_ids.dart';
+import 'package:huji_app/shortcuts/command_tooltip_label.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
@@ -17,6 +20,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/thumbnail_viewer.
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/video_viewer.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Full-screen video trimmer page (mobile).
 class TrimmerView extends StatefulWidget {
@@ -223,34 +227,71 @@ class TrimmerEditor extends StatelessWidget {
             ),
           ),
           Center(
-            child: GestureDetector(
-              onTap: () {
-                if (context.mounted) {
-                  context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
-                }
-              },
-              child: Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  color: trimmerTheme.playOverlayBackground,
-                  shape: BoxShape.circle,
-                ),
-                child: BlocBuilder<TrimmerBloc, TrimmerState>(
-                  buildWhen: (previous, current) =>
-                      previous.isPlaying != current.isPlaying,
-                  builder: (context, state) => Icon(
-                    state.isPlaying ? Icons.pause : Icons.play_arrow,
-                    color: trimmerTheme.onToolbar,
-                    size: 40,
-                  ),
-                ),
-              ),
-            ),
+            child: _buildPlayOverlay(context),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildPlayOverlay(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final l10n = context.hujiL10n;
+    final tooltip = PlatformCapability.isDesktop
+        ? commandTooltipLabel(
+            context,
+            label: l10n.shortcutsCommandPrecisionPlayPause,
+            commandId: CommandIds.precisionPlayPause,
+          )
+        : null;
+
+    Widget overlay = BlocBuilder<TrimmerBloc, TrimmerState>(
+      buildWhen: (previous, current) =>
+          previous.isPlaying != current.isPlaying,
+      builder: (context, state) {
+        final icon = Icon(
+          state.isPlaying ? Icons.pause : Icons.play_arrow,
+          color: trimmerTheme.onToolbar,
+          size: 40,
+        );
+        final circle = Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: trimmerTheme.playOverlayBackground,
+            shape: BoxShape.circle,
+          ),
+          child: Center(child: icon),
+        );
+        if (!PlatformCapability.isDesktop) {
+          return GestureDetector(
+            onTap: () {
+              if (context.mounted) {
+                context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
+              }
+            },
+            child: circle,
+          );
+        }
+        return TpHover(
+          shape: TpPressableShape.circle,
+          width: 80,
+          height: 80,
+          hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.12),
+          onTap: () {
+            if (context.mounted) {
+              context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
+            }
+          },
+          child: circle,
+        );
+      },
+    );
+
+    if (tooltip != null) {
+      overlay = Tooltip(message: tooltip, child: overlay);
+    }
+    return overlay;
   }
 
   Widget _buildTrimViewer(BuildContext context) {
@@ -263,9 +304,10 @@ class TrimmerEditor extends StatelessWidget {
 
   Widget _buildVideoProgressControl(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
     return Container(
-      height: 56,
+      height: layout.toolbarHeight,
       color: trimmerTheme.toolbarBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: BlocBuilder<TrimmerBloc, TrimmerState>(
@@ -282,6 +324,7 @@ class TrimmerEditor extends StatelessWidget {
                   formatTime(state.currentMilliseconds / 1000),
                   style: textTheme.labelSmall?.copyWith(
                     color: trimmerTheme.onToolbar,
+                    fontSize: layout.segmentLabelFontSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -289,6 +332,7 @@ class TrimmerEditor extends StatelessWidget {
                   formatTime(state.totalDuration / 1000),
                   style: textTheme.labelSmall?.copyWith(
                     color: trimmerTheme.onToolbarMuted,
+                    fontSize: layout.segmentLabelFontSize,
                   ),
                 ),
               ],
@@ -307,9 +351,10 @@ class TrimmerEditor extends StatelessWidget {
 
   Widget _buildControls(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
     return Container(
-      height: 60,
+      height: layout.toolbarHeight,
       color: trimmerTheme.toolbarBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
@@ -334,35 +379,7 @@ class TrimmerEditor extends StatelessWidget {
                 buildWhen: (previous, current) =>
                     previous.isSlowMotion != current.isSlowMotion,
                 builder: (context, state) {
-                  return GestureDetector(
-                    onTap: () {
-                      if (context.mounted) {
-                        context.read<TrimmerBloc>().add(
-                          TrimmerToggleSlowMotion(),
-                        );
-                      }
-                    },
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.slow_motion_video,
-                          color: state.isSlowMotion
-                              ? trimmerTheme.active
-                              : trimmerTheme.onToolbar,
-                          size: 16,
-                        ),
-                        SizedBox(width: 4),
-                        Text(
-                          '慢放',
-                          style: textTheme.labelSmall?.copyWith(
-                            color: state.isSlowMotion
-                                ? trimmerTheme.active
-                                : trimmerTheme.onToolbar,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
+                  return _buildSlowMotionControl(context, state);
                 },
               ),
               SizedBox(width: 8),
@@ -378,6 +395,26 @@ class TrimmerEditor extends StatelessWidget {
                 buildWhen: (previous, current) =>
                     previous.isPlaying != current.isPlaying,
                 builder: (context, state) {
+                  if (PlatformCapability.isDesktop) {
+                    return TpIconButton(
+                      icon: state.isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: trimmerTheme.onToolbar,
+                      tooltip: commandTooltipLabel(
+                        context,
+                        label: context
+                            .hujiL10n
+                            .shortcutsCommandPrecisionPlayPause,
+                        commandId: CommandIds.precisionPlayPause,
+                      ),
+                      onTap: () {
+                        if (context.mounted) {
+                          context.read<TrimmerBloc>().add(
+                            TrimmerTogglePlayPause(),
+                          );
+                        }
+                      },
+                    );
+                  }
                   return IconButton(
                     onPressed: () {
                       if (context.mounted) {
@@ -402,9 +439,10 @@ class TrimmerEditor extends StatelessWidget {
 
   Widget _buildSegmentOverview(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
     return Container(
-      height: 60,
+      height: layout.segmentOverviewHeight,
       color: trimmerTheme.scaffoldBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -424,27 +462,52 @@ class TrimmerEditor extends StatelessWidget {
                   final activeSegments = state.activeSegments;
                   if (index == activeSegments.length) {
                     return Container(
-                      width: 60,
+                      width: layout.segmentChipMinWidth,
                       margin: const EdgeInsets.only(right: 8),
                       decoration: BoxDecoration(
                         border: Border.all(color: trimmerTheme.segmentBorder),
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: IconButton(
-                        onPressed: () {
-                          if (context.mounted) {
-                            context.read<ClipSegmentBloc>().add(
-                              ClipSegmentAddAt(
-                                startTimeMs: context
-                                    .read<TrimmerBloc>()
-                                    .state
-                                    .currentMilliseconds,
+                      child: PlatformCapability.isDesktop
+                          ? TpIconButton(
+                              icon: Icons.add,
+                              color: trimmerTheme.onToolbar,
+                              tooltip: commandTooltipLabel(
+                                context,
+                                label: context.hujiL10n.addClipSegmentLabel,
+                                commandId: CommandIds.precisionAddSegment,
                               ),
-                            );
-                          }
-                        },
-                        icon: Icon(Icons.add, color: trimmerTheme.onToolbar),
-                      ),
+                              onTap: () {
+                                if (context.mounted) {
+                                  context.read<ClipSegmentBloc>().add(
+                                    ClipSegmentAddAt(
+                                      startTimeMs: context
+                                          .read<TrimmerBloc>()
+                                          .state
+                                          .currentMilliseconds,
+                                    ),
+                                  );
+                                }
+                              },
+                            )
+                          : IconButton(
+                              onPressed: () {
+                                if (context.mounted) {
+                                  context.read<ClipSegmentBloc>().add(
+                                    ClipSegmentAddAt(
+                                      startTimeMs: context
+                                          .read<TrimmerBloc>()
+                                          .state
+                                          .currentMilliseconds,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: Icon(
+                                Icons.add,
+                                color: trimmerTheme.onToolbar,
+                              ),
+                            ),
                     );
                   }
 
@@ -495,13 +558,14 @@ class TrimmerEditor extends StatelessWidget {
                                       ),
                                       style: textTheme.labelSmall?.copyWith(
                                         color: trimmerTheme.onToolbar,
+                                        fontSize: layout.segmentLabelFontSize,
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
                               Container(
-                                height: 20,
+                                height: layout.segmentChipFooterHeight,
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 4,
                                 ),
@@ -521,6 +585,7 @@ class TrimmerEditor extends StatelessWidget {
                                       color: isSelected
                                           ? trimmerTheme.onActive
                                           : trimmerTheme.onToolbar,
+                                      fontSize: layout.segmentLabelFontSize,
                                     ),
                                   ),
                                 ),
@@ -558,6 +623,7 @@ class TrimmerEditor extends StatelessWidget {
                 context: context,
                 icon: Icons.content_cut,
                 label: context.hujiL10n.trimSplitLabel,
+                commandId: CommandIds.precisionSplit,
                 onTap: () {
                   if (context.mounted) {
                     context.read<ClipSegmentBloc>().add(
@@ -575,6 +641,7 @@ class TrimmerEditor extends StatelessWidget {
             context: context,
             icon: Icons.add,
             label: context.hujiL10n.addClipSegmentLabel,
+            commandId: CommandIds.precisionAddSegment,
             onTap: () {
               if (context.mounted) {
                 context.read<ClipSegmentBloc>().add(
@@ -604,6 +671,7 @@ class TrimmerEditor extends StatelessWidget {
                     context: context,
                     icon: Icons.play_arrow,
                     label: context.hujiL10n.playSelectedSegmentOnly,
+                    commandId: CommandIds.precisionPlaySelectedOnly,
                     onTap: () {
                       if (context.mounted && hasActiveSegments) {
                         context.read<TrimmerBloc>().add(
@@ -628,6 +696,7 @@ class TrimmerEditor extends StatelessWidget {
                 context: context,
                 icon: Icons.delete,
                 label: context.hujiL10n.actionDelete,
+                commandId: CommandIds.precisionDeleteSegment,
                 onTap: () {
                   Throttles.throttle(
                     'trimmer_delete_segment',
@@ -650,36 +719,96 @@ class TrimmerEditor extends StatelessWidget {
     );
   }
 
+  Widget _buildSlowMotionControl(BuildContext context, TrimmerState state) {
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
+    final textTheme = Theme.of(context).textTheme;
+    final label = context.hujiL10n.shortcutsCommandPrecisionToggleSlowMotion;
+    final onTap = () {
+      if (context.mounted) {
+        context.read<TrimmerBloc>().add(TrimmerToggleSlowMotion());
+      }
+    };
+    final content = Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.slow_motion_video,
+          color: state.isSlowMotion
+              ? trimmerTheme.active
+              : trimmerTheme.onToolbar,
+          size: 16,
+        ),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: textTheme.labelSmall?.copyWith(
+            color: state.isSlowMotion
+                ? trimmerTheme.active
+                : trimmerTheme.onToolbar,
+            fontSize: layout.segmentLabelFontSize,
+          ),
+        ),
+      ],
+    );
+
+    if (!PlatformCapability.isDesktop) {
+      return GestureDetector(onTap: onTap, child: content);
+    }
+
+    return Tooltip(
+      message: commandTooltipLabel(
+        context,
+        label: label,
+        commandId: CommandIds.precisionToggleSlowMotion,
+      ),
+      child: TpHover(
+        borderRadius: BorderRadius.circular(8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        backgroundColor: state.isSlowMotion
+            ? trimmerTheme.active.withValues(alpha: 0.16)
+            : null,
+        hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.1),
+        onTap: onTap,
+        child: content,
+      ),
+    );
+  }
+
   Widget _buildSpeedMenu(BuildContext context, TrimmerState state) {
     final trimmerTheme = context.trimmerTheme;
-    return StatefulBuilder(
-      builder: (context, setState) {
-        return PopupMenuButton<bool>(
-          icon: Icon(Icons.speed, color: trimmerTheme.onToolbar, size: 20),
-          offset: const Offset(0, 40),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          color: trimmerTheme.popupSurface,
-          elevation: 8,
-          onSelected: (value) {},
-          menuPadding: EdgeInsets.zero,
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              enabled: false,
-              child: Container(
-                padding: const EdgeInsets.all(0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    _buildSpeedMenuItem(context, state, '0.5x', 0.5),
-                    _buildSpeedMenuItem(context, state, '1x', 1.0),
-                    _buildSpeedMenuItem(context, state, '2x', 2.0),
-                  ],
-                ),
-              ),
+    final button = PopupMenuButton<bool>(
+      icon: Icon(Icons.speed, color: trimmerTheme.onToolbar, size: 20),
+      offset: const Offset(0, 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      color: trimmerTheme.popupSurface,
+      elevation: 8,
+      onSelected: (value) {},
+      menuPadding: EdgeInsets.zero,
+      itemBuilder: (context) => [
+        PopupMenuItem(
+          enabled: false,
+          child: Container(
+            padding: const EdgeInsets.all(0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _buildSpeedMenuItem(context, state, '0.5x', 0.5),
+                _buildSpeedMenuItem(context, state, '1x', 1.0),
+                _buildSpeedMenuItem(context, state, '2x', 2.0),
+              ],
             ),
-          ],
-        );
-      },
+          ),
+        ),
+      ],
+    );
+
+    if (!PlatformCapability.isDesktop) return button;
+
+    return TpHover(
+      borderRadius: BorderRadius.circular(8),
+      hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.1),
+      child: button,
     );
   }
 
@@ -733,32 +862,58 @@ class TrimmerEditor extends StatelessWidget {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    String? commandId,
     bool isEnabled = true,
     Color? color,
   }) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
-    return GestureDetector(
-      onTap: isEnabled ? onTap : null,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              icon,
-              color: isEnabled ? (color ?? trimmerTheme.onToolbar) : trimmerTheme.disabled,
-              size: 24,
+    final iconColor =
+        isEnabled ? (color ?? trimmerTheme.onToolbar) : trimmerTheme.disabled;
+    final textColor =
+        isEnabled ? trimmerTheme.onToolbar : trimmerTheme.disabled;
+
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: iconColor, size: 24),
+          const SizedBox(height: 4),
+          Text(
+            label,
+            style: textTheme.labelSmall?.copyWith(
+              color: textColor,
+              fontSize: layout.segmentLabelFontSize,
             ),
-            SizedBox(height: 4),
-            Text(
-              label,
-              style: textTheme.labelSmall?.copyWith(
-                color: isEnabled ? trimmerTheme.onToolbar : trimmerTheme.disabled,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
+      ),
+    );
+
+    if (!PlatformCapability.isDesktop) {
+      return GestureDetector(
+        onTap: isEnabled ? onTap : null,
+        child: content,
+      );
+    }
+
+    final tooltip = commandId != null
+        ? commandTooltipLabel(context, label: label, commandId: commandId)
+        : label;
+
+    return Tooltip(
+      message: tooltip,
+      child: TpHover(
+        enabled: isEnabled,
+        borderRadius: BorderRadius.circular(8),
+        backgroundColor: color == trimmerTheme.active
+            ? trimmerTheme.active.withValues(alpha: 0.16)
+            : null,
+        hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.1),
+        onTap: isEnabled ? onTap : null,
+        child: content,
       ),
     );
   }

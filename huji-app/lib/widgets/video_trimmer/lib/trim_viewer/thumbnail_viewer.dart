@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path/path.dart' as path;
 import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
@@ -14,6 +15,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_area_propert
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Widget for displaying the video trimmer.
 class ScrollableTrimViewer extends StatelessWidget {
@@ -441,6 +443,7 @@ class _ThumbnailListBuilder extends StatelessWidget {
     }
 
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
     const shortInterval = 0.2;
     const longInterval = 5.0;
@@ -478,12 +481,12 @@ class _ThumbnailListBuilder extends StatelessWidget {
               tickColor: trimmerTheme.rulerTickColor,
               textStyle: textTheme.labelSmall?.copyWith(
                     color: trimmerTheme.rulerLabelColor,
-                    fontSize: 10,
+                    fontSize: layout.rulerLabelFontSize,
                     fontWeight: FontWeight.w500,
                   ) ??
                   TextStyle(
                     color: trimmerTheme.rulerLabelColor,
-                    fontSize: 10,
+                    fontSize: layout.rulerLabelFontSize,
                     fontWeight: FontWeight.w500,
                   ),
             ),
@@ -581,6 +584,7 @@ class _ThumbnailListBuilder extends StatelessWidget {
   /// 构建封面图片组件
   Widget _buildCoverImage(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
     return Container(
       width: thumbnailHeight,
@@ -640,6 +644,7 @@ class _ThumbnailListBuilder extends StatelessWidget {
                 '只播放片段',
                 style: textTheme.labelSmall?.copyWith(
                   color: trimmerTheme.onToolbar,
+                  fontSize: layout.segmentLabelFontSize,
                   fontWeight: FontWeight.bold,
                   shadows: [
                     Shadow(
@@ -674,36 +679,55 @@ class _MuteButtonState extends State<_MuteButton> {
   @override
   Widget build(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
-    return TextButton(
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: Size.zero,
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      onPressed: () {
-        setState(() {
-          _isMuted = !_isMuted;
-        });
-        widget.onPress(_isMuted);
-      },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isMuted ? Icons.volume_off : Icons.volume_up,
+    final label = _isMuted ? '开启声音' : '关闭声音';
+    final onTap = () {
+      setState(() {
+        _isMuted = !_isMuted;
+      });
+      widget.onPress(_isMuted);
+    };
+
+    final content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(
+          _isMuted ? Icons.volume_off : Icons.volume_up,
+          color: trimmerTheme.onToolbar,
+          size: layout.muteIconSize,
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: textTheme.labelSmall?.copyWith(
             color: trimmerTheme.onToolbar,
-            size: 18,
+            fontSize: layout.microLabelFontSize,
           ),
-          const SizedBox(height: 4),
-          Text(
-            _isMuted ? '开启声音' : '关闭声音',
-            style: textTheme.labelSmall?.copyWith(
-              color: trimmerTheme.onToolbar,
-              fontSize: 8,
-            ),
-          ),
-        ],
+        ),
+      ],
+    );
+
+    if (!PlatformCapability.isDesktop) {
+      return TextButton(
+        style: TextButton.styleFrom(
+          padding: EdgeInsets.zero,
+          minimumSize: Size.zero,
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        ),
+        onPressed: onTap,
+        child: content,
+      );
+    }
+
+    return Tooltip(
+      message: label,
+      child: TpHover(
+        borderRadius: BorderRadius.circular(8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.1),
+        onTap: onTap,
+        child: content,
       ),
     );
   }

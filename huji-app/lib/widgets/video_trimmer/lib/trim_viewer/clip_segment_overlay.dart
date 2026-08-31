@@ -136,9 +136,14 @@ class _ClipSegmentOverlayContentState
     final borderWidth = isSelected
         ? layout.segmentSelectedBorderWidth
         : layout.segmentBorderWidth;
+    final scheme = context.trimmerColorScheme;
+    // Timeline overlays sit on busy thumbnails; use higher-contrast borders
+    // than the chip list below (which has a solid surface behind it).
     final borderColor = isSelected
         ? trimmerTheme.segmentSelectedBorder
-        : trimmerTheme.segmentBorder.withValues(alpha: 0.65);
+        : scheme.brightness == Brightness.dark
+        ? trimmerTheme.segmentBorder
+        : scheme.onSurface.withValues(alpha: 0.88);
 
     return GestureDetector(
       onTap: () {
