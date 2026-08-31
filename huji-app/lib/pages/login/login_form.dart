@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/exceptions/notify_exception.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
@@ -43,7 +44,6 @@ class _LoginFormState extends State<LoginForm> {
   Timer? _timer;
 
   static const _inputHeight = 48.0;
-  static const _inputRadius = 8.0;
 
   @override
   void dispose() {
@@ -148,35 +148,34 @@ class _LoginFormState extends State<LoginForm> {
     });
   }
 
-  InputDecoration _inputDecoration(
-    BuildContext context, {
+  InputDecoration _inputDecoration({
     required String hint,
     required IconData icon,
     Widget? suffixIcon,
   }) {
-    final cs = Theme.of(context).colorScheme;
-    final styles = TpTextStyles.of(context);
     final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(_inputRadius),
-      borderSide: BorderSide(color: cs.outlineVariant),
+      borderRadius: BorderRadius.circular(8),
+      borderSide: const BorderSide(color: LoginDialogColors.inputBorder),
     );
 
     return InputDecoration(
       hintText: hint,
-      hintStyle: styles.mutedMd,
-      prefixIcon: Icon(icon, size: 20, color: cs.onSurfaceVariant),
+      hintStyle: const TextStyle(color: LoginDialogColors.mutedText, fontSize: 14),
+      prefixIcon: Icon(icon, size: 20, color: LoginDialogColors.iconMuted),
       suffixIcon: suffixIcon,
       contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       filled: true,
-      fillColor: cs.surface,
+      fillColor: LoginDialogColors.cardBackground,
       border: border,
       enabledBorder: border,
       focusedBorder: border.copyWith(
-        borderSide: BorderSide(color: cs.primary, width: 1.5),
+        borderSide: const BorderSide(color: LoginDialogColors.primary, width: 1),
       ),
-      errorBorder: border.copyWith(borderSide: BorderSide(color: cs.error)),
+      errorBorder: border.copyWith(
+        borderSide: const BorderSide(color: Color(0xFFF56C6C)),
+      ),
       focusedErrorBorder: border.copyWith(
-        borderSide: BorderSide(color: cs.error, width: 1.5),
+        borderSide: const BorderSide(color: Color(0xFFF56C6C), width: 1),
       ),
     );
   }
@@ -184,9 +183,8 @@ class _LoginFormState extends State<LoginForm> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
-    final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final inputStyle = styles.md.copyWith(color: cs.onSurface);
+    final inputStyle = styles.md.copyWith(color: LoginDialogColors.titleText);
 
     return TpForm(
       key: _formKey,
@@ -195,7 +193,7 @@ class _LoginFormState extends State<LoginForm> {
         children: [
           Text(
             l10n.loginTitle,
-            style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
+            style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 24),
@@ -217,7 +215,6 @@ class _LoginFormState extends State<LoginForm> {
               style: inputStyle,
               validator: (value) => validateEmailOrPhone(l10n, value),
               decoration: _inputDecoration(
-                context,
                 hint: l10n.loginIdentifierHint,
                 icon: Icons.person_outline,
               ),
@@ -239,14 +236,13 @@ class _LoginFormState extends State<LoginForm> {
                   return null;
                 },
                 decoration: _inputDecoration(
-                  context,
                   hint: l10n.loginPasswordHint,
                   icon: Icons.lock_outline,
                   suffixIcon: TpIconButton(
                     icon: _obscurePassword
                         ? Icons.visibility_off_outlined
                         : Icons.visibility_outlined,
-                    color: cs.onSurfaceVariant,
+                    color: LoginDialogColors.iconMuted,
                     onTap: () {
                       setState(() => _obscurePassword = !_obscurePassword);
                     },
@@ -268,11 +264,9 @@ class _LoginFormState extends State<LoginForm> {
                   return validateAuthCode(l10n, value);
                 },
                 decoration: _inputDecoration(
-                  context,
                   hint: l10n.loginAuthCodeHint,
                   icon: Icons.key_outlined,
-                  suffixIcon: TpButton(
-                    variant: TpButtonVariant.ghost,
+                  suffixIcon: TextButton(
                     onPressed: _countdown > 0
                         ? null
                         : () {
@@ -282,11 +276,17 @@ class _LoginFormState extends State<LoginForm> {
                               () => _getVerificationCode(context),
                             );
                           },
+                    style: TextButton.styleFrom(
+                      foregroundColor: LoginDialogColors.primary,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
                     child: Text(
                       _countdown > 0
                           ? l10n.actionResendCodeCountdown(_countdown)
                           : l10n.actionGetVerificationCode,
-                      style: styles.mdMedium.copyWith(color: cs.primary),
+                      style: styles.smMedium.copyWith(color: LoginDialogColors.primary),
                     ),
                   ),
                 ),
@@ -320,20 +320,25 @@ class _LoginFormState extends State<LoginForm> {
                       const SizedBox(width: 8),
                       Text(
                         l10n.loginRememberPassword,
-                        style: styles.md.copyWith(color: cs.onSurfaceVariant),
+                        style: styles.sm.copyWith(color: LoginDialogColors.bodyText),
                       ),
                     ],
                   ),
                 ),
-                TpButton(
-                  variant: TpButtonVariant.ghost,
+                TextButton(
                   onPressed: () {
                     _resetForm();
                     widget.onSwitchForm(FormType.forgotPassword);
                   },
+                  style: TextButton.styleFrom(
+                    foregroundColor: LoginDialogColors.primary,
+                    padding: EdgeInsets.zero,
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
                   child: Text(
                     l10n.loginForgotPassword,
-                    style: styles.mdMedium.copyWith(color: cs.primary),
+                    style: styles.sm.copyWith(color: LoginDialogColors.primary),
                   ),
                 ),
               ],
@@ -343,8 +348,7 @@ class _LoginFormState extends State<LoginForm> {
           SizedBox(
             width: double.infinity,
             height: _inputHeight,
-            child: TpButton(
-              size: TpControlSize.large,
+            child: OutlinedButton(
               onPressed: _isLoading
                   ? null
                   : () {
@@ -354,33 +358,38 @@ class _LoginFormState extends State<LoginForm> {
                         () => _handleLogin(context),
                       );
                     },
+              style: OutlinedButton.styleFrom(
+                backgroundColor: LoginDialogColors.cardBackground,
+                foregroundColor: LoginDialogColors.buttonText,
+                disabledBackgroundColor: LoginDialogColors.cardBackground,
+                disabledForegroundColor: LoginDialogColors.mutedText,
+                side: const BorderSide(color: LoginDialogColors.buttonBorder),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                textStyle: styles.mdMedium,
+              ),
               child: _isLoading
-                  ? SizedBox(
+                  ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: cs.onPrimary,
-                      ),
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Text(
-                      l10n.loginTitle,
-                      style: styles.mdMedium,
-                    ),
+                  : Text(l10n.loginTitle),
             ),
           ),
           const SizedBox(height: 24),
           Row(
             children: [
-              Expanded(child: Divider(color: cs.outlineVariant)),
+              const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text(
                   l10n.loginSocialLoginDivider,
-                  style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+                  style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
                 ),
               ),
-              Expanded(child: Divider(color: cs.outlineVariant)),
+              const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
             ],
           ),
           const SizedBox(height: 16),
@@ -409,17 +418,22 @@ class _LoginFormState extends State<LoginForm> {
             children: [
               Text(
                 l10n.loginNoAccount,
-                style: styles.md.copyWith(color: cs.onSurfaceVariant),
+                style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
               ),
-              TpButton(
-                variant: TpButtonVariant.ghost,
+              TextButton(
                 onPressed: () {
                   _resetForm();
                   widget.onSwitchForm(FormType.register);
                 },
+                style: TextButton.styleFrom(
+                  foregroundColor: LoginDialogColors.primary,
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
                 child: Text(
                   l10n.loginRegisterNow,
-                  style: styles.mdMedium.copyWith(color: cs.primary),
+                  style: styles.sm.copyWith(color: LoginDialogColors.primary),
                 ),
               ),
             ],
@@ -459,8 +473,6 @@ class _LoginTypeTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
@@ -469,8 +481,6 @@ class _LoginTypeTabs extends StatelessWidget {
           label: passwordLabel,
           active: loginType == LoginType.password,
           onTap: () => onChanged(LoginType.password),
-          primary: cs.primary,
-          inactive: cs.onSurface,
         ),
         const SizedBox(width: 24),
         _tab(
@@ -478,8 +488,6 @@ class _LoginTypeTabs extends StatelessWidget {
           label: authCodeLabel,
           active: loginType == LoginType.authCode,
           onTap: () => onChanged(LoginType.authCode),
-          primary: cs.primary,
-          inactive: cs.onSurface,
         ),
       ],
     );
@@ -490,8 +498,6 @@ class _LoginTypeTabs extends StatelessWidget {
     required String label,
     required bool active,
     required VoidCallback onTap,
-    required Color primary,
-    required Color inactive,
   }) {
     final styles = TpTextStyles.of(context);
 
@@ -502,7 +508,7 @@ class _LoginTypeTabs extends StatelessWidget {
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: active ? primary : Colors.transparent,
+              color: active ? LoginDialogColors.primary : Colors.transparent,
               width: 2,
             ),
           ),
@@ -510,7 +516,7 @@ class _LoginTypeTabs extends StatelessWidget {
         child: Text(
           label,
           style: styles.mdMedium.copyWith(
-            color: active ? primary : inactive,
+            color: active ? LoginDialogColors.primary : LoginDialogColors.titleText,
           ),
         ),
       ),
@@ -526,15 +532,14 @@ class _SocialLoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
-
     return TpHover(
       onTap: onTap,
       shape: TpPressableShape.circle,
       width: 40,
       height: 40,
-      border: Border.all(color: cs.outlineVariant),
-      child: Icon(icon, size: 22, color: cs.onSurfaceVariant),
+      hoverColor: LoginDialogColors.socialHover,
+      border: Border.all(color: LoginDialogColors.socialBorder),
+      child: Icon(icon, size: 22, color: LoginDialogColors.bodyText),
     );
   }
 }

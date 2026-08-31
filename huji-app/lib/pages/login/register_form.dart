@@ -3,6 +3,7 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
 import 'login_dialog.dart';
@@ -122,10 +123,10 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
-    final cs = Theme.of(context).colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+      padding: EdgeInsets.zero,
       child: Material(
+        color: Colors.transparent,
         child: TpForm(
           key: _formKey,
           child: Column(
@@ -133,7 +134,7 @@ class _RegisterFormState extends State<RegisterForm> {
             children: [
               Text(
                 context.hujiL10n.loginRegisterTitle,
-                style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
+                style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
                 textAlign: TextAlign.center,
               ),
 
@@ -215,7 +216,7 @@ class _RegisterFormState extends State<RegisterForm> {
                 children: [
                   Text(
                     l10n.loginAlreadyHaveAccount,
-                    style: styles.md.copyWith(color: cs.onSurfaceVariant),
+                    style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,

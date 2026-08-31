@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'login_form.dart';
 import 'register_form.dart';
@@ -9,23 +10,17 @@ enum FormType { login, register, forgotPassword }
 
 class LoginDialog extends StatefulWidget {
   final bool visible;
-  // 静态变量跟踪对话框是否已显示
   static bool _isDialogShowing = false;
 
-  // 静态方法：检查对话框是否正在显示
   static bool get isShowing => _isDialogShowing;
 
   const LoginDialog({super.key, required this.visible});
 
-  // 静态方法：显示登录对话框（确保只有一个实例）
-  // 返回 true 表示登录成功，false 表示取消或关闭
   static Future<bool> show(BuildContext context) async {
-    // 如果对话框已经显示，直接返回
     if (_isDialogShowing) {
       return false;
     }
 
-    // 设置对话框显示状态
     _isDialogShowing = true;
 
     try {
@@ -38,7 +33,6 @@ class LoginDialog extends StatefulWidget {
       );
       return result ?? false;
     } finally {
-      // 确保对话框关闭后重置状态
       _isDialogShowing = false;
     }
   }
@@ -93,7 +87,6 @@ class _LoginDialogState extends State<LoginDialog>
   @override
   void dispose() {
     _animationController.dispose();
-    // 对话框关闭时重置状态
     LoginDialog._isDialogShowing = false;
     super.dispose();
   }
@@ -112,66 +105,77 @@ class _LoginDialogState extends State<LoginDialog>
   Widget build(BuildContext context) {
     if (!widget.visible) return const SizedBox.shrink();
 
-    final cs = Theme.of(context).colorScheme;
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
 
-    return TpDialog(
-      maxWidth: 448,
-      contentPadding: EdgeInsets.zero,
-      backgroundColor: cs.surface,
-      showBorder: true,
-      child: AnimatedBuilder(
-        animation: _animationController,
-        builder: (context, child) {
-          return SlideTransition(
-            position: _slideAnimation,
-            child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        if (_currentForm == FormType.login) ...[
-                          const SizedBox(height: 16),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Text(
-                              l10n.emailLoginOnlyNotice,
-                              style: styles.sm.copyWith(
-                                color: Colors.orange.shade400,
-                                height: 1.4,
+    return Theme(
+      data: loginDialogTheme(context),
+      child: Dialog(
+        backgroundColor: LoginDialogColors.cardBackground,
+        elevation: 24,
+        shadowColor: Colors.black.withValues(alpha: 0.18),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: const BorderSide(color: LoginDialogColors.cardBorder),
+        ),
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 448),
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return SlideTransition(
+                position: _slideAnimation,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            if (_currentForm == FormType.login) ...[
+                              const SizedBox(height: 16),
+                              Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 24),
+                                child: Text(
+                                  l10n.emailLoginOnlyNotice,
+                                  style: styles.xs.copyWith(
+                                    color: LoginDialogColors.orangeNotice,
+                                    height: 1.5,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              textAlign: TextAlign.center,
+                            ],
+                            Padding(
+                              padding:
+                                  const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                              child: _buildCurrentForm(),
                             ),
-                          ),
-                        ],
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                          child: _buildCurrentForm(),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                      Positioned(
+                        top: 8,
+                        right: 8,
+                        child: TpIconButton(
+                          icon: Icons.close_rounded,
+                          compact: true,
+                          color: LoginDialogColors.iconMuted,
+                          onTap: () => _closeDialog(loginSuccess: false),
+                        ),
+                      ),
+                    ],
                   ),
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: TpIconButton(
-                      icon: Icons.close_rounded,
-                      compact: true,
-                      color: cs.onSurfaceVariant,
-                      onTap: () => _closeDialog(loginSuccess: false),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }

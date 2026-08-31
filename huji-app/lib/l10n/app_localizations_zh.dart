@@ -834,7 +834,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get email => '邮箱';
 
   @override
-  String get emailLoginOnlyNotice => '由于政策原因，暂时只能使用邮箱登录';
+  String get emailLoginOnlyNotice => '由于政策原因，暂时只能使用邮箱登录，如无法登陆请联系我 ！';
 
   @override
   String get emailSupport => '邮箱支持';

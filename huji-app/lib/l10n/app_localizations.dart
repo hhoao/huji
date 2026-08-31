@@ -1607,7 +1607,7 @@ abstract class HujiLocalizations {
   /// No description provided for @emailLoginOnlyNotice.
   ///
   /// In en, this message translates to:
-  /// **'Due to policy requirements, only email login is available for now.'**
+  /// **'Due to policy requirements, only email login is available for now. Contact us if you cannot sign in.'**
   String get emailLoginOnlyNotice;
 
   /// No description provided for @emailSupport.

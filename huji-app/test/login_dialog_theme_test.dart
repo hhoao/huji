@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/constants/theme.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:huji_app/pages/login/login_dialog.dart';
+import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 void main() {
@@ -29,10 +30,10 @@ void main() {
       find.byType(TextField).first,
     );
 
-    expect(title.style?.color, theme.colorScheme.onSurface);
+    expect(title.style?.color, LoginDialogColors.titleText);
     expect(
       identifierField.decoration?.fillColor,
-      theme.colorScheme.surface,
+      LoginDialogColors.cardBackground,
     );
   });
 }

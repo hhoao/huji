@@ -851,7 +851,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get emailLoginOnlyNotice =>
-      'Due to policy requirements, only email login is available for now.';
+      'Due to policy requirements, only email login is available for now. Contact us if you cannot sign in.';
 
   @override
   String get emailSupport => 'Email support';

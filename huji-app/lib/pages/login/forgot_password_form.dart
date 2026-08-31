@@ -4,6 +4,7 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'dart:async';
 import 'login_dialog.dart';
@@ -124,11 +125,11 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
   @override
   Widget build(BuildContext context) {
     final styles = TpTextStyles.of(context);
-    final cs = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.zero,
       child: Material(
+        color: Colors.transparent,
         child: TpForm(
           key: _formKey,
           child: Column(
@@ -136,7 +137,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
             children: [
               Text(
                 context.hujiL10n.loginResetPasswordTitle,
-                style: styles.lgBoldSnug.copyWith(color: cs.onSurface),
+                style: styles.lgBoldSnug.copyWith(color: LoginDialogColors.titleText),
                 textAlign: TextAlign.center,
               ),
 
@@ -267,7 +268,7 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
                 children: [
                   Text(
                     context.hujiL10n.loginRememberedPassword,
-                    style: styles.md.copyWith(color: cs.onSurfaceVariant),
+                    style: styles.sm.copyWith(color: LoginDialogColors.mutedText),
                   ),
                   TpButton(
                     variant: TpButtonVariant.ghost,
