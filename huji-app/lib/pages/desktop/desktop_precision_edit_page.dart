@@ -14,6 +14,7 @@ import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/pages/desktop/precision_edit_round_nav.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_bloc.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_event.dart';
 import 'package:huji_app/pages/clip/bloc/round_clip_state.dart';
@@ -44,6 +45,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   late final RoundClipBloc _roundClipBloc;
   VideoTrimmerBlocManager? _trimmerBlocManager;
   SegmentInfo? _activeSegment;
+  int? _activeRoundIndex;
   bool _trimmerLoading = false;
   bool _blocsInitialized = false;
   bool _commandsRegistered = false;
@@ -273,6 +275,35 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     );
   }
 
+  void _selectTrimmerClipSegmentAtRoundIndex(int roundIndex) {
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+
+    final clipSegments = manager.clipSegmentBloc.state.activeSegments;
+    if (clipSegments.isEmpty) return;
+
+    final sorted = [...clipSegments]..sort((a, b) => a.order.compareTo(b.order));
+    final targetIndex = roundIndex.clamp(0, sorted.length - 1);
+    manager.clipSegmentBloc.add(
+      ClipSegmentSelect(
+        segment: sorted[targetIndex],
+        isScrollToSegment: true,
+      ),
+    );
+  }
+
+  void _selectRoundAtIndex(int index, List<SegmentInfo> segments) {
+    if (index < 0 || index >= segments.length) return;
+
+    final segment = segments[index];
+    setState(() {
+      _activeRoundIndex = index;
+      _activeSegment = segment;
+    });
+    _seekToSegmentInTrimmer(segment);
+    _selectTrimmerClipSegmentAtRoundIndex(index);
+  }
+
   void _registerPrecisionEditCommands() {
     final bus = _commandBus;
     if (bus == null) return;
@@ -349,17 +380,19 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final segments = _roundClipBloc.state.playBallSegments;
     if (segments.isEmpty) return;
 
-    final current = _activeSegment;
-    var index = current != null ? segments.indexWhere((s) => s == current) : -1;
-    if (index < 0) {
-      index = 0;
-    } else {
-      index = (index + delta).clamp(0, segments.length - 1);
-    }
+    final currentIndex = resolvePrecisionEditRoundIndex(
+      segments: segments,
+      activeRoundIndex: _activeRoundIndex,
+      activeSegment: _activeSegment,
+    );
+    final nextIndex = shiftPrecisionEditRoundIndex(
+      currentIndex,
+      delta,
+      segments.length,
+    );
+    if (nextIndex < 0 || nextIndex == currentIndex) return;
 
-    final segment = segments[index];
-    setState(() => _activeSegment = segment);
-    _seekToSegmentInTrimmer(segment);
+    _selectRoundAtIndex(nextIndex, segments);
   }
 
   void _shortcutSeekBySeconds(int deltaSeconds) {
@@ -394,13 +427,20 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           }
 
           final currentActive = _activeSegment;
-          final validActive = currentActive != null &&
-                  segments.any((s) => s == currentActive)
-              ? currentActive
-              : (segments.isNotEmpty ? segments.first : null);
-          if (validActive != currentActive) {
+          final resolvedIndex = resolvePrecisionEditRoundIndex(
+            segments: segments,
+            activeRoundIndex: _activeRoundIndex,
+            activeSegment: currentActive,
+          );
+          final validActive =
+              resolvedIndex >= 0 ? segments[resolvedIndex] : null;
+          if (validActive != currentActive || resolvedIndex != _activeRoundIndex) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (mounted) setState(() => _activeSegment = validActive);
+              if (!mounted) return;
+              setState(() {
+                _activeRoundIndex = resolvedIndex >= 0 ? resolvedIndex : null;
+                _activeSegment = validActive;
+              });
             });
           }
           final activeSegment = validActive;
@@ -443,7 +483,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             ],
             child: Row(
               children: [
-                _buildRoundList(context, state, segments),
+                _buildRoundList(context, state, segments, resolvedIndex),
                 Expanded(
                     child: _buildEditor(
                         context, activeSegment, state, segments,
@@ -456,8 +496,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     );
   }
 
-  Widget _buildRoundList(BuildContext context, RoundClipState state,
-      List<SegmentInfo> segments) {
+  Widget _buildRoundList(
+    BuildContext context,
+    RoundClipState state,
+    List<SegmentInfo> segments,
+    int activeRoundIndex,
+  ) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
     return SizedBox(
@@ -533,7 +577,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                                     context,
                                     segments[i],
                                     i + 1,
-                                    _activeSegment == segments[i],
+                                    activeRoundIndex == i,
+                                    () => _selectRoundAtIndex(i, segments),
                                   ),
                                 ),
                               ],
@@ -546,7 +591,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   }
 
   Widget _buildRoundItem(
-      BuildContext context, SegmentInfo segment, int index, bool isActive) {
+    BuildContext context,
+    SegmentInfo segment,
+    int index,
+    bool isActive,
+    VoidCallback onSelect,
+  ) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
     final duration = segment.endSeconds - segment.startSeconds;
@@ -555,10 +605,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         '#$index  ${_formatSeconds(segment.startSeconds)} - ${_formatSeconds(segment.endSeconds)} · ${duration.toStringAsFixed(1)}s';
 
     return TpHover(
-      onTap: () {
-        setState(() => _activeSegment = segment);
-        _seekToSegmentInTrimmer(segment);
-      },
+      onTap: onSelect,
       borderRadius: BorderRadius.circular(desktopRadiusMd),
       pressScale: 0.97,
       child: Container(
