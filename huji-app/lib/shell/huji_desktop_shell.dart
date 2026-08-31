@@ -110,7 +110,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
                   controller: _panes,
                   paneBuilder: (context, id, _) => switch (id) {
                     HujiDesktopShell.sidebarPaneId => Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 0, 6, 12),
+                      padding: const EdgeInsets.fromLTRB(12, 0, 3, 12),
                       child: HujiSidebarInset(
                         child: HujiDesktopSidebar(
                           currentRoute: widget.currentRoute,
@@ -118,7 +118,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
                       ),
                     ),
                     HujiDesktopShell.bodyPaneId => Padding(
-                      padding: const EdgeInsets.fromLTRB(6, 0, 12, 12),
+                      padding: const EdgeInsets.fromLTRB(3, 0, 12, 12),
                       child: HujiSidebarInset(
                         child: WorkspaceRightPane(
                           contentKey: widget.currentRoute,
