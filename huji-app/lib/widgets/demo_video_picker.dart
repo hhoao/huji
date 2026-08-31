@@ -36,6 +36,8 @@ class DemoVideoPicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final styles = TpTextStyles.of(context);
+    final cs = Theme.of(context).colorScheme;
     final items = filterSportTypeKey == null
         ? demoVideos
         : demoVideosForSportKey(filterSportTypeKey!);
@@ -49,9 +51,8 @@ class DemoVideoPicker extends StatelessWidget {
       children: [
         Text(
           context.hujiL10n.useDemoVideo,
-          style: TextStyle(
-            fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
-            color: dense ? Colors.white70 : Colors.grey,
+          style: styles.smMedium.copyWith(
+            color: dense ? cs.onSurface : cs.onSurfaceVariant,
           ),
           textAlign: TextAlign.center,
         ),
@@ -99,6 +100,8 @@ class _DemoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final styles = TpTextStyles.of(context);
+    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
     final emoji = demo.sportTypeKey == 'ping_pong' ? '🏓' : '🏸';
     return TpButton(
       variant: TpButtonVariant.outline,
@@ -108,7 +111,7 @@ class _DemoChip extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(emoji, style: TextStyle(fontSize: dense ? 14 : 16)),
+          Text(emoji, style: dense ? styles.sm : styles.md),
           const SizedBox(width: 8),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,18 +119,11 @@ class _DemoChip extends StatelessWidget {
             children: [
               Text(
                 demoVideoTitle(context.hujiL10n, demo),
-                style: TextStyle(
-                  fontSize: Theme.of(context).textTheme.bodySmall?.fontSize,
-                ),
+                style: styles.sm,
               ),
               Text(
                 demoVideoSubtitle(context.hujiL10n, demo),
-                style: TextStyle(
-                  fontSize: dense ? 10 : 11,
-                  color: Theme.of(
-                    context,
-                  ).colorScheme.onSurface.withValues(alpha: 0.6),
-                ),
+                style: styles.sm.copyWith(color: muted),
               ),
             ],
           ),

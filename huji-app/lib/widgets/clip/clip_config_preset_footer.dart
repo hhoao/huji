@@ -30,7 +30,7 @@ class ClipConfigPresetFooter extends StatelessWidget {
         children: [
           Text(
             context.hujiL10n.configPresetMismatch(4, presetLabel),
-            style: styles.xs.copyWith(color: muted),
+            style: styles.sm.copyWith(color: muted),
           ),
           const SizedBox(height: 10),
           TpButton(

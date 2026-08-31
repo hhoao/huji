@@ -184,7 +184,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           const SizedBox(height: 14),
           Text(
             context.hujiL10n.dragVideoHere,
-            style: styles.lgSemibold.copyWith(color: cs.onSurfaceVariant),
+            style: styles.mdSemibold.copyWith(color: cs.onSurfaceVariant),
           ),
           const SizedBox(height: 8),
           Text(
@@ -200,7 +200,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
           const SizedBox(height: 8),
           Text(
             context.hujiL10n.supportedVideoFormats,
-            style: styles.xs.copyWith(color: cs.outline),
+            style: styles.sm.copyWith(color: cs.outline),
           ),
           if (widget.onDemoVideoSelected != null) ...[
             const SizedBox(height: 20),

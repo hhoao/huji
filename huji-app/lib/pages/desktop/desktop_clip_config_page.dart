@@ -521,7 +521,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
             SizedBox(width: 8),
             Text(
               context.hujiL10n.clipConfig,
-              style: styles.lgSemibold.copyWith(color: cs.onSurface),
+              style: styles.mdSemibold.copyWith(color: cs.onSurface),
             ),
           ],
         ),
@@ -596,7 +596,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
                 : cloudAvailable
                 ? context.hujiL10n.localModelNotFoundFallback
                 : context.hujiL10n.cloudClipUnavailable,
-            style: styles.xs.copyWith(color: cs.outline),
+            style: styles.sm.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -669,7 +669,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           ),
           Text(
             context.hujiL10n.minDurationHint,
-            style: styles.xs.copyWith(color: cs.outline),
+            style: styles.sm.copyWith(color: cs.outline),
           ),
         ],
       ),
@@ -742,7 +742,7 @@ class _ConfigSection extends StatelessWidget {
       children: [
         Text(
           label,
-          style: styles.xs.copyWith(
+          style: styles.sm.copyWith(
             color: cs.onSurfaceVariant,
             letterSpacing: 0.5,
           ),
@@ -810,7 +810,7 @@ class _DetectionOption extends StatelessWidget {
                 children: [
                   Text(label, style: styles.md.copyWith(color: cs.onSurface)),
                   SizedBox(height: 2),
-                  Text(help, style: styles.xs.copyWith(color: cs.outline)),
+                  Text(help, style: styles.sm.copyWith(color: cs.outline)),
                 ],
               ),
             ),
@@ -888,7 +888,7 @@ class _CheckOption extends StatelessWidget {
                       style: styles.md.copyWith(color: cs.onSurface),
                     ),
                     SizedBox(height: 2),
-                    Text(help, style: styles.xs.copyWith(color: cs.outline)),
+                    Text(help, style: styles.sm.copyWith(color: cs.outline)),
                   ],
                 ),
               ),
