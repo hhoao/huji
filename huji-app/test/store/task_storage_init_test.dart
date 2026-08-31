@@ -28,7 +28,13 @@ void main() {
     }
   });
 
-  tearDownAll(() {
+  tearDownAll(() async {
+    // Close the open sqlite handle first: on Windows the file cannot be
+    // deleted while a process still holds it.
+    final db = await TaskStorage().database;
+    if (db.isOpen) {
+      await db.close();
+    }
     if (tempRoot.existsSync()) {
       tempRoot.deleteSync(recursive: true);
     }

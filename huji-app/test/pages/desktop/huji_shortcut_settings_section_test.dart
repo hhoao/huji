@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,18 +54,25 @@ void main() {
     await tester.pumpAndSettle();
 
     // Search text derives from the formatter so the expectation holds on any
-    // host platform (macOS renders mod as ⌘, others as Ctrl).
+    // host platform (macOS renders mod as ⌘, others as Ctrl). Match against
+    // the host's own rendering, exactly as the section formats its chips.
     const tasksChord = KeyChord('t', [KeyChordMod.mod]);
-    final tasksNeedle = formatKeyChord(tasksChord, isMacOS: false);
+    final tasksNeedle = formatKeyChord(
+      tasksChord,
+      isMacOS: Platform.isMacOS,
+    ).toLowerCase();
     const newClipChord = KeyChord('n', [KeyChordMod.mod]);
-    final newClipNeedle = formatKeyChord(newClipChord, isMacOS: false);
+    final newClipNeedle = formatKeyChord(
+      newClipChord,
+      isMacOS: Platform.isMacOS,
+    ).toLowerCase();
+    expect(newClipNeedle, isNot(tasksNeedle));
 
     await tester.enterText(find.byType(TextField), tasksNeedle);
     await tester.pumpAndSettle();
 
     expect(find.text('Open Tasks'), findsOneWidget);
     expect(find.text('New Clip'), findsNothing);
-    expect(newClipNeedle, isNot(tasksNeedle));
   });
 
   group('parseImportedBindings', () {

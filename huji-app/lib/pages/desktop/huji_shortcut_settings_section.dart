@@ -122,13 +122,16 @@ class _HujiShortcutsSettingsSectionState
     );
   }
 
-  bool _matchesQuery(ShortcutsState state, CommandDefinition definition) {
+  bool _matchesQuery(
+    ShortcutsState state,
+    CommandDefinition definition,
+    bool isMacOS,
+  ) {
     final needle = _query.trim().toLowerCase();
     if (needle.isEmpty) return true;
     final l10n = context.hujiL10n;
     if (definition.id.toLowerCase().contains(needle)) return true;
     if (definition.title(l10n).toLowerCase().contains(needle)) return true;
-    final isMacOS = Platform.isMacOS;
     return state
         .chordsFor(definition.id)
         .any(
@@ -147,7 +150,7 @@ class _HujiShortcutsSettingsSectionState
   ) {
     final definitions = appCommandCatalog
         .where((d) => d.category == category)
-        .where((d) => _matchesQuery(state, d))
+        .where((d) => _matchesQuery(state, d, isMacOS))
         .toList();
     if (definitions.isEmpty) return const [];
     return [
