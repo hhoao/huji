@@ -2189,6 +2189,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get passwordMinLength => 'Password must be at least 6 characters';
 
   @override
+  String get passwordSettings => 'Password settings';
+
+  @override
   String get pathCopiedToClipboard => 'Path copied to clipboard';
 
   @override
@@ -2212,6 +2215,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get performanceMonitorTitle => 'Performance monitor';
+
+  @override
+  String get personalCenter => 'Personal center';
 
   @override
   String get permanent => 'Permanent';
@@ -2915,6 +2921,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get searchingFiles => 'Searching files...';
+
+  @override
+  String get securitySettings => 'Security settings';
 
   @override
   String get seekBackward1s => '-1s';

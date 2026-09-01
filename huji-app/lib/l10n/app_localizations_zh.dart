@@ -2135,6 +2135,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get passwordMinLength => '密码长度不能少于6位';
 
   @override
+  String get passwordSettings => '密码设置';
+
+  @override
   String get pathCopiedToClipboard => '路径已复制到剪贴板';
 
   @override
@@ -2158,6 +2161,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get performanceMonitorTitle => '性能监控';
+
+  @override
+  String get personalCenter => '个人中心';
 
   @override
   String get permanent => '永久';
@@ -2840,6 +2846,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get searchingFiles => '正在搜索文件...';
+
+  @override
+  String get securitySettings => '安全设置';
 
   @override
   String get seekBackward1s => '-1秒';

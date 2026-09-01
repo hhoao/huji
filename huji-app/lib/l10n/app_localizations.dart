@@ -3944,6 +3944,12 @@ abstract class HujiLocalizations {
   /// **'Password must be at least 6 characters'**
   String get passwordMinLength;
 
+  /// No description provided for @passwordSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Password settings'**
+  String get passwordSettings;
+
   /// No description provided for @pathCopiedToClipboard.
   ///
   /// In en, this message translates to:
@@ -3985,6 +3991,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Performance monitor'**
   String get performanceMonitorTitle;
+
+  /// No description provided for @personalCenter.
+  ///
+  /// In en, this message translates to:
+  /// **'Personal center'**
+  String get personalCenter;
 
   /// No description provided for @permanent.
   ///
@@ -5197,6 +5209,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Searching files...'**
   String get searchingFiles;
+
+  /// No description provided for @securitySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Security settings'**
+  String get securitySettings;
 
   /// No description provided for @seekBackward1s.
   ///
