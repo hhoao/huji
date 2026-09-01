@@ -32,6 +32,7 @@ jobs:
             clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libsecret-1-dev \
             libjsoncpp-dev libstdc++-12-dev \
+            libjson-glib-dev \
             file fuse libfuse2 \
             libasound2-dev libmpv-dev mpv \
             dpkg fakeroot
@@ -95,7 +96,7 @@ jobs:
           sudo apt-get install -y \
             build-essential clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libsecret-1-dev \
-            libjsoncpp-dev \
+            libjsoncpp-dev libjson-glib-dev \
             file fuse libfuse2 \
             libasound2-dev libmpv-dev mpv \
             git wget curl xz-utils ca-certificates
