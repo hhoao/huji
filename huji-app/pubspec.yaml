@@ -66,7 +66,10 @@ dependencies:
   url_launcher: ^6.2.5
   flutter_local_notifications: ^19.3.0
   permission_handler: ^12.0.1
-  ffmpeg_kit_flutter_new: ^4.1.0
+  # 4.6.x added a Linux native layer that is x86_64-only and needs
+  # json-glib; 4.3.2 keeps Linux aarch64 releasable (desktop runners use the
+  # bundled static ffmpeg binary anyway).
+  ffmpeg_kit_flutter_new: 4.3.2
   package_info_plus: ^8.0.2
   device_info_plus: ^10.1.0
   cached_network_image: ^3.4.1

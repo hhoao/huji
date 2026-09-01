@@ -188,9 +188,17 @@ cd "$BUILD_DIR"
 
 # Build --library flags for each Flutter plugin .so so linuxdeploy can
 # resolve and deploy their transitive system-library dependencies.
+# ffmpeg_kit_flutter_new's prebuilt bundle (libav*, libffmpegkit, …) is
+# excluded: those libraries ship inside the AppImage already and the plugin
+# loads them via dlopen, but linuxdeploy would still try to resolve their
+# DT_NEEDED entries (e.g. libavcodec.so.62) against the build host, whose
+# distro ships older sonames — failing the whole packaging step.
 PLUGIN_LIB_FLAGS=()
 if [[ -d "$APPDIR/usr/bin/lib" ]]; then
   while IFS= read -r -d '' sofile; do
+    case "$(basename "$sofile")" in
+      libav*|libffmpegkit*|libswscale*|libswresample*) continue ;;
+    esac
     PLUGIN_LIB_FLAGS+=(--library "$sofile")
   done < <(find "$APPDIR/usr/bin/lib" -name "*.so" -print0)
 fi
