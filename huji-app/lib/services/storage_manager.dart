@@ -231,44 +231,6 @@ class StorageManager extends GetxController {
       }
     }
   }
-}
-
-/// Sum of all file sizes per storage category. Top-level function so it can
-/// run via [Isolate.run] — see [StorageManager.getDetailedStorageInfo].
-Map<String, int> computeDetailedStorageInfo({
-  required String cacheDirPath,
-  required String appDocDirPath,
-  required String downloadsDirPath,
-  String? externalDirPath,
-}) {
-  int sizeOf(String? path) {
-    if (path == null || path.isEmpty) return 0;
-    final dir = Directory(path);
-    if (!dir.existsSync()) return 0;
-    int size = 0;
-    try {
-      for (final entity in dir.listSync(recursive: true, followLinks: false)) {
-        if (entity is File) {
-          try {
-            size += entity.lengthSync();
-          } on FileSystemException {
-            // File vanished between listing and stat.
-          }
-        }
-      }
-    } on FileSystemException {
-      // Directory became unreadable mid-scan.
-    }
-    return size;
-  }
-
-  return {
-    StorageManager.storageKeyCache: sizeOf(cacheDirPath),
-    StorageManager.storageKeyAppData: sizeOf(appDocDirPath),
-    StorageManager.storageKeyDownloads: sizeOf(downloadsDirPath),
-    StorageManager.storageKeyExternal: sizeOf(externalDirPath),
-  };
-}
 
   // 获取目录文件列表
   Future<List<Map<String, dynamic>>> getDirectoryFiles(Directory dir) async {
@@ -365,4 +327,41 @@ Map<String, int> computeDetailedStorageInfo({
 
   // 格式化文件大小（公共方法）
   String formatFileSize(int bytes) => _formatFileSize(bytes);
+}
+
+/// Sum of all file sizes per storage category. Top-level function so it can
+/// run via [Isolate.run] — see [StorageManager.getDetailedStorageInfo].
+Map<String, int> computeDetailedStorageInfo({
+  required String cacheDirPath,
+  required String appDocDirPath,
+  required String downloadsDirPath,
+  String? externalDirPath,
+}) {
+  int sizeOf(String? path) {
+    if (path == null || path.isEmpty) return 0;
+    final dir = Directory(path);
+    if (!dir.existsSync()) return 0;
+    int size = 0;
+    try {
+      for (final entity in dir.listSync(recursive: true, followLinks: false)) {
+        if (entity is File) {
+          try {
+            size += entity.lengthSync();
+          } on FileSystemException {
+            // File vanished between listing and stat.
+          }
+        }
+      }
+    } on FileSystemException {
+      // Directory became unreadable mid-scan.
+    }
+    return size;
+  }
+
+  return {
+    StorageManager.storageKeyCache: sizeOf(cacheDirPath),
+    StorageManager.storageKeyAppData: sizeOf(appDocDirPath),
+    StorageManager.storageKeyDownloads: sizeOf(downloadsDirPath),
+    StorageManager.storageKeyExternal: sizeOf(externalDirPath),
+  };
 }
