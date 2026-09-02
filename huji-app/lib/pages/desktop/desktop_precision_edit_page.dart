@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
+import 'package:huji_app/shortcuts/command_tooltip_label.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
@@ -279,12 +280,6 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     }
   }
 
-  void _seekToSegmentInTrimmer(SegmentInfo segment) {
-    if (_trimmerBlocManager == null) return;
-    _trimmerBlocManager!.trimmerBloc.add(
-      TrimmerSeekTo(Duration(milliseconds: (segment.startSeconds * 1000).round())),
-    );
-  }
 
   void _selectTrimmerClipSegmentAtRoundIndex(int roundIndex) {
     final manager = _trimmerBlocManager;
@@ -311,7 +306,6 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       _activeRoundIndex = index;
       _activeSegment = segment;
     });
-    _seekToSegmentInTrimmer(segment);
     _selectTrimmerClipSegmentAtRoundIndex(index);
   }
 
@@ -842,12 +836,35 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     );
   }
 
+  Widget _buildRoundNavButton({
+    required IconData icon,
+    required String label,
+    required String commandId,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    return TpIconButton(
+      icon: icon,
+      enabled: enabled,
+      tooltip: commandTooltipLabel(
+        context,
+        label: label,
+        commandId: commandId,
+      ),
+      onTap: onTap,
+    );
+  }
+
   Widget _buildInfoRow(SegmentInfo segment, List<SegmentInfo> segments) {
     final cs = context.desktopColors;
     final styles = TpTextStyles.of(context);
+    final l10n = context.hujiL10n;
     final segmentIndex = segments.indexWhere((s) => s == segment);
     final indexLabel = segmentIndex >= 0 ? '#${segmentIndex + 1}' : '#?';
     final duration = segment.endSeconds - segment.startSeconds;
+    final canGoPrev = segmentIndex > 0;
+    final canGoNext =
+        segmentIndex >= 0 && segmentIndex < segments.length - 1;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -856,8 +873,16 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         children: [
           Row(
             children: [
+              _buildRoundNavButton(
+                icon: Icons.skip_previous,
+                label: l10n.shortcutsCommandPrecisionPrevRound,
+                commandId: CommandIds.playbackPrevSegment,
+                enabled: canGoPrev,
+                onTap: () => _shortcutSelectRound(-1),
+              ),
+              SizedBox(width: 4),
               Text(
-                context.hujiL10n.currentEditingRound(indexLabel),
+                l10n.currentEditingRound(indexLabel),
                 style: styles.mdMedium.copyWith(
                   color: cs.onSurface,
                   fontWeight: FontWeight.w600,
@@ -878,6 +903,14 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+              ),
+              SizedBox(width: 4),
+              _buildRoundNavButton(
+                icon: Icons.skip_next,
+                label: l10n.shortcutsCommandPrecisionNextRound,
+                commandId: CommandIds.playbackNextSegment,
+                enabled: canGoNext,
+                onTap: () => _shortcutSelectRound(1),
               ),
             ],
           ),

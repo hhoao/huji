@@ -6,6 +6,8 @@ import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:media_kit_video/media_kit_video.dart' as media_kit_video;
 
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/shortcuts/command_ids.dart';
+import 'package:huji_app/shortcuts/command_tooltip_label.dart';
 import '../../utils/debounce/throttles.dart';
 import '../../services/platform_capability.dart';
 import 'bloc/multi_video_player_bloc.dart';
@@ -21,6 +23,8 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
   final Widget? loadingWidget;
   final bool showControls;
   final EdgeInsets padding;
+  final String? prevSegmentLabel;
+  final String? nextSegmentLabel;
 
   const BlocMultiVideoPlayerWidget({
     super.key,
@@ -30,6 +34,8 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
     this.loadingWidget,
     this.showControls = false,
     this.padding = const EdgeInsets.all(8.0),
+    this.prevSegmentLabel,
+    this.nextSegmentLabel,
   });
 
   @override
@@ -147,7 +153,12 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
             color: Colors.black54,
             borderRadius: BorderRadius.circular(8),
           ),
-          child: _PlaybackControlsRow(bloc: bloc, state: state),
+          child: _PlaybackControlsRow(
+            bloc: bloc,
+            state: state,
+            prevSegmentLabel: prevSegmentLabel,
+            nextSegmentLabel: nextSegmentLabel,
+          ),
         );
       },
     );
@@ -157,11 +168,58 @@ class BlocMultiVideoPlayerWidget extends StatelessWidget {
 class _PlaybackControlsRow extends StatelessWidget {
   final MultiVideoPlayerBloc bloc;
   final MultiVideoPlayerState state;
+  final String? prevSegmentLabel;
+  final String? nextSegmentLabel;
 
-  const _PlaybackControlsRow({required this.bloc, required this.state});
+  const _PlaybackControlsRow({
+    required this.bloc,
+    required this.state,
+    this.prevSegmentLabel,
+    this.nextSegmentLabel,
+  });
+
+  Widget _buildSegmentNavButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required String commandId,
+    required bool enabled,
+    required VoidCallback onTap,
+  }) {
+    final button = TpHover(
+      onTap: enabled ? onTap : null,
+      borderRadius: BorderRadius.circular(4),
+      pressScale: 0.97,
+      child: SizedBox(
+        width: 24,
+        height: 24,
+        child: Icon(
+          icon,
+          color: enabled ? Colors.white : Colors.white38,
+          size: 16,
+        ),
+      ),
+    );
+
+    if (!PlatformCapability.isDesktop) return button;
+
+    return Tooltip(
+      message: commandTooltipLabel(
+        context,
+        label: label,
+        commandId: commandId,
+      ),
+      child: button,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final prevLabel =
+        prevSegmentLabel ?? l10n.shortcutsCommandPlaybackPrevSegment;
+    final nextLabel =
+        nextSegmentLabel ?? l10n.shortcutsCommandPlaybackNextSegment;
     final totalDuration = (state.totalDuration?.inMilliseconds ?? 1).clamp(
       1,
       double.maxFinite.toInt(),
@@ -170,17 +228,13 @@ class _PlaybackControlsRow extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        TpHover(
-          onTap: state.canGoToPrevious
-              ? () => bloc.add(const GoToPreviousEvent())
-              : null,
-          borderRadius: BorderRadius.circular(4),
-          pressScale: 0.97,
-          child: const SizedBox(
-            width: 24,
-            height: 24,
-            child: Icon(Icons.skip_previous, color: Colors.white, size: 16),
-          ),
+        _buildSegmentNavButton(
+          context: context,
+          icon: Icons.skip_previous,
+          label: prevLabel,
+          commandId: CommandIds.playbackPrevSegment,
+          enabled: state.canGoToPrevious,
+          onTap: () => bloc.add(const GoToPreviousEvent()),
         ),
         TpHover(
           onTap: () {
@@ -202,17 +256,13 @@ class _PlaybackControlsRow extends StatelessWidget {
             ),
           ),
         ),
-        TpHover(
-          onTap: state.canGoToNext
-              ? () => bloc.add(const GoToNextEvent())
-              : null,
-          borderRadius: BorderRadius.circular(4),
-          pressScale: 0.97,
-          child: const SizedBox(
-            width: 24,
-            height: 24,
-            child: Icon(Icons.skip_next, color: Colors.white, size: 16),
-          ),
+        _buildSegmentNavButton(
+          context: context,
+          icon: Icons.skip_next,
+          label: nextLabel,
+          commandId: CommandIds.playbackNextSegment,
+          enabled: state.canGoToNext,
+          onTap: () => bloc.add(const GoToNextEvent()),
         ),
         const SizedBox(width: 4),
         _ScrubbingProgressSlider(

@@ -46,6 +46,9 @@ class MultiVideoPlayerBloc
   bool _waitForGoNext = false;
   bool _isScrubbing = false;
   bool _resumeAfterScrub = false;
+  bool _isSeeking = false;
+  int? _postSeekTargetMs;
+  static const _postSeekToleranceMs = 1500;
 
   /// Caps progress UI updates; segment boundary checks run on the same tick.
   Timer? _progressTimer;
@@ -284,7 +287,7 @@ class MultiVideoPlayerBloc
       return;
     }
 
-    if (_waitForGoNext || _isScrubbing) return;
+    if (_waitForGoNext || _isScrubbing || _isSeeking) return;
 
     final currentVideoPosition = state.currentVideoPositionMs;
     if (currentVideoPosition == null) return;
@@ -312,6 +315,13 @@ class MultiVideoPlayerBloc
     final newCurrentTimeMs =
         state.getItemStartTime(state.currentItem!) +
         (currentVideoPosition - videoStartTime);
+    if (_postSeekTargetMs != null &&
+        newCurrentTimeMs < _postSeekTargetMs! - _postSeekToleranceMs) {
+      return;
+    }
+    if (_postSeekTargetMs != null) {
+      _postSeekTargetMs = null;
+    }
     if (state.currentTimeMs != newCurrentTimeMs) {
       emit(state.copyWith(currentTimeMs: newCurrentTimeMs));
     }
@@ -411,53 +421,59 @@ class MultiVideoPlayerBloc
       return;
     }
 
-    dynamic preVideoController = state.currentVideoController;
-    dynamic currentController = preVideoController;
+    _isSeeking = true;
+    _postSeekTargetMs = currentTimeMs;
+    try {
+      dynamic preVideoController = state.currentVideoController;
+      dynamic currentController = preVideoController;
 
-    if (newItem != state.currentItem || currentController == null) {
-      // 使用文件路径获取预加载的控制器
-      final videoPath = _itemIdToPath[newItem.id];
-      if (videoPath != null) {
-        if (PlatformCapability.isDesktop) {
-          currentController = _desktopPlayers[videoPath];
-        } else {
-          currentController = _preloadedControllers[videoPath];
+      if (newItem != state.currentItem || currentController == null) {
+        // 使用文件路径获取预加载的控制器
+        final videoPath = _itemIdToPath[newItem.id];
+        if (videoPath != null) {
+          if (PlatformCapability.isDesktop) {
+            currentController = _desktopPlayers[videoPath];
+          } else {
+            currentController = _preloadedControllers[videoPath];
+          }
+          await _applyCurrentSettingsToController(currentController);
         }
-        await _applyCurrentSettingsToController(currentController);
       }
-    }
 
-    if (!emit.isDone) {
-      final videoStartTime = Duration(milliseconds: newItem.startTimeMs);
-      final seekTime = Duration(
-        milliseconds: currentTimeMs - state.getItemStartTime(newItem),
-      );
-      final finalSeekTime = videoStartTime + seekTime;
+      if (!emit.isDone) {
+        final videoStartTime = Duration(milliseconds: newItem.startTimeMs);
+        final seekTime = Duration(
+          milliseconds: currentTimeMs - state.getItemStartTime(newItem),
+        );
+        final finalSeekTime = videoStartTime + seekTime;
 
-      if (currentController is VideoPlayerController) {
-        await currentController.seekTo(finalSeekTime);
+        if (currentController is VideoPlayerController) {
+          await currentController.seekTo(finalSeekTime);
+        } else if (currentController is media_kit.Player) {
+          await currentController.seek(finalSeekTime);
+        }
+      }
+
+      if (state.isPlaying) {
+        await _playController(currentController);
       } else if (currentController is media_kit.Player) {
-        await currentController.seek(finalSeekTime);
+        await currentController.pause();
       }
-    }
 
-    if (state.isPlaying) {
-      await _playController(currentController);
-    } else if (currentController is media_kit.Player) {
-      await currentController.pause();
-    }
+      if (preVideoController != currentController) {
+        preVideoController?.pause();
+      }
 
-    if (preVideoController != currentController) {
-      preVideoController?.pause();
+      emit(
+        state.copyWith(
+          currentTimeMs: currentTimeMs,
+          currentItem: newItem,
+          currentVideoController: currentController,
+        ),
+      );
+    } finally {
+      _isSeeking = false;
     }
-
-    emit(
-      state.copyWith(
-        currentTimeMs: currentTimeMs,
-        currentItem: newItem,
-        currentVideoController: currentController,
-      ),
-    );
   }
 
   void _startProgressTimer() {

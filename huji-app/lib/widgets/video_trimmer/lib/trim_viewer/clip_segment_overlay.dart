@@ -89,9 +89,26 @@ class _ClipSegmentOverlayContentState
   @override
   void didUpdateWidget(_ClipSegmentOverlayContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.segments != widget.segments && !_dividerDragging) {
+    if (!_sameSegmentLayout(oldWidget.segments, widget.segments) &&
+        !_dividerDragging) {
       _updateController();
     }
+  }
+
+  bool _sameSegmentLayout(
+    List<VideoClipSegment> a,
+    List<VideoClipSegment> b,
+  ) {
+    if (a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (a[i].id != b[i].id ||
+          a[i].startTime != b[i].startTime ||
+          a[i].endTime != b[i].endTime ||
+          a[i].isDeleted != b[i].isDeleted) {
+        return false;
+      }
+    }
+    return true;
   }
 
   @override
@@ -131,26 +148,29 @@ class _ClipSegmentOverlayContentState
       return Container(height: widget.thumbnailHeight);
     }
 
-    final isSelected = segment.isSelected;
-    final borderWidth = isSelected
-        ? layout.segmentSelectedBorderWidth
-        : layout.segmentBorderWidth;
-    // Fixed white border on thumbnail tiles; no fill so frames stay visible.
-    const borderColor = Colors.white;
+    return BlocSelector<ClipSegmentBloc, ClipSegmentState, bool>(
+      selector: (state) => state.selectedSegment?.id == segment.id,
+      builder: (context, isSelected) {
+        final borderWidth = isSelected
+            ? layout.segmentSelectedBorderWidth
+            : layout.segmentBorderWidth;
+        const borderColor = Colors.white;
 
-    return GestureDetector(
-      onTap: () {
-        if (!isSelected) {
-          context.read<ClipSegmentBloc>().add(
-            ClipSegmentSelect(segment: segment),
-          );
-        }
+        return GestureDetector(
+          onTap: () {
+            if (!isSelected) {
+              context.read<ClipSegmentBloc>().add(
+                ClipSegmentSelect(segment: segment),
+              );
+            }
+          },
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: borderColor, width: borderWidth),
+            ),
+          ),
+        );
       },
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          border: Border.all(color: borderColor, width: borderWidth),
-        ),
-      ),
     );
   }
 

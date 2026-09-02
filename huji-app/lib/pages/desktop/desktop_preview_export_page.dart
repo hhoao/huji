@@ -655,6 +655,10 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             backgroundColor: Colors.black,
             showControls: true,
             padding: EdgeInsets.zero,
+            prevSegmentLabel:
+                context.hujiL10n.shortcutsCommandPrecisionPrevRound,
+            nextSegmentLabel:
+                context.hujiL10n.shortcutsCommandPrecisionNextRound,
           ),
         ),
       ),

@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
@@ -27,6 +28,10 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   StreamSubscription<Duration>? _positionSub;
   bool _isScrubbing = false;
   bool _resumeAfterScrub = false;
+  bool _isSeeking = false;
+  /// media_kit may briefly report position 0 after seeking far into the file.
+  int? _postSeekTargetMs;
+  static const _postSeekToleranceMs = 1500;
 
   /// 播放时统一 tick：同步进度 UI + 缩略图时间轴（保持二者一致）
   static const _playbackTickInterval = Duration(milliseconds: 50);
@@ -40,7 +45,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     : super(const TrimmerState()) {
     on<TrimmerLoadVideo>(_onLoadVideo);
     on<TrimmerTogglePlayPause>(_onTogglePlayPause);
-    on<TrimmerSeekTo>(_onSeekTo);
+    on<TrimmerSeekTo>(_onSeekTo, transformer: sequential());
     on<TrimmerScrubStart>(_onScrubStart);
     on<TrimmerScrubEnd>(_onScrubEnd);
     on<TrimmerSetPlaybackSpeed>(_onSetPlaybackSpeed);
@@ -260,6 +265,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
         _isPositionChangeByTimelineScroll = true;
         _isUserScrolling = false; // 用户停止滑动
+        _markSeekTarget(latestTimeChange);
         state.videoPlayerController!.seekTo(
           Duration(milliseconds: latestTimeChange),
         );
@@ -301,12 +307,30 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     final controller = state.videoPlayerController;
     if (controller == null || !controller.isPlaying) return;
 
-    _handlePlaybackPosition(controller.position.inMilliseconds);
+    final currentMs = controller.position.inMilliseconds;
+    if (_shouldIgnorePlaybackPosition(currentMs)) return;
+
+    _handlePlaybackPosition(currentMs);
+  }
+
+  bool _shouldIgnorePlaybackPosition(int currentTimeMs) {
+    if (_isSeeking || _isScrubbing || _isUserScrolling) return true;
+    final target = _postSeekTargetMs;
+    if (target == null) return false;
+    if (currentTimeMs < target - _postSeekToleranceMs) {
+      return true;
+    }
+    _postSeekTargetMs = null;
+    return false;
+  }
+
+  void _markSeekTarget(int targetMs) {
+    _postSeekTargetMs = targetMs;
   }
 
   /// 播放器位置流回调（桌面端 media_kit）：比 50ms 轮询更贴近实时
   void _onControllerPositionChanged(Duration position) {
-    if (_isScrubbing || _isUserScrolling) return;
+    if (_shouldIgnorePlaybackPosition(position.inMilliseconds)) return;
 
     final controller = state.videoPlayerController;
     if (controller == null || !controller.isPlaying) return;
@@ -408,6 +432,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     TrimmerScrubEnd event,
     Emitter<TrimmerState> emit,
   ) async {
+    _markSeekTarget(event.timeMs);
     await state.videoPlayerController?.seekTo(
       Duration(milliseconds: event.timeMs),
     );
@@ -421,7 +446,10 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     _resumeAfterScrub = false;
   }
 
-  void _onSeekTo(TrimmerSeekTo event, Emitter<TrimmerState> emit) async {
+  Future<void> _onSeekTo(
+    TrimmerSeekTo event,
+    Emitter<TrimmerState> emit,
+  ) async {
     int targetTime = event.position.inMilliseconds;
 
     // 如果是"只播放片段"模式，限制跳转范围在任何片段内
@@ -452,10 +480,16 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
       }
     }
 
-    await state.videoPlayerController?.seekTo(
-      Duration(milliseconds: targetTime),
-    );
-    _syncPlaybackUiToTime(targetTime);
+    _isSeeking = true;
+    _markSeekTarget(targetTime);
+    try {
+      await state.videoPlayerController?.seekTo(
+        Duration(milliseconds: targetTime),
+      );
+      _syncPlaybackUiToTime(targetTime);
+    } finally {
+      _isSeeking = false;
+    }
   }
 
   void _onSetPlaybackSpeed(
