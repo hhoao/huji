@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
+import 'package:huji_app/pages/desktop/huji_help_feedback_settings_section.dart';
 import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
 import 'package:huji_app/pages/system/settings_update_actions.dart';
 import 'package:huji_app/router/modules/profile.dart';
@@ -23,6 +24,7 @@ enum _SettingsSection {
   appearance,
   shortcuts,
   network,
+  help,
   about,
 }
 
@@ -105,6 +107,13 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                     setState(() => _section = _SettingsSection.network),
               ),
               WorkspaceHubEntry(
+                title: l10n.helpAndFeedback,
+                icon: Icons.help_outline,
+                selected: _section == _SettingsSection.help,
+                density: WorkspaceHubNavDensity.relaxed,
+                onTap: () => setState(() => _section = _SettingsSection.help),
+              ),
+              WorkspaceHubEntry(
                 title: l10n.settingsVersionInfo,
                 icon: Icons.info_outline,
                 selected: _section == _SettingsSection.about,
@@ -125,6 +134,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
       _SettingsSection.appearance => const HujiAppearanceSettingsSection(),
       _SettingsSection.shortcuts => const HujiShortcutsSettingsSection(),
       _SettingsSection.network => _buildNetworkBody(),
+      _SettingsSection.help => const HujiHelpFeedbackSettingsSection(),
       _SettingsSection.about => _buildAboutBody(),
     };
   }

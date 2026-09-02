@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
@@ -8,7 +7,6 @@ import 'package:huji_app/pages/login/common.dart';
 import 'package:huji_app/pages/login/login_dialog.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dart';
 import 'package:huji_app/pages/user/avatar_picker_widget.dart';
-import 'package:huji_app/router/modules/profile.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
@@ -74,13 +72,6 @@ class _DesktopAccountPageState extends State<DesktopAccountPage> {
                 density: WorkspaceHubNavDensity.relaxed,
                 onTap: () =>
                     setState(() => _section = _AccountSection.security),
-              ),
-              WorkspaceHubEntry(
-                title: l10n.helpAndFeedback,
-                icon: Icons.help_outline,
-                selected: false,
-                density: WorkspaceHubNavDensity.relaxed,
-                onTap: () => context.push(ProfileRoute.helpFeedback),
               ),
             ],
           ),
