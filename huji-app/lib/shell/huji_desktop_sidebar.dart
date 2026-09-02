@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/user_service.dart';
@@ -196,6 +197,10 @@ class _AccountAreaState extends State<_AccountArea> {
     return MenuAnchor(
       controller: _menuController,
       menuChildren: [
+        MenuItemButton(
+          onPressed: () => context.go(DesktopRoutes.account),
+          child: Text(l10n.personalCenter),
+        ),
         if (FeatureVisibility.instance.showSubscriptionPage)
           MenuItemButton(
             onPressed: () => context.push(SubscriptionRoute.subscription),

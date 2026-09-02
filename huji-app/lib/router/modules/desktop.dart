@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/desktop/desktop_home_page.dart';
+import 'package:huji_app/pages/desktop/desktop_account_page.dart';
 import 'package:huji_app/pages/desktop/desktop_clip_config_page.dart';
 import 'package:huji_app/pages/desktop/desktop_video_compress_page.dart';
 import 'package:huji_app/pages/desktop/desktop_preview_export_page.dart';
@@ -20,6 +21,7 @@ class DesktopRoutes {
   DesktopRoutes._();
 
   static const String home = '/';
+  static const String account = '/account';
   static const String clipNew = '/clip/new';
   static const String videoCompress = '/tools/video-compress';
   static const String clipPreview = '/clip/:id/preview';
@@ -69,6 +71,12 @@ class DesktopRoutes {
                 name: 'desktop-home',
                 pageBuilder: (context, state) =>
                     _noTransitionPage(state, const DesktopHomePage()),
+              ),
+              GoRoute(
+                path: '/account',
+                name: 'desktop-account',
+                pageBuilder: (context, state) =>
+                    _noTransitionPage(state, const DesktopAccountPage()),
               ),
               GoRoute(
                 path: '/clip/new',

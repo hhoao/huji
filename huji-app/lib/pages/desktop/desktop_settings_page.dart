@@ -8,13 +8,9 @@ import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
 import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
 import 'package:huji_app/pages/system/settings_update_actions.dart';
 import 'package:huji_app/router/modules/profile.dart';
-import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/services/feature_visibility.dart';
-import 'package:huji_app/services/platform_capability.dart';
-import 'package:huji_app/store/user/user_bloc_instance.dart';
-import 'package:huji_app/store/user/user_event.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
 import 'package:huji_app/widgets/feature_stub_actions.dart';
 import 'package:huji_app/widgets/file_picker/file_selection.dart';
@@ -26,7 +22,6 @@ enum _SettingsSection {
   general,
   appearance,
   shortcuts,
-  account,
   network,
   about,
 }
@@ -102,14 +97,6 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                     setState(() => _section = _SettingsSection.shortcuts),
               ),
               WorkspaceHubEntry(
-                title: l10n.account,
-                icon: Icons.person_outline,
-                selected: _section == _SettingsSection.account,
-                density: WorkspaceHubNavDensity.relaxed,
-                onTap: () =>
-                    setState(() => _section = _SettingsSection.account),
-              ),
-              WorkspaceHubEntry(
                 title: l10n.network,
                 icon: Icons.wifi_outlined,
                 selected: _section == _SettingsSection.network,
@@ -137,7 +124,6 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
       _SettingsSection.general => _buildGeneralBody(),
       _SettingsSection.appearance => const HujiAppearanceSettingsSection(),
       _SettingsSection.shortcuts => const HujiShortcutsSettingsSection(),
-      _SettingsSection.account => _buildAccountBody(),
       _SettingsSection.network => _buildNetworkBody(),
       _SettingsSection.about => _buildAboutBody(),
     };
@@ -236,77 +222,6 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
 
   void _openVideoCompress() {
     context.go(DesktopRoutes.videoCompress);
-  }
-
-  Widget _buildAccountBody() {
-    final l10n = context.hujiL10n;
-    final userState = UserBlocInstance.instance.state;
-    final isLoggedIn = userState.isLoggedIn;
-    final userName = userState.user?.nickname ?? l10n.accountNotLoggedIn;
-    final showSubscription = FeatureVisibility.instance.showSubscriptionPage;
-
-    return SingleChildScrollView(
-      child: TpCard.outlined(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TpPreferenceRow(
-              title: l10n.settingsUsername,
-              subtitle: userName,
-              trailing: Icon(
-                isLoggedIn ? Icons.person : Icons.person_outline,
-                size: 18,
-                color: Theme.of(context).colorScheme.outline,
-              ),
-            ),
-            _navRow(
-              title: l10n.basicInfo,
-              onTap: () => context.push(ProfileRoute.basicInfo),
-            ),
-            _navRow(
-              title: l10n.accountAndSecurity,
-              onTap: () => context.push(ProfileRoute.securitySettings),
-            ),
-            if (showSubscription)
-              _navRow(
-                title: l10n.subscriptionPlans,
-                onTap: () => context.push(SubscriptionRoute.subscription),
-              ),
-            _navRow(
-              title: l10n.helpAndFeedback,
-              onTap: () => context.push(ProfileRoute.helpFeedback),
-            ),
-            if (PlatformCapability.supportsGalleryAccess)
-              _navRow(
-                title: l10n.settingsPermissions,
-                onTap: () => context.push(ProfileRoute.permissionManagement),
-              ),
-            if (isLoggedIn) ...[
-              SizedBox(height: 16),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: TpButton(
-                    variant: TpButtonVariant.outline,
-                    onPressed: () {
-                      UserBlocInstance.instance.add(const UserLogoutEvent());
-                      setState(() {});
-                    },
-                    child: Text(l10n.accountLogout),
-                  ),
-                ),
-              ),
-            ] else
-              TpPreferenceRow(
-                title: l10n.accountNotLoggedIn,
-                trailing: const SizedBox.shrink(),
-                showDividerBelow: false,
-              ),
-          ],
-        ),
-      ),
-    );
   }
 
   Widget _buildNetworkBody() {
