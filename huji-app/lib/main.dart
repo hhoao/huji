@@ -117,10 +117,12 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
               : MediaQueryData.fromView(systemView);
           final bundle = resolveAppearanceTheme(prefs, systemMq);
 
+          final l10n = lookupHujiLocalizations(bundle.locale);
+
           return TpToastWrapper(
             config: buildHujiToastConfig(),
             child: MaterialApp.router(
-              title: context.hujiL10n.appTitle,
+              title: l10n.appTitle,
               routerConfig: appRouter,
               theme: AppTheme.themedLightTheme,
               darkTheme: AppTheme.themedDarkTheme,
