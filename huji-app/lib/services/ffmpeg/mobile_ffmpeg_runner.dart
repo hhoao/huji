@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit.dart';
 import 'package:ffmpeg_kit_flutter_new/ffmpeg_session.dart';
 import 'package:ffmpeg_kit_flutter_new/ffprobe_kit.dart';
@@ -64,5 +66,10 @@ class MobileFFmpegRunner implements FFmpegRunner {
   Future<void> cancel() async {
     await FFmpegKit.cancel();
     _currentSession = null;
+  }
+
+  @override
+  Future<Process> start(List<String> arguments) {
+    throw UnsupportedError('FFmpeg process streaming is desktop-only');
   }
 }

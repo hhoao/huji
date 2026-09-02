@@ -19,6 +19,38 @@ The `huji-app/scripts/local_inference.py` script expects:
 - onnxruntime installed in the venv
 - YOLO ONNX models under `models/<sport>/<match_type>/best.onnx`
 
+### Desktop GPU (CUDA) ONNX
+
+Linux desktop prefers CUDA when the linked ORT build exposes it, otherwise CPU.
+
+**AppImage (default):** `build_appimage.sh` bundles the Microsoft **GPU** ORT package
+plus CUDA 12 / cuDNN 9 redistributable libraries from PyPI wheels. Users only need a
+working NVIDIA driver (`libcuda.so`). Machines without NVIDIA fall back to CPU.
+
+```bash
+cd huji-app
+./scripts/build_appimage.sh
+# Smaller CPU-oriented image (no CUDA redist / keep plugin ORT):
+#   SKIP_GPU_ORT=1 ./scripts/build_appimage.sh
+#   HUJI_BUNDLE_CUDA_REDIST=0 ./scripts/build_appimage.sh
+```
+
+**Local `flutter run`:**
+
+```bash
+cd huji-app
+./scripts/setup_onnxruntime_gpu.sh
+./scripts/setup_cuda_redist.sh   # optional but recommended
+source scripts/onnxruntime_gpu_env.sh
+# Also put CUDA redist on the loader path when present:
+export LD_LIBRARY_PATH="$PWD/.cuda-redist/lib:${LD_LIBRARY_PATH:-}"
+flutter clean && flutter run -d linux
+# Or after a release build, inject into the bundle:
+#   ./scripts/bundle_onnx_gpu_into.sh build/linux/x64/release/bundle/lib
+```
+
+AMD / Intel GPUs are not covered by this path (CUDA-only).
+
 ## Architecture
 
 - `huji-app/` — Flutter app (mobile + desktop), package name `huji_app`

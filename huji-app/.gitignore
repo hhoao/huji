@@ -54,3 +54,8 @@ coverage/
 # AppImage build artifacts
 tools/
 *.AppImage
+
+# Local CUDA ONNX Runtime download (scripts/setup_onnxruntime_gpu.sh)
+.onnxruntime-gpu/
+.cuda-redist/
+scripts/onnxruntime_gpu_env.sh

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter/foundation.dart';
@@ -8,6 +9,10 @@ import 'package:path/path.dart' as path;
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
+import 'package:huji_app/services/inference/onnx_ep_selector.dart';
+import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
+import 'package:huji_app/services/inference/onnx_model_predictor.dart';
+import 'package:huji_app/services/inference/onnx_predictor_pool.dart';
 
 import '../../models/autoclip_models.dart';
 import '../../services/large_model_service.dart';
@@ -123,8 +128,29 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     ProgressHandler? progressHandler,
     int? maxWidth,
   }) async {
-    final results = <PredictedFrameInfo>[];
+    if (modelPredictor is OnnxModelPredictor) {
+      final size = maxWidth ?? OnnxImagePreprocessor.inputSize;
+      return predictRgbFrameStream(
+        frameStream: VideoUtils.streamIntervalRawRgbFrames(
+          videoPath: videoSegmentInfo.videoPath,
+          frameInterval: perSecondFrames,
+          startTime: videoSegmentInfo.startTime,
+          duration: videoSegmentInfo.endTime - videoSegmentInfo.startTime,
+          width: size,
+          height: size,
+          padValue: OnnxImagePreprocessor.padValue,
+        ),
+        perSecondFrames: perSecondFrames,
+        videoSegmentInfo: videoSegmentInfo,
+        modelPredictor: modelPredictor,
+        classMappings: classMappings,
+        width: size,
+        height: size,
+        progressHandler: progressHandler,
+      );
+    }
 
+    final results = <PredictedFrameInfo>[];
     final tempDir = await Directory.systemTemp.createTemp('frame_extract_');
 
     try {
@@ -138,15 +164,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       );
 
       final frames = await _getFrameFiles(tempDir.path);
-      frames.sort((a, b) {
-        final aNum = int.parse(
-          path.basenameWithoutExtension(a).split('_').last,
-        );
-        final bNum = int.parse(
-          path.basenameWithoutExtension(b).split('_').last,
-        );
-        return aNum.compareTo(bNum);
-      });
+      frames.sort(_compareFrameFileNames);
 
       results.addAll(
         await predictFrames(
@@ -187,19 +205,112 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     return results;
   }
 
+  /// Predict from pre-letterboxed RGB24 frame files (desktop ONNX file path).
+  Future<List<PredictedFrameInfo>> predictRgbFrames({
+    required List<String> frames,
+    required int perSecondFrames,
+    required VideoSegmentInfo videoSegmentInfo,
+    required OnnxModelPredictor modelPredictor,
+    required Map<String, ActionType> classMappings,
+    required int width,
+    required int height,
+    ProgressHandler? progressHandler,
+  }) async {
+    final results = <PredictedFrameInfo>[];
+    double currentSecond = videoSegmentInfo.startTime;
+    final expectedLen = OnnxImagePreprocessor.rgb24ByteLength(width, height);
+
+    for (final frame in frames) {
+      final bytes = await File(frame).readAsBytes();
+      if (bytes.length < expectedLen) {
+        throw StateError(
+          'RGB frame $frame has ${bytes.length} bytes, expected $expectedLen',
+        );
+      }
+      final res = await modelPredictor.predictRgb24(
+        bytes,
+        width,
+        height,
+        classMappings,
+      );
+      results.add(PredictedFrameInfo(actionType: res, seconds: currentSecond));
+      currentSecond += 1 / perSecondFrames;
+      progressHandler?.forword();
+    }
+
+    return results;
+  }
+
+  /// Predict from a live RGB24 frame stream (no temp frame files on disk).
+  Future<List<PredictedFrameInfo>> predictRgbFrameStream({
+    required Stream<Uint8List> frameStream,
+    required int perSecondFrames,
+    required VideoSegmentInfo videoSegmentInfo,
+    required OnnxModelPredictor modelPredictor,
+    required Map<String, ActionType> classMappings,
+    required int width,
+    required int height,
+    ProgressHandler? progressHandler,
+  }) async {
+    final results = <PredictedFrameInfo>[];
+    double currentSecond = videoSegmentInfo.startTime;
+    final expectedLen = OnnxImagePreprocessor.rgb24ByteLength(width, height);
+
+    await for (final bytes in frameStream) {
+      if (bytes.length < expectedLen) {
+        throw StateError(
+          'RGB stream frame has ${bytes.length} bytes, expected $expectedLen',
+        );
+      }
+      final res = await modelPredictor.predictRgb24(
+        bytes,
+        width,
+        height,
+        classMappings,
+      );
+      results.add(PredictedFrameInfo(actionType: res, seconds: currentSecond));
+      currentSecond += 1 / perSecondFrames;
+      progressHandler?.forword();
+    }
+
+    return results;
+  }
+
   /// 获取帧文件列表
-  static Future<List<String>> _getFrameFiles(String tempDir) async {
+  static Future<List<String>> _getFrameFiles(
+    String tempDir, {
+    String? extension,
+  }) async {
     final dir = Directory(tempDir);
     final files = <String>[];
 
     await for (final entity in dir.list()) {
-      if (entity is File &&
-          (entity.path.endsWith('.png') || entity.path.endsWith('.jpg'))) {
-        files.add(entity.path);
+      if (entity is! File) continue;
+      final p = entity.path;
+      if (extension != null) {
+        if (p.endsWith(extension)) files.add(p);
+      } else if (p.endsWith('.png') || p.endsWith('.jpg')) {
+        files.add(p);
       }
     }
 
     return files;
+  }
+
+  static int _compareFrameFileNames(String a, String b) {
+    final aNum = int.parse(path.basenameWithoutExtension(a).split('_').last);
+    final bNum = int.parse(path.basenameWithoutExtension(b).split('_').last);
+    return aNum.compareTo(bNum);
+  }
+
+  static int _onnxWorkerCount(int segmentCount, {required bool useAccelerator}) {
+    // Multiple CUDA sessions burn VRAM and rarely help classify latency; keep
+    // one GPU worker and rely on ORT/CUDA throughput. CPU still parallelizes.
+    if (useAccelerator) {
+      return 1;
+    }
+    final cpuWorkers = math.max(1, Platform.numberOfProcessors ~/ 2);
+    return math.max(1, math.min(cpuWorkers, segmentCount));
   }
 
   Future<List<PredictedFrameInfo>> _predictVideoActionPointsInternalV2({
@@ -212,36 +323,76 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     int inferenceWidth = 640,
     ProgressHandler? progressHandler,
   }) async {
-    final modelPredictor = largeModelService.getPredictor(modelName);
+    final seedPredictor = largeModelService.getPredictor(modelName);
+    OnnxPredictorPool? pool;
+    ModelPredictor? singlePredictor;
 
     try {
       final videoInfo = await VideoUtils.getVideoInfo(videoPath);
       final duration = videoInfo.duration;
       progressHandler?.startProcess(duration, perSecondFrames);
 
-      final futures = <Future<List<PredictedFrameInfo>>>[];
+      final segments = <VideoSegmentInfo>[];
       double currentTime = 0;
-
       while (currentTime < duration) {
         final nextTime = (currentTime + segmentDuration).clamp(0.0, duration);
-        final videoSegmentInfo = VideoSegmentInfo(
-          videoPath: videoPath,
-          startTime: currentTime,
-          endTime: nextTime,
-        );
-
-        futures.add(
-          extractFramesV2(
-            videoSegmentInfo: videoSegmentInfo,
-            perSecondFrames: perSecondFrames,
-            maxWidth: inferenceWidth,
-            modelPredictor: modelPredictor,
-            classMappings: classMappings,
-            progressHandler: progressHandler,
+        segments.add(
+          VideoSegmentInfo(
+            videoPath: videoPath,
+            startTime: currentTime,
+            endTime: nextTime,
           ),
         );
-
         currentTime += segmentDuration;
+      }
+
+      if (seedPredictor is OnnxModelPredictor) {
+        final useAccelerator = await OnnxEpSelector.hasAccelerator();
+        final workerCount = _onnxWorkerCount(
+          segments.length,
+          useAccelerator: useAccelerator,
+        );
+        pool = OnnxPredictorPool.create(
+          modelFilePath: seedPredictor.modelFilePath,
+          fallbackClassNames: seedPredictor.fallbackClassNames,
+          size: workerCount,
+        );
+        await seedPredictor.dispose();
+        _logger.i(
+          'ONNX pool: $workerCount workers for ${segments.length} segments '
+          '(accelerator=$useAccelerator)',
+        );
+      } else {
+        singlePredictor = seedPredictor;
+      }
+
+      final futures = <Future<List<PredictedFrameInfo>>>[];
+      for (final videoSegmentInfo in segments) {
+        if (pool != null) {
+          futures.add(
+            pool.withPredictor(
+              (predictor) => extractFramesV2(
+                videoSegmentInfo: videoSegmentInfo,
+                perSecondFrames: perSecondFrames,
+                maxWidth: inferenceWidth,
+                modelPredictor: predictor,
+                classMappings: classMappings,
+                progressHandler: progressHandler,
+              ),
+            ),
+          );
+        } else {
+          futures.add(
+            extractFramesV2(
+              videoSegmentInfo: videoSegmentInfo,
+              perSecondFrames: perSecondFrames,
+              maxWidth: inferenceWidth,
+              modelPredictor: singlePredictor!,
+              classMappings: classMappings,
+              progressHandler: progressHandler,
+            ),
+          );
+        }
       }
 
       final predictions = await Future.wait(futures);
@@ -255,7 +406,8 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
 
       return results;
     } finally {
-      await modelPredictor.dispose();
+      await pool?.dispose();
+      await singlePredictor?.dispose();
     }
   }
 

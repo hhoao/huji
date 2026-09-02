@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:huji_app/services/platform_capability.dart';
 import 'mobile_ffmpeg_runner.dart';
 import 'desktop_ffmpeg_runner.dart';
@@ -52,6 +54,14 @@ abstract class FFmpegRunner {
 
   /// Cancel any running execution (best-effort).
   Future<void> cancel();
+
+  /// Start ffmpeg and return the live [Process] (desktop binary streaming).
+  ///
+  /// Callers own the process lifetime (must drain stdout/stderr and await exit).
+  /// Mobile builds throw [UnsupportedError].
+  Future<Process> start(List<String> arguments) {
+    throw UnsupportedError('FFmpeg process streaming is desktop-only');
+  }
 }
 
 bool _ffmpegArgNeedsQuoting(String arg) {

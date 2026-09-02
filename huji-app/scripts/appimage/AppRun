@@ -8,8 +8,9 @@ set -e
 HERE="$(dirname "$(readlink -f "${0}")")"
 export APPDIR="${APPDIR:-$HERE}"
 
-# Make bundled libraries findable
-export LD_LIBRARY_PATH="$APPDIR/usr/lib:$APPDIR/usr/lib/x86_64-linux-gnu:$LD_LIBRARY_PATH"
+# Prefer bundled libs (Flutter plugins + GPU ORT + CUDA redist) over system.
+# usr/bin/lib is where the Flutter linux bundle places .so (RPATH $ORIGIN/lib).
+export LD_LIBRARY_PATH="$APPDIR/usr/bin/lib:$APPDIR/usr/lib:$APPDIR/usr/lib/x86_64-linux-gnu:$APPDIR/usr/lib/aarch64-linux-gnu:${LD_LIBRARY_PATH:-}"
 
 # Make bundled ffmpeg findable
 export PATH="$APPDIR/usr/bin:$PATH"

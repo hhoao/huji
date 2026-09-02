@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
+import 'package:huji_app/services/inference/onnx_ep_selector.dart';
 import 'package:huji_app/services/inference/yolo_onnx_metadata.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
@@ -16,6 +17,16 @@ class OnnxInferenceEngine {
   bool _loaded = false;
   List<String>? _classNames;
   int _numClasses = 0;
+  List<OrtProvider> _activeProviders = const [OrtProvider.CPU];
+
+  /// Providers requested for the current session (primary first).
+  List<OrtProvider> get activeProviders =>
+      List<OrtProvider>.unmodifiable(_activeProviders);
+
+  /// True when the primary provider is a hardware accelerator.
+  bool get usingAccelerator =>
+      _activeProviders.isNotEmpty &&
+      _activeProviders.first != OrtProvider.CPU;
 
   /// Class names read from ONNX metadata (`names` field), index-aligned.
   List<String> get classNames {
@@ -32,14 +43,39 @@ class OnnxInferenceEngine {
 
   /// Load an ONNX model from an on-disk file path.
   ///
+  /// Prefers GPU EPs when the linked ORT build exposes them; falls back to CPU
+  /// if accelerator session creation fails.
+  ///
   /// [fallbackClassNames] is used when the plugin cannot read ONNX custom
   /// metadata (known limitation on Linux desktop).
   Future<void> loadModelFromFile(
     String filePath, {
     List<String>? fallbackClassNames,
   }) async {
-    _session = await _ort.createSession(filePath);
+    final providers = await OnnxEpSelector.resolveProviders(ort: _ort);
+    _activeProviders = providers;
+
+    try {
+      _session = await _ort.createSession(
+        filePath,
+        options: OrtSessionOptions(providers: providers),
+      );
+    } catch (e) {
+      final triedGpu = providers.any((p) => p != OrtProvider.CPU);
+      if (!triedGpu) rethrow;
+
+      _logger.w('ORT accelerator session failed, falling back to CPU: $e');
+      _activeProviders = const [OrtProvider.CPU];
+      _session = await _ort.createSession(
+        filePath,
+        options: OrtSessionOptions(providers: const [OrtProvider.CPU]),
+      );
+    }
+
     _loaded = true;
+    _logger.i(
+      'ORT session ready providers=${_activeProviders.map((p) => p.name).join(",")}',
+    );
     await _loadClassNames(filePath, fallbackClassNames);
   }
 
@@ -177,5 +213,6 @@ class OnnxInferenceEngine {
     _loaded = false;
     _classNames = null;
     _numClasses = 0;
+    _activeProviders = const [OrtProvider.CPU];
   }
 }

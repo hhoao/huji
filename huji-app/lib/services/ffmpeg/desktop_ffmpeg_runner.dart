@@ -4,7 +4,8 @@ import 'dart:io';
 import 'ffmpeg_runner.dart';
 
 class DesktopFFmpegRunner implements FFmpegRunner {
-  Process? _currentProcess;
+  /// Tracks concurrent ffmpeg processes so parallel chunk extract is safe.
+  final Set<Process> _activeProcesses = {};
 
   /// Resolve the ffmpeg binary path.
   ///
@@ -33,27 +34,31 @@ class DesktopFFmpegRunner implements FFmpegRunner {
     final path = _resolveFFmpegPath();
     final args = ['-hide_banner', '-nostdin', '-y', ...arguments];
 
-    _currentProcess = await Process.start(path, args, runInShell: false);
+    final process = await Process.start(path, args, runInShell: false);
+    _activeProcesses.add(process);
 
     final stdoutBuf = StringBuffer();
     final stderrBuf = StringBuffer();
 
-    _currentProcess!.stdout.transform(utf8.decoder).listen(stdoutBuf.write);
-    _currentProcess!.stderr.transform(utf8.decoder).listen((line) {
-      stderrBuf.write(line);
-      if (onProgress != null) {
-        onProgress(0.5); // placeholder; callers wanting precise progress can wrap
-      }
-    });
+    try {
+      process.stdout.transform(utf8.decoder).listen(stdoutBuf.write);
+      process.stderr.transform(utf8.decoder).listen((line) {
+        stderrBuf.write(line);
+        if (onProgress != null) {
+          onProgress(0.5); // placeholder; callers wanting precise progress can wrap
+        }
+      });
 
-    final exitCode = await _currentProcess!.exitCode;
-    _currentProcess = null;
+      final exitCode = await process.exitCode;
 
-    return FFmpegResult(
-      returnCode: exitCode,
-      output: stdoutBuf.toString() + stderrBuf.toString(),
-      failStackTrace: exitCode == 0 ? null : stderrBuf.toString(),
-    );
+      return FFmpegResult(
+        returnCode: exitCode,
+        output: stdoutBuf.toString() + stderrBuf.toString(),
+        failStackTrace: exitCode == 0 ? null : stderrBuf.toString(),
+      );
+    } finally {
+      _activeProcesses.remove(process);
+    }
   }
 
   String _resolveFFprobePath() {
@@ -92,8 +97,22 @@ class DesktopFFmpegRunner implements FFmpegRunner {
   }
 
   @override
+  Future<Process> start(List<String> arguments) async {
+    final path = _resolveFFmpegPath();
+    final args = ['-hide_banner', '-nostdin', '-y', ...arguments];
+    final process = await Process.start(path, args, runInShell: false);
+    _activeProcesses.add(process);
+    process.exitCode.whenComplete(() {
+      _activeProcesses.remove(process);
+    });
+    return process;
+  }
+
+  @override
   Future<void> cancel() async {
-    _currentProcess?.kill(ProcessSignal.sigterm);
-    _currentProcess = null;
+    for (final process in List<Process>.of(_activeProcesses)) {
+      process.kill(ProcessSignal.sigterm);
+    }
+    _activeProcesses.clear();
   }
 }

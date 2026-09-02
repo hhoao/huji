@@ -73,43 +73,78 @@ class OnnxModelPredictor implements ModelPredictor {
     Map<String, ActionType> classMappings,
   ) {
     return _enqueue(() async {
-      final stopwatch = Stopwatch()..start();
-      final engine = await _ensureLoaded();
-      final classNames = engine.classNames;
-
       final rgb = OnnxImagePreprocessor.decodeAndLetterbox(imageBytes);
       const size = OnnxImagePreprocessor.inputSize;
-      final tensor = OnnxImagePreprocessor.toTensor(rgb, size, size);
-      final logits = await engine.predict(tensor, size, size);
-
-      final (topIdx, topConfidence) = _topPrediction(logits, classNames.length);
-      final topClass = classNames[topIdx];
-      _mapClassName(topClass, classMappings);
-
-      final topK = classNames.length < 5 ? classNames.length : 5;
-      final top5 = _topK(logits, topK, classNames.length);
-      stopwatch.stop();
-
-      return ClassifierResult(
-        imageSize: const ImageSize(width: size, height: size),
-        classification: Classification(
-          topClass: topClass,
-          topConfidence: topConfidence,
-          top5Classes: top5.map((e) => classNames[e.$1]).toList(),
-          top5Confidences: top5.map((e) => e.$2).toList(),
-        ),
-        speed: stopwatch.elapsedMicroseconds / 1e6,
-        detections: [
-          Detection(
-            classIndex: topIdx,
-            className: topClass,
-            confidence: topConfidence,
-            boundingBox: const BoundingBox(left: 0, top: 0, right: 0, bottom: 0),
-            normalizedBox: const BoundingBox(left: 0, top: 0, right: 0, bottom: 0),
-          ),
-        ],
-      );
+      return _classifyRgb24(rgb, size, size, classMappings);
     });
+  }
+
+  /// Classify a pre-letterboxed RGB24 frame (skips PNG decode / Dart resize).
+  Future<ActionType> predictRgb24(
+    Uint8List rgb,
+    int width,
+    int height,
+    Map<String, ActionType> classMappings,
+  ) async {
+    final result = await predictRgb24ForResult(rgb, width, height, classMappings);
+    return _mapClassName(result.classification.topClass, classMappings);
+  }
+
+  Future<ClassifierResult> predictRgb24ForResult(
+    Uint8List rgb,
+    int width,
+    int height,
+    Map<String, ActionType> classMappings,
+  ) {
+    final expected = OnnxImagePreprocessor.rgb24ByteLength(width, height);
+    if (rgb.length < expected) {
+      throw ArgumentError(
+        'RGB24 buffer length ${rgb.length} < expected $expected for ${width}x$height',
+      );
+    }
+    return _enqueue(() => _classifyRgb24(rgb, width, height, classMappings));
+  }
+
+  Future<ClassifierResult> _classifyRgb24(
+    Uint8List rgb,
+    int width,
+    int height,
+    Map<String, ActionType> classMappings,
+  ) async {
+    final stopwatch = Stopwatch()..start();
+    final engine = await _ensureLoaded();
+    final classNames = engine.classNames;
+
+    final tensor = OnnxImagePreprocessor.toTensor(rgb, width, height);
+    final logits = await engine.predict(tensor, width, height);
+
+    final (topIdx, topConfidence) = _topPrediction(logits, classNames.length);
+    final topClass = classNames[topIdx];
+    _mapClassName(topClass, classMappings);
+
+    final topK = classNames.length < 5 ? classNames.length : 5;
+    final top5 = _topK(logits, topK, classNames.length);
+    stopwatch.stop();
+
+    return ClassifierResult(
+      imageSize: ImageSize(width: width, height: height),
+      classification: Classification(
+        topClass: topClass,
+        topConfidence: topConfidence,
+        top5Classes: top5.map((e) => classNames[e.$1]).toList(),
+        top5Confidences: top5.map((e) => e.$2).toList(),
+      ),
+      speed: stopwatch.elapsedMicroseconds / 1e6,
+      detections: [
+        Detection(
+          classIndex: topIdx,
+          className: topClass,
+          confidence: topConfidence,
+          boundingBox: const BoundingBox(left: 0, top: 0, right: 0, bottom: 0),
+          normalizedBox: const BoundingBox(left: 0, top: 0, right: 0, bottom: 0),
+        ),
+      ],
+    );
   }
 
   ActionType _mapClassName(

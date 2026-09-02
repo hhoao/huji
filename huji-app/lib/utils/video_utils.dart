@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:logger/logger.dart';
 import 'package:path/path.dart' as path;
@@ -1259,6 +1260,138 @@ class VideoUtils {
       throw Exception(
         resolveHujiL10n().frameExtractionFailed(result.output ?? ''),
       );
+    }
+  }
+
+  /// Extract letterboxed RGB24 frames for desktop ONNX (skips PNG encode/decode).
+  ///
+  /// Output files: `000001.rgb`, … each exactly [width]*[height]*3 bytes.
+  /// Prefer [streamIntervalRawRgbFrames] to avoid filling /tmp.
+  static Future<void> intervalExtractRawRgbFrames({
+    required String videoPath,
+    required int frameInterval,
+    required String tempDir,
+    double? startTime,
+    double? duration,
+    int width = 640,
+    int height = 640,
+    int padValue = 114,
+  }) async {
+    final padHex = padValue.toRadixString(16).padLeft(2, '0');
+    final vf =
+        'fps=$frameInterval,'
+        'scale=$width:$height:force_original_aspect_ratio=decrease:flags=bicubic,'
+        'pad=$width:$height:(ow-iw)/2:(oh-ih)/2:color=0x$padHex$padHex$padHex';
+
+    final args = <String>['-loglevel', logLevel];
+    if (startTime != null && startTime > 0) {
+      args.addAll(['-ss', startTime.toString()]);
+    }
+    args.addAll(['-i', videoPath]);
+    if (duration != null && duration > 0) {
+      args.addAll(['-t', duration.toString()]);
+    }
+    args.addAll([
+      '-vf',
+      vf,
+      '-f',
+      'image2',
+      '-vcodec',
+      'rawvideo',
+      '-pix_fmt',
+      'rgb24',
+      '-y',
+      path.join(tempDir, '%06d.rgb'),
+    ]);
+
+    final result = await FFmpegRunner.instance.execute(args);
+
+    if (!result.isSuccess) {
+      throw Exception(
+        resolveHujiL10n().frameExtractionFailed(result.output ?? ''),
+      );
+    }
+  }
+
+  /// Stream letterboxed RGB24 frames from ffmpeg stdout (no temp frame files).
+  ///
+  /// Each event is exactly [width]*[height]*3 bytes. Avoids Disk quota errors
+  /// from parallel chunk extracts writing hundreds of MB under /tmp.
+  static Stream<Uint8List> streamIntervalRawRgbFrames({
+    required String videoPath,
+    required int frameInterval,
+    double? startTime,
+    double? duration,
+    int width = 640,
+    int height = 640,
+    int padValue = 114,
+  }) async* {
+    final padHex = padValue.toRadixString(16).padLeft(2, '0');
+    final vf =
+        'fps=$frameInterval,'
+        'scale=$width:$height:force_original_aspect_ratio=decrease:flags=bicubic,'
+        'pad=$width:$height:(ow-iw)/2:(oh-ih)/2:color=0x$padHex$padHex$padHex';
+
+    final args = <String>['-loglevel', logLevel];
+    if (startTime != null && startTime > 0) {
+      args.addAll(['-ss', startTime.toString()]);
+    }
+    args.addAll(['-i', videoPath]);
+    if (duration != null && duration > 0) {
+      args.addAll(['-t', duration.toString()]);
+    }
+    args.addAll([
+      '-vf',
+      vf,
+      '-f',
+      'rawvideo',
+      '-pix_fmt',
+      'rgb24',
+      'pipe:1',
+    ]);
+
+    final process = await FFmpegRunner.instance.start(args);
+    final stderrBuf = StringBuffer();
+    final stderrDone = process.stderr
+        .transform(utf8.decoder)
+        .listen(stderrBuf.write, cancelOnError: false)
+        .asFuture<void>();
+
+    final frameSize = width * height * 3;
+    final pending = BytesBuilder(copy: false);
+
+    try {
+      await for (final chunk in process.stdout) {
+        pending.add(chunk);
+        var bytes = pending.takeBytes();
+        var offset = 0;
+        while (bytes.length - offset >= frameSize) {
+          yield bytes.sublist(offset, offset + frameSize);
+          offset += frameSize;
+        }
+        if (offset < bytes.length) {
+          pending.add(Uint8List.sublistView(bytes, offset));
+        }
+      }
+
+      final exitCode = await process.exitCode;
+      await stderrDone;
+      if (exitCode != 0) {
+        throw Exception(
+          resolveHujiL10n().frameExtractionFailed(stderrBuf.toString()),
+        );
+      }
+      if (pending.length != 0) {
+        throw Exception(
+          resolveHujiL10n().frameExtractionFailed(
+            'Incomplete RGB frame (${pending.length} leftover bytes, '
+            'expected multiple of $frameSize)',
+          ),
+        );
+      }
+    } catch (e) {
+      process.kill(ProcessSignal.sigterm);
+      rethrow;
     }
   }
 

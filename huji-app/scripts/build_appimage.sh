@@ -9,6 +9,10 @@
 #   ARCH                  Target architecture (default: $(uname -m))
 #   FFMPEG_VERSION        ffmpeg static build version (default: release)
 #   SKIP_FLUTTER_BUILD    1 = use existing build/linux output, don't rebuild
+#   HUJI_BUNDLE_CUDA_REDIST  1 (default) = ship CUDA/cuDNN redist for GPU users
+#   HUJI_ONNXRUNTIME_LIB  optional override path to libonnxruntime.so
+#   SKIP_GPU_ORT          1 = keep CPU ORT from Flutter plugin (not recommended)
+
 
 set -e
 
@@ -77,25 +81,23 @@ fi
 
 cp -r "$FLUTTER_OUT/"* "$APPDIR/usr/bin/"
 
-# flutter_onnxruntime may link against system libonnxruntime without installing it
-# into bundle/lib; linuxdeploy then fails when resolving plugin dependencies.
+# Replace CPU ORT from flutter_onnxruntime with the GPU build (+ CUDA redist)
+# so end users with an NVIDIA driver get CUDA automatically. CPU-only hosts
+# still work: the app falls back to the CPU execution provider.
 BUNDLE_LIB_DIR="$APPDIR/usr/bin/lib"
 mkdir -p "$BUNDLE_LIB_DIR"
-rm -f "$BUNDLE_LIB_DIR/libonnxruntime.so"
-if [[ ! -f "$BUNDLE_LIB_DIR/libonnxruntime.so" ]]; then
-  ONNX_SRC=$(find "$PROJECT_DIR/build/linux" -path "*flutter_onnxruntime*" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
-  if [[ -z "$ONNX_SRC" ]]; then
-    ONNX_SRC=$(find "$PROJECT_DIR/build" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
+if [[ "${SKIP_GPU_ORT:-0}" == "1" ]]; then
+  echo -e "${YELLOW}SKIP_GPU_ORT=1 — keeping plugin CPU libonnxruntime${NC}"
+  if [[ -n "${HUJI_ONNXRUNTIME_LIB:-}" && -f "$HUJI_ONNXRUNTIME_LIB" ]]; then
+    cp -L "$HUJI_ONNXRUNTIME_LIB" "$BUNDLE_LIB_DIR/libonnxruntime.so"
+  elif [[ ! -f "$BUNDLE_LIB_DIR/libonnxruntime.so" ]]; then
+    ONNX_SRC=$(find "$PROJECT_DIR/build/linux" -path "*flutter_onnxruntime*" -name "libonnxruntime.so" -type f 2>/dev/null | head -1 || true)
+    [[ -n "$ONNX_SRC" ]] && cp -L "$ONNX_SRC" "$BUNDLE_LIB_DIR/libonnxruntime.so"
   fi
-  if [[ -z "$ONNX_SRC" ]] && command -v ldconfig >/dev/null 2>&1; then
-    ONNX_SRC=$(ldconfig -p 2>/dev/null | awk '/libonnxruntime\.so/{print $NF; exit}' || true)
-  fi
-  if [[ -n "$ONNX_SRC" && -f "$ONNX_SRC" ]]; then
-    cp -L "$ONNX_SRC" "$BUNDLE_LIB_DIR/libonnxruntime.so"
-    echo "[ok] bundled libonnxruntime.so from $ONNX_SRC"
-  else
-    echo -e "${YELLOW}WARN: libonnxruntime.so not found; AppImage packaging may fail${NC}"
-  fi
+else
+  echo -e "${BLUE}Bundling GPU ONNX Runtime (+ CUDA redist if enabled)...${NC}"
+  ARCH="$ARCH" HUJI_BUNDLE_CUDA_REDIST="${HUJI_BUNDLE_CUDA_REDIST:-1}" \
+    "$SCRIPT_DIR/bundle_onnx_gpu_into.sh" "$BUNDLE_LIB_DIR"
 fi
 
 # Keep Flutter plugin .so files in usr/bin/lib/ — the binary's RPATH is
@@ -197,7 +199,11 @@ PLUGIN_LIB_FLAGS=()
 if [[ -d "$APPDIR/usr/bin/lib" ]]; then
   while IFS= read -r -d '' sofile; do
     case "$(basename "$sofile")" in
+      # Prebuilt media / ORT CUDA stacks: loaded via RPATH/LD_LIBRARY_PATH.
+      # Letting linuxdeploy walk their DT_NEEDED against the host breaks
+      # packaging when CUDA/cuDNN are only present inside the AppDir.
       libav*|libffmpegkit*|libswscale*|libswresample*) continue ;;
+      libonnxruntime*|libcudart*|libcudade*|libcublas*|libcudnn*|libcufft*|libcurand*|libnvrtc*|libnvJitLink*|libnvToolsExt*) continue ;;
     esac
     PLUGIN_LIB_FLAGS+=(--library "$sofile")
   done < <(find "$APPDIR/usr/bin/lib" -name "*.so" -print0)
