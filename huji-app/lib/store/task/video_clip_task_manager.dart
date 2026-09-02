@@ -26,6 +26,30 @@ class StateNotMatchException implements Exception {
   StateNotMatchException(this.message);
 }
 
+/// Generates a thumbnail from the source video and stores it on [taskId]'s
+/// `image` field so task rows show a preview while clipping is in progress.
+Future<void> ensureClipTaskSourceThumbnail(
+  TaskStorage taskRunner,
+  String taskId,
+  String videoPath,
+) async {
+  try {
+    final task = taskRunner.getTaskById(taskId);
+    if (task == null || (task.image?.isNotEmpty ?? false)) return;
+
+    final thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
+
+    await taskRunner.updateTask(taskId, (oldTask) {
+      if (oldTask.image != null && oldTask.image!.isNotEmpty) {
+        return oldTask;
+      }
+      return oldTask.copyWith(image: thumbPath);
+    });
+  } catch (e) {
+    AppLogger().w('Failed to generate clip task source thumbnail: $e');
+  }
+}
+
 class VideoClipTaskManager extends AbstractTaskManager {
   static const String videoClipTable = 'video_clip_tasks';
   StreamSubscription? _websocketSubscription;
@@ -144,6 +168,9 @@ class VideoClipTaskManager extends AbstractTaskManager {
 
   Future<void> _startTask(VideoClipTask task) async {
     _startWebSocketListener();
+    unawaited(
+      ensureClipTaskSourceThumbnail(_taskRunner, task.id, task.videoPath),
+    );
     VideoClipTask currentTask = task.copyWith(supportsPause: false);
     try {
       currentTask =

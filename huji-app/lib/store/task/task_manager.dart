@@ -176,6 +176,13 @@ class TaskStorage extends ChangeNotifier
 
     copyTask = _taskManagers[copyTask.type]!.copyTask(copyTask);
 
+    if (copyTask is VideoClipTask &&
+        (copyTask.image == null || copyTask.image!.isEmpty)) {
+      unawaited(
+        ensureClipTaskSourceThumbnail(this, copyTask.id, copyTask.videoPath),
+      );
+    }
+
     // 初始化遥测服务（异步，不阻塞）
     TelemetryService.instance.initialize();
   }
