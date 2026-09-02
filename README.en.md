@@ -18,7 +18,7 @@
   <a href="#license">License</a>
 </p>
 
-[![LICENSE](https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square)](LICENSE)
+[![LICENSE](https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=flat-square)](LICENSE)
 
 ## Overview
 
@@ -147,4 +147,4 @@ More details: [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
 
 ## License
 
-[Apache License 2.0](LICENSE)
+[GNU Affero General Public License v3.0](LICENSE)
