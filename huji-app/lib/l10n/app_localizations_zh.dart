@@ -3165,6 +3165,21 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get settingsVersionInfo => '版本信息';
 
   @override
+  String get settingsAbout => '关于';
+
+  @override
+  String get settingsAboutBack => '返回关于';
+
+  @override
+  String get settingsAppVersion => '应用版本';
+
+  @override
+  String get settingsViewDeviceInfo => '查看设备信息';
+
+  @override
+  String get settingsViewChangelog => '查看更新日志';
+
+  @override
   String get settingsViewDownloadFiles => '查看下载文件';
 
   @override

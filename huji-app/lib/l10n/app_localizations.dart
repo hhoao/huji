@@ -5780,6 +5780,36 @@ abstract class HujiLocalizations {
   /// **'Version info'**
   String get settingsVersionInfo;
 
+  /// No description provided for @settingsAbout.
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get settingsAbout;
+
+  /// No description provided for @settingsAboutBack.
+  ///
+  /// In en, this message translates to:
+  /// **'Back to About'**
+  String get settingsAboutBack;
+
+  /// No description provided for @settingsAppVersion.
+  ///
+  /// In en, this message translates to:
+  /// **'App version'**
+  String get settingsAppVersion;
+
+  /// No description provided for @settingsViewDeviceInfo.
+  ///
+  /// In en, this message translates to:
+  /// **'View device info'**
+  String get settingsViewDeviceInfo;
+
+  /// No description provided for @settingsViewChangelog.
+  ///
+  /// In en, this message translates to:
+  /// **'View changelog'**
+  String get settingsViewChangelog;
+
   /// No description provided for @settingsViewDownloadFiles.
   ///
   /// In en, this message translates to:

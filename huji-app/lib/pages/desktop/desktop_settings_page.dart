@@ -1,20 +1,13 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
-import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/huji_appearance_settings_section.dart';
 import 'package:huji_app/pages/desktop/huji_help_feedback_settings_section.dart';
 import 'package:huji_app/pages/desktop/huji_shortcut_settings_section.dart';
-import 'package:huji_app/pages/system/settings_update_actions.dart';
-import 'package:huji_app/router/modules/profile.dart';
-import 'package:huji_app/router/modules/desktop.dart';
-import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/widgets/desktop/app_switch.dart';
-import 'package:huji_app/widgets/feature_stub_actions.dart';
-import 'package:huji_app/widgets/file_picker/file_selection.dart';
+import 'package:huji_app/widgets/settings/about_section.dart';
+import 'package:huji_app/widgets/settings/storage_cleanup.dart'
+    show showStorageCleanupDialog, showStorageInfoDialog;
 import 'package:huji_app/widgets/settings/workspace_hub_nav.dart';
 import 'package:huji_app/widgets/settings/workspace_section_layout.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -114,7 +107,7 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
                 onTap: () => setState(() => _section = _SettingsSection.help),
               ),
               WorkspaceHubEntry(
-                title: l10n.settingsVersionInfo,
+                title: l10n.settingsAbout,
                 icon: Icons.info_outline,
                 selected: _section == _SettingsSection.about,
                 density: WorkspaceHubNavDensity.relaxed,
@@ -191,25 +184,14 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
               ),
             ),
             _navRow(
-              title: l10n.taskTypeImageCompress,
-              subtitle: l10n.homeImageCompressDesc,
-              onTap: _openImageCompress,
-            ),
-            _navRow(
-              title: l10n.taskTypeVideoCompress,
-              subtitle: l10n.homeVideoCompressDesc,
-              onTap: _openVideoCompress,
-            ),
-            if (EnvironmentConfig.isDevelopment)
-              _navRow(
-                title: l10n.testPageTitle,
-                subtitle: l10n.testEnvironmentSubtitle,
-                onTap: () => context.push(ToolsRoute.test),
-              ),
-            _navRow(
               title: l10n.settingsClearCache,
               subtitle: l10n.settingsChooseCleanupContent,
-              onTap: () => context.push(ProfileRoute.settings),
+              onTap: _openClearCache,
+            ),
+            _navRow(
+              title: l10n.settingsStorage,
+              subtitle: l10n.settingsAppData,
+              onTap: _openStorageInfo,
               showDividerBelow: false,
             ),
           ],
@@ -218,20 +200,12 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
     );
   }
 
-  Future<void> _openImageCompress() async {
-    final result = await FileSelection.selectImages(
-      context: context,
-      allowMultiple: true,
-    );
-    if (!mounted || result == null || result.isEmpty) return;
-    context.push(
-      ToolsRoute.imageCompress,
-      extra: result.map((e) => File(e.path)).toList(),
-    );
+  void _openClearCache() {
+    showStorageCleanupDialog(context);
   }
 
-  void _openVideoCompress() {
-    context.go(DesktopRoutes.videoCompress);
+  void _openStorageInfo() {
+    showStorageInfoDialog(context);
   }
 
   Widget _buildNetworkBody() {
@@ -280,37 +254,6 @@ class _DesktopSettingsPageState extends State<DesktopSettingsPage> {
   }
 
   Widget _buildAboutBody() {
-    final l10n = context.hujiL10n;
-    return SingleChildScrollView(
-      child: TpCard.outlined(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _navRow(
-              title: l10n.settingsVersionInfo,
-              onTap: () => context.push(ProfileRoute.versionInfo),
-            ),
-            _navRow(
-              title: l10n.settingsCheckUpdate,
-              onTap: () => SettingsUpdateActions.checkUpdate(context),
-            ),
-            _navRow(
-              title: l10n.settingsPrivacyPolicy,
-              onTap: () => FeatureStubActions.showPrivacyPolicy(context),
-            ),
-            _navRow(
-              title: l10n.settingsUserAgreement,
-              onTap: () => FeatureStubActions.showUserAgreement(context),
-            ),
-            _navRow(
-              title: l10n.developerOptions,
-              subtitle: l10n.developerOptionsDescription,
-              onTap: () => context.push(ProfileRoute.versionInfo),
-              showDividerBelow: false,
-            ),
-          ],
-        ),
-      ),
-    );
+    return const AboutSettingsSection();
   }
 }

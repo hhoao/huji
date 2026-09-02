@@ -3246,6 +3246,21 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get settingsVersionInfo => 'Version info';
 
   @override
+  String get settingsAbout => 'About';
+
+  @override
+  String get settingsAboutBack => 'Back to About';
+
+  @override
+  String get settingsAppVersion => 'App version';
+
+  @override
+  String get settingsViewDeviceInfo => 'View device info';
+
+  @override
+  String get settingsViewChangelog => 'View changelog';
+
+  @override
   String get settingsViewDownloadFiles => 'View downloaded files';
 
   @override

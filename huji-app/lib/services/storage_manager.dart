@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -103,6 +104,11 @@ class StorageManager extends GetxController {
   }
 
   // 获取详细存储信息
+  //
+  // Recursive directory scanning can walk thousands of files, so the size
+  // computation runs in a background isolate — done on the UI isolate it
+  // freezes the event loop and dialogs stop responding (observed on desktop
+  // where ~/Downloads holds thousands of files).
   Future<Map<String, int>> getDetailedStorageInfo() async {
     Map<String, int> storageInfo = {
       storageKeyCache: 0,
@@ -112,31 +118,19 @@ class StorageManager extends GetxController {
     };
 
     try {
-      // 缓存目录
-      final cacheDir = storage.getTemporaryDirectory();
-      final cacheSize = await _getDirectorySize(cacheDir);
-      storageInfo[storageKeyCache] = cacheSize;
-
-      // 获取下载目录
+      final cacheDir = storage.getTemporaryDirectory().path;
+      final appDocDir = storage.getApplicationDocumentsDirectory().path;
+      final externalDir = storage.getExternalStorageDirectory()?.path;
       final downloadsDir = await path_utils.getDownloadsDirectory();
-      final downloadsSize = await _getDirectorySize(downloadsDir);
-      storageInfo[storageKeyDownloads] = downloadsSize;
 
-      // 应用文档目录 - 应用数据
-      final appDocDir = storage.getApplicationDocumentsDirectory();
-      final appDataSize = await _getDirectorySize(appDocDir);
-      storageInfo[storageKeyAppData] = appDataSize;
-
-      // 外部存储目录
-      try {
-        final externalDir = storage.getExternalStorageDirectory();
-        if (externalDir != null) {
-          final externalSize = await _getDirectorySize(externalDir);
-          storageInfo[storageKeyExternal] = externalSize;
-        }
-      } catch (e, stackTrace) {
-        AppLogger().e('Error getting external storage info: $e', stackTrace, e);
-      }
+      storageInfo = await Isolate.run(
+        () => computeDetailedStorageInfo(
+          cacheDirPath: cacheDir,
+          appDocDirPath: appDocDir,
+          downloadsDirPath: downloadsDir.path,
+          externalDirPath: externalDir,
+        ),
+      );
     } catch (e, stackTrace) {
       AppLogger().e('Error getting detailed storage info: $e', stackTrace, e);
     }
@@ -237,6 +231,44 @@ class StorageManager extends GetxController {
       }
     }
   }
+}
+
+/// Sum of all file sizes per storage category. Top-level function so it can
+/// run via [Isolate.run] — see [StorageManager.getDetailedStorageInfo].
+Map<String, int> computeDetailedStorageInfo({
+  required String cacheDirPath,
+  required String appDocDirPath,
+  required String downloadsDirPath,
+  String? externalDirPath,
+}) {
+  int sizeOf(String? path) {
+    if (path == null || path.isEmpty) return 0;
+    final dir = Directory(path);
+    if (!dir.existsSync()) return 0;
+    int size = 0;
+    try {
+      for (final entity in dir.listSync(recursive: true, followLinks: false)) {
+        if (entity is File) {
+          try {
+            size += entity.lengthSync();
+          } on FileSystemException {
+            // File vanished between listing and stat.
+          }
+        }
+      }
+    } on FileSystemException {
+      // Directory became unreadable mid-scan.
+    }
+    return size;
+  }
+
+  return {
+    StorageManager.storageKeyCache: sizeOf(cacheDirPath),
+    StorageManager.storageKeyAppData: sizeOf(appDocDirPath),
+    StorageManager.storageKeyDownloads: sizeOf(downloadsDirPath),
+    StorageManager.storageKeyExternal: sizeOf(externalDirPath),
+  };
+}
 
   // 获取目录文件列表
   Future<List<Map<String, dynamic>>> getDirectoryFiles(Directory dir) async {
