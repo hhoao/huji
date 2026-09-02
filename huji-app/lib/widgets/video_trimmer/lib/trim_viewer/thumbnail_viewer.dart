@@ -11,6 +11,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/clip_segment_overlay.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_area_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
@@ -180,6 +181,9 @@ class _TimeRulerSegmentPainter extends CustomPainter {
   final double shortInterval;
   final double longInterval;
   final int textInterval;
+  final bool isLastTile;
+  final double tileWidth;
+  final double paintOriginX;
   final Color tickColor;
   final TextStyle textStyle;
 
@@ -193,6 +197,9 @@ class _TimeRulerSegmentPainter extends CustomPainter {
     required this.shortInterval,
     required this.longInterval,
     required this.textInterval,
+    required this.isLastTile,
+    required this.tileWidth,
+    required this.paintOriginX,
     required this.tickColor,
     required this.textStyle,
   });
@@ -217,27 +224,39 @@ class _TimeRulerSegmentPainter extends CustomPainter {
       final time = i * shortInterval;
       // 计算刻度在整个时间标尺中的 x 位置
       final xInTotal = (time / totalDuration) * totalWidth;
-      // 转换为当前 item 内的相对位置（考虑滚动）
+      // 转换为当前 item 内的相对位置（逻辑格子坐标，不含 pad）
       final x = xInTotal - itemLeftInTotal;
 
-      // 跳过超出当前 item 范围的刻度线
-      if (x < 0 || x > size.width) continue;
+      // 半开区间归属：右边界只由下一格（或最后一格）绘制，避免重复与挤靠
+      if (!timeRulerTickOwnedByTile(
+        x,
+        tileWidth: tileWidth,
+        isLastTile: isLastTile,
+      )) {
+        continue;
+      }
 
-      // 判断是否为长线（每5秒）
+      final drawX = x + paintOriginX;
+
+      // 长刻度对齐标签间隔
       final isLongLine = (i % longIntervalCount) == 0;
 
       // 绘制刻度线
-      canvas.drawLine(Offset(x, 0), Offset(x, isLongLine ? 8 : 4), paint);
+      canvas.drawLine(
+        Offset(drawX, 0),
+        Offset(drawX, isLongLine ? 8 : 4),
+        paint,
+      );
 
-      // 绘制时间文本（textInterval 表示刻度数量，每5个刻度即1秒显示一次）
+      // 绘制时间文本（每 textInterval 个短刻度显示一次）
       if (i % textInterval == 0) {
         final timeText = _formatTime(time);
         textPainter.text = TextSpan(text: timeText, style: textStyle);
         textPainter.layout();
-        // 确保文本不超出当前 item 范围
-        final textX = (x - textPainter.width / 2).clamp(
-          0.0,
-          size.width - textPainter.width,
+        // 居中对齐刻度；paintOriginX 留白保证文字落在 CustomPaint 尺寸内
+        final textX = timeRulerLabelPaintX(
+          tickX: drawX,
+          labelWidth: textPainter.width,
         );
         textPainter.paint(canvas, Offset(textX, 16));
       }
@@ -257,6 +276,13 @@ class _TimeRulerSegmentPainter extends CustomPainter {
         oldDelegate.itemStartTime != itemStartTime ||
         oldDelegate.itemEndTime != itemEndTime ||
         oldDelegate.totalDuration != totalDuration ||
+        oldDelegate.totalWidth != totalWidth ||
+        oldDelegate.shortInterval != shortInterval ||
+        oldDelegate.longInterval != longInterval ||
+        oldDelegate.textInterval != textInterval ||
+        oldDelegate.isLastTile != isLastTile ||
+        oldDelegate.tileWidth != tileWidth ||
+        oldDelegate.paintOriginX != paintOriginX ||
         oldDelegate.tickColor != tickColor ||
         oldDelegate.textStyle != textStyle;
   }
@@ -445,9 +471,9 @@ class _ThumbnailListBuilder extends StatelessWidget {
     final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
-    const shortInterval = 0.2;
-    const longInterval = 5.0;
-    const textInterval = 5;
+    final intervals = resolveTimeRulerIntervals(
+      totalWidth / totalDurationSeconds,
+    );
 
     // 计算每个 item 代表的时间段（固定值，不随滚动变化）
     final timePerItem = totalDurationSeconds / numberOfThumbnails;
@@ -456,6 +482,8 @@ class _ThumbnailListBuilder extends StatelessWidget {
 
     // item 在整个时间标尺中的位置（固定值）
     final itemLeftInTotal = index * thumbnailHeight;
+    // 给标签左右留白，避免文字画出格子时被 RepaintBoundary 裁切
+    const labelPad = 28.0;
 
     // 使用 AnimatedBuilder 监听滚动位置，使时间标尺跟随滚动
     return RepaintBoundary(
@@ -466,29 +494,41 @@ class _ThumbnailListBuilder extends StatelessWidget {
           // item 在可见区域中的位置（随滚动变化）
           final itemLeftInView = itemLeftInTotal - scrollOffset;
 
-          return CustomPaint(
-            size: Size(thumbnailHeight, timeRulerHeight),
-            painter: _TimeRulerSegmentPainter(
-              totalDuration: totalDurationSeconds,
-              totalWidth: totalWidth,
-              itemStartTime: itemStartTime,
-              itemEndTime: itemEndTime,
-              itemLeftInTotal: itemLeftInTotal,
-              itemLeftInView: itemLeftInView,
-              shortInterval: shortInterval,
-              longInterval: longInterval,
-              textInterval: textInterval,
-              tickColor: trimmerTheme.rulerTickColor,
-              textStyle: textTheme.labelSmall?.copyWith(
-                    color: trimmerTheme.rulerLabelColor,
-                    fontSize: layout.rulerLabelFontSize,
-                    fontWeight: FontWeight.w500,
-                  ) ??
-                  TextStyle(
-                    color: trimmerTheme.rulerLabelColor,
-                    fontSize: layout.rulerLabelFontSize,
-                    fontWeight: FontWeight.w500,
-                  ),
+          // OverflowBox：父级 SizedBox 宽只有一格，需允许左右 pad 画出格外
+          return OverflowBox(
+            alignment: Alignment.topLeft,
+            minWidth: thumbnailHeight + 2 * labelPad,
+            maxWidth: thumbnailHeight + 2 * labelPad,
+            child: Transform.translate(
+              offset: const Offset(-labelPad, 0),
+              child: CustomPaint(
+                size: Size(thumbnailHeight + 2 * labelPad, timeRulerHeight),
+                painter: _TimeRulerSegmentPainter(
+                  totalDuration: totalDurationSeconds,
+                  totalWidth: totalWidth,
+                  itemStartTime: itemStartTime,
+                  itemEndTime: itemEndTime,
+                  itemLeftInTotal: itemLeftInTotal,
+                  itemLeftInView: itemLeftInView,
+                  shortInterval: intervals.shortInterval,
+                  longInterval: intervals.longInterval,
+                  textInterval: intervals.textInterval,
+                  isLastTile: index == numberOfThumbnails - 1,
+                  tileWidth: thumbnailHeight,
+                  paintOriginX: labelPad,
+                  tickColor: trimmerTheme.rulerTickColor,
+                  textStyle: textTheme.labelSmall?.copyWith(
+                        color: trimmerTheme.rulerLabelColor,
+                        fontSize: layout.rulerLabelFontSize,
+                        fontWeight: FontWeight.w500,
+                      ) ??
+                      TextStyle(
+                        color: trimmerTheme.rulerLabelColor,
+                        fontSize: layout.rulerLabelFontSize,
+                        fontWeight: FontWeight.w500,
+                      ),
+                ),
+              ),
             ),
           );
         },
