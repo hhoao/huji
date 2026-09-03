@@ -14,6 +14,7 @@ import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class AppUpdateDialog extends StatefulWidget {
   final AppUpdateInfo updateInfo;
@@ -102,6 +103,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
     AppApplicationRespVO? latestApp,
     AppApplicationRespVO? currentApp,
   ) {
+    final cs = context.cs;
     return Container(
       padding: const EdgeInsets.all(4),
       child: Column(
@@ -113,7 +115,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(context.hujiL10n.currentVersion, style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    Text(context.hujiL10n.currentVersion, style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -126,12 +128,12 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                   ],
                 ),
               ),
-              Icon(Icons.arrow_forward, color: Colors.grey[400]),
+              Icon(Icons.arrow_forward, color: cs.outline),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(context.hujiL10n.latestVersion, style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    Text(context.hujiL10n.latestVersion, style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                     ),
                     SizedBox(height: 4),
                     Text(
@@ -139,7 +141,7 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w500,
-                        color: Colors.blue,
+                        color: cs.primary,
                       ),
                     ),
                   ],
@@ -159,15 +161,15 @@ class _AppUpdateDialogState extends State<AppUpdateDialog> {
               collapsedShape: Border.all(color: Colors.transparent),
               backgroundColor: Colors.transparent,
               collapsedBackgroundColor: Colors.transparent,
-              title: Text(context.hujiL10n.updateContent, style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              title: Text(context.hujiL10n.updateContent, style: TextStyle(fontSize: 12, color: cs.mutedForeground),
               ),
-              collapsedIconColor: Colors.grey[600],
-              collapsedTextColor: Colors.grey[600],
-              textColor: Colors.grey[600],
-              iconColor: Colors.grey[600],
+              collapsedIconColor: cs.mutedForeground,
+              collapsedTextColor: cs.mutedForeground,
+              textColor: cs.mutedForeground,
+              iconColor: cs.mutedForeground,
               trailing: Icon(
                 _isExpanded ? Icons.expand_less : Icons.expand_more,
-                color: Colors.grey[600],
+                color: cs.mutedForeground,
                 size: 16,
               ),
               onExpansionChanged: (expanded) {

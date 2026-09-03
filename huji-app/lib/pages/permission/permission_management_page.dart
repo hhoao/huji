@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:huji_app/services/permission_service.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class PermissionManagementPage extends StatefulWidget {
   const PermissionManagementPage({super.key});
@@ -122,7 +123,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
             SizedBox(height: 16),
             Text(
               context.hujiL10n.permissionExplanation,
-              style: const TextStyle(fontSize: 12, color: Colors.grey),
+              style: TextStyle(fontSize: 12, color: ctx.cs.mutedForeground),
             ),
             TpDialogActions(
               children: [

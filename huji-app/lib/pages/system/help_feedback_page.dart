@@ -6,6 +6,7 @@ import 'package:huji_app/api/models/autoclip/issue_models.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class HelpFeedbackPage extends StatefulWidget {
   const HelpFeedbackPage({super.key});
@@ -360,6 +361,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
   );
 
   Widget _buildTypeChip(IssueTypeEnum type, String label) {
+    final cs = context.cs;
     final bool selected = _selectedType == type;
     return ChoiceChip(
       label: Text(
@@ -370,11 +372,9 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       ),
       selected: selected,
       selectedColor: ThemeManager.to.primaryColor,
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: cs.surface,
       labelStyle: TextStyle(
-        color: selected
-            ? Colors.white
-            : Theme.of(context).colorScheme.onSurface,
+        color: selected ? cs.onPrimary : cs.onSurface,
       ),
       onSelected: (v) {
         if (v) setState(() => _selectedType = type);

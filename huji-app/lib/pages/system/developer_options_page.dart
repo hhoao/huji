@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:huji_app/widgets/feature_stub_actions.dart';
 
 class DeveloperOptionsPage extends StatefulWidget {
@@ -367,6 +368,7 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
   }
 
   Widget _buildInfoRow(String label, String value) {
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -376,8 +378,8 @@ class _DeveloperOptionsPageState extends State<DeveloperOptionsPage> {
             width: 80,
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.grey,
+              style: TextStyle(
+                color: cs.mutedForeground,
                 fontWeight: FontWeight.w500,
               ),
             ),

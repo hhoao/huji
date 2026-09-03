@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'dart:io';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 abstract final class _DeviceInfoKeys {
   static const brand = 'brand';
@@ -403,6 +404,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
       appBar: AppBar(
         title: Text(context.hujiL10n.settingsVersionInfo),
         backgroundColor: context.theme.appBarTheme.backgroundColor,
+        elevation: 0,
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -432,27 +434,23 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   Widget _buildAppInfoCard() {
-    return TpCard(
-      padding: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Align(
-          alignment: Alignment.center,
-          child: Column(
-            children: [
-              // 应用图标
-              Image.asset('assets/icons/logo_no_bg.png', width: 80, height: 80),
-
-              Text(
-                _packageInfo?.appName ?? context.hujiL10n.videosFolderName,
-                style: context.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+    return TpCard.elevated(
+      borderRadius: 12,
+      elevation: TpCardElevation.low,
+      padding: const EdgeInsets.all(16),
+      child: Align(
+        alignment: Alignment.center,
+        child: Column(
+          children: [
+            Image.asset('assets/icons/logo_no_bg.png', width: 80, height: 80),
+            Text(
+              _packageInfo?.appName ?? context.hujiL10n.videosFolderName,
+              style: context.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-
-              SizedBox(height: 8),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+          ],
         ),
       ),
     );
@@ -460,10 +458,12 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
 
   Widget _buildVersionDetailsCard(BuildContext context) {
     final l10n = context.hujiL10n;
-    return TpCard(
+    return TpCard.elevated(
+      borderRadius: 12,
+      elevation: TpCardElevation.low,
       padding: EdgeInsets.zero,
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(12), // 与Card的默认圆角保持一致
+        borderRadius: BorderRadius.circular(12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -476,15 +476,15 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
             _buildInfoRow(l10n.buildNumber, _packageInfo?.buildNumber ?? '1'),
             _buildInfoRow(
               l10n.installTime,
-              DateFormat(
-                'yyyy-MM-dd',
-              ).format(_packageInfo?.installTime ?? DateTime.now()),
+              DateFormat('yyyy-MM-dd').format(
+                _packageInfo?.installTime ?? DateTime.now(),
+              ),
             ),
             _buildInfoRow(
               l10n.updateTime,
-              DateFormat(
-                'yyyy-MM-dd',
-              ).format(_packageInfo?.updateTime ?? DateTime.now()),
+              DateFormat('yyyy-MM-dd').format(
+                _packageInfo?.updateTime ?? DateTime.now(),
+              ),
             ),
             _buildInfoRow(
               l10n.deviceInfoLabel,
@@ -502,12 +502,16 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {VoidCallback? onTap}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    VoidCallback? onTap,
+  }) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.zero, // 移除InkWell的圆角
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
           child: Row(
@@ -539,7 +543,9 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
   }
 
   Widget _buildDeveloperOptionsCard() {
-    return TpCard(
+    return TpCard.elevated(
+      borderRadius: 12,
+      elevation: TpCardElevation.low,
       padding: EdgeInsets.zero,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -555,13 +561,13 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                     color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.developer_mode,
                     color: Colors.orange,
                     size: 24,
                   ),
                 ),
-                SizedBox(width: 16),
+                const SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -573,14 +579,10 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                           color: Colors.orange,
                         ),
                       ),
-                      SizedBox(height: 4),
+                      const SizedBox(height: 4),
                       Text(
                         context.hujiL10n.developerOptionsDescription,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: context.theme.colorScheme.onSurface.withValues(
-                            alpha: 0.6,
-                          ),
-                        ),
+                        style: TpTextStyles.of(context).mutedSm,
                       ),
                     ],
                   ),
@@ -588,9 +590,7 @@ class _VersionInfoPageState extends State<VersionInfoPage> {
                 Icon(
                   Icons.arrow_forward_ios,
                   size: 16,
-                  color: context.theme.colorScheme.onSurface.withValues(
-                    alpha: 0.3,
-                  ),
+                  color: context.cs.mutedForeground,
                 ),
               ],
             ),

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:huji_app/services/storage_manager.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -261,6 +262,7 @@ class _CleanupOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
     final sizeLabel = loading
         ? context.hujiL10n.calculating
         : StorageManager.to.formatFileSize(size);
@@ -272,7 +274,7 @@ class _CleanupOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.grey[100],
+          color: cs.cardFill,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
@@ -280,7 +282,7 @@ class _CleanupOption extends StatelessWidget {
             Expanded(child: Text(title, style: const TextStyle(fontSize: 16))),
             Text(
               sizeLabel,
-              style: TextStyle(color: Colors.grey[600], fontSize: 14),
+              style: TextStyle(color: cs.mutedForeground, fontSize: 14),
             ),
             const SizedBox(width: 8),
             const Icon(Icons.delete_outline, color: Colors.red, size: 20),
@@ -299,6 +301,7 @@ class _ViewOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
     return InkWell(
       onTap: () {
         Throttles.throttle(
@@ -313,14 +316,14 @@ class _ViewOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
         decoration: BoxDecoration(
-          color: Colors.blue[50],
+          color: cs.primaryContainer,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Row(
           children: [
             Expanded(child: Text(title, style: const TextStyle(fontSize: 14))),
             const SizedBox(width: 8),
-            const Icon(Icons.visibility, color: Colors.blue, size: 18),
+            Icon(Icons.visibility, color: cs.primary, size: 18),
           ],
         ),
       ),
@@ -441,7 +444,9 @@ Future<void> _showDownloadFilesList(BuildContext context) async {
 
     showTpDialog(
       context: context,
-      builder: (ctx) => TpDialog(
+      builder: (ctx) {
+        final cs = ctx.cs;
+        return TpDialog(
         maxHeight: 560,
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -456,7 +461,7 @@ Future<void> _showDownloadFilesList(BuildContext context) async {
                   ? Center(
                       child: Text(
                         context.hujiL10n.settingsNoDownloadFiles,
-                        style: const TextStyle(color: Colors.grey),
+                        style: TextStyle(color: cs.mutedForeground),
                       ),
                     )
                   : ListView.builder(
@@ -466,7 +471,7 @@ Future<void> _showDownloadFilesList(BuildContext context) async {
                         return ListTile(
                           leading: Icon(
                             StorageManager.to.getFileIcon(file['extension']),
-                            color: Colors.blue,
+                            color: cs.primary,
                           ),
                           title: Text(
                             file['name'],
@@ -475,9 +480,9 @@ Future<void> _showDownloadFilesList(BuildContext context) async {
                           ),
                           subtitle: Text(
                             StorageManager.to.formatFileSize(file['size']),
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey,
+                              color: cs.mutedForeground,
                             ),
                           ),
                           trailing: TpIconButton(
@@ -529,7 +534,8 @@ Future<void> _showDownloadFilesList(BuildContext context) async {
             ),
           ],
         ),
-      ),
+      );
+      },
     );
   } catch (e) {
     if (!context.mounted) return;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class BackgroundServicePermissionDialog extends StatelessWidget {
@@ -11,6 +12,7 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
+    final cs = context.cs;
     return TpDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -25,7 +27,7 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const Icon(Icons.video_settings, color: Colors.blue, size: 20),
+              Icon(Icons.video_settings, color: cs.primary, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -40,7 +42,7 @@ class BackgroundServicePermissionDialog extends StatelessWidget {
             padding: const EdgeInsets.only(left: 28),
             child: Text(
               l10n.backgroundMediaProcessingDescription,
-              style: const TextStyle(fontSize: 14, color: Colors.grey),
+              style: TextStyle(fontSize: 14, color: cs.mutedForeground),
             ),
           ),
           const SizedBox(height: 16),

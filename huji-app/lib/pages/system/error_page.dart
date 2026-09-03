@@ -6,6 +6,7 @@ import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
 import 'package:huji_app/utils/logger_utils.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 /// Shows an alternative app if the initialization failed.
 void showInitErrorApp({
@@ -171,8 +172,11 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
       localizationsDelegates: HujiLocalizationsSetup.localizationsDelegates,
       supportedLocales: HujiLocalizationsSetup.supportedLocales,
       navigatorKey: navigatorKey,
-      home: Scaffold(
-        backgroundColor: Colors.grey[50],
+      home: Builder(
+        builder: (context) {
+          final cs = context.cs;
+          return Scaffold(
+        backgroundColor: cs.surfaceContainerLowest,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
@@ -202,10 +206,10 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                           children: [
                             Text(
                               _getErrorType(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: cs.onSurface,
                               ),
                             ),
                             if (version != null)
@@ -213,7 +217,7 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                 'Version $version ($buildNumber)',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey[600],
+                                  color: cs.mutedForeground,
                                 ),
                               ),
                           ],
@@ -229,11 +233,11 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cs.surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: cs.softShadow,
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -246,16 +250,16 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                           children: [
                             Icon(
                               Icons.info_outline,
-                              color: Colors.blue[600],
+                              color: cs.primary,
                               size: 20,
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Error Details',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: cs.onSurface,
                               ),
                             ),
                           ],
@@ -290,11 +294,11 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cs.surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: cs.softShadow,
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -305,14 +309,14 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.code, color: Colors.grey[600], size: 20),
+                            Icon(Icons.code, color: cs.mutedForeground, size: 20),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Stack Trace',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: cs.onSurface,
                               ),
                             ),
                             const Spacer(),
@@ -360,9 +364,9 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: cs.subtleFill,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: cs.outlineVariant),
                             ),
                             child: SingleChildScrollView(
                               child: Text(
@@ -370,7 +374,7 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontFamily: 'monospace',
-                                  color: Colors.grey[800],
+                                  color: cs.onSurface,
                                   height: 1.3,
                                 ),
                               ),
@@ -383,17 +387,17 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
 
                   const SizedBox(height: 16),
 
-                  // Stack trace card
+                  // Pending logs card
                   Container(
                     constraints: const BoxConstraints(maxHeight: 300),
                     width: double.infinity,
                     padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: cs.surface,
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
+                          color: cs.softShadow,
                           blurRadius: 10,
                           offset: const Offset(0, 2),
                         ),
@@ -404,14 +408,14 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.code, color: Colors.grey[600], size: 20),
+                            Icon(Icons.code, color: cs.mutedForeground, size: 20),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               'Pending Logs',
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: cs.onSurface,
                               ),
                             ),
                             const Spacer(),
@@ -461,9 +465,9 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                             width: double.infinity,
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: Colors.grey[100],
+                              color: cs.subtleFill,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.grey[300]!),
+                              border: Border.all(color: cs.outlineVariant),
                             ),
                             child: SingleChildScrollView(
                               child: Text(
@@ -471,7 +475,7 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontFamily: 'monospace',
-                                  color: Colors.grey[800],
+                                  color: cs.onSurface,
                                   height: 1.3,
                                 ),
                               ),
@@ -619,6 +623,8 @@ Pending Logs: ${AppLogger.instance.getFormattedPendingLogs()}
             ),
           ),
         ),
+      );
+        },
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/services/permission_service.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class PermissionCheckWidget extends StatefulWidget {
   final VoidCallback? onComplete;
@@ -95,7 +96,7 @@ class _PermissionCheckWidgetState extends State<PermissionCheckWidget> {
                   color: context.theme.primaryColor,
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.security, size: 40, color: Colors.white),
+                child: Icon(Icons.security, size: 40, color: context.cs.onPrimary),
               ),
 
               SizedBox(height: 32),
