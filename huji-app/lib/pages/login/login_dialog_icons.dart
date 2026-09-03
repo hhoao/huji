@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
+import 'package:shared_ui/shared_ui.dart';
 
 /// Assets copied from autoclip-web-front login modal and default avatar.
 abstract final class LoginDialogIcons {
@@ -19,24 +20,32 @@ abstract final class LoginDialogIcons {
 }
 
 /// Renders a login-dialog SVG icon with web-like muted coloring.
+///
+/// [size] defaults to the body text size scaled by
+/// [LoginDialogLayout.prefixIconTextRatio], so icons track the text-size
+/// setting.
 class LoginDialogIcon extends StatelessWidget {
   const LoginDialogIcon({
     super.key,
     required this.asset,
-    this.size = LoginDialogLayout.prefixIconSize,
+    this.size,
     this.color = LoginDialogColors.iconMuted,
   });
 
   final String asset;
-  final double size;
+  final double? size;
   final Color color;
 
   @override
   Widget build(BuildContext context) {
+    final resolved =
+        size ??
+        (TpTextStyles.of(context).md.fontSize ?? 14.0) *
+            LoginDialogLayout.prefixIconTextRatio;
     return SvgPicture.asset(
       asset,
-      width: size,
-      height: size,
+      width: resolved,
+      height: resolved,
       colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
     );
   }

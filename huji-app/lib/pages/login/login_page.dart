@@ -258,7 +258,6 @@ class _LoginPageState extends State<LoginPage> {
                 buildTextField(
                   context: context,
                   id: 'identifier',
-                  label: context.hujiL10n.loginIdentifierLabelOr,
                   hint: context.hujiL10n.loginIdentifierLabelOr,
                   iconAsset: LoginDialogIcons.account,
                   controller: _identifierController,
@@ -278,7 +277,6 @@ class _LoginPageState extends State<LoginPage> {
                   buildTextField(
                     context: context,
                     id: 'password',
-                    label: context.hujiL10n.loginPasswordLabel,
                     hint: context.hujiL10n.loginPasswordLabel,
                     iconAsset: LoginDialogIcons.lock,
                     controller: _passwordController,

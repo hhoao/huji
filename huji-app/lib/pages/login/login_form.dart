@@ -147,48 +147,10 @@ class _LoginFormState extends State<LoginForm> {
     });
   }
 
-  InputDecoration _inputDecoration(
-    BuildContext context, {
-    required String hint,
-    required String iconAsset,
-    Widget? suffixIcon,
-  }) {
-    final styles = TpTextStyles.of(context);
-    final border = OutlineInputBorder(
-      borderRadius: BorderRadius.circular(LoginDialogLayout.controlRadius),
-      borderSide: const BorderSide(color: LoginDialogColors.inputBorder),
-    );
-
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: styles.mutedMd.copyWith(color: LoginDialogColors.mutedText),
-      prefixIcon: LoginDialogIcon(asset: iconAsset),
-      prefixIconConstraints: BoxConstraints(
-        minWidth: LoginDialogLayout.prefixIconSize + LoginDialogLayout.controlPaddingH,
-        minHeight: LoginDialogLayout.controlHeight,
-      ),
-      suffixIcon: suffixIcon,
-      filled: true,
-      fillColor: LoginDialogColors.cardBackground,
-      border: border,
-      enabledBorder: border,
-      focusedBorder: border.copyWith(
-        borderSide: const BorderSide(color: LoginDialogColors.primary, width: 1),
-      ),
-      errorBorder: border.copyWith(
-        borderSide: const BorderSide(color: Color(0xFFF56C6C)),
-      ),
-      focusedErrorBorder: border.copyWith(
-        borderSide: const BorderSide(color: Color(0xFFF56C6C), width: 1),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
-    final inputStyle = styles.md.copyWith(color: LoginDialogColors.titleText);
 
     return TpForm(
       key: _formKey,
@@ -203,7 +165,7 @@ class _LoginFormState extends State<LoginForm> {
             ),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: LoginDialogLayout.sectionGap),
+          SizedBox(height: LoginDialogLayout.sectionGap),
           _LoginTypeTabs(
             loginType: _loginType,
             passwordLabel: l10n.loginPasswordTab,
@@ -213,100 +175,65 @@ class _LoginFormState extends State<LoginForm> {
               _switchLoginType(type);
             },
           ),
-          const SizedBox(height: LoginDialogLayout.sectionGap),
-          SizedBox(
-            height: LoginDialogLayout.controlHeight,
-            child: TpInputFormField(
-              id: 'identifier',
-              metrics: LoginDialogLayout.inputMetrics,
-              controller: _identifierController,
-              style: inputStyle,
-              validator: (value) => validateEmailOrPhone(l10n, value),
-              decoration: _inputDecoration(
-                context,
-                hint: l10n.loginIdentifierHint,
-                iconAsset: LoginDialogIcons.account,
-              ),
-            ),
+          SizedBox(height: LoginDialogLayout.sectionGap),
+          buildTextField(
+            context: context,
+            id: 'identifier',
+            hint: l10n.loginIdentifierHint,
+            iconAsset: LoginDialogIcons.account,
+            controller: _identifierController,
+            validator: (value) => validateEmailOrPhone(l10n, value),
           ),
-          const SizedBox(height: LoginDialogLayout.fieldGap),
+          SizedBox(height: LoginDialogLayout.fieldGap),
           if (_loginType == LoginType.password)
-            SizedBox(
-              height: LoginDialogLayout.controlHeight,
-              child: TpInputFormField(
-                id: 'password',
-                metrics: LoginDialogLayout.inputMetrics,
-                controller: _passwordController,
-                style: inputStyle,
-                obscureText: _obscurePassword,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.loginValidationPasswordRequired;
-                  }
-                  return null;
-                },
-                decoration: _inputDecoration(
-                  context,
-                  hint: l10n.loginPasswordHint,
-                  iconAsset: LoginDialogIcons.lock,
-                  suffixIcon: TpIconButton(
-                    icon: _obscurePassword
-                        ? Icons.visibility_off_outlined
-                        : Icons.visibility_outlined,
-                    color: LoginDialogColors.iconMuted,
-                    onTap: () {
-                      setState(() => _obscurePassword = !_obscurePassword);
-                    },
-                  ),
-                ),
+            buildTextField(
+              context: context,
+              id: 'password',
+              hint: l10n.loginPasswordHint,
+              iconAsset: LoginDialogIcons.lock,
+              controller: _passwordController,
+              obscureText: _obscurePassword,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.loginValidationPasswordRequired;
+                }
+                return null;
+              },
+              suffixIcon: buildPasswordVisibilityToggle(
+                obscure: _obscurePassword,
+                onToggle: () =>
+                    setState(() => _obscurePassword = !_obscurePassword),
               ),
             )
           else
-            SizedBox(
-              height: LoginDialogLayout.controlHeight,
-              child: TpInputFormField(
-                id: 'code',
-                metrics: LoginDialogLayout.inputMetrics,
-                controller: _codeController,
-                style: inputStyle,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return l10n.loginValidationAuthCodeRequired;
-                  }
-                  return validateAuthCode(l10n, value);
-                },
-                decoration: _inputDecoration(
-                  context,
-                  hint: l10n.loginAuthCodeHint,
-                  iconAsset: LoginDialogIcons.keyVariant,
-                  suffixIcon: TextButton(
-                    onPressed: _countdown > 0
-                        ? null
-                        : () {
-                            Throttles.throttle(
-                              'get_verification_code',
-                              const Duration(seconds: 1),
-                              () => _getVerificationCode(context),
-                            );
-                          },
-                    style: TextButton.styleFrom(
-                      foregroundColor: LoginDialogColors.primary,
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    ),
-                    child: Text(
-                      _countdown > 0
-                          ? l10n.actionResendCodeCountdown(_countdown)
-                          : l10n.actionGetVerificationCode,
-                      style: styles.mdMedium.copyWith(color: LoginDialogColors.primary),
-                    ),
-                  ),
-                ),
+            buildTextField(
+              context: context,
+              id: 'code',
+              hint: l10n.loginAuthCodeHint,
+              iconAsset: LoginDialogIcons.keyVariant,
+              controller: _codeController,
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return l10n.loginValidationAuthCodeRequired;
+                }
+                return validateAuthCode(l10n, value);
+              },
+              suffixIcon: buildVerificationCodeButton(
+                context,
+                countdown: _countdown,
+                onPressed: _countdown > 0
+                    ? null
+                    : () {
+                        Throttles.throttle(
+                          'get_verification_code',
+                          const Duration(seconds: 1),
+                          () => _getVerificationCode(context),
+                        );
+                      },
               ),
             ),
           if (_loginType == LoginType.password) ...[
-            const SizedBox(height: LoginDialogLayout.fieldGap),
+            SizedBox(height: LoginDialogLayout.fieldGap),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -338,64 +265,38 @@ class _LoginFormState extends State<LoginForm> {
                     ],
                   ),
                 ),
-                TextButton(
+                buildDialogLinkButton(
+                  context,
                   onPressed: () {
                     _resetForm();
                     widget.onSwitchForm(FormType.forgotPassword);
                   },
-                  style: TextButton.styleFrom(
-                    foregroundColor: LoginDialogColors.primary,
-                    padding: EdgeInsets.zero,
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: Text(
-                    l10n.loginForgotPassword,
-                    style: styles.md.copyWith(color: LoginDialogColors.primary),
-                  ),
+                  label: l10n.loginForgotPassword,
                 ),
               ],
             ),
           ],
-          const SizedBox(height: LoginDialogLayout.fieldGap),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: _isLoading
-                  ? null
-                  : () {
-                      Throttles.throttle(
-                        'login_submit',
-                        const Duration(seconds: 2),
-                        () => _handleLogin(context),
-                      );
-                    },
-              style: OutlinedButton.styleFrom(
-                backgroundColor: LoginDialogColors.cardBackground,
-                foregroundColor: LoginDialogColors.buttonText,
-                disabledBackgroundColor: LoginDialogColors.cardBackground,
-                disabledForegroundColor: LoginDialogColors.mutedText,
-                side: const BorderSide(color: LoginDialogColors.buttonBorder),
-                padding: LoginDialogLayout.controlPadding,
-                minimumSize: const Size(
-                  double.infinity,
-                  LoginDialogLayout.controlHeight,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(LoginDialogLayout.controlRadius / 2),
-                ),
-                textStyle: styles.mdMedium,
-              ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text(l10n.loginTitle),
-            ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          buildDialogActionButton(
+            context,
+            onPressed: _isLoading
+                ? null
+                : () {
+                    Throttles.throttle(
+                      'login_submit',
+                      const Duration(seconds: 2),
+                      () => _handleLogin(context),
+                    );
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.loginTitle),
           ),
-          const SizedBox(height: LoginDialogLayout.sectionGap),
+          SizedBox(height: LoginDialogLayout.sectionGap),
           Row(
             children: [
               const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
@@ -409,7 +310,7 @@ class _LoginFormState extends State<LoginForm> {
               const Expanded(child: Divider(color: LoginDialogColors.inputBorder)),
             ],
           ),
-          const SizedBox(height: LoginDialogLayout.fieldGap),
+          SizedBox(height: LoginDialogLayout.fieldGap),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -417,19 +318,19 @@ class _LoginFormState extends State<LoginForm> {
                 iconAsset: LoginDialogIcons.wechat,
                 onTap: () => _showSocialUnavailable(context),
               ),
-              const SizedBox(width: LoginDialogLayout.socialButtonGap),
+              SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
                 iconAsset: LoginDialogIcons.qqchat,
                 onTap: () => _showSocialUnavailable(context),
               ),
-              const SizedBox(width: LoginDialogLayout.socialButtonGap),
+              SizedBox(width: LoginDialogLayout.socialButtonGap),
               _SocialLoginButton(
                 iconAsset: LoginDialogIcons.alipay,
                 onTap: () => _showSocialUnavailable(context),
               ),
             ],
           ),
-          const SizedBox(height: LoginDialogLayout.sectionGap),
+          SizedBox(height: LoginDialogLayout.sectionGap),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -437,21 +338,13 @@ class _LoginFormState extends State<LoginForm> {
                 l10n.loginNoAccount,
                 style: styles.md.copyWith(color: LoginDialogColors.mutedText),
               ),
-              TextButton(
+              buildDialogLinkButton(
+                context,
                 onPressed: () {
                   _resetForm();
                   widget.onSwitchForm(FormType.register);
                 },
-                style: TextButton.styleFrom(
-                  foregroundColor: LoginDialogColors.primary,
-                  padding: EdgeInsets.zero,
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: Text(
-                  l10n.loginRegisterNow,
-                  style: styles.md.copyWith(color: LoginDialogColors.primary),
-                ),
+                label: l10n.loginRegisterNow,
               ),
             ],
           ),
@@ -499,7 +392,7 @@ class _LoginTypeTabs extends StatelessWidget {
           active: loginType == LoginType.password,
           onTap: () => onChanged(LoginType.password),
         ),
-        const SizedBox(width: LoginDialogLayout.tabGap),
+        SizedBox(width: LoginDialogLayout.tabGap),
         _tab(
           context,
           label: authCodeLabel,
@@ -549,6 +442,10 @@ class _SocialLoginButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final iconSize =
+        (TpTextStyles.of(context).md.fontSize ?? 14.0) *
+            LoginDialogLayout.socialIconTextRatio;
+
     return TpHover(
       onTap: onTap,
       shape: TpPressableShape.circle,
@@ -557,10 +454,10 @@ class _SocialLoginButton extends StatelessWidget {
       hoverColor: LoginDialogColors.socialHover,
       border: Border.all(color: LoginDialogColors.socialBorder),
       child: Padding(
-        padding: const EdgeInsets.all(LoginDialogLayout.socialIconPadding),
+        padding: EdgeInsets.all(LoginDialogLayout.socialIconPadding),
         child: LoginDialogIcon(
           asset: iconAsset,
-          size: LoginDialogLayout.socialIconSize,
+          size: iconSize,
           color: LoginDialogColors.bodyText,
         ),
       ),

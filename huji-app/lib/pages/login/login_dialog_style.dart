@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Web login modal palette (Element Plus + Tailwind tokens from autoclip-web-front).
@@ -19,26 +20,29 @@ abstract final class LoginDialogColors {
   static const socialHover = Color(0xFFF3F4F6); // gray-100
 }
 
-/// Layout metrics from autoclip-web-front [LoginForm.vue], uniformly scaled for
-/// desktop so proportions match the web dialog but read at a similar visual size.
+/// Layout metrics from autoclip-web-front [LoginForm.vue].
+///
+/// Desktop keeps the web modal's proportions uniformly scaled (×4/3 over the
+/// Tailwind / Element Plus baseline) so it reads at a similar visual size;
+/// mobile renders the web baseline directly — phone screens are dense enough
+/// without the upscale.
 abstract final class LoginDialogLayout {
-  /// Uniform scale over the web modal (Tailwind / Element Plus baseline).
-  static const scale = 4 / 3;
+  static bool get _isDesktop => PlatformCapability.isDesktop;
 
-  static const maxWidth = 597.0; // web max-w-md 448 × scale
-  static const contentPadding = 32.0; // web p-6 24 × scale
-  static const noticeTopGap = 21.0;
+  static double get maxWidth => _isDesktop ? 597.0 : 448.0; // web max-w-md
+  static double get contentPadding => _isDesktop ? 32.0 : 24.0; // web p-6
+  static double get noticeTopGap => _isDesktop ? 21.0 : 16.0; // web pt-4
 
-  /// Target height for inputs and the login button (web h-12 48 × scale).
-  static const controlHeight = 72.0;
+  /// Target height for inputs and the login button (web h-12 48).
+  static double get controlHeight => _isDesktop ? 72.0 : 48.0;
 
-  static const controlPaddingH = 16.0;
-  static EdgeInsets get controlPadding => const EdgeInsets.symmetric(
+  static double get controlPaddingH => _isDesktop ? 16.0 : 12.0;
+  static EdgeInsets get controlPadding => EdgeInsets.symmetric(
         horizontal: controlPaddingH,
       );
 
   /// Vertical padding inside login inputs — tune to adjust field feel.
-  static const inputPaddingV = 24.0;
+  static double get inputPaddingV => _isDesktop ? 24.0 : 14.0;
 
   /// Passed to [TpInputFormField.metrics] / [TpInput.metrics].
   static TpControlSizeMetrics get inputMetrics => TpControlSizeMetrics(
@@ -48,17 +52,32 @@ abstract final class LoginDialogLayout {
         verticalPadding: inputPaddingV,
       );
 
-  static const controlRadius = 11.0; // web rounded-lg 8 × scale
-  static const prefixIconSize = 22.0;
+  static double get controlRadius => _isDesktop ? 11.0 : 8.0; // web rounded-lg
 
-  static const socialButtonSize = 53.0; // web h-10 40 × scale
-  static const socialIconSize = 22.0;
-  static const socialIconPadding = 12.0;
-  static const socialButtonGap = 11.0; // web gap-2 8 × scale
+  /// Prefix icon edge length as a multiple of the input's body text size.
+  /// Icons carry less ink than glyphs, so ~1.3× the font size reads as "about
+  /// the same size" while tracking the text-size setting.
+  static const double prefixIconTextRatio = 1.3;
 
-  static const fieldGap = 21.0; // web space-y-4 16 × scale
-  static const sectionGap = 32.0; // web space-y-6 / my-6 24 × scale
-  static const tabGap = 32.0;
+  /// Inset from the input's left border to the prefix icon. The web modal's
+  /// el-input wrapper padding is 12px; desktop keeps the ×4/3 proportion.
+  static double get prefixIconInset => _isDesktop ? 16.0 : 12.0;
+
+  /// Gap between the prefix icon and the input text (M3 adds its own 4px on
+  /// top of this).
+  static double get prefixIconGap => _isDesktop ? 8.0 : 6.0;
+
+  static double get socialButtonSize => _isDesktop ? 53.0 : 40.0; // web h-10
+  /// Social-login icon edge length as a multiple of body text size — slightly
+  /// larger than prefix icons since the buttons have no text beside them.
+  static const double socialIconTextRatio = 1.5;
+  static double get socialIconPadding => _isDesktop ? 12.0 : 9.0;
+  static double get socialButtonGap => _isDesktop ? 11.0 : 8.0; // web gap-2
+
+  static double get fieldGap => _isDesktop ? 21.0 : 16.0; // web space-y-4
+  static double get sectionGap =>
+      _isDesktop ? 32.0 : 24.0; // web space-y-6 / my-6
+  static double get tabGap => _isDesktop ? 32.0 : 24.0; // web space-x-6
 }
 
 /// Forces the login modal subtree onto a light card theme regardless of app mode.

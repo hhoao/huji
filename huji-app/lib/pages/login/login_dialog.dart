@@ -124,7 +124,7 @@ class _LoginDialogState extends State<LoginDialog>
           side: const BorderSide(color: LoginDialogColors.cardBorder),
         ),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: LoginDialogLayout.maxWidth),
+          constraints: BoxConstraints(maxWidth: LoginDialogLayout.maxWidth),
           child: AnimatedBuilder(
             animation: _animationController,
             builder: (context, child) {
@@ -141,9 +141,9 @@ class _LoginDialogState extends State<LoginDialog>
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             if (_currentForm == FormType.login) ...[
-                              const SizedBox(height: LoginDialogLayout.noticeTopGap),
+                              SizedBox(height: LoginDialogLayout.noticeTopGap),
                               Padding(
-                                padding: const EdgeInsets.symmetric(
+                                padding: EdgeInsets.symmetric(
                                   horizontal: LoginDialogLayout.contentPadding,
                                 ),
                                 child: Text(
@@ -157,7 +157,7 @@ class _LoginDialogState extends State<LoginDialog>
                               ),
                             ],
                             Padding(
-                              padding: const EdgeInsets.fromLTRB(
+                              padding: EdgeInsets.fromLTRB(
                                 LoginDialogLayout.contentPadding,
                                 LoginDialogLayout.fieldGap,
                                 LoginDialogLayout.contentPadding,

@@ -125,165 +125,132 @@ class _ForgotPasswordFormState extends State<ForgotPasswordForm> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
 
-    return Padding(
-      padding: EdgeInsets.zero,
-      child: Material(
-        color: Colors.transparent,
-        child: TpForm(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+    return TpForm(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.loginResetPasswordTitle,
+            style: styles.xl.copyWith(
+              fontWeight: FontWeight.w700,
+              color: LoginDialogColors.titleText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: LoginDialogLayout.sectionGap),
+          buildTextField(
+            context: context,
+            id: 'identifier',
+            hint: l10n.loginIdentifierHint,
+            iconAsset: LoginDialogIcons.email,
+            controller: _accountController,
+            validator: (value) => validateEmailOrPhone(l10n, value),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          buildTextField(
+            context: context,
+            id: 'code',
+            hint: l10n.loginAuthCodeHint,
+            iconAsset: LoginDialogIcons.keyVariant,
+            controller: _verifyCodeController,
+            validator: (value) => validateAuthCode(l10n, value),
+            suffixIcon: buildVerificationCodeButton(
+              context,
+              countdown: _countdown,
+              onPressed: _countdown > 0
+                  ? null
+                  : () {
+                      Throttles.throttle(
+                        'forgot_password_get_code',
+                        const Duration(seconds: 1),
+                        () => _getVerificationCode(context),
+                      );
+                    },
+            ),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          buildTextField(
+            context: context,
+            id: 'newPassword',
+            hint: l10n.loginNewPasswordHint,
+            iconAsset: LoginDialogIcons.lock,
+            controller: _newPasswordController,
+            obscureText: _obscureNewPassword,
+            validator: (value) => validatePassword(l10n, value),
+            suffixIcon: buildPasswordVisibilityToggle(
+              obscure: _obscureNewPassword,
+              onToggle: () => setState(
+                () => _obscureNewPassword = !_obscureNewPassword,
+              ),
+            ),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          buildTextField(
+            context: context,
+            id: 'confirmPassword',
+            hint: l10n.loginConfirmNewPasswordHint,
+            iconAsset: LoginDialogIcons.lockCheck,
+            controller: _confirmPasswordController,
+            obscureText: _obscureConfirmPassword,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return l10n.loginConfirmNewPasswordHint;
+              }
+              if (value != _newPasswordController.text) {
+                return l10n.loginPasswordMismatch;
+              }
+              return null;
+            },
+            suffixIcon: buildPasswordVisibilityToggle(
+              obscure: _obscureConfirmPassword,
+              onToggle: () => setState(
+                () => _obscureConfirmPassword = !_obscureConfirmPassword,
+              ),
+            ),
+          ),
+          SizedBox(height: LoginDialogLayout.sectionGap),
+          buildDialogActionButton(
+            context,
+            onPressed: _isLoading
+                ? null
+                : () {
+                    Throttles.throttle(
+                      'reset_password_submit',
+                      const Duration(seconds: 2),
+                      () => _handleResetPassword(context),
+                    );
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.loginResetPasswordTitle),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                context.hujiL10n.loginResetPasswordTitle,
-                style: styles.mdBold.copyWith(color: LoginDialogColors.titleText),
-                textAlign: TextAlign.center,
+                l10n.loginRememberedPassword,
+                style: styles.md.copyWith(color: LoginDialogColors.mutedText),
               ),
-
-              SizedBox(height: 24),
-              buildTextField(
-                context: context,
-                id: 'identifier',
-                label: context.hujiL10n.loginIdentifierLabel,
-                hint: context.hujiL10n.loginIdentifierHint,
-                iconAsset: LoginDialogIcons.email,
-                controller: _accountController,
-                validator: (value) =>
-                    validateEmailOrPhone(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 16),
-
-              buildTextField(
-                context: context,
-                id: 'code',
-                label: context.hujiL10n.loginAuthCodeLabel,
-                hint: context.hujiL10n.loginAuthCodeHint,
-                iconAsset: LoginDialogIcons.keyVariant,
-                controller: _verifyCodeController,
-                suffixIcon: TpButton(
-                  variant: TpButtonVariant.ghost,
-                  onPressed: _countdown > 0
-                      ? null
-                      : () {
-                          Throttles.throttle(
-                            'forgot_password_get_code',
-                            const Duration(seconds: 1),
-                            () => _getVerificationCode(context),
-                          );
-                        },
-                  child: Text(
-                    _countdown > 0
-                        ? context.hujiL10n.actionResendCodeCountdown(_countdown)
-                        : context.hujiL10n.actionGetVerificationCode,
-                  ),
-                ),
-                validator: (value) => validateAuthCode(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 16),
-
-              buildTextField(
-                context: context,
-                id: 'newPassword',
-                label: context.hujiL10n.loginNewPassword,
-                hint: context.hujiL10n.loginNewPasswordHint,
-                iconAsset: LoginDialogIcons.lock,
-                controller: _newPasswordController,
-                suffixIcon: TpIconButton(
-                  icon: _obscureNewPassword
-                      ? Icons.visibility
-                      : Icons.visibility_off,
-                  onTap: () {
-                    setState(() {
-                      _obscureNewPassword = !_obscureNewPassword;
-                    });
-                  },
-                ),
-                obscureText: _obscureNewPassword,
-                validator: (value) => validatePassword(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 16),
-
-              buildTextField(
-                context: context,
-                id: 'confirmPassword',
-                label: context.hujiL10n.loginConfirmNewPassword,
-                hint: context.hujiL10n.loginConfirmNewPasswordHint,
-                iconAsset: LoginDialogIcons.lockCheck,
-                controller: _confirmPasswordController,
-                suffixIcon: TpIconButton(
-                  icon: _obscureConfirmPassword
-                      ? Icons.visibility
-                      : Icons.visibility_off,
-                  onTap: () {
-                    setState(() {
-                      _obscureConfirmPassword = !_obscureConfirmPassword;
-                    });
-                  },
-                ),
-                obscureText: _obscureConfirmPassword,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return context.hujiL10n.loginConfirmNewPasswordHint;
-                  }
-                  if (value != _newPasswordController.text) {
-                    return context.hujiL10n.loginPasswordMismatch;
-                  }
-                  return null;
+              buildDialogLinkButton(
+                context,
+                onPressed: () {
+                  _resetForm();
+                  widget.onSwitchForm(FormType.login);
                 },
-              ),
-
-              SizedBox(height: 24),
-
-              // 重置密码按钮
-              TpButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        Throttles.throttle(
-                          'reset_password_submit',
-                          const Duration(seconds: 2),
-                          () => _handleResetPassword(context),
-                        );
-                      },
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )
-                    : Text(context.hujiL10n.loginResetPasswordTitle),
-              ),
-
-              SizedBox(height: 16),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    context.hujiL10n.loginRememberedPassword,
-                    style: styles.md.copyWith(color: LoginDialogColors.mutedText),
-                  ),
-                  TpButton(
-                    variant: TpButtonVariant.ghost,
-                    onPressed: () {
-                      _resetForm();
-                      widget.onSwitchForm(FormType.login);
-                    },
-                    child: Text(context.hujiL10n.loginBackToLogin),
-                  ),
-                ],
+                label: l10n.loginBackToLogin,
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

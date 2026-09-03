@@ -124,111 +124,87 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
-    return Padding(
-      padding: EdgeInsets.zero,
-      child: Material(
-        color: Colors.transparent,
-        child: TpForm(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
+
+    return TpForm(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            l10n.loginRegisterTitle,
+            style: styles.xl.copyWith(
+              fontWeight: FontWeight.w700,
+              color: LoginDialogColors.titleText,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          SizedBox(height: LoginDialogLayout.sectionGap),
+          buildTextField(
+            context: context,
+            id: 'identifier',
+            hint: l10n.loginIdentifierHint,
+            iconAsset: LoginDialogIcons.account,
+            controller: _identifierController,
+            validator: (value) => validateEmailOrPhone(l10n, value),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          buildTextField(
+            context: context,
+            id: 'code',
+            hint: l10n.loginAuthCodeHint,
+            iconAsset: LoginDialogIcons.keyVariant,
+            controller: _codeController,
+            validator: (value) => validateAuthCode(l10n, value),
+            suffixIcon: buildVerificationCodeButton(
+              context,
+              countdown: _countdown,
+              onPressed: _countdown > 0
+                  ? null
+                  : () {
+                      Throttles.throttle(
+                        'register_get_code',
+                        const Duration(seconds: 1),
+                        () => _getVerificationCode(context),
+                      );
+                    },
+            ),
+          ),
+          SizedBox(height: LoginDialogLayout.sectionGap),
+          buildDialogActionButton(
+            context,
+            onPressed: _isLoading
+                ? null
+                : () {
+                    Throttles.throttle(
+                      'register_submit',
+                      const Duration(seconds: 2),
+                      () => _handleRegister(context),
+                    );
+                  },
+            child: _isLoading
+                ? const SizedBox(
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.loginRegisterNow),
+          ),
+          SizedBox(height: LoginDialogLayout.fieldGap),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                context.hujiL10n.loginRegisterTitle,
-                style: styles.mdBold.copyWith(color: LoginDialogColors.titleText),
-                textAlign: TextAlign.center,
+                l10n.loginAlreadyHaveAccount,
+                style: styles.md.copyWith(color: LoginDialogColors.mutedText),
               ),
-
-              SizedBox(height: 24),
-              buildTextField(
-                context: context,
-                id: 'identifier',
-                label: context.hujiL10n.loginIdentifierLabel,
-                hint: context.hujiL10n.loginIdentifierHint,
-                iconAsset: LoginDialogIcons.account,
-                controller: _identifierController,
-                validator: (value) =>
-                    validateEmailOrPhone(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 16),
-
-              buildTextField(
-                context: context,
-                id: 'code',
-                label: context.hujiL10n.loginAuthCodeLabel,
-                hint: context.hujiL10n.loginAuthCodeHint,
-                iconAsset: LoginDialogIcons.keyVariant,
-                controller: _codeController,
-                suffixIcon: TpButton(
-                  variant: TpButtonVariant.ghost,
-                  onPressed: _countdown > 0
-                      ? null
-                      : () {
-                          Throttles.throttle(
-                            'register_get_code',
-                            const Duration(seconds: 1),
-                            () => _getVerificationCode(context),
-                          );
-                        },
-                  child: Text(
-                    _countdown > 0
-                        ? context.hujiL10n.actionResendCodeCountdown(_countdown)
-                        : context.hujiL10n.actionGetVerificationCode,
-                  ),
-                ),
-                validator: (value) => validateAuthCode(context.hujiL10n, value),
-              ),
-
-              SizedBox(height: 24),
-
-              // 提交按钮
-              TpButton(
-                onPressed: _isLoading
-                    ? null
-                    : () {
-                        Throttles.throttle(
-                          'register_submit',
-                          const Duration(seconds: 2),
-                          () => _handleRegister(context),
-                        );
-                      },
-                child: _isLoading
-                    ? SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Theme.of(context).colorScheme.onPrimary,
-                        ),
-                      )
-                    : Text(
-                        _isLoading
-                            ? l10n.loginRegistering
-                            : l10n.loginRegisterNow,
-                      ),
-              ),
-
-              SizedBox(height: 16),
-
-              // 跳转链接
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    l10n.loginAlreadyHaveAccount,
-                    style: styles.md.copyWith(color: LoginDialogColors.mutedText),
-                  ),
-                  TpButton(
-                    variant: TpButtonVariant.ghost,
-                    onPressed: _jump,
-                    child: Text(l10n.loginBackToLogin),
-                  ),
-                ],
+              buildDialogLinkButton(
+                context,
+                onPressed: _jump,
+                label: l10n.loginBackToLogin,
               ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }
