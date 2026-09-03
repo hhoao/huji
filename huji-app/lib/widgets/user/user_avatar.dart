@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:huji_app/pages/login/login_dialog_icons.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 /// Circular user avatar matching autoclip-web-front default [boy.png].
 class UserAvatar extends StatelessWidget {
@@ -42,8 +43,8 @@ class UserAvatar extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        boxShadow: const [
-          BoxShadow(color: Color(0x1F000000), blurRadius: 8),
+        boxShadow: [
+          BoxShadow(color: context.cs.softShadow, blurRadius: 8),
         ],
       ),
       child: avatar,

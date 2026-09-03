@@ -5,6 +5,7 @@ import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/pages/user/avatar_picker_widget.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class BasicInfoPage extends StatefulWidget {
   const BasicInfoPage({super.key});
@@ -121,7 +122,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       boxShadow: [
-                        BoxShadow(color: Colors.black12, blurRadius: 8),
+                        BoxShadow(color: context.cs.softShadow, blurRadius: 8),
                       ],
                     ),
                     child: AvatarPickerWidget(

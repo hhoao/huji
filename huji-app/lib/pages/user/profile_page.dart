@@ -12,6 +12,7 @@ import 'package:huji_app/pages/user/security_settings_page.dart';
 import 'package:huji_app/pages/system/settings_page.dart';
 import 'package:huji_app/pages/plan/subscription_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:huji_app/pages/login/login_dialog_icons.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -139,7 +140,7 @@ class ProfilePageContentState extends State<ProfilePageContent> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         boxShadow: [
-                          BoxShadow(color: Colors.black12, blurRadius: 8),
+                          BoxShadow(color: context.cs.softShadow, blurRadius: 8),
                         ],
                       ),
                       child:

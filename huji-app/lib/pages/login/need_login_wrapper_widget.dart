@@ -5,6 +5,7 @@ import 'package:huji_app/pages/login/login_dialog.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class NeedLoginWrapperWidget extends StatelessWidget {
   final Widget? child;
@@ -13,6 +14,9 @@ class NeedLoginWrapperWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return BlocBuilder<UserBloc, UserState>(
       buildWhen: (previous, current) =>
           previous.isLoggedIn != current.isLoggedIn,
@@ -21,45 +25,39 @@ class NeedLoginWrapperWidget extends StatelessWidget {
           return child ?? const SizedBox.shrink();
         }
         return Scaffold(
-          backgroundColor: Colors.white,
+          backgroundColor: cs.surface,
           body: Center(
             child: Padding(
               padding: const EdgeInsets.all(32.0),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // 图片
                   Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Colors.grey[100],
+                      color: cs.subtleFill,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Icon(
                       Icons.person,
                       size: 80,
-                      color: Colors.grey[400],
+                      color: cs.mutedForeground,
                     ),
                   ),
                   SizedBox(height: 32),
-
-                  // 提示文字
-                  Text(context.hujiL10n.loginNeedLoginTitle, style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black87,
-                    ),
+                  Text(
+                    context.hujiL10n.loginNeedLoginTitle,
+                    style: styles.lgMedium.copyWith(color: cs.onSurface),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16),
-
-                  Text(context.hujiL10n.loginNeedLoginSubtitle, style: TextStyle(fontSize: 14, color: Colors.grey),
+                  Text(
+                    context.hujiL10n.loginNeedLoginSubtitle,
+                    style: styles.md.copyWith(color: cs.mutedForeground),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 32),
-
-                  // 登录按钮
                   SizedBox(
                     width: double.infinity,
                     child: TpButton(

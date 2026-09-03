@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
@@ -205,18 +206,23 @@ class _AvatarPickerWidgetState extends State<AvatarPickerWidget> {
             Positioned(
               bottom: 0,
               right: 0,
-              child: Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: const Icon(
-                  Icons.camera_alt,
-                  color: Colors.white,
-                  size: 16,
-                ),
+              child: Builder(
+                builder: (context) {
+                  final cs = context.cs;
+                  return Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: cs.primary,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: cs.surface, width: 2),
+                    ),
+                    child: Icon(
+                      Icons.camera_alt,
+                      color: cs.onPrimary,
+                      size: 16,
+                    ),
+                  );
+                },
               ),
             ),
         ],

@@ -9,6 +9,7 @@ import 'package:huji_app/router/modules/login.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class SecuritySettingsPage extends StatefulWidget {
   const SecuritySettingsPage({super.key});
@@ -221,14 +222,19 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(context.hujiL10n.accountAndSecurity, style: Theme.of(context).textTheme.headlineMedium),
-        backgroundColor: Colors.white,
+        title: Text(
+          context.hujiL10n.accountAndSecurity,
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
-        iconTheme: const IconThemeData(color: Colors.black87),
+        iconTheme: IconThemeData(color: cs.onSurface),
       ),
       body: TpForm(
         key: _formKey,
@@ -239,11 +245,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cs.cardFill,
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: cs.softShadow,
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),
@@ -301,11 +307,11 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: cs.cardFill,
                 borderRadius: BorderRadius.circular(18),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: cs.softShadow,
                     blurRadius: 4,
                     offset: Offset(0, 2),
                   ),
@@ -489,6 +495,6 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Widget _buildDivider() {
-    return Container(height: 1, color: const Color(0xFFF2F2F2));
+    return Container(height: 1, color: context.cs.outlineVariant);
   }
 }

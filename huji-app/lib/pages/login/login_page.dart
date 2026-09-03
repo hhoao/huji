@@ -6,6 +6,7 @@ import 'package:huji_app/services/user_service.dart';
 
 import '../../api/models/member/auth_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class LoginPage extends StatefulWidget {
@@ -149,8 +150,11 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: cs.surface,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -168,24 +172,24 @@ class _LoginPageState extends State<LoginPage> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.deepPurple,
+                        color: cs.primary,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.video_library,
                         size: 40,
-                        color: Colors.white,
+                        color: cs.onPrimary,
                       ),
                     ),
                     SizedBox(height: 24),
-                    Text(context.hujiL10n.loginWelcome, style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black87,
-                      ),
+                    Text(
+                      context.hujiL10n.loginWelcome,
+                      style: styles.display.copyWith(color: cs.onSurface),
                     ),
                     SizedBox(height: 8),
-                    Text(context.hujiL10n.loginSubtitle, style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    Text(
+                      context.hujiL10n.loginSubtitle,
+                      style: styles.lg.copyWith(color: cs.mutedForeground),
                     ),
                   ],
                 ),
@@ -195,7 +199,7 @@ class _LoginPageState extends State<LoginPage> {
                 // 登录方式切换
                 Container(
                   decoration: BoxDecoration(
-                    color: Colors.grey[100],
+                    color: cs.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -205,18 +209,19 @@ class _LoginPageState extends State<LoginPage> {
                           onTap: () => setState(() => _isPasswordLogin = true),
                           borderRadius: BorderRadius.circular(12),
                           backgroundColor: _isPasswordLogin
-                              ? Colors.deepPurple
+                              ? cs.primary
                               : Colors.transparent,
                           hoverColor: _isPasswordLogin
-                              ? Colors.deepPurple
-                              : Colors.black.withValues(alpha: 0.04),
+                              ? cs.primary
+                              : cs.onSurface.withValues(alpha: 0.04),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(context.hujiL10n.loginPasswordMode, textAlign: TextAlign.center,
-                            style: TextStyle(
+                          child: Text(
+                            context.hujiL10n.loginPasswordMode,
+                            textAlign: TextAlign.center,
+                            style: styles.mdMedium.copyWith(
                               color: _isPasswordLogin
-                                  ? Colors.white
-                                  : Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                                  ? cs.onPrimary
+                                  : cs.mutedForeground,
                             ),
                           ),
                         ),
@@ -226,18 +231,19 @@ class _LoginPageState extends State<LoginPage> {
                           onTap: () => setState(() => _isPasswordLogin = false),
                           borderRadius: BorderRadius.circular(12),
                           backgroundColor: !_isPasswordLogin
-                              ? Colors.deepPurple
+                              ? cs.primary
                               : Colors.transparent,
                           hoverColor: !_isPasswordLogin
-                              ? Colors.deepPurple
-                              : Colors.black.withValues(alpha: 0.04),
+                              ? cs.primary
+                              : cs.onSurface.withValues(alpha: 0.04),
                           padding: const EdgeInsets.symmetric(vertical: 12),
-                          child: Text(context.hujiL10n.loginAuthCodeMode, textAlign: TextAlign.center,
-                            style: TextStyle(
+                          child: Text(
+                            context.hujiL10n.loginAuthCodeMode,
+                            textAlign: TextAlign.center,
+                            style: styles.mdMedium.copyWith(
                               color: !_isPasswordLogin
-                                  ? Colors.white
-                                  : Colors.grey[600],
-                              fontWeight: FontWeight.w500,
+                                  ? cs.onPrimary
+                                  : cs.mutedForeground,
                             ),
                           ),
                         ),
