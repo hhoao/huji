@@ -28,6 +28,8 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 Future<void> preInit() async {
   // 初始化存储服务（必须在其他服务之前初始化，因为它们可能需要路径）
   await StorageService.init();
+  // 后台清理持久缩略图缓存（源视频已删 + 容量 LRU），不阻塞启动
+  unawaited(StorageService.instance.evictVideoThumbnailCache());
   await AppLogger.instance.initializeFileLogger();
   AppLogger.instance.i('StorageService initialized');
 
