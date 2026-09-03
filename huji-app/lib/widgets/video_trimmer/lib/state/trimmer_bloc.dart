@@ -9,6 +9,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
@@ -73,7 +74,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         await controller.initialize(file);
 
         final duration = controller.duration;
-        final timeInterval = _thumbnailIntervalForDuration(duration.inMilliseconds);
+        // One thumbnail tile = 1s on all platforms (including long desktop clips).
+        const timeInterval = 1.0;
 
         final scrollController = ScrollController();
 
@@ -154,24 +156,22 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     _isVideoPlayScroll = false;
   }
 
-  double _thumbnailIntervalForDuration(int durationMs) {
-    if (!PlatformCapability.isDesktop) return 1;
-    final minutes = durationMs / 60000;
-    if (minutes > 60) return 5;
-    if (minutes > 30) return 3;
-    if (minutes > 15) return 2;
-    return 1;
+  double _thumbnailsWidth() {
+    final durationSeconds = state.totalDuration / 1000.0;
+    final tileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
+    return timelineTotalWidth(
+      durationSeconds: durationSeconds,
+      tileSize: tileSize,
+      timeIntervalSeconds: state.timeIntervalSeconds,
+    );
   }
 
   void _scrollTimelineControllerPositionFromTime(int time) {
     final scrollController = state.scrollController;
     if (scrollController == null || !scrollController.hasClients) return;
 
-    // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
-    final numberOfThumbnails =
-        (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
-    final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
+    final thumbnailsWidth = _thumbnailsWidth();
+    if (thumbnailsWidth <= 0 || state.totalDuration <= 0) return;
 
     // 时间对应的像素位置（在缩略图区域中）
     final pixel = (time / state.totalDuration * thumbnailsWidth).clamp(
@@ -197,11 +197,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
       state.scrollController!.position.maxScrollExtent,
     );
 
-    // 计算缩略图区域的实际宽度（不包括额外的viewportWidth）
-    final numberOfThumbnails =
-        (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-    final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
-    final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
+    final thumbnailsWidth = _thumbnailsWidth();
+    if (thumbnailsWidth <= 0 || state.totalDuration <= 0) return;
 
     // 根据滚动位置在缩略图区域中的比例计算时间
     int timeChange =
@@ -252,13 +249,14 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
           state.scrollController!.position.maxScrollExtent,
         );
 
-        final numberOfThumbnails =
-            (state.totalDuration / state.timeIntervalSeconds / 1000.0).ceil();
-        final thumbnailTileSize = TrimmerLayoutMetrics.forPlatform().thumbnailTileSize;
-        final thumbnailsWidth = numberOfThumbnails * thumbnailTileSize;
+        final width = _thumbnailsWidth();
+        if (width <= 0 || state.totalDuration <= 0) {
+          _isUserScrolling = false;
+          return;
+        }
 
         final latestTimeChange =
-            ((currentPixel / thumbnailsWidth * state.totalDuration).clamp(
+            ((currentPixel / width * state.totalDuration).clamp(
               0.0,
               state.totalDuration,
             )).toInt();

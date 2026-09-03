@@ -7,6 +7,7 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/custom_divider_painters.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 
@@ -14,7 +15,14 @@ import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 class ClipSegmentOverlay extends StatelessWidget {
   final double thumbnailHeight;
 
-  const ClipSegmentOverlay({super.key, required this.thumbnailHeight});
+  /// Must match the ruler / thumbnail strip width (single coordinate space).
+  final double totalWidth;
+
+  const ClipSegmentOverlay({
+    super.key,
+    required this.thumbnailHeight,
+    required this.totalWidth,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -32,16 +40,6 @@ class ClipSegmentOverlay extends StatelessWidget {
           return const SizedBox.shrink();
         }
 
-        // 计算总宽度
-        final totalDurationSeconds =
-            context.read<TrimmerBloc>().state.totalDuration / 1000.0;
-        final actualThumbnailCount =
-            (totalDurationSeconds /
-                    context.read<TrimmerBloc>().state.timeIntervalSeconds)
-                .ceil();
-        final totalWidth = actualThumbnailCount * thumbnailHeight;
-
-        // 使用 StatefulBuilder 来管理 controller 的生命周期
         return _ClipSegmentOverlayContent(
           thumbnailHeight: thumbnailHeight,
           totalWidth: totalWidth,
@@ -89,8 +87,10 @@ class _ClipSegmentOverlayContentState
   @override
   void didUpdateWidget(_ClipSegmentOverlayContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (!_sameSegmentLayout(oldWidget.segments, widget.segments) &&
-        !_dividerDragging) {
+    final widthChanged = oldWidget.totalWidth != widget.totalWidth;
+    final layoutChanged =
+        !_sameSegmentLayout(oldWidget.segments, widget.segments);
+    if ((widthChanged || layoutChanged) && !_dividerDragging) {
       _updateController();
     }
   }
@@ -127,13 +127,15 @@ class _ClipSegmentOverlayContentState
       return;
     }
 
+    final totalDurationSeconds = totalDuration / 1000.0;
     setState(() {
       _controller.areas = List.generate(segments.length, (index) {
         final segment = segments[index];
-        final size =
-            segment.getDuration().toDouble() /
-            totalDuration *
-            widget.totalWidth;
+        final size = timeToTimelineX(
+          timeSeconds: segment.getDuration() / 1000.0,
+          totalDurationSeconds: totalDurationSeconds,
+          totalWidth: widget.totalWidth,
+        );
         return Area(
           size: size,
           builder: (context, area) => _buildSegmentWidget(segment),

@@ -12,21 +12,18 @@ import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/clip_segment_overlay.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_painter.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_area_properties.dart';
-import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/trim_editor_properties.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Widget for displaying the video trimmer.
 class ScrollableTrimViewer extends StatelessWidget {
-  final TrimEditorProperties editorProperties;
-
   final TrimAreaProperties areaProperties;
 
   const ScrollableTrimViewer({
     super.key,
-    this.editorProperties = const TrimEditorProperties(),
     this.areaProperties = const TrimAreaProperties(),
   });
 
@@ -38,14 +35,21 @@ class ScrollableTrimViewer extends StatelessWidget {
   Widget _buildThumbnailArea(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
+    final trimmerState = context.read<TrimmerBloc>().state;
     final thumbnailTileSize = layout.thumbnailTileSize;
     final timeRulerHeight = layout.timeRulerHeight;
-    final bottomSpanHeight = editorProperties.bottomSpanHeight;
-    final numberOfThumbnails =
-        ((context.read<TrimmerBloc>().state.totalDuration /
-                    context.read<TrimmerBloc>().state.timeIntervalSeconds) /
-                1000.0)
-            .ceil();
+    final bottomSpanHeight = layout.bottomSpanHeight;
+    final durationSeconds = trimmerState.totalDuration / 1000.0;
+    final timeIntervalSeconds = trimmerState.timeIntervalSeconds;
+    final numberOfThumbnails = timelineThumbnailCount(
+      durationSeconds: durationSeconds,
+      timeIntervalSeconds: timeIntervalSeconds,
+    );
+    final timelineWidth = timelineTotalWidth(
+      durationSeconds: durationSeconds,
+      tileSize: thumbnailTileSize,
+      timeIntervalSeconds: timeIntervalSeconds,
+    );
     final thumbnailWidgetHeight = thumbnailTileSize + timeRulerHeight;
     final totalWidgetHeight = thumbnailWidgetHeight + bottomSpanHeight;
 
@@ -57,7 +61,7 @@ class ScrollableTrimViewer extends StatelessWidget {
             color: trimmerTheme.timelineBackground,
             child: SizedBox(
               width:
-                  numberOfThumbnails * thumbnailTileSize +
+                  timelineWidth +
                   constraints.maxWidth +
                   constraints.maxWidth,
               child: Stack(
@@ -67,6 +71,8 @@ class ScrollableTrimViewer extends StatelessWidget {
                     fit: areaProperties.thumbnailFit,
                     thumbnailHeight: thumbnailTileSize,
                     numberOfThumbnails: numberOfThumbnails,
+                    timelineContentWidth: timelineWidth,
+                    timeIntervalSeconds: timeIntervalSeconds,
                     timeRulerHeight: timeRulerHeight,
                     bottomSpanHeight: bottomSpanHeight,
                     leftWidgetWidth: layout.leftWidgetWidth,
@@ -100,6 +106,8 @@ class ScrollableThumbnailViewer extends StatelessWidget {
     super.key,
     required this.thumbnailHeight,
     required this.numberOfThumbnails,
+    required this.timelineContentWidth,
+    required this.timeIntervalSeconds,
     required this.fit,
     this.timeRulerHeight = 40,
     this.bottomSpanHeight = 0,
@@ -109,6 +117,11 @@ class ScrollableThumbnailViewer extends StatelessWidget {
   final double thumbnailHeight;
 
   final int numberOfThumbnails;
+
+  /// Exact timeline strip width (duration-based; last tile may be partial).
+  final double timelineContentWidth;
+
+  final double timeIntervalSeconds;
 
   final BoxFit fit;
 
@@ -131,7 +144,7 @@ class ScrollableThumbnailViewer extends StatelessWidget {
         thumbnailHeight +
         (bottomSpanHeight > 0 ? bottomSpanHeight : 0);
     // 总宽度包括左侧组件和所有缩略图
-    final totalWidth = leftWidgetWidth + thumbnailHeight * numberOfThumbnails;
+    final totalWidth = leftWidgetWidth + timelineContentWidth;
 
     return SizedBox(
       width: totalWidth,
@@ -153,6 +166,8 @@ class ScrollableThumbnailViewer extends StatelessWidget {
               stream: Stream.value(thumbnailStream),
               thumbnailHeight: thumbnailHeight,
               numberOfThumbnails: numberOfThumbnails,
+              timelineContentWidth: timelineContentWidth,
+              timeIntervalSeconds: timeIntervalSeconds,
               coverImage: context.read<TrimmerBloc>().state.coverImage,
               fit: fit,
               scrollController: context
@@ -170,121 +185,74 @@ class ScrollableThumbnailViewer extends StatelessWidget {
   }
 }
 
-/// 时间标尺片段绘制器（只绘制当前 item 对应位置的时间刻度）
-class _TimeRulerSegmentPainter extends CustomPainter {
-  final double totalDuration;
-  final double totalWidth;
-  final double itemStartTime;
-  final double itemEndTime;
-  final double itemLeftInTotal; // item 在整个时间标尺中的位置（固定）
-  final double itemLeftInView; // item 在可见区域中的位置（随滚动变化）
-  final double shortInterval;
-  final double longInterval;
-  final int textInterval;
-  final bool isLastTile;
-  final double tileWidth;
-  final double paintOriginX;
-  final Color tickColor;
-  final TextStyle textStyle;
-
-  _TimeRulerSegmentPainter({
-    required this.totalDuration,
+/// 刻度 + 片段边框：与 ListView 共用 scroll offset，保证同一时间轴坐标。
+class _TimelineChromeOverlay extends StatelessWidget {
+  const _TimelineChromeOverlay({
     required this.totalWidth,
-    required this.itemStartTime,
-    required this.itemEndTime,
-    required this.itemLeftInTotal,
-    required this.itemLeftInView,
-    required this.shortInterval,
-    required this.longInterval,
-    required this.textInterval,
-    required this.isLastTile,
-    required this.tileWidth,
-    required this.paintOriginX,
-    required this.tickColor,
-    required this.textStyle,
+    required this.totalDurationSeconds,
+    required this.timeRulerHeight,
+    required this.thumbnailHeight,
   });
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    // 提前计算常量，避免循环内重复计算
-    final longIntervalCount = (longInterval / shortInterval).round();
-    final startMark = (itemStartTime / shortInterval).floor();
-    final endMark = (itemEndTime / shortInterval).ceil();
-
-    // 复用 Paint 对象，避免重复创建
-    final paint = Paint()
-      ..color = tickColor
-      ..strokeWidth = 1.0
-      ..style = PaintingStyle.stroke;
-
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    // 只绘制在当前 item 时间范围内的刻度线
-    for (int i = startMark; i <= endMark; i++) {
-      final time = i * shortInterval;
-      // 计算刻度在整个时间标尺中的 x 位置
-      final xInTotal = (time / totalDuration) * totalWidth;
-      // 转换为当前 item 内的相对位置（逻辑格子坐标，不含 pad）
-      final x = xInTotal - itemLeftInTotal;
-
-      // 半开区间归属：右边界只由下一格（或最后一格）绘制，避免重复与挤靠
-      if (!timeRulerTickOwnedByTile(
-        x,
-        tileWidth: tileWidth,
-        isLastTile: isLastTile,
-      )) {
-        continue;
-      }
-
-      final drawX = x + paintOriginX;
-
-      // 长刻度对齐标签间隔
-      final isLongLine = (i % longIntervalCount) == 0;
-
-      // 绘制刻度线
-      canvas.drawLine(
-        Offset(drawX, 0),
-        Offset(drawX, isLongLine ? 8 : 4),
-        paint,
-      );
-
-      // 绘制时间文本（每 textInterval 个短刻度显示一次）
-      if (i % textInterval == 0) {
-        final timeText = _formatTime(time);
-        textPainter.text = TextSpan(text: timeText, style: textStyle);
-        textPainter.layout();
-        // 居中对齐刻度；paintOriginX 留白保证文字落在 CustomPaint 尺寸内
-        final textX = timeRulerLabelPaintX(
-          tickX: drawX,
-          labelWidth: textPainter.width,
-        );
-        textPainter.paint(canvas, Offset(textX, 16));
-      }
-    }
-  }
-
-  /// 格式化时间显示
-  String _formatTime(double seconds) {
-    final minutes = (seconds / 60).floor();
-    final remainingSeconds = (seconds % 60).floor();
-    return '${minutes.toString().padLeft(2, '0')}:${remainingSeconds.toString().padLeft(2, '0')}';
-  }
+  final double totalWidth;
+  final double totalDurationSeconds;
+  final double timeRulerHeight;
+  final double thumbnailHeight;
 
   @override
-  bool shouldRepaint(covariant _TimeRulerSegmentPainter oldDelegate) {
-    return oldDelegate.itemLeftInView != itemLeftInView ||
-        oldDelegate.itemStartTime != itemStartTime ||
-        oldDelegate.itemEndTime != itemEndTime ||
-        oldDelegate.totalDuration != totalDuration ||
-        oldDelegate.totalWidth != totalWidth ||
-        oldDelegate.shortInterval != shortInterval ||
-        oldDelegate.longInterval != longInterval ||
-        oldDelegate.textInterval != textInterval ||
-        oldDelegate.isLastTile != isLastTile ||
-        oldDelegate.tileWidth != tileWidth ||
-        oldDelegate.paintOriginX != paintOriginX ||
-        oldDelegate.tickColor != tickColor ||
-        oldDelegate.textStyle != textStyle;
+  Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
+    final textTheme = Theme.of(context).textTheme;
+    final intervals = totalDurationSeconds > 0
+        ? resolveTimeRulerIntervals(totalWidth / totalDurationSeconds)
+        : const TimeRulerIntervals(
+            shortInterval: 1,
+            longInterval: 1,
+            textInterval: 1,
+          );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        IgnorePointer(
+          child: SizedBox(
+            width: totalWidth,
+            height: timeRulerHeight,
+            child: CustomPaint(
+              size: Size(totalWidth, timeRulerHeight),
+              painter: TimeRulerPainter(
+                totalDurationSeconds: totalDurationSeconds,
+                totalWidth: totalWidth,
+                shortInterval: intervals.shortInterval,
+                longInterval: intervals.longInterval,
+                textInterval: intervals.textInterval,
+                tickColor: trimmerTheme.rulerTickColor,
+                textStyle:
+                    textTheme.labelSmall?.copyWith(
+                      color: trimmerTheme.rulerLabelColor,
+                      fontSize: layout.rulerLabelFontSize,
+                      fontWeight: FontWeight.w500,
+                    ) ??
+                    TextStyle(
+                      color: trimmerTheme.rulerLabelColor,
+                      fontSize: layout.rulerLabelFontSize,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ),
+          ),
+        ),
+        SizedBox(
+          width: totalWidth,
+          height: thumbnailHeight,
+          child: ClipSegmentOverlay(
+            thumbnailHeight: thumbnailHeight,
+            totalWidth: totalWidth,
+          ),
+        ),
+      ],
+    );
   }
 }
 
@@ -292,6 +260,8 @@ class _TimeRulerSegmentPainter extends CustomPainter {
 class _ThumbnailListBuilder extends StatelessWidget {
   final Stream<ThumbnailConfig> stream;
   final int numberOfThumbnails;
+  final double timelineContentWidth;
+  final double timeIntervalSeconds;
   final double thumbnailHeight;
   final BoxFit fit;
   final String? coverImage;
@@ -303,6 +273,8 @@ class _ThumbnailListBuilder extends StatelessWidget {
   const _ThumbnailListBuilder({
     required this.stream,
     required this.numberOfThumbnails,
+    required this.timelineContentWidth,
+    required this.timeIntervalSeconds,
     required this.thumbnailHeight,
     required this.fit,
     required this.coverImage,
@@ -323,12 +295,13 @@ class _ThumbnailListBuilder extends StatelessWidget {
     // 提前获取 totalDuration，避免每个 item 都重复读取
     final totalDuration = context.read<TrimmerBloc>().state.totalDuration;
     final totalDurationSeconds = totalDuration / 1000.0;
-    final totalWidth = numberOfThumbnails * thumbnailHeight;
+    final totalWidth = timelineContentWidth;
 
-    // 使用 Stack 叠加覆盖层
+    // 使用 Stack 叠加覆盖层：刻度与片段边框共用同一套滚动坐标系
     return Stack(
+      clipBehavior: Clip.none,
       children: [
-        // ListView 作为底层
+        // ListView 作为底层（缩略图 + 底部条；刻度改由 overlay 绘制）
         ListView.builder(
           controller: scrollController,
           scrollDirection: Axis.horizontal,
@@ -364,23 +337,29 @@ class _ThumbnailListBuilder extends StatelessWidget {
             }
 
             final thumbnailIndex = index - 1;
+            final tileWidth = timelineTileWidth(
+              index: thumbnailIndex,
+              thumbnailCount: numberOfThumbnails,
+              durationSeconds: totalDurationSeconds,
+              tileSize: thumbnailHeight,
+              timeIntervalSeconds: timeIntervalSeconds,
+            );
             return RepaintBoundary(
               key: ValueKey('thumbnail_$thumbnailIndex'),
               child: SizedBox(
                 height: itemHeight,
-                width: thumbnailHeight,
+                width: tileWidth,
                 child: _getListViewItem(
                   context,
                   thumbnailIndex,
-                  totalDuration: totalDuration,
+                  tileWidth: tileWidth,
                   totalDurationSeconds: totalDurationSeconds,
-                  totalWidth: totalWidth,
                 ),
               ),
             );
           },
         ),
-        // 覆盖层 - 使用 AnimatedBuilder 跟随滚动
+        // 刻度 + 片段边框：同一 Positioned，避免分格 ListView 与整条 overlay 坐标漂移
         AnimatedBuilder(
           animation: scrollController,
           builder: (context, child) {
@@ -389,16 +368,18 @@ class _ThumbnailListBuilder extends StatelessWidget {
                 : 0.0;
 
             return Positioned(
-              top: timeRulerHeight,
-              left: leftWidgetWidth - scrollOffset, // 根据滚动偏移调整位置
+              top: 0,
+              left: leftWidgetWidth - scrollOffset,
               width: totalWidth,
-              height: thumbnailHeight,
+              height: timeRulerHeight + thumbnailHeight,
               child: child!,
             );
           },
-          child: IgnorePointer(
-            ignoring: false, // 允许点击和拖动交互
-            child: ClipSegmentOverlay(thumbnailHeight: thumbnailHeight),
+          child: _TimelineChromeOverlay(
+            totalWidth: totalWidth,
+            totalDurationSeconds: totalDurationSeconds,
+            timeRulerHeight: timeRulerHeight,
+            thumbnailHeight: thumbnailHeight,
           ),
         ),
       ],
@@ -408,38 +389,28 @@ class _ThumbnailListBuilder extends StatelessWidget {
   Widget _getListViewItem(
     BuildContext context,
     int index, {
-    required double totalDuration,
+    required double tileWidth,
     required double totalDurationSeconds,
-    required double totalWidth,
   }) {
     final totalHeight = timeRulerHeight + thumbnailHeight + bottomSpanHeight;
 
     return SizedBox(
       height: totalHeight,
-      width: thumbnailHeight,
+      width: tileWidth,
       child: Column(
         mainAxisSize: MainAxisSize.max,
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          // 时间标尺部分 - 固定高度
-          SizedBox(
-            height: timeRulerHeight,
-            width: thumbnailHeight,
-            child: _buildTimeRulerSegment(
-              context,
-              index,
-              totalDurationSeconds: totalDurationSeconds,
-              totalWidth: totalWidth,
-            ),
-          ),
-          // 缩略图图片 - 固定高度
+          // 时间标尺占位（实际刻度画在 scroll-synced overlay 里）
+          SizedBox(height: timeRulerHeight, width: tileWidth),
+          // 缩略图图片 - 高度固定，最后一格可窄于整格
           SizedBox(
             height: thumbnailHeight,
-            width: thumbnailHeight,
+            width: tileWidth,
             child: _ThumbnailImage(
               index: index,
-              numberOfThumbnails: numberOfThumbnails,
+              timeIntervalSeconds: timeIntervalSeconds,
               totalDurationSeconds: totalDurationSeconds,
               coverImage: coverImage!,
               thumbnailHeight: thumbnailHeight,
@@ -449,95 +420,20 @@ class _ThumbnailListBuilder extends StatelessWidget {
           // 底部区域部分（灰色区域 + 滑动区域）- 固定高度
           SizedBox(
             height: bottomSpanHeight,
-            width: thumbnailHeight,
-            child: _buildBottomSpanSegment(context, index),
+            width: tileWidth,
+            child: _buildBottomSpanSegment(context, index, tileWidth),
           ),
         ],
       ),
     );
   }
 
-  /// 构建时间标尺片段（每个 item 只绘制自己对应位置的时间刻度）
-  Widget _buildTimeRulerSegment(
-    BuildContext context,
-    int index, {
-    required double totalDurationSeconds,
-    required double totalWidth,
-  }) {
-    if (totalDurationSeconds == 0) {
-      return SizedBox(height: timeRulerHeight, width: thumbnailHeight);
-    }
-
-    final trimmerTheme = context.trimmerTheme;
-    final layout = context.trimmerLayout;
-    final textTheme = Theme.of(context).textTheme;
-    final intervals = resolveTimeRulerIntervals(
-      totalWidth / totalDurationSeconds,
-    );
-
-    // 计算每个 item 代表的时间段（固定值，不随滚动变化）
-    final timePerItem = totalDurationSeconds / numberOfThumbnails;
-    final itemStartTime = index * timePerItem;
-    final itemEndTime = (index + 1) * timePerItem;
-
-    // item 在整个时间标尺中的位置（固定值）
-    final itemLeftInTotal = index * thumbnailHeight;
-    // 给标签左右留白，避免文字画出格子时被 RepaintBoundary 裁切
-    const labelPad = 28.0;
-
-    // 使用 AnimatedBuilder 监听滚动位置，使时间标尺跟随滚动
-    return RepaintBoundary(
-      child: AnimatedBuilder(
-        animation: scrollController,
-        builder: (context, child) {
-          final scrollOffset = scrollController.offset;
-          // item 在可见区域中的位置（随滚动变化）
-          final itemLeftInView = itemLeftInTotal - scrollOffset;
-
-          // OverflowBox：父级 SizedBox 宽只有一格，需允许左右 pad 画出格外
-          return OverflowBox(
-            alignment: Alignment.topLeft,
-            minWidth: thumbnailHeight + 2 * labelPad,
-            maxWidth: thumbnailHeight + 2 * labelPad,
-            child: Transform.translate(
-              offset: const Offset(-labelPad, 0),
-              child: CustomPaint(
-                size: Size(thumbnailHeight + 2 * labelPad, timeRulerHeight),
-                painter: _TimeRulerSegmentPainter(
-                  totalDuration: totalDurationSeconds,
-                  totalWidth: totalWidth,
-                  itemStartTime: itemStartTime,
-                  itemEndTime: itemEndTime,
-                  itemLeftInTotal: itemLeftInTotal,
-                  itemLeftInView: itemLeftInView,
-                  shortInterval: intervals.shortInterval,
-                  longInterval: intervals.longInterval,
-                  textInterval: intervals.textInterval,
-                  isLastTile: index == numberOfThumbnails - 1,
-                  tileWidth: thumbnailHeight,
-                  paintOriginX: labelPad,
-                  tickColor: trimmerTheme.rulerTickColor,
-                  textStyle: textTheme.labelSmall?.copyWith(
-                        color: trimmerTheme.rulerLabelColor,
-                        fontSize: layout.rulerLabelFontSize,
-                        fontWeight: FontWeight.w500,
-                      ) ??
-                      TextStyle(
-                        color: trimmerTheme.rulerLabelColor,
-                        fontSize: layout.rulerLabelFontSize,
-                        fontWeight: FontWeight.w500,
-                      ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
   /// 构建底部区域片段（灰色区域 + 滑动区域，每个 item 只显示自己对应位置的部分）
-  Widget _buildBottomSpanSegment(BuildContext context, int index) {
+  Widget _buildBottomSpanSegment(
+    BuildContext context,
+    int index,
+    double tileWidth,
+  ) {
     final bottomSpanColor = context.trimmerTheme.timelineBottomSpan;
     final scrollStripHeight = context.trimmerLayout.scrollStripHeight;
     final greyHeight =
@@ -550,7 +446,7 @@ class _ThumbnailListBuilder extends StatelessWidget {
         if (greyHeight > 0)
           Container(
             height: greyHeight,
-            width: thumbnailHeight,
+            width: tileWidth,
             color: bottomSpanColor,
           ),
         // 滑动区域（颜色不同，用于滑动）
@@ -805,7 +701,7 @@ class TimeIndicatorPainter extends CustomPainter {
 /// 缩略图图片组件 - 按需生成和加载对应时间点的缩略图
 class _ThumbnailImage extends StatefulWidget {
   final int index;
-  final int numberOfThumbnails;
+  final double timeIntervalSeconds;
   final double totalDurationSeconds;
   final String coverImage;
   final double thumbnailHeight;
@@ -813,7 +709,7 @@ class _ThumbnailImage extends StatefulWidget {
 
   const _ThumbnailImage({
     required this.index,
-    required this.numberOfThumbnails,
+    required this.timeIntervalSeconds,
     required this.totalDurationSeconds,
     required this.coverImage,
     required this.thumbnailHeight,
@@ -969,11 +865,14 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
   }
 
   /// 计算当前缩略图对应的时间点（秒）
+  ///
+  /// Uses fixed [timeIntervalSeconds] per tile so sample times match tile seams
+  /// (not duration/N, which drifts when the last tile is partial).
   double _calculateTimeOffset() {
-    final timePerThumbnail =
-        widget.totalDurationSeconds / widget.numberOfThumbnails;
-    // 使用缩略图的中间时间点
-    return (widget.index + 0.5) * timePerThumbnail;
+    final interval = widget.timeIntervalSeconds;
+    final start = widget.index * interval;
+    final end = (start + interval).clamp(0.0, widget.totalDurationSeconds);
+    return (start + end) / 2.0;
   }
 
   /// 生成缩略图文件名（基于时间点，确保唯一性和可复用性）
