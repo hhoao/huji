@@ -12,6 +12,7 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class VideoListTabContent extends StatefulWidget {
@@ -491,6 +492,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
   }
 
   Widget _buildImageWidget(VideoDisplayItem item) {
+    final cs = context.cs;
     if (item.isLocal) {
       // 本地视频：用文件缩略图
       if (item.thumbnailPath != null) {
@@ -500,11 +502,11 @@ class VideoListTabContentState extends State<VideoListTabContent>
             File(item.thumbnailPath!),
             fit: BoxFit.cover,
             errorBuilder: (context, error, stackTrace) =>
-                const Icon(Icons.video_file, color: Colors.grey),
+                Icon(Icons.video_file, color: cs.mutedForeground),
           ),
         );
       }
-      return const Icon(Icons.video_file, color: Colors.grey);
+      return Icon(Icons.video_file, color: cs.mutedForeground);
     }
 
     // 远程视频
@@ -519,26 +521,26 @@ class VideoListTabContentState extends State<VideoListTabContent>
                   child: SizedBox(
                     width: _layoutMode == VideoLayoutMode.feed ? 30 : 15,
                     height: _layoutMode == VideoLayoutMode.feed ? 30 : 15,
-                    child: CircularProgressIndicator(color: Colors.grey),
+                    child: CircularProgressIndicator(color: cs.mutedForeground),
                   ),
                 ),
                 errorWidget: (context, url, error) =>
-                    const Icon(Icons.error, color: Colors.grey),
+                    Icon(Icons.error, color: cs.mutedForeground),
               )
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   SizedBox(height: 4),
-                  Icon(Icons.timer_off, color: Colors.grey),
+                  Icon(Icons.timer_off, color: cs.mutedForeground),
                   Text(
                     context.hujiL10n.expired,
-                    style: TextStyle(fontSize: 10, color: Colors.grey),
+                    style: TextStyle(fontSize: 10, color: cs.mutedForeground),
                   ),
                 ],
               ),
       );
     }
-    return const Icon(Icons.timer_off, color: Colors.grey);
+    return Icon(Icons.timer_off, color: cs.mutedForeground);
   }
 
   void _navigateToPlayer(VideoDisplayItem item) {
@@ -602,6 +604,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   Widget _buildVideoCard(VideoDisplayItem item) {
     final l10n = context.hujiL10n;
+    final cs = context.cs;
     return TpCard(
       padding: EdgeInsets.zero,
       child: TpHover(
@@ -620,7 +623,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: Colors.grey[300],
+                      color: cs.subtleFill,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: _buildImageWidget(item),
@@ -649,7 +652,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                           ),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: cs.mutedForeground,
                           ),
                         ),
                         SizedBox(height: 4),
@@ -708,7 +711,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
                                     ),
                               style: TextStyle(
                                 fontSize: 9,
-                                color: Colors.grey[600],
+                                color: cs.mutedForeground,
                               ),
                               textAlign: TextAlign.end,
                             ),
@@ -759,6 +762,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
 
   // feed模式卡片
   Widget _buildFeedCard(VideoDisplayItem item) {
+    final cs = context.cs;
     return TpHover(
       onTap: () => _navigateToPlayer(item),
       borderRadius: BorderRadius.circular(12),
@@ -865,11 +869,11 @@ class VideoListTabContentState extends State<VideoListTabContent>
                   Row(
                     children: [
                       SizedBox(width: 2),
-                      Icon(Icons.create, size: 12, color: Colors.grey[500]),
+                      Icon(Icons.create, size: 12, color: cs.mutedForeground),
                       SizedBox(width: 2),
                       Text(
                         timeStampToDateString(item.createTime),
-                        style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+                        style: TextStyle(fontSize: 10, color: cs.mutedForeground),
                       ),
                       if (!item.isLocal) ...[
                         Spacer(),
@@ -877,21 +881,21 @@ class VideoListTabContentState extends State<VideoListTabContent>
                           '|',
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[500],
+                            color: cs.mutedForeground,
                           ),
                         ),
                         Spacer(),
                         Icon(
                           Icons.timer_off,
                           size: 12,
-                          color: Colors.grey[500],
+                          color: cs.mutedForeground,
                         ),
                         SizedBox(width: 2),
                         Text(
                           timeStampToTimeAgo(item.expireTime!),
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.grey[500],
+                            color: cs.mutedForeground,
                           ),
                         ),
                       ],
@@ -923,7 +927,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
       child: Center(
         child: Text(
           context.hujiL10n.noMoreData,
-          style: TextStyle(color: Colors.grey),
+          style: TextStyle(color: context.cs.mutedForeground),
         ),
       ),
     );
@@ -939,6 +943,7 @@ class VideoListTabContentState extends State<VideoListTabContent>
     // 如果有活跃的筛选条件，按钮不高亮
     final bool isSelected =
         !_hasActiveFilters() && _selectedStatButton == buttonKey;
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: TpButton(
@@ -972,13 +977,13 @@ class VideoListTabContentState extends State<VideoListTabContent>
         },
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? Colors.white : color, size: 16),
+            Icon(icon, color: isSelected ? cs.onPrimary : color, size: 16),
             SizedBox(width: 4),
             Text(
               label,
               style: TextStyle(
                 fontSize: 12,
-                color: isSelected ? Colors.white : Colors.black,
+                color: isSelected ? cs.onPrimary : cs.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -986,13 +991,13 @@ class VideoListTabContentState extends State<VideoListTabContent>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.grey[300],
+                color: isSelected ? cs.onPrimary : cs.subtleFill,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 count,
                 style: TextStyle(
-                  color: isSelected ? color : Colors.grey[800],
+                  color: isSelected ? color : cs.onSurface,
                   fontSize: 12,
                   fontWeight: FontWeight.bold,
                 ),

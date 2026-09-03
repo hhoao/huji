@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/store/message.dart';
 import 'package:huji_app/widgets/message/message_center_panel.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Title-bar bell with unread badge and message dropdown (Teampilot-style).
@@ -70,7 +71,7 @@ class _BellGlyph extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.cs;
     final styles = TpTextStyles.of(context);
     final hasUnread = unread > 0;
     final badgeLabel = unread > 9 ? '9+' : '$unread';
@@ -115,11 +116,7 @@ class _BellGlyph extends StatelessWidget {
                     badgeLabel,
                     textAlign: TextAlign.center,
                     textScaler: const TextScaler.linear(0.78),
-                    style: styles.xsSemiboldSnugColored(
-                      cs.brightness == Brightness.dark
-                          ? Colors.white
-                          : Colors.black,
-                    ).copyWith(height: 1.0),
+                    style: styles.xsSemiboldSnugColored(cs.onError).copyWith(height: 1.0),
                   ),
                 ),
               ),

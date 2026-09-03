@@ -33,7 +33,6 @@ class _VideoListPageState extends State<VideoListPage>
   Widget _buildMenuButton() {
     return TpIconButton(
       icon: Icons.menu,
-      color: Colors.black,
       onTap: () {
         context.push(ProfileRoute.settings);
       },
@@ -43,7 +42,6 @@ class _VideoListPageState extends State<VideoListPage>
   Widget _buildFilterButton() {
     return TpIconButton(
       icon: Icons.filter_list,
-      color: Colors.black,
       onTap: () {
         _videoListKey.currentState?.showFilterDialog();
       },

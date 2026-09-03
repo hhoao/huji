@@ -5,6 +5,7 @@ import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class VideoProgressPage extends StatefulWidget {
@@ -116,22 +117,25 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
+    final cs = context.cs;
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: cs.surfaceContainerLowest,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cs.surface,
         elevation: 0,
         leading: TpIconButton(
           icon: Icons.arrow_back,
-          color: Colors.black87,
+          color: cs.onSurface,
           onTap: () => context.pop(),
         ),
-        title: Text(context.hujiL10n.videoProcessingProgress, style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold),
+        title: Text(
+          context.hujiL10n.videoProcessingProgress,
+          style: TextStyle(color: cs.onSurface, fontWeight: FontWeight.bold),
         ),
         actions: [
           TpIconButton(
             icon: Icons.refresh,
-            color: Colors.black87,
+            color: cs.onSurface,
             onTap: _loadData,
           ),
         ],
@@ -200,6 +204,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
   }
 
   Widget _buildProgressCard(HujiLocalizations l10n, VideoProcessProgressVO progress) {
+    final cs = context.cs;
     final isHighlight =
         (widget.highlightProcessRecordId != null &&
             progress.videoProcessRecordId == widget.highlightProcessRecordId) ||
@@ -207,7 +212,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TpCard(
-        color: isHighlight ? Colors.yellow[100] : null,
+        color: isHighlight ? cs.tertiaryContainer : null,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -245,7 +250,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
             // 进度条
             LinearProgressIndicator(
               value: progress.progress / 100,
-              backgroundColor: Colors.grey[300],
+              backgroundColor: cs.subtleFill,
               valueColor: AlwaysStoppedAnimation<Color>(
                 _getStatusColor(progress.status),
               ),
@@ -261,7 +266,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                 ),
                 Text(
                   l10n.queuePosition('${progress.position}'),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -273,13 +278,13 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
               children: [
                 Text(
                   l10n.videoDuration(_formatDuration(progress.videoDuration)),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                 ),
                 Text(
                   l10n.processingSpeed(
                     progress.processSpeed.toStringAsFixed(1),
                   ),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -290,7 +295,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
                 l10n.estimatedRemainingTime(
                   _formatDuration(progress.estimatedRemainingTime),
                 ),
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: cs.mutedForeground),
               ),
             ],
           ],
@@ -300,6 +305,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
   }
 
   Widget _buildRecordCard(HujiLocalizations l10n, VideoProcessRecordVO record) {
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TpCard(
@@ -346,11 +352,11 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
               children: [
                 Text(
                   l10n.videoDuration(_formatDuration(record.videoDuration)),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                 ),
                 Text(
                   l10n.createdAt('${record.createTime}'),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 14, color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -359,7 +365,7 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
               SizedBox(height: 8),
               Text(
                 l10n.remark(record.extraInfo!),
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: cs.mutedForeground),
               ),
             ],
           ],

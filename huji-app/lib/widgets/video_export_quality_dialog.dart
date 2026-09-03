@@ -4,6 +4,7 @@ import '../models/ffmpeg.dart';
 import '../api/api_manager.dart';
 import '../api/models/autoclip/permission_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 /// 视频导出质量选择对话框
 class VideoExportQualityDialog extends StatefulWidget {
@@ -171,6 +172,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
     required bool enabled,
   }) {
     final isSelected = quality == selectedQuality;
+    final cs = context.cs;
 
     return TpHover(
       onTap: enabled ? () => onTap(quality) : null,
@@ -185,7 +187,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
             border: Border.all(
               color: isSelected
                   ? Theme.of(context).primaryColor
-                  : Colors.grey[300]!,
+                  : cs.outlineVariant,
               width: isSelected ? 2 : 1,
             ),
             borderRadius: BorderRadius.circular(8),
@@ -214,7 +216,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                             fontWeight: FontWeight.w600,
                             color: isSelected
                                 ? Theme.of(context).primaryColor
-                                : Colors.black87,
+                                : cs.onSurface,
                           ),
                         ),
                         if (!enabled) ...[
@@ -222,7 +224,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                           Icon(
                             Icons.lock_outline,
                             size: 14,
-                            color: Colors.grey[600],
+                            color: cs.mutedForeground,
                           ),
                         ],
                       ],
@@ -232,7 +234,7 @@ class _VideoExportQualityDialogState extends State<VideoExportQualityDialog> {
                       enabled ? description : '$description（专业版）',
                       style: TextStyle(
                         fontSize: 12,
-                        color: enabled ? Colors.grey[600] : Colors.orange[700],
+                        color: enabled ? cs.mutedForeground : Colors.orange[700],
                       ),
                     ),
                   ],

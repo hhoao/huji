@@ -4,6 +4,7 @@ import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/autoclip/subscription_models.dart';
 import 'package:huji_app/api/models/autoclip/minutes_models.dart';
 import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -90,6 +91,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+
     return Scaffold(
       appBar: CommonAppBar(
         leftWidget: const BackButton(),
@@ -99,7 +102,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         ],
         controller: _appBarTabController,
       ),
-      backgroundColor: AppTheme.backgroundColor,
+      backgroundColor: cs.surface,
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
           : _errorMessage != null
@@ -122,6 +125,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildCurrentPlanTag(String tag, Color color) {
+    final cs = context.cs;
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
@@ -130,29 +135,25 @@ class _SubscriptionPageState extends State<SubscriptionPage>
       ),
       child: Text(
         tag,
-        style: TextStyle(
-          fontSize: 11,
-          color: Colors.white,
-          fontWeight: FontWeight.bold,
-        ),
+        style: TpTextStyles.of(context).xsBold.copyWith(color: cs.onPrimary),
       ),
     );
   }
 
   Widget _buildDurationContent() {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // 当前时长状态卡片
           _buildCurrentMinutesCard(),
           SizedBox(height: 16),
-
-          // 时长套餐列表
           if (_minutesPackages.isNotEmpty) ...[
             Text(
               context.hujiL10n.durationPackages,
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: styles.lgBold.copyWith(color: cs.onSurface),
             ),
             SizedBox(height: 12),
             ..._minutesPackages.map(
@@ -165,16 +166,18 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildSubscribtionContent() {
+    final cs = context.cs;
+
     return Column(
       children: [
         Container(
-          color: AppTheme.surfaceColor,
+          color: cs.cardFill,
           child: TabBar(
             controller: _tabController,
             isScrollable: true,
-            indicatorColor: AppTheme.primaryColor,
-            labelColor: AppTheme.primaryColor,
-            unselectedLabelColor: AppTheme.textSecondaryColor,
+            indicatorColor: cs.primary,
+            labelColor: cs.primary,
+            unselectedLabelColor: cs.mutedForeground,
             indicatorWeight: 3,
             tabAlignment: TabAlignment.start,
             labelPadding: EdgeInsets.zero,
@@ -239,14 +242,17 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildCurrentMinutesCard() {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: cs.cardFill,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: cs.softShadow,
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -261,12 +267,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: AppTheme.primaryColor,
+                  color: cs.primary,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.access_time,
-                  color: Colors.white,
+                  color: cs.onPrimary,
                   size: 16,
                 ),
               ),
@@ -274,11 +280,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               Expanded(
                 child: Text(
                   context.hujiL10n.currentDuration,
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF333333),
-                  ),
+                  style: styles.lgBold.copyWith(color: cs.onSurface),
                 ),
               ),
             ],
@@ -298,15 +300,18 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildMinutesPackageCard(AppMinutesPackageRespVO package) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
+        color: cs.cardFill,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: cs.softShadow,
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -321,20 +326,12 @@ class _SubscriptionPageState extends State<SubscriptionPage>
               Expanded(
                 child: Text(
                   package.packageName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF333333),
-                  ),
+                  style: styles.lgSemibold.copyWith(color: cs.onSurface),
                 ),
               ),
               Text(
                 '¥${package.price.toStringAsFixed(2)}',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
+                style: styles.lgBold.copyWith(color: cs.primary),
               ),
             ],
           ),
@@ -346,13 +343,13 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                   ? context.hujiL10n.permanent
                   : context.hujiL10n.validityDays(package.validDays),
             ),
-            style: const TextStyle(fontSize: 14, color: Color(0xFF666666)),
+            style: styles.md.copyWith(color: cs.mutedForeground),
           ),
           if (package.description.isNotEmpty) ...[
             SizedBox(height: 8),
             Text(
               package.description,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF999999)),
+              style: styles.sm.copyWith(color: cs.mutedForeground),
             ),
           ],
           SizedBox(height: 12),
@@ -369,6 +366,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildInfoRow(String label, String value) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
@@ -376,15 +376,11 @@ class _SubscriptionPageState extends State<SubscriptionPage>
         children: [
           Text(
             label,
-            style: const TextStyle(color: Color(0xFF666666), fontSize: 14),
+            style: styles.md.copyWith(color: cs.mutedForeground),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Color(0xFF333333),
-            ),
+            style: styles.mdMedium.copyWith(color: cs.onSurface),
           ),
         ],
       ),
@@ -394,6 +390,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   Widget _buildPlanTab(SubscriptionPlanRespVO plan) {
     final isCurrentPlan = _userSubscription?.planType == plan.planType;
     final isActive = _userSubscription?.status == 1;
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -414,11 +412,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                       Expanded(
                         child: Text(
                           plan.planName,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF333333),
-                          ),
+                          style: styles.display.copyWith(color: cs.onSurface),
                         ),
                       ),
                       if (isCurrentPlan && isActive)
@@ -433,10 +427,8 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                           ),
                           child: Text(
                             context.hujiL10n.currentPlanLabel,
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
+                            style: styles.smSemibold.copyWith(
+                              color: cs.onPrimary,
                             ),
                           ),
                         ),
@@ -448,10 +440,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                     SizedBox(height: 8),
                     Text(
                       plan.description,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        color: Color(0xFF666666),
-                      ),
+                      style: styles.md.copyWith(color: cs.mutedForeground),
                     ),
                   ],
 
@@ -464,21 +453,16 @@ class _SubscriptionPageState extends State<SubscriptionPage>
                         plan.monthlyPrice > 0
                             ? '¥${plan.monthlyPrice}'
                             : context.hujiL10n.notAvailable,
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.bold,
+                        style: styles.display.copyWith(
                           color: plan.monthlyPrice > 0
-                              ? AppTheme.primaryColor
-                              : const Color(0xFF333333),
+                              ? cs.primary
+                              : cs.onSurface,
                         ),
                       ),
                       SizedBox(width: 8),
                       Text(
                         context.hujiL10n.monthlyBilledLabel,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Color(0xFF999999),
-                        ),
+                        style: styles.sm.copyWith(color: cs.mutedForeground),
                       ),
                     ],
                   ),
@@ -503,7 +487,7 @@ class _SubscriptionPageState extends State<SubscriptionPage>
 
                   // 分割线
                   SizedBox(height: 20),
-                  const Divider(height: 1, color: Color(0xFFE0E0E0)),
+                  Divider(height: 1, color: cs.outlineVariant),
                   SizedBox(height: 20),
 
                   // 功能特性列表
@@ -518,6 +502,9 @@ class _SubscriptionPageState extends State<SubscriptionPage>
   }
 
   Widget _buildFeatureItem(PermissionFeatureRespVO feature) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -525,17 +512,17 @@ class _SubscriptionPageState extends State<SubscriptionPage>
           Container(
             width: 20,
             height: 20,
-            decoration: const BoxDecoration(
-              color: AppTheme.primaryColor,
+            decoration: BoxDecoration(
+              color: cs.primary,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.check, color: Colors.white, size: 14),
+            child: Icon(Icons.check, color: cs.onPrimary, size: 14),
           ),
           SizedBox(width: 12),
           Expanded(
             child: Text(
               feature.name,
-              style: const TextStyle(fontSize: 14, color: Color(0xFF333333)),
+              style: styles.md.copyWith(color: cs.onSurface),
             ),
           ),
         ],

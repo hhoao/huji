@@ -28,7 +28,7 @@ class _MessagePageState extends State<MessagePage> {
         leftWidget: _buildBackButton(),
         rightWidget: _buildMarkAllReadButton(),
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: NeedLoginWrapperWidget(
         child: MessagePageContent(key: _messagePageContentKey),
       ),
@@ -38,7 +38,6 @@ class _MessagePageState extends State<MessagePage> {
   Widget _buildBackButton() {
     return TpIconButton(
       icon: Icons.arrow_back,
-      color: Colors.black,
       onTap: () {
         Navigator.of(context).pop();
       },
@@ -52,7 +51,6 @@ class _MessagePageState extends State<MessagePage> {
   Widget _buildMarkAllReadButton() {
     return TpIconButton(
       icon: Icons.done_all,
-      color: Colors.black,
       onTap: _markAllAsRead,
     );
   }
@@ -245,14 +243,17 @@ class MessagePageContentState extends State<MessagePageContent> {
   }
 
   Widget _buildMessageItem(NotifyMessageVO message) {
+    final cs = Theme.of(context).colorScheme;
+    final styles = TpTextStyles.of(context);
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: cs.shadow.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -289,34 +290,29 @@ class MessagePageContentState extends State<MessagePageContent> {
                           Expanded(
                             child: Text(
                               message.templateNickname,
-                              style: TextStyle(
-                                fontSize: 16,
+                              style: styles.md.copyWith(
                                 fontWeight: message.readStatus
                                     ? FontWeight.normal
                                     : FontWeight.bold,
                                 color: message.readStatus
-                                    ? Colors.grey[600]
-                                    : Colors.black,
+                                    ? cs.onSurfaceVariant
+                                    : cs.onSurface,
                               ),
                             ),
                           ),
                           Text(
                             timeStampToTimeAgo(message.createTime),
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[500],
-                            ),
+                            style: styles.xs.copyWith(color: cs.onSurfaceVariant),
                           ),
                         ],
                       ),
                       SizedBox(height: 8),
                       Text(
                         message.templateContent,
-                        style: TextStyle(
-                          fontSize: 14,
+                        style: styles.sm.copyWith(
                           color: message.readStatus
-                              ? Colors.grey[600]
-                              : Colors.black87,
+                              ? cs.onSurfaceVariant
+                              : cs.onSurface.withValues(alpha: 0.87),
                           height: 1.4,
                         ),
                         maxLines: 3,
