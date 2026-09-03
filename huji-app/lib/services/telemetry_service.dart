@@ -99,6 +99,8 @@ class TelemetryService {
         return 'download';
       case TaskTypeEnum.videoSegmentDetect:
         return 'video_segment_detect';
+      case TaskTypeEnum.videoExport:
+        return 'video_export';
     }
   }
 

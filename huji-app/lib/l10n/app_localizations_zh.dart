@@ -983,6 +983,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get exportQualityOriginal => '原画';
 
   @override
+  String get exportRunInBackground => '后台运行';
+
+  @override
   String get exportQualityOriginalMeta => '原始分辨率';
 
   @override
@@ -3368,6 +3371,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get showSystemLogsLabel => '显示系统日志';
 
   @override
+  String get sidebarProcessingSection => '正在处理';
+
+  @override
   String get sizeReducedLabel => '大小减少';
 
   @override
@@ -3647,6 +3653,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get taskTypeVideoCompress => '视频压缩';
+
+  @override
+  String get taskTypeVideoExport => '视频导出';
 
   @override
   String get taskTypeVideoSegmentDetect => '实时视频片段检测';

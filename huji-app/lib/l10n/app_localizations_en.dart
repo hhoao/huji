@@ -1008,6 +1008,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get exportQualityOriginal => 'Original';
 
   @override
+  String get exportRunInBackground => 'Run in background';
+
+  @override
   String get exportQualityOriginalMeta => 'Original resolution';
 
   @override
@@ -3455,6 +3458,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get showSystemLogsLabel => 'Show system logs';
 
   @override
+  String get sidebarProcessingSection => 'In progress';
+
+  @override
   String get sizeReducedLabel => 'Size reduced';
 
   @override
@@ -3739,6 +3745,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get taskTypeVideoCompress => 'Video compress';
+
+  @override
+  String get taskTypeVideoExport => 'Video export';
 
   @override
   String get taskTypeVideoSegmentDetect => 'Real-time video segment detection';

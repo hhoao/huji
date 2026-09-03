@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -22,6 +23,7 @@ class DesktopRoutes {
 
   static const String home = '/';
   static const String account = '/account';
+  static const String clipRoot = '/clip';
   static const String clipNew = '/clip/new';
   static const String videoCompress = '/tools/video-compress';
   static const String clipPreview = '/clip/:id/preview';
@@ -29,11 +31,40 @@ class DesktopRoutes {
   static const String tasks = '/tasks';
   static const String settings = '/settings';
 
+  /// Index of the clip-workflow branch in the StatefulShellRoute branches list.
+  ///
+  /// Preview/edit pages live in their own branch so switching to library /
+  /// tasks / settings keeps their page state alive (see closeClipSession).
+  static const int workflowBranchIndex = 3;
+
   static String clipPreviewPath(String clipId) =>
       '/clip/${Uri.encodeComponent(clipId)}/preview';
 
   static String clipEditPath(String clipId) =>
       '/clip/${Uri.encodeComponent(clipId)}/edit';
+
+  /// Closes the clip-workflow session(s) and returns the user to
+  /// [returnRoute].
+  ///
+  /// Going to the inert [clipRoot] resets the workflow branch — the
+  /// preview/edit pages are disposed and unregister their sessions — and the
+  /// deferred go() moves the user on.
+  ///
+  /// The second navigation is deferred with [Timer(Duration.zero)] on
+  /// purpose: `Router` invalidates the previous navigation's parse
+  /// transaction when a new one arrives, so two back-to-back `go()` calls in
+  /// the same tick silently drop the first — the branch reset would never
+  /// happen. The timer fires only after the first navigation's microtask
+  /// chain has fully applied, and typically before the next frame is painted,
+  /// so the placeholder page is not visible.
+  ///
+  /// [returnRoute] must not itself be a workflow page (preview/edit); routes
+  /// like '/clip/new' that live in the library branch are fine.
+  static void closeClipWorkflow(BuildContext context, String returnRoute) {
+    final router = GoRouter.of(context);
+    router.go(clipRoot);
+    Timer(Duration.zero, () => router.go(returnRoute));
+  }
 
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {
     // Pages are bare Columns without an opaque background, so taps in blank
@@ -95,34 +126,6 @@ class DesktopRoutes {
                   );
                 },
               ),
-              GoRoute(
-                path: '/clip/:id/preview',
-                name: 'desktop-clip-preview',
-                // Note: Async guards are not supported in synchronous redirect.
-                // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
-                redirect: (context, state) => null,
-                pageBuilder: (context, state) {
-                  final clipId = state.pathParameters['id'] ?? 'unknown';
-                  return _noTransitionPage(
-                    state,
-                    DesktopPreviewExportPage(clipId: clipId),
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/clip/:id/edit',
-                name: 'desktop-clip-edit',
-                // Note: Async guards are not supported in synchronous redirect.
-                // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
-                redirect: (context, state) => null,
-                pageBuilder: (context, state) {
-                  final clipId = state.pathParameters['id'] ?? 'unknown';
-                  return _noTransitionPage(
-                    state,
-                    DesktopPrecisionEditPage(clipId: clipId),
-                  );
-                },
-              ),
             ],
           ),
           StatefulShellBranch(
@@ -147,6 +150,53 @@ class DesktopRoutes {
                 name: 'desktop-settings',
                 pageBuilder: (context, state) =>
                     _noTransitionPage(state, const DesktopSettingsPage()),
+              ),
+            ],
+          ),
+          // Clip workflow (preview / precision edit) branch. Keeping these
+          // routes in their own branch means navigating to library / tasks /
+          // settings switches branches without disposing the page state, so
+          // users can come back and continue where they left off (sidebar
+          // "正在处理" entries, see DesktopClipSessionStore).
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/clip',
+                name: 'desktop-clip-root',
+                // Inert reset target: only landed on when a workflow session
+                // is closed via goBranch(initialLocation: true). Never shown.
+                pageBuilder: (context, state) =>
+                    _noTransitionPage(state, const SizedBox.shrink()),
+                routes: [
+                  GoRoute(
+                    path: ':id/preview',
+                    name: 'desktop-clip-preview',
+                    // Note: Async guards are not supported in synchronous redirect.
+                    // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
+                    redirect: (context, state) => null,
+                    pageBuilder: (context, state) {
+                      final clipId = state.pathParameters['id'] ?? 'unknown';
+                      return _noTransitionPage(
+                        state,
+                        DesktopPreviewExportPage(clipId: clipId),
+                      );
+                    },
+                  ),
+                  GoRoute(
+                    path: ':id/edit',
+                    name: 'desktop-clip-edit',
+                    // Note: Async guards are not supported in synchronous redirect.
+                    // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
+                    redirect: (context, state) => null,
+                    pageBuilder: (context, state) {
+                      final clipId = state.pathParameters['id'] ?? 'unknown';
+                      return _noTransitionPage(
+                        state,
+                        DesktopPrecisionEditPage(clipId: clipId),
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

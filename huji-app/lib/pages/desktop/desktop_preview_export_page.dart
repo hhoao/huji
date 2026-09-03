@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -7,11 +6,14 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/shell/desktop_clip_session_store.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
@@ -25,6 +27,8 @@ import 'package:huji_app/widgets/video_export_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
+import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
+import 'package:uuid/uuid.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
@@ -54,6 +58,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   bool _commandsRegistered = false;
   PlaybackCommandRegistration? _playbackRegistration;
   final ScrollController _roundStripScrollController = ScrollController();
+  // Sidebar 会话所有权 token:dispose 时凭它注销,避免误删接手同 clip 的新页面会话。
+  Object? _sessionToken;
   static const _roundStripItemStride = 128.0; // 120 width + 8 separator
   int? _pendingRoundStripScrollIndex;
 
@@ -66,6 +72,18 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   void initState() {
     super.initState();
     _loadRecord();
+    // 工作流 branch 保活:切去其他页面时暂停播放,避免后台继续出声。
+    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
+  }
+
+  void _handleRouteChanged() {
+    final route = ShortcutRouteScope.instance.currentRoute ?? '';
+    final stillActive = route.startsWith(
+      '/clip/${Uri.encodeComponent(widget.clipId)}/',
+    );
+    if (!stillActive) {
+      _playerBloc.add(const PauseEvent());
+    }
   }
 
   @override
@@ -92,8 +110,13 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   void dispose() {
+    final sessionToken = _sessionToken;
+    if (sessionToken != null) {
+      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
+    }
     _playbackRegistration?.unregister();
     _roundStripScrollController.dispose();
+    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
     _playerBloc.close();
     super.dispose();
   }
@@ -117,6 +140,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               : context.hujiL10n.defaultHighlightName;
           _isLoading = false;
         });
+        // 注册侧边栏"正在处理"会话(take ownership,新 token)。
+        _sessionToken = DesktopClipSessionStore.instance.register(
+          DesktopClipSession(
+            clipId: r.id,
+            routePath: DesktopRoutes.clipPreviewPath(r.id),
+            title: _fileName,
+            thumbnailPath: r.thumbnailPath,
+          ),
+        );
         if (segments.isNotEmpty && r.filePath != null) {
           final videoFile = File(r.filePath!);
           if (await videoFile.exists()) {
@@ -214,87 +246,40 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     });
   }
 
-  Future<VideoExportResult> _runExport(
-    VideoExportProgressCallback onProgress,
-    HujiLocalizations l10n,
-  ) async {
+  /// 提交导出为后台任务并打开进度对话框。
+  ///
+  /// 任务注册进 TaskStorage，切页/关对话框都不中断导出，
+  /// 可在 /tasks 查看进度、取消，完成后走系统通知。
+  Future<void> _startExportTask(HujiLocalizations l10n) async {
     if (_record == null || _record!.filePath == null || _segments.isEmpty) {
-      throw Exception(l10n.noSegmentsToExport);
+      TpToast.show(
+        context,
+        message: l10n.noSegmentsToExport,
+        variant: TpToastVariant.error,
+      );
+      return;
     }
 
-    onProgress(0, l10n.exportPreparing);
+    final task = VideoExportTask(
+      id: const Uuid().v4(),
+      name: '$_fileName.mp4',
+      videoPath: _record!.filePath!,
+      savePath: _savePath,
+      fileName: _fileName,
+      quality: _selectedQuality,
+      segments: _segments,
+      image: _segmentThumbs.isNotEmpty ? _segmentThumbs.values.first : null,
+      createdAt: DateTime.now().millisecondsSinceEpoch,
+    );
+    await TaskStorage().addAndAsyncProcessTask(task);
+    if (!mounted) return;
 
-    final outputPath = '$_savePath/$_fileName.mp4';
-    await Directory(_savePath).create(recursive: true);
-
-    final concatPath =
-        '${Directory.systemTemp.path}/huji_concat_${DateTime.now().millisecondsSinceEpoch}.txt';
-    final buf = StringBuffer();
-    for (final s in _segments) {
-      buf.writeln("file '${_record!.filePath!}'");
-      buf.writeln('inpoint ${s.startSeconds}');
-      buf.writeln('outpoint ${s.endSeconds}');
-    }
-    await File(concatPath).writeAsString(buf.toString());
-
-    final (scale, crf) = switch (_selectedQuality) {
-      _qualityOriginal => ('', '18'),
-      _quality1080 => ('scale=-2:1080', '20'),
-      _quality720 => ('scale=-2:720', '23'),
-      _ => ('scale=-2:480', '26'),
-    };
-    final vfArg = scale.isNotEmpty ? ['-vf', scale] : <String>[];
-
-    final totalDurationSec = _totalDuration;
-    onProgress(0.01, l10n.exportEncoding);
-
-    try {
-      final process = await Process.start('ffmpeg', [
-        '-f', 'concat', '-safe', '0', '-i', concatPath,
-        '-c:v', 'libx264', '-crf', crf, '-preset', 'medium',
-        ...vfArg,
-        '-c:a', 'aac', '-b:a', '128k',
-        '-movflags', '+faststart',
-        '-progress', 'pipe:1', '-nostats',
-        '-y', outputPath,
-      ]);
-
-      final outLines = process.stdout
-          .transform(utf8.decoder)
-          .transform(const LineSplitter());
-      await for (final line in outLines) {
-        if (line.startsWith('out_time_ms=')) {
-          final ms = int.tryParse(line.substring(12)) ?? 0;
-          if (totalDurationSec > 0) {
-            final p = ((ms / 1000) / totalDurationSec).clamp(0.0, 1.0);
-            onProgress(
-              p,
-              l10n.exportProgressPercent((p * 100).toStringAsFixed(0)),
-            );
-          }
-        }
-      }
-
-      final exitCode = await process.exitCode;
-      await File(concatPath).delete();
-
-      if (exitCode != 0) {
-        final stderr = await process.stderr.transform(utf8.decoder).join();
-        throw Exception(
-          stderr.trim().isEmpty
-              ? l10n.ffmpegExitCode(exitCode.toString())
-              : stderr,
-        );
-      }
-
-      onProgress(1, l10n.exportComplete);
-      return VideoExportResult(outputPath: outputPath);
-    } catch (e) {
-      try {
-        await File(concatPath).delete();
-      } catch (_) {}
-      rethrow;
-    }
+    VideoExportProgressDialog.show(
+      context,
+      title: l10n.exportVideoTitle,
+      subtitle: '$_fileName.mp4 · ${_qualityLabel(l10n)}',
+      taskId: task.id,
+    );
   }
 
   Future<void> _openPrecisionEdit(BuildContext context) async {
@@ -322,7 +307,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         actions: [
           TpButton(
             variant: TpButtonVariant.outline,
-            onPressed: () => context.go('/'),
+            onPressed: () =>
+                DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home),
             child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           SizedBox(width: 8),
@@ -395,12 +381,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                   variant: TpButtonVariant.primary,
                   onPressed: () {
                     Navigator.of(ctx).pop();
-                    VideoExportProgressDialog.show(
-                      context,
-                      title: l10n.exportVideoTitle,
-                      subtitle: '$_fileName.mp4 · $qualityLabel',
-                      exportTask: (onProgress) => _runExport(onProgress, l10n),
-                    );
+                    _startExportTask(l10n);
                   },
                   child: Row(
                     mainAxisSize: MainAxisSize.min,

@@ -193,6 +193,7 @@ class TaskTabListUtils {
       TaskTypeEnum.videoUpload => Icons.upload,
       TaskTypeEnum.download => Icons.download,
       TaskTypeEnum.videoSegmentDetect => Icons.videocam_outlined,
+      TaskTypeEnum.videoExport => Icons.movie_creation_outlined,
     };
   }
 

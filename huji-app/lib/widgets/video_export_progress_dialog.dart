@@ -2,46 +2,36 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
+import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
-typedef VideoExportProgressCallback = void Function(
-  double progress,
-  String status,
-);
-
-class VideoExportResult {
-  final String outputPath;
-
-  const VideoExportResult({required this.outputPath});
-}
-
-typedef VideoExportTask = Future<VideoExportResult> Function(
-  VideoExportProgressCallback onProgress,
-);
-
-/// Generic export progress dialog. Runs [exportTask] on open and reports progress.
+/// Export progress dialog bound to a [VideoExportTask] in [TaskStorage].
+///
+/// The task runs in the background regardless of this dialog: closing it
+/// (via 后台运行 or leaving the page) does not interrupt the export.
 class VideoExportProgressDialog extends StatefulWidget {
   final String title;
   final String? subtitle;
-  final VideoExportTask exportTask;
+  final String taskId;
 
   const VideoExportProgressDialog({
     super.key,
     required this.title,
     this.subtitle,
-    required this.exportTask,
+    required this.taskId,
   });
 
   static Future<void> show(
     BuildContext context, {
     required String title,
     String? subtitle,
-    required VideoExportTask exportTask,
+    required String taskId,
   }) {
     return showTpDialog<void>(
       context: context,
@@ -49,7 +39,7 @@ class VideoExportProgressDialog extends StatefulWidget {
       builder: (context) => VideoExportProgressDialog(
         title: title,
         subtitle: subtitle,
-        exportTask: exportTask,
+        taskId: taskId,
       ),
     );
   }
@@ -60,62 +50,90 @@ class VideoExportProgressDialog extends StatefulWidget {
 }
 
 class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
-  double _progress = 0;
-  String _status = '';
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_status.isEmpty) {
-      _status = context.hujiL10n.exportPreparing;
-    }
-  }
-  bool _isCompleted = false;
-  bool _isRunning = true;
-  String? _errorMessage;
-  String? _outputPath;
+  VideoExportTask? _task;
   String _formattedFileSize = '';
+  bool _fileSizeResolved = false;
 
   @override
   void initState() {
     super.initState();
-    _runExport();
+    _syncTask();
+    TaskStorage().addListener(_onTaskStorageChanged);
   }
 
-  Future<void> _runExport() async {
+  @override
+  void dispose() {
+    TaskStorage().removeListener(_onTaskStorageChanged);
+    super.dispose();
+  }
+
+  void _onTaskStorageChanged() {
+    if (!mounted) return;
+    setState(_syncTask);
+  }
+
+  void _syncTask() {
+    _task = TaskStorage().getTaskById(widget.taskId) as VideoExportTask?;
+  }
+
+  bool get _isRunning {
+    final status = _task?.status;
+    return status == TaskStatusEnum.pending ||
+        status == TaskStatusEnum.processing;
+  }
+
+  bool get _isCompleted => _task?.status == TaskStatusEnum.completed;
+
+  bool get _isFailed =>
+      _task?.status == TaskStatusEnum.failed ||
+      _task?.status == TaskStatusEnum.cancelled;
+
+  String? get _errorMessage => _isFailed
+      ? (_task?.extraInfo?.isNotEmpty == true
+            ? _task!.extraInfo
+            : _task?.status == TaskStatusEnum.cancelled
+            ? resolveHujiL10n().taskStatusCancelledShort
+            : resolveHujiL10n().exportFailedTitle)
+      : null;
+
+  String get _statusText {
     final l10n = resolveHujiL10n();
+    if (_isCompleted) return l10n.exportComplete;
+    if (_task?.status == TaskStatusEnum.pending) return l10n.exportPreparing;
+    if (_isFailed) return l10n.exportFailedTitle;
+    final p = _task?.progress ?? 0;
+    if (p <= 0.01) return l10n.exportPreparing;
+    return l10n.exportProgressPercent((p * 100).toStringAsFixed(0));
+  }
+
+  Future<void> _resolveFileSize() async {
+    if (_fileSizeResolved) return;
+    final outputPath = _task?.outputPath;
+    if (!_isCompleted || outputPath == null || outputPath.isEmpty) return;
+    _fileSizeResolved = true;
+    final file = File(outputPath);
+    if (!await file.exists()) return;
+    if (!mounted) return;
+    setState(() {
+      _formattedFileSize = _formatFileSize(file.lengthSync());
+    });
+  }
+
+  Future<void> _openFolder() async {
+    final outputPath = _task?.outputPath;
+    if (outputPath == null || outputPath.isEmpty) return;
     try {
-      final result = await widget.exportTask((progress, status) {
-        if (!mounted) return;
-        setState(() {
-          _progress = progress.clamp(0.0, 1.0);
-          _status = status;
-        });
-      });
-
-      final file = File(result.outputPath);
-      if (!await file.exists()) {
-        throw Exception(l10n.exportFileNotGenerated);
+      final dir = File(outputPath).parent;
+      if (await dir.exists()) {
+        await OpenFile.open(dir.path);
       }
-
-      final fileSize = await file.length();
-      if (!mounted) return;
-      setState(() {
-        _progress = 1;
-        _status = context.hujiL10n.exportComplete;
-        _isCompleted = true;
-        _isRunning = false;
-        _outputPath = result.outputPath;
-        _formattedFileSize = _formatFileSize(fileSize);
-      });
     } catch (e) {
       if (!mounted) return;
-      final errorL10n = context.hujiL10n;
-      setState(() {
-        _errorMessage = e.toString();
-        _status = errorL10n.exportFailedTitle;
-        _isRunning = false;
-      });
+      TpToast.show(
+        context,
+        message: context.hujiL10n.openFolderFailed('$e'),
+        variant: TpToastVariant.error,
+      );
     }
   }
 
@@ -130,25 +148,9 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
     return '${(bytes / (1024 * 1024 * 1024)).toStringAsFixed(1)} GB';
   }
 
-  Future<void> _openFolder() async {
-    if (_outputPath == null) return;
-    try {
-      final dir = File(_outputPath!).parent;
-      if (await dir.exists()) {
-        await OpenFile.open(dir.path);
-      }
-    } catch (e) {
-      if (!mounted) return;
-      TpToast.show(
-        context,
-        message: context.hujiL10n.openFolderFailed('$e'),
-        variant: TpToastVariant.error,
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    _resolveFileSize();
     final isDesktop = PlatformCapability.isDesktop;
     final cs = isDesktop ? context.desktopColors : Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
@@ -156,6 +158,11 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
     final onSurfaceVariant =
         isDesktop ? cs.onSurfaceVariant : Colors.white70;
     final surface = isDesktop ? cs.surfaceContainer : Colors.grey[900]!;
+    final progress = _task?.progress ?? 0;
+    final outputPath =
+        (_isCompleted && (_task?.outputPath ?? '').isNotEmpty)
+        ? _task!.outputPath
+        : null;
     final title = _errorMessage != null
         ? context.hujiL10n.exportFailedTitle
         : widget.title;
@@ -244,7 +251,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
             ),
           ] else ...[
             LinearProgressIndicator(
-              value: _isRunning && _progress == 0 ? null : _progress,
+              value: _isRunning && progress == 0 ? null : progress,
               backgroundColor: isDesktop
                   ? context.desktopBorderMedium
                   : Colors.grey[700],
@@ -255,7 +262,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${(_progress * 100).toStringAsFixed(0)}%',
+                  '${(progress * 100).toStringAsFixed(0)}%',
                   style: styles.md.copyWith(
                     color: onSurface,
                     fontWeight: FontWeight.w600,
@@ -263,14 +270,14 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                 ),
                 Flexible(
                   child: Text(
-                    _status,
+                    _statusText,
                     style: styles.sm.copyWith(color: onSurfaceVariant),
                     textAlign: TextAlign.right,
                   ),
                 ),
               ],
             ),
-            if (_isCompleted && _outputPath != null) ...[
+            if (_isCompleted && outputPath != null) ...[
               SizedBox(height: 16),
               Container(
                 width: double.infinity,
@@ -309,7 +316,7 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
                           styles.sm.copyWith(color: onSurfaceVariant),
                     ),
                     Text(
-                      path.dirname(_outputPath!),
+                      path.dirname(outputPath),
                       style: styles.sm.copyWith(color: onSurface),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -321,7 +328,13 @@ class _VideoExportProgressDialogState extends State<VideoExportProgressDialog> {
           ],
           TpDialogActions(
             children: [
-              if (_isCompleted && _outputPath != null)
+              if (_isRunning)
+                TpButton(
+                  variant: TpButtonVariant.ghost,
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(context.hujiL10n.exportRunInBackground),
+                ),
+              if (_isCompleted && outputPath != null)
                 TpButton(
                   variant: TpButtonVariant.ghost,
                   onPressed: _openFolder,

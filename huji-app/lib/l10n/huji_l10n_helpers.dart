@@ -15,6 +15,7 @@ extension HujiTaskL10n on HujiLocalizations {
     TaskTypeEnum.videoUpload => taskTypeVideoUpload,
     TaskTypeEnum.download => taskTypeDownload,
     TaskTypeEnum.videoSegmentDetect => taskTypeVideoSegmentDetect,
+    TaskTypeEnum.videoExport => taskTypeVideoExport,
   };
 
   String taskStatusLabel(TaskStatusEnum status) => switch (status) {

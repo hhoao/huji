@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:json_annotation/json_annotation.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/ffmpeg.dart';
 import 'package:huji_app/utils/clip_config_codec.dart';
 import 'package:huji_app/utils/json_utils.dart';
@@ -16,7 +17,8 @@ enum TaskTypeEnum {
   imageCompress(2, '图片压缩'),
   videoUpload(3, '视频上传'),
   download(4, '文件下载'),
-  videoSegmentDetect(5, '实时视频片段检测');
+  videoSegmentDetect(5, '实时视频片段检测'),
+  videoExport(6, '视频导出');
 
   const TaskTypeEnum(this.value, this.name);
   final int value;
@@ -109,6 +111,8 @@ abstract class Task {
         return DownloadTask.fromJson(json);
       case TaskTypeEnum.videoSegmentDetect:
         return VideoSegmentDetectTask.fromJson(json);
+      case TaskTypeEnum.videoExport:
+        return VideoExportTask.fromJson(json);
     }
   }
 }
@@ -529,8 +533,7 @@ class DownloadTask extends Task {
 }
 
 @JsonSerializable()
-class VideoSegmentDetectTask extends Task {
-  final String videoPath;
+class VideoSegmentDetectTask extends Task {  final String videoPath;
   @JsonKey(fromJson: videoClipConfigFromDeserialize)
   final VideoClipConfigReqVo? clipConfig;
   final SportType? sportType;
@@ -612,4 +615,96 @@ class VideoSegmentDetectTask extends Task {
       hide: hide ?? this.hide,
     );
   }
+}
+
+String segmentListToJsonStr(List<SegmentInfo> segments) =>
+    jsonEncode(segments.map((s) => s.toJson()).toList());
+
+List<SegmentInfo> segmentListFromJsonStr(String? json) {
+  if (json == null || json.isEmpty) return [];
+  final list = jsonDecode(json) as List;
+  return list
+      .map((e) => SegmentInfo.fromJson(e as Map<String, dynamic>))
+      .toList();
+}
+
+/// 本地视频导出任务（预览/精修后的高光片段合成导出）。
+@JsonSerializable()
+class VideoExportTask extends Task {
+  String videoPath;
+  String savePath;
+  String fileName;
+  String quality;
+  @JsonKey(toJson: segmentListToJsonStr, fromJson: segmentListFromJsonStr)
+  List<SegmentInfo> segments;
+  String outputPath;
+
+  VideoExportTask({
+    required super.id,
+    required super.name,
+    super.type = TaskTypeEnum.videoExport,
+    super.progress,
+    super.status,
+    super.image,
+    super.extraInfo,
+    super.supportsPause = false,
+    super.hide = false,
+    required this.videoPath,
+    required this.savePath,
+    required this.fileName,
+    required this.quality,
+    required this.segments,
+    this.outputPath = '',
+    super.total,
+    super.processed,
+    required super.createdAt,
+  });
+
+  @override
+  VideoExportTask copyWith({
+    String? id,
+    String? name,
+    TaskTypeEnum? type,
+    double? progress,
+    TaskStatusEnum? status,
+    int? createdAt,
+    String? image,
+    String? videoPath,
+    String? savePath,
+    String? fileName,
+    String? quality,
+    List<SegmentInfo>? segments,
+    String? outputPath,
+    String? extraInfo,
+    bool? supportsPause,
+    bool? hide,
+    int? total,
+    int? processed,
+  }) {
+    return VideoExportTask(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      progress: progress ?? this.progress,
+      status: status ?? this.status,
+      image: image ?? this.image,
+      videoPath: videoPath ?? this.videoPath,
+      savePath: savePath ?? this.savePath,
+      fileName: fileName ?? this.fileName,
+      quality: quality ?? this.quality,
+      segments: segments ?? this.segments,
+      outputPath: outputPath ?? this.outputPath,
+      extraInfo: extraInfo ?? this.extraInfo,
+      supportsPause: supportsPause ?? this.supportsPause,
+      hide: hide ?? this.hide,
+      total: total ?? this.total,
+      processed: processed ?? this.processed,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  factory VideoExportTask.fromJson(Map<String, dynamic> json) =>
+      _$VideoExportTaskFromJson(json);
+  @override
+  Map<String, dynamic> toJson() => _$VideoExportTaskToJson(this);
 }

@@ -65,6 +65,7 @@ const _$TaskTypeEnumEnumMap = {
   TaskTypeEnum.videoUpload: 3,
   TaskTypeEnum.download: 4,
   TaskTypeEnum.videoSegmentDetect: 5,
+  TaskTypeEnum.videoExport: 6,
 };
 
 const _$TaskStatusEnumEnumMap = {
@@ -333,3 +334,54 @@ Map<String, dynamic> _$VideoSegmentDetectTaskToJson(
   'frameStreamId': instance.frameStreamId,
   'detectedTime': instance.detectedTime,
 };
+
+VideoExportTask _$VideoExportTaskFromJson(Map<String, dynamic> json) =>
+    VideoExportTask(
+      id: json['id'] as String,
+      name: json['name'] as String,
+      type:
+          $enumDecodeNullable(_$TaskTypeEnumEnumMap, json['type']) ??
+          TaskTypeEnum.videoExport,
+      progress: (json['progress'] as num?)?.toDouble() ?? 0,
+      status:
+          $enumDecodeNullable(_$TaskStatusEnumEnumMap, json['status']) ??
+          TaskStatusEnum.pending,
+      image: json['image'] as String?,
+      extraInfo: json['extraInfo'] as String?,
+      supportsPause: json['supportsPause'] == null
+          ? false
+          : boolFromJson(json['supportsPause']),
+      hide: json['hide'] == null ? false : boolFromJson(json['hide']),
+      videoPath: json['videoPath'] as String,
+      savePath: json['savePath'] as String,
+      fileName: json['fileName'] as String,
+      quality: json['quality'] as String,
+      segments: segmentListFromJsonStr(json['segments'] as String?),
+      outputPath: json['outputPath'] as String,
+      total: (json['total'] as num?)?.toInt(),
+      processed: (json['processed'] as num?)?.toInt(),
+      createdAt: (json['createdAt'] as num).toInt(),
+    )..updatedAt = (json['updatedAt'] as num).toInt();
+
+Map<String, dynamic> _$VideoExportTaskToJson(VideoExportTask instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'name': instance.name,
+      'type': _$TaskTypeEnumEnumMap[instance.type]!,
+      'progress': instance.progress,
+      'status': _$TaskStatusEnumEnumMap[instance.status]!,
+      'total': instance.total,
+      'processed': instance.processed,
+      'image': instance.image,
+      'extraInfo': instance.extraInfo,
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+      'supportsPause': instance.supportsPause,
+      'hide': instance.hide,
+      'videoPath': instance.videoPath,
+      'savePath': instance.savePath,
+      'fileName': instance.fileName,
+      'quality': instance.quality,
+      'segments': segmentListToJsonStr(instance.segments),
+      'outputPath': instance.outputPath,
+    };

@@ -12,6 +12,7 @@ import 'package:huji_app/store/task/image_compress_task_manager.dart';
 import 'package:huji_app/store/task/video_clip_task_manager.dart';
 import 'package:huji_app/store/task/video_segment_detect_task.dart';
 import 'package:huji_app/store/task/video_compress_task_manager.dart';
+import 'package:huji_app/store/task/video_export_task_manager.dart';
 import 'package:huji_app/store/task/video_upload_task_manager.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -100,11 +101,12 @@ class TaskStorage extends ChangeNotifier
     _taskManagers[TaskTypeEnum.download] = DownloadManager(this);
     _taskManagers[TaskTypeEnum.videoSegmentDetect] =
         VideoSegmentDetectTaskManager(this);
+    _taskManagers[TaskTypeEnum.videoExport] = VideoExportTaskManager(this);
   }
 
   static Database? _database;
   static const String mainTable = 'tasks';
-  static const _currentDatabaseVersion = 9;
+  static const _currentDatabaseVersion = 10;
 
   final List<Task> _tasks = [];
 

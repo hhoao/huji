@@ -1886,6 +1886,12 @@ abstract class HujiLocalizations {
   /// **'Original'**
   String get exportQualityOriginal;
 
+  /// No description provided for @exportRunInBackground.
+  ///
+  /// In en, this message translates to:
+  /// **'Run in background'**
+  String get exportRunInBackground;
+
   /// No description provided for @exportQualityOriginalMeta.
   ///
   /// In en, this message translates to:
@@ -6170,6 +6176,12 @@ abstract class HujiLocalizations {
   /// **'Show system logs'**
   String get showSystemLogsLabel;
 
+  /// No description provided for @sidebarProcessingSection.
+  ///
+  /// In en, this message translates to:
+  /// **'In progress'**
+  String get sidebarProcessingSection;
+
   /// No description provided for @sizeReducedLabel.
   ///
   /// In en, this message translates to:
@@ -6679,6 +6691,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Video compress'**
   String get taskTypeVideoCompress;
+
+  /// No description provided for @taskTypeVideoExport.
+  ///
+  /// In en, this message translates to:
+  /// **'Video export'**
+  String get taskTypeVideoExport;
 
   /// No description provided for @taskTypeVideoSegmentDetect.
   ///

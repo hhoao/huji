@@ -512,6 +512,11 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
 
   if (task is VideoCompressTask && task.status == TaskStatusEnum.completed) {
     await openVideoIfExists(task.outputPath, task.name);
+  } else if (task is VideoExportTask) {
+    if (task.status == TaskStatusEnum.completed) {
+      await openVideoIfExists(task.outputPath, task.name);
+    }
+    // 进行中/失败态走任务行内的进度与操作按钮，无需跳转。
   } else if (task is VideoClipTask) {
     if (task.outputPath.isNotEmpty) {
       await openVideoIfExists(task.outputPath, task.name);

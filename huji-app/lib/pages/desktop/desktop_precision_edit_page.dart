@@ -5,11 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/shell/desktop_clip_session_store.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/command_tooltip_label.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
+import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
@@ -28,6 +31,7 @@ import 'package:huji_app/pages/task/task/task_tab/widgets/task_status_filter.dar
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
+import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
@@ -64,6 +68,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   PlaybackCommandRegistration? _playbackRegistration;
   final PrecisionEditSeekAccelerator _seekAccelerator =
       PrecisionEditSeekAccelerator();
+  // Sidebar 会话所有权 token:dispose 时凭它注销,避免误删接手同 clip 的新页面会话。
+  Object? _sessionToken;
 
   // 回合缩略图缓存。按 SegmentInfo 值缓存（freezed 值相等），
   // 片段被裁剪编辑后起点/终点变化会自动重新抽帧。
@@ -83,6 +89,18 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
+    // 工作流 branch 保活:切去其他页面时暂停播放,避免后台继续出声。
+    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
+  }
+
+  void _handleRouteChanged() {
+    final route = ShortcutRouteScope.instance.currentRoute ?? '';
+    final stillActive = route.startsWith(
+      '/clip/${Uri.encodeComponent(widget.clipId)}/',
+    );
+    if (!stillActive) {
+      _multiVideoPlayerBloc.add(const PauseEvent());
+    }
   }
 
   @override
@@ -127,6 +145,17 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       if (mounted) {
         _roundClipBloc.add(RoundClipInitializeEvent(edittingRecord));
       }
+      // 注册/接管侧边栏"正在处理"会话(新 token,旧页面的注销会被忽略)。
+      _sessionToken = DesktopClipSessionStore.instance.register(
+        DesktopClipSession(
+          clipId: widget.clipId,
+          routePath: DesktopRoutes.clipEditPath(widget.clipId),
+          title: record.filePath != null
+              ? p.basenameWithoutExtension(record.filePath!)
+              : widget.clipId,
+          thumbnailPath: record.thumbnailPath,
+        ),
+      );
       if (edittingRecord.filePath != null) {
         _initTrimmer(edittingRecord.filePath!, edittingRecord.allMatchSegments);
       }
@@ -235,10 +264,15 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   @override
   void dispose() {
+    final sessionToken = _sessionToken;
+    if (sessionToken != null) {
+      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
+    }
     _unregisterPrecisionEditCommands();
     _thumbQueue.clear();
     _thumbQueueDebounce?.cancel();
     _roundListScrollController.dispose();
+    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
     _disposeTrimmer();
     _roundClipBloc.close();
     _multiVideoPlayerBloc.close();
@@ -558,7 +592,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             actions: [
               TpButton(
                 variant: TpButtonVariant.outline,
-                onPressed: () => context.go('/'),
+                onPressed: () =>
+                    DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home),
                 child: Text(context.hujiL10n.taskStatusCancelledShort),
               ),
               SizedBox(width: 8),
