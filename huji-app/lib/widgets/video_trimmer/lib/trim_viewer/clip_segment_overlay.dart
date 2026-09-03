@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:multi_split_view/multi_split_view.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
-import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/custom_divider_painters.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
@@ -50,8 +48,9 @@ class ClipSegmentOverlay extends StatelessWidget {
   }
 }
 
-/// 内部 StatefulWidget 用于管理 MultiSplitViewController 的生命周期
-class _ClipSegmentOverlayContent extends StatefulWidget {
+/// Absolute-time Stack overlay: borders sit on [timeToTimelineX], independent of
+/// MultiSplitView cumulative pane layout.
+class _ClipSegmentOverlayContent extends StatelessWidget {
   final double thumbnailHeight;
   final double totalWidth;
   final List<VideoClipSegment> segments;
@@ -63,92 +62,80 @@ class _ClipSegmentOverlayContent extends StatefulWidget {
   });
 
   @override
-  State<_ClipSegmentOverlayContent> createState() =>
-      _ClipSegmentOverlayContentState();
-}
-
-class _ClipSegmentOverlayContentState
-    extends State<_ClipSegmentOverlayContent> {
-  late MultiSplitViewController _controller;
-
-  /// 分割线拖拽进行中。multi_split_view 拖拽时自己维护布局，
-  /// 此时用 segments 回写 [MultiSplitViewController.areas] 会和手势
-  /// 相互对抗（每次 tick 重排、跟手感差），所以拖拽期间跳过同步，
-  /// 结束后一次性对齐。
-  bool _dividerDragging = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = MultiSplitViewController();
-    _updateController();
-  }
-
-  @override
-  void didUpdateWidget(_ClipSegmentOverlayContent oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    final widthChanged = oldWidget.totalWidth != widget.totalWidth;
-    final layoutChanged =
-        !_sameSegmentLayout(oldWidget.segments, widget.segments);
-    if ((widthChanged || layoutChanged) && !_dividerDragging) {
-      _updateController();
-    }
-  }
-
-  bool _sameSegmentLayout(
-    List<VideoClipSegment> a,
-    List<VideoClipSegment> b,
-  ) {
-    if (a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (a[i].id != b[i].id ||
-          a[i].startTime != b[i].startTime ||
-          a[i].endTime != b[i].endTime ||
-          a[i].isDeleted != b[i].isDeleted) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _updateController() {
-    final segments = widget.segments;
-    if (segments.isEmpty) {
-      return;
-    }
+  Widget build(BuildContext context) {
     final totalDuration = context.read<TrimmerBloc>().state.totalDuration;
-    if (totalDuration <= 0) {
-      return;
+    if (totalDuration <= 0 || totalWidth <= 0) {
+      return const SizedBox.shrink();
     }
 
     final totalDurationSeconds = totalDuration / 1000.0;
-    setState(() {
-      _controller.areas = List.generate(segments.length, (index) {
-        final segment = segments[index];
-        final size = timeToTimelineX(
-          timeSeconds: segment.getDuration() / 1000.0,
-          totalDurationSeconds: totalDurationSeconds,
-          totalWidth: widget.totalWidth,
-        );
-        return Area(
-          size: size,
-          builder: (context, area) => _buildSegmentWidget(segment),
-        );
-      });
-    });
+    final layout = context.trimmerLayout;
+
+    return SizedBox(
+      width: totalWidth,
+      height: thumbnailHeight,
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          ..._buildSegmentBorders(totalDurationSeconds),
+          for (var i = 0; i < segments.length - 1; i++)
+            _SegmentBoundaryHandle(
+              key: ValueKey('divider_${segments[i].id}_${segments[i + 1].id}'),
+              dividerIndex: i,
+              boundaryX: timeToTimelineX(
+                timeSeconds: segments[i].endTime / 1000.0,
+                totalDurationSeconds: totalDurationSeconds,
+                totalWidth: totalWidth,
+              ),
+              totalWidth: totalWidth,
+              thumbnailHeight: thumbnailHeight,
+              layout: layout,
+              leftSegment: segments[i],
+              rightSegment: segments[i + 1],
+            ),
+        ],
+      ),
+    );
   }
 
-  Widget _buildSegmentWidget(VideoClipSegment segment) {
-    final layout = context.trimmerLayout;
-    if (segment.isDeleted) {
-      return Container(height: widget.thumbnailHeight);
+  List<Widget> _buildSegmentBorders(double totalDurationSeconds) {
+    final borders = <Widget>[];
+    for (final segment in segments) {
+      if (segment.isDeleted) continue;
+      final left = timeToTimelineX(
+        timeSeconds: segment.startTime / 1000.0,
+        totalDurationSeconds: totalDurationSeconds,
+        totalWidth: totalWidth,
+      );
+      final right = timeToTimelineX(
+        timeSeconds: segment.endTime / 1000.0,
+        totalDurationSeconds: totalDurationSeconds,
+        totalWidth: totalWidth,
+      );
+      final width = (right - left).clamp(0.0, totalWidth);
+      if (width <= 0) continue;
+      borders.add(
+        Positioned(
+          left: left,
+          width: width,
+          top: 0,
+          bottom: 0,
+          child: _SegmentBorder(segment: segment),
+        ),
+      );
     }
+    return borders;
+  }
+}
+
+class _SegmentBorder extends StatelessWidget {
+  const _SegmentBorder({required this.segment});
+
+  final VideoClipSegment segment;
+
+  @override
+  Widget build(BuildContext context) {
+    final layout = context.trimmerLayout;
 
     return BlocSelector<ClipSegmentBloc, ClipSegmentState, bool>(
       selector: (state) => state.selectedSegment?.id == segment.id,
@@ -156,9 +143,9 @@ class _ClipSegmentOverlayContentState
         final borderWidth = isSelected
             ? layout.segmentSelectedBorderWidth
             : layout.segmentBorderWidth;
-        const borderColor = Colors.white;
 
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onTap: () {
             if (!isSelected) {
               context.read<ClipSegmentBloc>().add(
@@ -168,177 +155,184 @@ class _ClipSegmentOverlayContentState
           },
           child: DecoratedBox(
             decoration: BoxDecoration(
-              border: Border.all(color: borderColor, width: borderWidth),
+              border: Border.all(color: Colors.white, width: borderWidth),
             ),
           ),
         );
       },
     );
   }
-
-  @override
-  Widget build(BuildContext context) {
-    // Depend on trimmer theme so divider handles track palette changes.
-    final trimmerTheme = context.trimmerTheme;
-
-    final segments = widget.segments;
-    if (segments.isEmpty) {
-      return const SizedBox.shrink();
-    }
-
-    return _buildMultiSplitView(context, segments, trimmerTheme);
-  }
-
-  Widget _buildMultiSplitView(
-    BuildContext context,
-    List<VideoClipSegment> segments,
-    TrimmerThemeData trimmerTheme,
-  ) {
-    final layout = context.trimmerLayout;
-    MultiSplitView multiSplitView = MultiSplitView(
-      onDividerDragStart: (_) => _dividerDragging = true,
-      onDividerDragEnd: (_) {
-        _dividerDragging = false;
-        // 拖拽期间跳过了同步，结束后用最新 segments 对齐一次
-        _updateController();
-      },
-      onDividerDragUpdate: (dividerIndex) {
-        final areas = _controller.areas;
-
-        if (dividerIndex >= 0 && dividerIndex < areas.length - 1) {
-          final leftAreaEndPosition = areas
-              .take(dividerIndex + 1)
-              .fold<double>(0, (sum, area) => sum + (area.size ?? 0.0));
-
-          context.read<ClipSegmentBloc>().add(
-            ClipSegmentDividerDragUpdate(
-              dividerIndex: dividerIndex,
-              newPosition: leftAreaEndPosition,
-              totalWidth: widget.totalWidth,
-            ),
-          );
-        }
-      },
-      dividerBuilder:
-          (axis, dividerIndex, resizable, dragging, highlighted, themeData) {
-            // 使用独立的 Widget，只有 Divider 部分会响应状态变化
-            return _ConditionalDivider(
-              axis: axis,
-              dividerIndex: dividerIndex,
-              resizable: resizable,
-              dragging: dragging,
-              highlighted: highlighted,
-              thumbnailHeight: widget.thumbnailHeight,
-              segments: segments,
-            );
-          },
-      pushDividers: true,
-      controller: _controller,
-      axis: Axis.horizontal,
-    );
-
-    MultiSplitViewTheme theme = MultiSplitViewTheme(
-      data: _dividerThemeData(
-        layout: layout,
-        thumbnailHeight: widget.thumbnailHeight,
-        isActive: true,
-      ),
-      child: multiSplitView,
-    );
-
-    // 直接返回 MultiSplitView，滚动由外层处理
-    return SizedBox(width: widget.totalWidth, child: theme);
-  }
 }
 
-/// 片段边界拖动手柄；选中片段相邻的手柄高亮，其余保持可见但弱化。
-class _ConditionalDivider extends StatelessWidget {
-  final Axis axis;
-  final int dividerIndex;
-  final bool resizable;
-  final bool dragging;
-  final bool highlighted;
-  final double thumbnailHeight;
-  final List<VideoClipSegment> segments;
-
-  const _ConditionalDivider({
-    required this.axis,
+class _SegmentBoundaryHandle extends StatefulWidget {
+  const _SegmentBoundaryHandle({
+    super.key,
     required this.dividerIndex,
-    required this.resizable,
-    required this.dragging,
-    required this.highlighted,
+    required this.boundaryX,
+    required this.totalWidth,
     required this.thumbnailHeight,
-    required this.segments,
+    required this.layout,
+    required this.leftSegment,
+    required this.rightSegment,
   });
 
+  final int dividerIndex;
+  final double boundaryX;
+  final double totalWidth;
+  final double thumbnailHeight;
+  final TrimmerLayoutMetrics layout;
+  final VideoClipSegment leftSegment;
+  final VideoClipSegment rightSegment;
+
+  @override
+  State<_SegmentBoundaryHandle> createState() => _SegmentBoundaryHandleState();
+}
+
+class _SegmentBoundaryHandleState extends State<_SegmentBoundaryHandle> {
+  bool _dragging = false;
+  bool _hovering = false;
+  late double _visualX = widget.boundaryX;
+
+  @override
+  void didUpdateWidget(covariant _SegmentBoundaryHandle oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // While dragging, keep the pill on the finger path, not the model boundary —
+    // otherwise each emit repositions the hit target and jitters.
+    if (!_dragging) {
+      _visualX = widget.boundaryX;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocSelector<ClipSegmentBloc, ClipSegmentState, VideoClipSegment?>(
-      selector: (state) => state.selectedSegment,
-      builder: (context, selectedSegment) {
-        final currentSegments = context
-            .read<ClipSegmentBloc>()
-            .state
-            .allSegments;
+    return BlocSelector<ClipSegmentBloc, ClipSegmentState, bool>(
+      selector: (state) {
+        final selectedId = state.selectedSegment?.id;
+        return selectedId == widget.leftSegment.id ||
+            selectedId == widget.rightSegment.id;
+      },
+      builder: (context, isActive) {
+        final layout = widget.layout;
+        final handleBuffer = layout.dividerHandleBuffer;
+        final highlighted = isActive || _dragging || _hovering;
+        // Match old MultiSplitView theme: idle capsule vs full-tile highlight.
+        final handleHeight = highlighted
+            ? widget.thumbnailHeight
+            : layout.dividerHandleSize * 0.88;
+        final thickness = highlighted
+            ? layout.dividerHandleThickness + 2
+            : layout.dividerHandleThickness - 2;
 
-        final leftSegmentSelected =
-            dividerIndex >= 0 &&
-            dividerIndex < currentSegments.length &&
-            currentSegments[dividerIndex].isSelected;
-        final rightSegmentSelected =
-            dividerIndex + 1 < currentSegments.length &&
-            currentSegments[dividerIndex + 1].isSelected;
-        final isActive = leftSegmentSelected || rightSegmentSelected;
+        // Hit target is symmetric around the shared border at [_visualX].
+        // (Using left = x - buffer with width = thickness + 2*buffer centers
+        // the paint at x + thickness/2 and leaves the capsule off the seam.)
+        final hitWidth = layout.dividerHandleThickness + 2 * handleBuffer;
 
-        final layout = context.trimmerLayout;
-
-        final themeData = _dividerThemeData(
-          layout: layout,
-          thumbnailHeight: thumbnailHeight,
-          isActive: isActive,
-        );
-
-        return DividerWidget(
-          axis: axis,
-          index: dividerIndex,
-          themeData: themeData,
-          highlighted: highlighted || isActive,
-          resizable: resizable,
-          dragging: dragging,
+        return Positioned(
+          left: _visualX - hitWidth / 2,
+          width: hitWidth,
+          top: 0,
+          bottom: 0,
+          child: MouseRegion(
+            cursor: SystemMouseCursors.resizeColumn,
+            onEnter: (_) => setState(() => _hovering = true),
+            onExit: (_) => setState(() => _hovering = false),
+            child: GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragStart: (_) {
+                _dragging = true;
+                _visualX = widget.boundaryX;
+              },
+              onHorizontalDragUpdate: (details) {
+                _visualX = (_visualX + details.delta.dx).clamp(
+                  0.0,
+                  widget.totalWidth,
+                );
+                context.read<ClipSegmentBloc>().add(
+                  ClipSegmentDividerDragUpdate(
+                    dividerIndex: widget.dividerIndex,
+                    newPosition: _visualX,
+                    totalWidth: widget.totalWidth,
+                  ),
+                );
+                setState(() {});
+              },
+              onHorizontalDragEnd: (_) {
+                setState(() => _dragging = false);
+              },
+              onHorizontalDragCancel: () {
+                setState(() => _dragging = false);
+              },
+              child: CustomPaint(
+                painter: _RoundedHandlePainter(
+                  handleHeight: handleHeight.clamp(0, widget.thumbnailHeight),
+                  thickness: thickness,
+                  background: Colors.white.withValues(
+                    alpha: highlighted ? 1.0 : 0.72,
+                  ),
+                  foreground: const Color(0xFF1A1A1D).withValues(
+                    alpha: highlighted ? 1.0 : 0.85,
+                  ),
+                ),
+              ),
+            ),
+          ),
         );
       },
     );
   }
 }
 
-MultiSplitViewThemeData _dividerThemeData({
-  required TrimmerLayoutMetrics layout,
-  required double thumbnailHeight,
-  required bool isActive,
-}) {
-  // Fixed dark-theme handle chrome: white pill + dark center line on thumbnails.
-  const handleBg = Colors.white;
-  const handleFg = Color(0xFF1A1A1D);
-  final activeBg = isActive ? handleBg : handleBg.withValues(alpha: 0.72);
-  final activeFg = isActive ? handleFg : handleFg.withValues(alpha: 0.85);
+/// Same visual language as [CustomDividerPainters.roundedRect]: tall white
+/// capsule with a near-full-height dark grip line (not a tiny center stub).
+class _RoundedHandlePainter extends CustomPainter {
+  _RoundedHandlePainter({
+    required this.handleHeight,
+    required this.thickness,
+    required this.background,
+    required this.foreground,
+  });
 
-  return MultiSplitViewThemeData(
-    dividerThickness: 0,
-    dividerHandleBuffer: layout.dividerHandleBuffer,
-    dividerPainter: CustomDividerPainters.roundedRect(
-      size: isActive
-          ? layout.dividerHandleSize
-          : layout.dividerHandleSize * 0.88,
-      thickness: isActive
-          ? layout.dividerHandleThickness
-          : layout.dividerHandleThickness - 2,
-      highlightedSize: thumbnailHeight,
-      highlightedThickness: layout.dividerHandleThickness + 2,
-      backgroundColor: activeBg,
-      highlightedBackgroundColor: handleBg,
-      dividerColor: activeFg,
-      highlightedDividerColor: handleFg,
-      borderRadius: 6,
-    ),
-  );
+  final double handleHeight;
+  final double thickness;
+  final Color background;
+  final Color foreground;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromCenter(
+        center: center,
+        width: thickness,
+        height: handleHeight,
+      ),
+      const Radius.circular(6),
+    );
+    canvas.drawRRect(
+      rect,
+      Paint()
+        ..color = background
+        ..style = PaintingStyle.fill,
+    );
+
+    final linePaint = Paint()
+      ..color = foreground
+      ..strokeWidth = 2
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
+    final startY = center.dy - handleHeight / 2 + 4;
+    final endY = center.dy + handleHeight / 2 - 4;
+    if (endY > startY) {
+      canvas.drawLine(Offset(center.dx, startY), Offset(center.dx, endY), linePaint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _RoundedHandlePainter oldDelegate) {
+    return oldDelegate.handleHeight != handleHeight ||
+        oldDelegate.thickness != thickness ||
+        oldDelegate.background != background ||
+        oldDelegate.foreground != foreground;
+  }
 }
