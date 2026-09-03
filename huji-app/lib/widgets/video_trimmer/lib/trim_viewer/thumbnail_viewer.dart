@@ -834,7 +834,11 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
     if (thumbnailConfig == null) return;
 
     final timeOffset = _calculateTimeOffset();
-    final fileName = _getThumbnailFileName(timeOffset, thumbnailConfig.format);
+    final fileName = _getThumbnailFileName(
+      timeOffset,
+      thumbnailConfig.format,
+      thumbnailConfig.width,
+    );
     final thumbnailPath = path.join(thumbnailConfig.dirPath, fileName);
     final thumbnailFile = File(thumbnailPath);
 
@@ -875,11 +879,11 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
     return (start + end) / 2.0;
   }
 
-  /// 生成缩略图文件名（基于时间点，确保唯一性和可复用性）
-  String _getThumbnailFileName(double timeOffset, String format) {
-    // 使用两位小数精度，避免文件名过长
+  /// 生成缩略图文件名（基于时间点与生成宽度，确保唯一性和可复用性）
+  String _getThumbnailFileName(double timeOffset, String format, int width) {
+    // 使用两位小数精度，避免文件名过长；宽度参与命名，桌面/移动 tile 互不混淆
     final timeStr = timeOffset.toStringAsFixed(2);
-    return 'thumbnail_$timeStr.$format';
+    return 'thumbnail_${width}_$timeStr.$format';
   }
 
   /// 生成缩略图（缓存不存在时调用）
@@ -899,6 +903,7 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
       final fileName = _getThumbnailFileName(
         timeOffset,
         thumbnailConfig.format,
+        thumbnailConfig.width,
       );
 
       if (mounted) {
@@ -940,6 +945,7 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
               width: thumbnailConfig.width,
               quality: thumbnailConfig.quality,
               format: thumbnailConfig.format,
+              reuseExisting: true,
             );
           } catch (e) {
             retryCount++;

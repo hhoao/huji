@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
+import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -52,6 +53,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   bool _isLoading = true;
   bool _commandsRegistered = false;
   PlaybackCommandRegistration? _playbackRegistration;
+  final ScrollController _roundStripScrollController = ScrollController();
+  static const _roundStripItemStride = 128.0; // 120 width + 8 separator
+  int? _pendingRoundStripScrollIndex;
 
   String _qualityLabel(HujiLocalizations l10n) => switch (_selectedQuality) {
     _qualityOriginal => l10n.exportQualityOriginal,
@@ -89,6 +93,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   @override
   void dispose() {
     _playbackRegistration?.unregister();
+    _roundStripScrollController.dispose();
     _playerBloc.close();
     super.dispose();
   }
@@ -136,16 +141,15 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   /// 逐段抽取回合中点帧作为缩略图，失败时保留占位样式。
+  ///
+  /// 写入持久缩略图缓存（key 含 size+mtime），文件名以宽度+中点命名：
+  /// 相同中点即同一帧，跨会话/页面复用，命中时不启动 FFmpeg。
   Future<void> _generateSegmentThumbnails(
     String clipId,
     String videoPath,
     List<SegmentInfo> segments,
   ) async {
-    final dir = p.join(
-      Directory.systemTemp.path,
-      'huji_segment_thumbs',
-      clipId,
-    );
+    final dir = (await storage.getVideoThumbnailCacheDir(videoPath)).path;
     for (var i = 0; i < segments.length; i++) {
       if (!mounted) return;
       if (_segmentThumbs.containsKey(i)) continue;
@@ -155,10 +159,11 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         final path = await VideoUtils.generateVideoThumbnail(
           videoPath,
           dirPath: dir,
-          fileName: 'segment_$i.jpg',
+          fileName: 'seg_240_${mid.toStringAsFixed(3)}.jpg',
           timeOffset: mid,
           width: 240,
           format: 'jpg',
+          reuseExisting: true,
         );
         if (!mounted) return;
         setState(() => _segmentThumbs[i] = path);
@@ -180,6 +185,33 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final minutes = (totalSeconds / 60).floor();
     final seconds = (totalSeconds % 60).floor();
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  void _scrollRoundStripToIndex(int index) {
+    if (index < 0) return;
+    _pendingRoundStripScrollIndex = index;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final targetIndex = _pendingRoundStripScrollIndex;
+      if (targetIndex == null) return;
+      _pendingRoundStripScrollIndex = null;
+      if (!_roundStripScrollController.hasClients) return;
+
+      final targetOffset = targetIndex * _roundStripItemStride;
+      final position = _roundStripScrollController.position;
+      final maxExtent = position.maxScrollExtent;
+      final viewport = position.viewportDimension;
+      final offset = (targetOffset - (viewport - _roundStripItemStride) / 2)
+          .clamp(0.0, maxExtent);
+
+      if ((position.pixels - offset).abs() < 4) return;
+
+      _roundStripScrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   Future<VideoExportResult> _runExport(
@@ -672,48 +704,61 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final styles = TpTextStyles.of(context);
 
     final l10n = context.hujiL10n;
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-        Text(
-          l10n.roundOrder,
-          style: styles.md.copyWith(
-            color: cs.onSurfaceVariant,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        Text(
-          l10n.roundCountShort(_segments.length),
-          style: styles.xs.copyWith(color: cs.outline),
-        ),
-      ]),
-      SizedBox(height: 8),
-      BlocBuilder<MultiVideoPlayerBloc, MultiVideoPlayerState>(
-        buildWhen: (previous, current) =>
-            previous.currentItemIndex != current.currentItemIndex,
-        builder: (context, playerState) {
-          final activeIndex = playerState.currentItemIndex ?? -1;
-          return SizedBox(
-            height: 90,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: _segments.length,
-              separatorBuilder: (_, __) => SizedBox(width: 8),
-              itemBuilder: (context, i) {
-                final seg = _segments[i];
-                final active = i == activeIndex;
-                final duration = seg.endSeconds - seg.startSeconds;
-                final durStr = '${duration.toStringAsFixed(0)}s';
-                final startStr = _formatSeconds(seg.startSeconds);
 
-                return TpHover(
-                  onTap: () {
-                    final item = playerState.getItemByIndex(i);
-                    if (item == null) return;
-                    _playerBloc.add(
-                      SeekToEvent(playerState.getItemStartTime(item)),
-                    );
-                    _playerBloc.add(const PlayEvent());
-                  },
+    return BlocListener<MultiVideoPlayerBloc, MultiVideoPlayerState>(
+      bloc: _playerBloc,
+      listenWhen: (previous, current) =>
+          previous.currentItemIndex != current.currentItemIndex,
+      listener: (_, state) {
+        final index = state.currentItemIndex;
+        if (index != null) {
+          _scrollRoundStripToIndex(index);
+        }
+      },
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+          Text(
+            l10n.roundOrder,
+            style: styles.md.copyWith(
+              color: cs.onSurfaceVariant,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          Text(
+            l10n.roundCountShort(_segments.length),
+            style: styles.xs.copyWith(color: cs.outline),
+          ),
+        ]),
+        SizedBox(height: 8),
+        BlocBuilder<MultiVideoPlayerBloc, MultiVideoPlayerState>(
+          bloc: _playerBloc,
+          buildWhen: (previous, current) =>
+              previous.currentItemIndex != current.currentItemIndex,
+          builder: (context, playerState) {
+            final activeIndex = playerState.currentItemIndex ?? -1;
+            return SizedBox(
+              height: 90,
+              child: ListView.separated(
+                controller: _roundStripScrollController,
+                scrollDirection: Axis.horizontal,
+                itemCount: _segments.length,
+                separatorBuilder: (_, __) => SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final seg = _segments[i];
+                  final active = i == activeIndex;
+                  final duration = seg.endSeconds - seg.startSeconds;
+                  final durStr = '${duration.toStringAsFixed(0)}s';
+                  final startStr = _formatSeconds(seg.startSeconds);
+
+                  return TpHover(
+                    onTap: () {
+                      final item = playerState.getItemByIndex(i);
+                      if (item == null) return;
+                      _playerBloc.add(
+                        SeekToEvent(playerState.getItemStartTime(item)),
+                      );
+                      _playerBloc.add(const PlayEvent());
+                    },
                   borderRadius: BorderRadius.circular(6),
                   pressScale: 0.97,
                   child: Container(
@@ -829,7 +874,8 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           );
         },
       ),
-    ]);
+      ]),
+    );
   }
 
   Widget _buildSummary() {

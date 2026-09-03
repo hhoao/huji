@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
-import 'package:huji_app/constants/theme.dart';
+import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/appearance/appearance_theme_bundle.dart';
 import 'package:huji_app/init.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
@@ -20,18 +24,18 @@ import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:window_manager/window_manager.dart';
-import 'package:huji_app/appearance/appearance_cubit.dart';
-import 'package:huji_app/appearance/appearance_preferences.dart';
-import 'package:huji_app/appearance/appearance_theme_bundle.dart';
 import 'package:huji_app/theme/app_font_prepare.dart';
 import 'package:huji_app/theme/huji_toast_config.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
+import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 void main(List<String> args) async {
   try {
     // 必须先初始化 Flutter 绑定，才能使用平台通道（如 path_provider）
     WidgetsFlutterBinding.ensureInitialized();
+    // 后台清理持久缩略图缓存（源视频已删 + 容量 LRU），不阻塞启动
+    unawaited(StorageService.instance.evictVideoThumbnailCache());
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
       GoogleFonts.config.allowRuntimeFetching = false;
@@ -124,8 +128,8 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
             child: MaterialApp.router(
               title: l10n.appTitle,
               routerConfig: appRouter,
-              theme: AppTheme.themedLightTheme,
-              darkTheme: AppTheme.themedDarkTheme,
+              theme: withTrimmerTheme(bundle.lightTheme),
+              darkTheme: withTrimmerTheme(bundle.darkTheme),
               themeMode: bundle.themeMode,
               locale: bundle.locale,
               localizationsDelegates:

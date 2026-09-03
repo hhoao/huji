@@ -5,11 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/command_tooltip_label.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
-import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
@@ -31,6 +31,7 @@ import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_event.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/state/clip_segment_state.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_bloc.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/video_trimmer_bloc_manager.dart';
@@ -73,6 +74,10 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   Timer? _thumbQueueDebounce;
   String? _thumbVideoPath;
   String? _thumbDirPath;
+  final ScrollController _roundListScrollController = ScrollController();
+  static const _roundListHeaderHeight = 38.0;
+  static const _roundListItemHeight = 152.0;
+  int? _pendingRoundListScrollIndex;
 
   @override
   void initState() {
@@ -141,11 +146,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
     _disposeTrimmer();
     _thumbVideoPath = videoPath;
-    _thumbDirPath ??= p.join(
-      Directory.systemTemp.path,
-      'huji_segment_thumbs',
-      widget.clipId,
-    );
+    // 持久缩略图缓存目录（key 含 size+mtime，视频变更自动失效；源视频不变则跨会话复用）
+    _thumbDirPath ??= (await storage.getVideoThumbnailCacheDir(videoPath)).path;
     setState(() => _trimmerLoading = true);
 
     final playBallSegments =
@@ -211,11 +213,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           final path = await VideoUtils.generateVideoThumbnail(
             _thumbVideoPath!,
             dirPath: _thumbDirPath,
-            // 以中点命名：相同中点即同一帧，编辑片段后也能复用/覆盖
-            fileName: 'seg_${mid.toStringAsFixed(3)}.jpg',
+            // 以宽度+中点命名：相同中点即同一帧，编辑片段后也能复用/覆盖
+            fileName: 'seg_480_${mid.toStringAsFixed(3)}.jpg',
             timeOffset: mid,
             width: 480,
             format: 'jpg',
+            reuseExisting: true,
           );
           if (!mounted) return;
           setState(() => _segmentThumbs[seg] = path);
@@ -235,6 +238,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     _unregisterPrecisionEditCommands();
     _thumbQueue.clear();
     _thumbQueueDebounce?.cancel();
+    _roundListScrollController.dispose();
     _disposeTrimmer();
     _roundClipBloc.close();
     _multiVideoPlayerBloc.close();
@@ -307,6 +311,61 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       _activeSegment = segment;
     });
     _selectTrimmerClipSegmentAtRoundIndex(index);
+    _scrollRoundListToIndex(index);
+  }
+
+  void _scrollRoundListToIndex(int index) {
+    if (index < 0) return;
+    _pendingRoundListScrollIndex = index;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      final targetIndex = _pendingRoundListScrollIndex;
+      if (targetIndex == null) return;
+      _pendingRoundListScrollIndex = null;
+      if (!_roundListScrollController.hasClients) return;
+
+      final targetOffset =
+          _roundListHeaderHeight + targetIndex * _roundListItemHeight;
+      final position = _roundListScrollController.position;
+      final maxExtent = position.maxScrollExtent;
+      final viewport = position.viewportDimension;
+      final offset = (targetOffset - viewport * 0.25).clamp(0.0, maxExtent);
+
+      if ((position.pixels - offset).abs() < 4) return;
+
+      _roundListScrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    });
+  }
+
+  void _onTrimmerSegmentSelected(ClipSegmentState clipState) {
+    final selected = clipState.selectedSegment;
+    if (selected == null || selected.isDeleted) return;
+
+    final segments = _roundClipBloc.state.playBallSegments;
+    if (segments.isEmpty) return;
+
+    final manager = _trimmerBlocManager;
+    if (manager == null) return;
+
+    final sorted = [...manager.clipSegmentBloc.state.activeSegments]
+      ..sort((a, b) => a.order.compareTo(b.order));
+    final index = sorted.indexWhere((segment) => segment.id == selected.id);
+    if (index < 0 || index >= segments.length) return;
+
+    final segment = segments[index];
+    final indexChanged =
+        _activeRoundIndex != index || _activeSegment != segment;
+    if (indexChanged) {
+      setState(() {
+        _activeRoundIndex = index;
+        _activeSegment = segment;
+      });
+    }
+    _scrollRoundListToIndex(index);
   }
 
   void _registerPrecisionEditCommands() {
@@ -486,15 +545,6 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
           );
           final validActive =
               resolvedIndex >= 0 ? segments[resolvedIndex] : null;
-          if (validActive != currentActive || resolvedIndex != _activeRoundIndex) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              setState(() {
-                _activeRoundIndex = resolvedIndex >= 0 ? resolvedIndex : null;
-                _activeSegment = validActive;
-              });
-            });
-          }
           final activeSegment = validActive;
 
           return DesktopPageShell(
@@ -533,14 +583,30 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
                 ),
               ),
             ],
-            child: _buildBorderedGrid(
-              context,
-              state,
-              segments,
-              resolvedIndex,
-              activeSegment,
-              trimmerManager,
-            ),
+            child: trimmerManager != null
+                ? BlocListener<ClipSegmentBloc, ClipSegmentState>(
+                    listenWhen: (previous, current) =>
+                        previous.selectedSegment?.id !=
+                        current.selectedSegment?.id,
+                    listener: (context, state) =>
+                        _onTrimmerSegmentSelected(state),
+                    child: _buildBorderedGrid(
+                      context,
+                      state,
+                      segments,
+                      resolvedIndex,
+                      activeSegment,
+                      trimmerManager,
+                    ),
+                  )
+                : _buildBorderedGrid(
+                    context,
+                    state,
+                    segments,
+                    resolvedIndex,
+                    activeSegment,
+                    trimmerManager,
+                  ),
           );
         },
       ),
@@ -679,30 +745,33 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       );
     }
 
-    return ListView(
+    return ListView.builder(
+      controller: _roundListScrollController,
       padding: const EdgeInsets.all(8),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-          child: Text(
-            context.hujiL10n.selectedRounds,
-            style: styles.xs.copyWith(
-              color: cs.outline,
-              letterSpacing: 0.6,
+      itemCount: segments.length + 1,
+      itemBuilder: (context, i) {
+        if (i == 0) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Text(
+              context.hujiL10n.selectedRounds,
+              style: styles.xs.copyWith(
+                color: cs.outline,
+                letterSpacing: 0.6,
+              ),
             ),
-          ),
-        ),
-        ...List.generate(
-          segments.length,
-          (i) => _buildRoundItem(
-            context,
-            segments[i],
-            i + 1,
-            activeRoundIndex == i,
-            () => _selectRoundAtIndex(i, segments),
-          ),
-        ),
-      ],
+          );
+        }
+
+        final segmentIndex = i - 1;
+        return _buildRoundItem(
+          context,
+          segments[segmentIndex],
+          segmentIndex + 1,
+          activeRoundIndex == segmentIndex,
+          () => _selectRoundAtIndex(segmentIndex, segments),
+        );
+      },
     );
   }
 
@@ -728,38 +797,51 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         margin: const EdgeInsets.only(bottom: 4),
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
-          color: isActive ? cs.primary.withAlpha(31) : null,
-          border: Border.all(
-            color: isActive ? cs.primary.withAlpha(89) : Colors.transparent,
-          ),
+          color: isActive ? cs.primary.withAlpha(40) : null,
+          border: isActive
+              ? Border.all(color: cs.primary.withAlpha(100))
+              : null,
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: Stack(
           children: [
-            // 顶部 - 回合缩略图
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: thumbPath != null
-                  ? Image.file(
-                      File(thumbPath),
-                      fit: BoxFit.cover,
-                      cacheWidth: 480,
-                      gaplessPlayback: true,
-                      errorBuilder: (_, __, ___) => _buildThumbPlaceholder(),
-                    )
-                  : _buildThumbPlaceholder(),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: thumbPath != null
+                      ? Image.file(
+                          File(thumbPath),
+                          fit: BoxFit.cover,
+                          cacheWidth: 480,
+                          gaplessPlayback: true,
+                          errorBuilder: (_, __, ___) =>
+                              _buildThumbPlaceholder(),
+                        )
+                      : _buildThumbPlaceholder(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+                  child: Text(
+                    line,
+                    style: styles.xs.copyWith(color: cs.onSurface),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
             ),
-            // 底部 - 回合信息
-            Padding(
-              padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
-              child: Text(
-                line,
-                style: styles.xs.copyWith(color: cs.onSurface),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+            if (isActive)
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: ColoredBox(
+                  color: cs.primary,
+                  child: const SizedBox(width: 4),
+                ),
               ),
-            ),
           ],
         ),
       ),

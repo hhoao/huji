@@ -245,6 +245,86 @@ class StorageService {
     return fileDir;
   }
 
+  // ==================== 持久缩略图缓存 ====================
+
+  static const String _videoThumbCacheDirName = 'video_thumbs';
+  static const String videoThumbSourceFileName = '.source';
+
+  /// 持久缩略图缓存目录：`<appCache>/video_thumbs/<md5(videoPath|size|mtime)>/`。
+  ///
+  /// 与 [getCleanupCacheFileDir] 不同，该目录位于应用缓存目录（Linux `~/.cache`），
+  /// 不会被启动/退出清理逻辑删除；key 包含文件大小与 mtime，视频被重新导出或
+  /// 覆盖后自动失效旧缓存（落到新目录，不读到过期帧）。
+  Future<Directory> getVideoThumbnailCacheDir(String videoPath) async {
+    final file = File(videoPath);
+    var stat = await file.stat();
+    final keySource = '$videoPath|${stat.size}|${stat.modified.millisecondsSinceEpoch}';
+    final root = Directory(
+      p.join(_cacheDir.path, _videoThumbCacheDirName, _hashString(keySource)),
+    );
+    if (!await root.exists()) {
+      await root.create(recursive: true);
+      // 记录源视频路径，供缓存清理时判断是否还有效
+      await File(
+        p.join(root.path, videoThumbSourceFileName),
+      ).writeAsString(videoPath);
+    }
+    return root;
+  }
+
+  /// 清理持久缩略图缓存：删除源视频已不存在的目录；总量超过 [maxBytes]
+  /// 时按目录 mtime 从旧到新删除，直到总量回落到限额以下。
+  Future<void> evictVideoThumbnailCache({
+    int maxBytes = 256 * 1024 * 1024,
+  }) async {
+    try {
+      final root = Directory(p.join(_cacheDir.path, _videoThumbCacheDirName));
+      if (!await root.exists()) return;
+
+      final entries = <(Directory, int, DateTime)>[]; // (dir, size, mtime)
+      var totalBytes = 0;
+      await for (final entity in root.list()) {
+        if (entity is! Directory) continue;
+        var dirSize = 0;
+        var newestMtime = DateTime.fromMillisecondsSinceEpoch(0);
+        var sourcePath = '';
+        await for (final f in entity.list()) {
+          if (f is! File) continue;
+          final stat = await f.stat();
+          dirSize += stat.size;
+          if (stat.modified.isAfter(newestMtime)) newestMtime = stat.modified;
+          if (p.basename(f.path) == videoThumbSourceFileName) {
+            try {
+              sourcePath = await f.readAsString();
+            } catch (_) {}
+          }
+        }
+        totalBytes += dirSize;
+
+        // 源视频已被删除/移动 → 缓存失效
+        if (sourcePath.isEmpty || !await File(sourcePath).exists()) {
+          try {
+            await entity.delete(recursive: true);
+          } catch (_) {}
+          continue;
+        }
+        entries.add((entity, dirSize, newestMtime));
+      }
+
+      if (totalBytes <= maxBytes) return;
+      entries.sort((a, b) => a.$3.compareTo(b.$3)); // 旧的先删
+      for (final (dir, size, _) in entries) {
+        if (totalBytes <= maxBytes) break;
+        try {
+          await dir.delete(recursive: true);
+          totalBytes -= size;
+        } catch (_) {}
+      }
+    } catch (e) {
+      AppLogger().w('Failed to evict video thumbnail cache: $e');
+    }
+  }
+
   /// 将字符串转换为 MD5 哈希值
   /// 用于生成固定长度的目录名，避免路径过长
   String _hashString(String input) {

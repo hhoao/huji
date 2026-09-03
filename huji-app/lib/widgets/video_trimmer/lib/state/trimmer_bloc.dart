@@ -79,28 +79,33 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
         final scrollController = ScrollController();
 
+        // 持久缩略图缓存目录（key 含 size+mtime，视频变更自动失效）
+        final thumbCacheDir = (await storage
+                .getVideoThumbnailCacheDir(file.path))
+            .path;
+
+        // 布局宽度参与文件命名：桌面/移动生成的 tile 分辨率不同，互不复用
+        final generateWidth =
+            TrimmerLayoutMetrics.forPlatform().thumbnailGenerateWidth;
+
         final coverImage = await VideoUtils.generateVideoThumbnail(
           file.path,
-          dirPath: storage.getCurrentCleanupDirectoryPath(),
+          dirPath: thumbCacheDir,
+          fileName: 'cover_$generateWidth.png',
           width: 200, // 适合高DPI显示
           quality: 1, // 最高质量
           format: 'png', // PNG 无损，更清晰
-        );
-
-        // 确保缩略图缓存目录存在
-        Directory tempDir = await storage.getCleanupCacheFileDir(
-          file.path,
-          recreate: false,
+          reuseExisting: true,
         );
 
         // 保存缩略图配置信息，用于按需生成
         final thumbnailConfig = ThumbnailConfig(
           videoPath: file.path,
-          dirPath: tempDir.path,
+          dirPath: thumbCacheDir,
           timeIntervalSeconds: timeInterval,
           quality: 1, // 最高质量
           format: 'png', // PNG 无损压缩，更清晰
-          width: TrimmerLayoutMetrics.forPlatform().thumbnailGenerateWidth,
+          width: generateWidth,
         );
 
         // 初始化状态，不再一次性生成所有缩略图

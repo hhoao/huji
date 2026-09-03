@@ -967,6 +967,8 @@ class VideoUtils {
   /// - width: 缩略图宽度（可选，默认为320）
   /// - quality: 图片质量1-31，数值越小质量越高（可选，默认为2）
   /// - format: 输出格式（可选，默认为PNG）
+  /// - reuseExisting: 输出文件已存在时直接复用，不再执行 FFmpeg（默认false）。
+  ///   仅适用于输出路径确定（确定性文件名）的调用方，如缩略图缓存命中。
   ///
   /// 返回: 生成的缩略图文件路径
   static Future<String> generateVideoThumbnail(
@@ -977,6 +979,7 @@ class VideoUtils {
     int width = 320,
     int quality = 2,
     String format = 'png',
+    bool reuseExisting = false,
   }) async {
     if (!await File(videoPath).exists()) {
       final fileType = FileSystemEntity.typeSync(videoPath);
@@ -995,6 +998,11 @@ class VideoUtils {
     final outputFileName =
         fileName ?? '${DateTime.now().millisecondsSinceEpoch}.$format';
     final outputPath = path.join(outputDir.path, outputFileName);
+
+    // 缓存命中：输出文件已存在则直接复用
+    if (reuseExisting && await File(outputPath).exists()) {
+      return outputPath;
+    }
 
     // 构建FFmpeg命令
     final args = [
