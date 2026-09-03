@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/theme/app_theme.dart';
 import 'package:huji_app/theme/app_typography_scale.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -33,10 +34,12 @@ AppearanceThemeBundle resolveAppearanceTheme(
   AppearancePreferences prefs,
   MediaQueryData systemMq,
 ) {
-  final textBaseline = autoTextScaleForSystem(
-    systemMq.textScaler.scale(1.0),
-    systemMq.devicePixelRatio,
-  );
+  final textBaseline = PlatformCapability.isDesktop
+      ? autoTextScaleForSystem(
+          systemMq.textScaler.scale(1.0),
+          systemMq.devicePixelRatio,
+        )
+      : autoTextScaleForMobile();
   final effectiveTextMult = resolveRelativeScale(
     scaleId: prefs.typographyScale,
     customMultiplier: prefs.typographyScaleCustomMultiplier,

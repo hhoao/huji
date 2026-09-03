@@ -79,6 +79,11 @@ double autoTextScaleForSystem(double osTextScale, double devicePixelRatio) {
   return clampTypographyCustomMultiplier(os * dpr);
 }
 
+/// Mobile baseline: design logical scale (×1.0). Do not fold in [devicePixelRatio]
+/// — Flutter text already uses logical pixels. OS font scaling stays on
+/// [MediaQuery.textScaler], not in the theme multiplier (avoids double scaling).
+double autoTextScaleForMobile() => 1.0;
+
 /// Effective scale = [baseline] × the relative preset multiplier (compact 0.92,
 /// standard 1.0, comfortable 1.08, or [customMultiplier] for `custom`). So
 /// `standard` resolves to the auto baseline and the rest are relative to it.
