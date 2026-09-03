@@ -15,7 +15,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 /// Huji appearance settings — Teampilot [LayoutAppearanceInLayoutSection] subset.
 ///
-/// Shared by the desktop settings page and the mobile settings page:
+/// Shared by the desktop settings page and the mobile appearance sub-page:
 /// theme mode / color preset / text scale / language come from
 /// [AppearanceCubit]; push notifications comes from [SettingsManager].
 /// [showUiZoom] stays desktop-only because [UiZoom] is only wired into the
@@ -24,6 +24,9 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
   const HujiAppearanceSettingsSection({
     this.showUiZoom = true,
     this.withCard = true,
+    this.preferVerticalLayout = false,
+    this.showPushNotifications = true,
+    this.showLanguage = true,
     super.key,
   });
 
@@ -31,8 +34,15 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
   final bool showUiZoom;
 
   /// Wrap rows in a [TpCard.outlined] (desktop section body). The mobile
-  /// settings page renders rows inside its own grouped cards.
+  /// appearance page renders rows inside its own grouped card.
   final bool withCard;
+
+  /// Stack label above control (mobile). Horizontal [TpPreferenceRow] trailings
+  /// collapse on narrow widths and make the section look empty.
+  final bool preferVerticalLayout;
+
+  final bool showPushNotifications;
+  final bool showLanguage;
 
   @override
   Widget build(BuildContext context) {
@@ -47,11 +57,26 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
         }
         final langValue = prefs.locale.startsWith('zh') ? 'zh' : 'en';
 
+        Widget row({
+          required String title,
+          String? subtitle,
+          required Widget child,
+          bool showDividerBelow = true,
+        }) {
+          return _AppearancePreferenceTile(
+            title: title,
+            subtitle: subtitle,
+            verticalLayout: preferVerticalLayout,
+            showDividerBelow: showDividerBelow,
+            child: child,
+          );
+        }
+
         final rows = <Widget>[
-          TpPreferenceRow(
+          row(
             title: l10n.themeModeTitle,
             subtitle: l10n.themeModeDescription,
-            trailing: TpSegmentedPicker<String>(
+            child: TpSegmentedPicker<String>(
               selected: themeMode,
               onChanged: cubit.setThemeMode,
               segments: [
@@ -73,18 +98,23 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
               ],
             ),
           ),
-          TpPreferenceRow(
+          row(
             title: l10n.themeColorPresetTitle,
             subtitle: l10n.themeColorPresetDescription,
-            trailing: ThemeColorPresetPicker(
-              selected: normalizeThemeColorPreset(prefs.themeColorPreset),
-              onSelect: cubit.setThemeColorPreset,
+            child: Align(
+              alignment: preferVerticalLayout
+                  ? Alignment.centerLeft
+                  : Alignment.centerRight,
+              child: ThemeColorPresetPicker(
+                selected: normalizeThemeColorPreset(prefs.themeColorPreset),
+                onSelect: cubit.setThemeColorPreset,
+              ),
             ),
           ),
-          TpPreferenceRow(
+          row(
             title: l10n.typographyScaleTitle,
             subtitle: l10n.typographyScaleDescription,
-            trailing: TypographyScaleSetting(
+            child: TypographyScaleSetting(
               scaleId: normalizeTypographyScale(prefs.typographyScale),
               customMultiplier: prefs.typographyScaleCustomMultiplier,
               onScaleIdChanged: cubit.setTypographyScale,
@@ -92,13 +122,14 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
                 prefs.typographyScale,
                 custom: v,
               ),
+              expandToWidth: preferVerticalLayout,
             ),
           ),
           if (showUiZoom)
-            TpPreferenceRow(
+            row(
               title: l10n.uiZoomTitle,
               subtitle: l10n.uiZoomDescription,
-              trailing: TypographyScaleSetting(
+              child: TypographyScaleSetting(
                 scaleId: normalizeTypographyScale(prefs.uiZoomScale),
                 customMultiplier: prefs.uiZoomCustomMultiplier,
                 onScaleIdChanged: cubit.setUiZoomScale,
@@ -106,45 +137,58 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
                   prefs.uiZoomScale,
                   custom: v,
                 ),
+                expandToWidth: preferVerticalLayout,
               ),
             ),
-          // Push notifications — shared preference (used by
-          // NotificationManager on mobile; the desktop bell reads it too).
-          if (PlatformCapability.supportsBackgroundService)
-            TpPreferenceRow(
+          if (showPushNotifications &&
+              PlatformCapability.supportsBackgroundService)
+            row(
               title: l10n.settingsPushNotifications,
-              trailing: Obx(
-                () => AppSwitch(
-                  active: SettingsManager.to.notifications,
-                  onTap: () async {
-                    await SettingsManager.to.setNotifications(
-                      !SettingsManager.to.notifications,
-                    );
-                  },
-                ),
+              child: preferVerticalLayout
+                  ? Obx(
+                      () => Align(
+                        alignment: Alignment.centerLeft,
+                        child: Switch.adaptive(
+                          value: SettingsManager.to.notifications,
+                          onChanged: (value) async {
+                            await SettingsManager.to.setNotifications(value);
+                          },
+                        ),
+                      ),
+                    )
+                  : Obx(
+                      () => AppSwitch(
+                        active: SettingsManager.to.notifications,
+                        onTap: () async {
+                          await SettingsManager.to.setNotifications(
+                            !SettingsManager.to.notifications,
+                          );
+                        },
+                      ),
+                    ),
+            ),
+          if (showLanguage)
+            row(
+              title: l10n.language,
+              subtitle: l10n.languageDescription,
+              showDividerBelow: false,
+              child: TpSegmentedPicker<String>(
+                selected: langValue,
+                onChanged: cubit.setLocale,
+                segments: [
+                  TpSegmentedOption(
+                    value: 'zh',
+                    label: l10n.languageChinese,
+                    icon: Icons.translate,
+                  ),
+                  TpSegmentedOption(
+                    value: 'en',
+                    label: l10n.languageEnglish,
+                    icon: Icons.language,
+                  ),
+                ],
               ),
             ),
-          TpPreferenceRow(
-            title: l10n.language,
-            subtitle: l10n.languageDescription,
-            trailing: TpSegmentedPicker<String>(
-              selected: langValue,
-              onChanged: cubit.setLocale,
-              segments: [
-                TpSegmentedOption(
-                  value: 'zh',
-                  label: l10n.languageChinese,
-                  icon: Icons.translate,
-                ),
-                TpSegmentedOption(
-                  value: 'en',
-                  label: l10n.languageEnglish,
-                  icon: Icons.language,
-                ),
-              ],
-            ),
-            showDividerBelow: false,
-          ),
         ];
 
         if (!withCard) {
@@ -163,6 +207,69 @@ class HujiAppearanceSettingsSection extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _AppearancePreferenceTile extends StatelessWidget {
+  const _AppearancePreferenceTile({
+    required this.title,
+    required this.child,
+    this.subtitle,
+    this.verticalLayout = false,
+    this.showDividerBelow = true,
+  });
+
+  final String title;
+  final String? subtitle;
+  final Widget child;
+  final bool verticalLayout;
+  final bool showDividerBelow;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!verticalLayout) {
+      return TpPreferenceRow(
+        title: title,
+        subtitle: subtitle,
+        trailing: child,
+        showDividerBelow: showDividerBelow,
+      );
+    }
+
+    final cs = Theme.of(context).colorScheme;
+    final styles = TpTextStyles.of(context);
+    final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
+          height: 1.35,
+        ) ??
+        styles.md;
+    final hasSub = TpPreferenceRow.hasSubtitle(subtitle);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: TpPreferenceRow.defaultPadding,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(title, style: titleStyle),
+              if (hasSub) ...[
+                const SizedBox(height: 4),
+                Text(subtitle!.trim(), style: styles.mutedSm),
+              ],
+              const SizedBox(height: 12),
+              child,
+            ],
+          ),
+        ),
+        if (showDividerBelow)
+          Divider(
+            height: 1,
+            thickness: 1,
+            color: cs.outlineVariant.withValues(alpha: 0.5),
+          ),
+      ],
     );
   }
 }

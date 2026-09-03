@@ -6,6 +6,7 @@ import 'package:huji_app/pages/system/changelog_page.dart';
 import 'package:huji_app/pages/system/developer_options_page.dart';
 import 'package:huji_app/pages/system/help_feedback_page.dart';
 import 'package:huji_app/pages/system/log_viewer_page.dart';
+import 'package:huji_app/pages/system/appearance_settings_page.dart';
 import 'package:huji_app/pages/system/settings_page.dart';
 import 'package:huji_app/pages/system/version_info_page.dart';
 import 'package:huji_app/pages/permission/permission_management_page.dart';
@@ -17,6 +18,7 @@ class ProfileRoute implements RouteModule {
   static const String securitySettings = '/profile/security';
   static const String helpFeedback = '/profile/help-feedback';
   static const String settings = '/profile/settings';
+  static const String appearanceSettings = '/profile/settings/appearance';
   static const String permissionManagement = '/profile/permissions';
   static const String versionInfo = '/profile/version-info';
   static const String changelog = '/user/changelog';
@@ -59,6 +61,12 @@ class ProfileRoute implements RouteModule {
         path: settings,
         name: 'settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+
+      GoRoute(
+        path: appearanceSettings,
+        name: 'appearanceSettings',
+        builder: (context, state) => const AppearanceSettingsPage(),
       ),
 
       // 权限管理页

@@ -12,6 +12,7 @@ class TypographyScaleSetting extends StatefulWidget {
     required this.customMultiplier,
     required this.onScaleIdChanged,
     required this.onCustomMultiplierChanged,
+    this.expandToWidth = false,
     super.key,
   });
 
@@ -19,6 +20,9 @@ class TypographyScaleSetting extends StatefulWidget {
   final double customMultiplier;
   final ValueChanged<String> onScaleIdChanged;
   final ValueChanged<double> onCustomMultiplierChanged;
+
+  /// Full-width stacked layout for mobile preference tiles.
+  final bool expandToWidth;
 
   @override
   State<TypographyScaleSetting> createState() => _TypographyScaleSettingState();
@@ -71,6 +75,65 @@ class _TypographyScaleSettingState extends State<TypographyScaleSetting> {
     final l10n = context.hujiL10n;
     final isCustom = widget.scaleId == 'custom';
 
+    final picker = TpSegmentedPicker<String>(
+      selected: widget.scaleId,
+      scrollable: !widget.expandToWidth,
+      onChanged: (id) {
+        widget.onScaleIdChanged(id);
+        if (id == 'custom') {
+          widget.onCustomMultiplierChanged(widget.customMultiplier);
+        }
+      },
+      segments: [
+        TpSegmentedOption(
+          value: 'compact',
+          label: l10n.typographyScaleCompact,
+          icon: Icons.density_small_outlined,
+        ),
+        TpSegmentedOption(
+          value: 'standard',
+          label: l10n.typographyScaleStandard,
+          icon: Icons.density_medium_outlined,
+        ),
+        TpSegmentedOption(
+          value: 'comfortable',
+          label: l10n.typographyScaleComfortable,
+          icon: Icons.density_large_outlined,
+        ),
+        TpSegmentedOption(
+          value: 'custom',
+          label: l10n.typographyScaleCustom,
+          icon: Icons.tune_outlined,
+        ),
+      ],
+    );
+
+    final customField = TpInput(
+      controller: _percentController,
+      keyboardType: TextInputType.number,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: InputDecoration(
+        hintText: l10n.typographyScaleCustomHint,
+        suffixText: '%',
+      ),
+      onSubmitted: (_) => _commitPercentInput(),
+      onEditingComplete: _commitPercentInput,
+      onTapOutside: (_) => _commitPercentInput(),
+    );
+
+    if (widget.expandToWidth) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          picker,
+          if (isCustom) ...[
+            const SizedBox(height: 8),
+            customField,
+          ],
+        ],
+      );
+    }
+
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.centerRight,
@@ -78,55 +141,10 @@ class _TypographyScaleSettingState extends State<TypographyScaleSetting> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          TpSegmentedPicker<String>(
-            selected: widget.scaleId,
-            scrollable: false,
-            onChanged: (id) {
-              widget.onScaleIdChanged(id);
-              if (id == 'custom') {
-                widget.onCustomMultiplierChanged(widget.customMultiplier);
-              }
-            },
-            segments: [
-              TpSegmentedOption(
-                value: 'compact',
-                label: l10n.typographyScaleCompact,
-                icon: Icons.density_small_outlined,
-              ),
-              TpSegmentedOption(
-                value: 'standard',
-                label: l10n.typographyScaleStandard,
-                icon: Icons.density_medium_outlined,
-              ),
-              TpSegmentedOption(
-                value: 'comfortable',
-                label: l10n.typographyScaleComfortable,
-                icon: Icons.density_large_outlined,
-              ),
-              TpSegmentedOption(
-                value: 'custom',
-                label: l10n.typographyScaleCustom,
-                icon: Icons.tune_outlined,
-              ),
-            ],
-          ),
+          picker,
           if (isCustom) ...[
             const SizedBox(width: 8),
-            SizedBox(
-              width: 96,
-              child: TpInput(
-                controller: _percentController,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  hintText: l10n.typographyScaleCustomHint,
-                  suffixText: '%',
-                ),
-                onSubmitted: (_) => _commitPercentInput(),
-                onEditingComplete: _commitPercentInput,
-                onTapOutside: (_) => _commitPercentInput(),
-              ),
-            ),
+            SizedBox(width: 96, child: customField),
           ],
         ],
       ),
