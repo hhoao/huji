@@ -120,13 +120,6 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 
 Install [FFmpeg](https://ffmpeg.org/) and add it to `PATH`. See [huji-algorithm/README.en.md](huji-algorithm/README.en.md) for more Windows notes.
 
-#### Service mode (Kafka + HTTP)
-
-```bash
-cd docker/dev && docker compose up -d
-python main.py --serve
-```
-
 Common CLI flags:
 
 | Flag | Description |
@@ -135,8 +128,10 @@ Common CLI flags:
 | `--sport` | `ping_pong` or `badminton` |
 | `--match-type` | Badminton: `singles` (default) / `doubles` |
 | `--output-dir` / `-o` | Output directory (overrides config) |
-| `--serve` | Start Kafka + HTTP service |
+| `--cleanup` / `--no-cleanup` | Whether to clean temp output after clipping (overrides cleanup config) |
 | `--train` | Train models |
+
+Intermediate files produced during clipping are cleaned automatically after each task per the `cleanup` config; see "Output directories & auto cleanup" in [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
 
 More details: [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
 

@@ -120,13 +120,6 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 
 需预先安装 [FFmpeg](https://ffmpeg.org/) 并加入 PATH。更多 Windows 说明见 [huji-algorithm/README.md](huji-algorithm/README.md)。
 
-#### 服务模式（Kafka + HTTP）
-
-```bash
-cd docker/dev && docker compose up -d
-python main.py --serve
-```
-
 常用 CLI 参数：
 
 | 参数 | 说明 |
@@ -135,8 +128,10 @@ python main.py --serve
 | `--sport` | `ping_pong` 或 `badminton` |
 | `--match-type` | 羽毛球：`singles`（默认）/ `doubles` |
 | `--output-dir` / `-o` | 输出目录（覆盖配置） |
-| `--serve` | 启动 Kafka + HTTP 服务 |
+| `--cleanup` / `--no-cleanup` | 剪辑后是否清理临时输出（覆盖 cleanup 配置） |
 | `--train` | 训练模型 |
+
+剪辑过程中的中间文件会按 `cleanup` 配置在任务结束后自动清理，详见 [huji-algorithm/README.md](huji-algorithm/README.md) 的「输出目录与自动清理」。
 
 更多说明见 [huji-algorithm/README.md](huji-algorithm/README.md)。
 
