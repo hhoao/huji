@@ -78,6 +78,10 @@ abstract final class LoginDialogLayout {
   static double get sectionGap =>
       _isDesktop ? 32.0 : 24.0; // web space-y-6 / my-6
   static double get tabGap => _isDesktop ? 32.0 : 24.0; // web space-x-6
+
+  /// Gap between the login-type tab label and its underline — the web modal
+  /// uses 4px padding-bottom on the checked radio label.
+  static double get tabUnderlineGap => _isDesktop ? 6.0 : 4.0;
 }
 
 /// Forces the login modal subtree onto a light card theme regardless of app mode.

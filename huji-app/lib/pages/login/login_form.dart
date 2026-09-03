@@ -232,50 +232,81 @@ class _LoginFormState extends State<LoginForm> {
                       },
               ),
             ),
-          if (_loginType == LoginType.password) ...[
-            SizedBox(height: LoginDialogLayout.fieldGap),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                TpHover(
-                  onTap: () =>
-                      setState(() => _rememberPassword = !_rememberPassword),
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          value: _rememberPassword,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          visualDensity: VisualDensity.compact,
-                          onChanged: (value) {
-                            setState(() => _rememberPassword = value ?? false);
-                          },
+          // Mirrors the web modal's <transition name="fade" mode="out-in"> on
+          // the remember-password row: fade the row, then collapse the gap.
+          // The input itself swaps instantly, like the web's single el-input.
+          AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) =>
+                  FadeTransition(opacity: animation, child: child),
+              layoutBuilder: (currentChild, previousChildren) => Stack(
+                alignment: Alignment.topCenter,
+                children: [
+                  ...previousChildren,
+                  if (currentChild != null) currentChild,
+                ],
+              ),
+              child: _loginType == LoginType.password
+                  ? Column(
+                      key: const ValueKey('rememberPassword'),
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(height: LoginDialogLayout.fieldGap),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            TpHover(
+                              onTap: () => setState(
+                                () => _rememberPassword = !_rememberPassword,
+                              ),
+                              padding: const EdgeInsets.symmetric(vertical: 2),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Checkbox(
+                                      value: _rememberPassword,
+                                      materialTapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      visualDensity: VisualDensity.compact,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          _rememberPassword = value ?? false;
+                                        });
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    l10n.loginRememberPassword,
+                                    style: styles.md.copyWith(
+                                      color: LoginDialogColors.bodyText,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            buildDialogLinkButton(
+                              context,
+                              onPressed: () {
+                                _resetForm();
+                                widget.onSwitchForm(FormType.forgotPassword);
+                              },
+                              label: l10n.loginForgotPassword,
+                            ),
+                          ],
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        l10n.loginRememberPassword,
-                        style: styles.md.copyWith(color: LoginDialogColors.bodyText),
-                      ),
-                    ],
-                  ),
-                ),
-                buildDialogLinkButton(
-                  context,
-                  onPressed: () {
-                    _resetForm();
-                    widget.onSwitchForm(FormType.forgotPassword);
-                  },
-                  label: l10n.loginForgotPassword,
-                ),
-              ],
+                      ],
+                    )
+                  : const SizedBox.shrink(key: ValueKey('noRememberPassword')),
             ),
-          ],
+          ),
           SizedBox(height: LoginDialogLayout.fieldGap),
           buildDialogActionButton(
             context,
@@ -415,6 +446,7 @@ class _LoginTypeTabs extends StatelessWidget {
       onTap: onTap,
       padding: const EdgeInsets.only(bottom: 4),
       child: Container(
+        padding: EdgeInsets.only(bottom: LoginDialogLayout.tabUnderlineGap),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
