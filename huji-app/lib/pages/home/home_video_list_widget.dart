@@ -14,6 +14,7 @@ import 'package:huji_app/router/modules/clip.dart';
 import 'package:huji_app/router/modules/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart' as time_utils;
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class HomeVideoListWidget extends StatelessWidget {
@@ -133,6 +134,8 @@ class _HomeVideoListWidget extends StatelessWidget {
     LocalVideoRecord record,
   ) {
     final l10n = context.hujiL10n;
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
     if (record is ProcessVideoRecord) {
       // 从 Bloc 状态中获取任务进度
       final progress = state.taskProgressMap[record.taskId] ?? 0.0;
@@ -143,12 +146,12 @@ class _HomeVideoListWidget extends StatelessWidget {
           LinearProgressIndicator(
             value: progress,
             color: Colors.blue,
-            backgroundColor: Colors.grey[200],
+            backgroundColor: cs.subtleFill,
           ),
           const SizedBox(height: 4),
           Text(
             l10n.homeVideoProcessingProgress((progress * 100).round()),
-            style: const TextStyle(fontSize: 11, color: Colors.grey),
+            style: styles.mutedXs,
           ),
         ],
       );
@@ -159,7 +162,7 @@ class _HomeVideoListWidget extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             l10n.homeVideoSubtitleCompleted,
-            style: const TextStyle(fontSize: 11, color: Colors.green),
+            style: styles.xsColored(Colors.green),
           ),
         ],
       );
@@ -227,6 +230,8 @@ class _HomeVideoListWidget extends StatelessWidget {
     String? time,
     String? category,
   }) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
     return TpHover(
       onTap: () {
         Throttles.throttle(
@@ -243,7 +248,7 @@ class _HomeVideoListWidget extends StatelessWidget {
             // 缩略图区域
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: cs.subtleFill,
                 borderRadius: const BorderRadius.vertical(
                   bottom: Radius.circular(12),
                   top: Radius.circular(12),
@@ -275,16 +280,16 @@ class _HomeVideoListWidget extends StatelessWidget {
                             width: double.infinity,
                             height: double.infinity,
                             decoration: BoxDecoration(
-                              color: Colors.grey[400],
+                              color: cs.outline,
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Center(
                               child: Text(
                                 title.isNotEmpty ? title.characters.first : '?',
-                                style: const TextStyle(
-                                  fontSize: 28,
-                                  color: Colors.white,
-                                ),
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium
+                                    ?.copyWith(color: cs.onSurface),
                               ),
                             ),
                           ),
@@ -304,11 +309,8 @@ class _HomeVideoListWidget extends StatelessWidget {
                       ),
                       child: Text(
                         time ?? '00:00',
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        textScaler: kLegacyCaptionTextScaler,
+                        style: styles.xsMediumColored(Colors.white),
                       ),
                     ),
                   ),
@@ -327,11 +329,8 @@ class _HomeVideoListWidget extends StatelessWidget {
                       ),
                       child: Text(
                         category ?? context.hujiL10n.unknownLabel,
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
-                          fontWeight: FontWeight.w500,
-                        ),
+                        textScaler: kLegacyCaptionTextScaler,
+                        style: styles.xsMediumColored(Colors.white),
                       ),
                     ),
                   ),
@@ -370,12 +369,14 @@ class _HomeVideoListWidget extends StatelessWidget {
   }
 
   Widget _buildPlaceholderCard(BuildContext context, {double? width}) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
     return SizedBox(
       width: width,
       child: DottedBorder(
         options: RoundedRectDottedBorderOptions(
           radius: Radius.circular(12),
-          color: Colors.grey[400]!,
+          color: cs.outline,
           strokeWidth: 1.5,
           dashPattern: [6, 4],
         ),
@@ -385,7 +386,8 @@ class _HomeVideoListWidget extends StatelessWidget {
           child: Center(
             child: Text(
               context.hujiL10n.homeVideoNoMoreRecords,
-              style: TextStyle(color: Colors.grey[400], fontSize: 10),
+              textScaler: kLegacyCaptionTextScaler,
+              style: styles.mutedXs,
             ),
           ),
         ),

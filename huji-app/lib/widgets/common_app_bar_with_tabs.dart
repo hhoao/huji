@@ -15,31 +15,36 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
     this.controller,
     this.leftWidget,
     this.rightWidget,
-    this.backgroundColor = Colors.white,
+    this.backgroundColor,
   });
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final resolvedBackground = backgroundColor ?? cs.surface;
+    final foreground = cs.onSurface;
+    final mutedForeground = cs.onSurfaceVariant;
+
     return PreferredSize(
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: Container(
-        color: backgroundColor,
+        color: resolvedBackground,
         child: SafeArea(
           bottom: false,
           child: Row(
             children: [
-              // 左侧Widget
               leftWidget ?? const SizedBox.shrink(),
-
-              // 中间部分 - 标题或Tab
               Expanded(
                 child: (tabs != null && tabs!.isNotEmpty && controller != null)
                     ? Align(
                         alignment: Alignment.center,
                         child: Theme(
                           data: Theme.of(context).copyWith(
-                            tabBarTheme: const TabBarThemeData(
+                            tabBarTheme: TabBarThemeData(
                               dividerColor: Colors.transparent,
+                              labelColor: foreground,
+                              unselectedLabelColor: mutedForeground,
+                              indicatorColor: cs.primary,
                             ),
                           ),
                           child: TabBar(
@@ -50,11 +55,11 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                             indicator: UnderlineTabIndicator(
                               borderSide: BorderSide(
                                 width: 2.0,
-                                color: Colors.black,
+                                color: cs.primary,
                               ),
                             ),
-                            labelColor: Colors.black,
-                            unselectedLabelColor: Colors.grey,
+                            labelColor: foreground,
+                            unselectedLabelColor: mutedForeground,
                             labelStyle: const TextStyle(fontSize: 14),
                             tabs: tabs!,
                             indicatorSize: TabBarIndicatorSize.label,
@@ -64,15 +69,11 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
                     : Center(
                         child: Text(
                           title ?? '',
-                          style: const TextStyle(
-                            color: Colors.black,
-                            fontSize: 16,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(color: foreground),
                         ),
                       ),
               ),
-
-              // 右侧Widget
               rightWidget ?? const SizedBox.shrink(),
             ],
           ),

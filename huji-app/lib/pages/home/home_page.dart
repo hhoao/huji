@@ -18,6 +18,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 import '../../widgets/common_app_bar_with_tabs.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -41,6 +42,7 @@ class _HomePageState extends State<HomePage> {
   Widget _buildLoadingOverlay() {
     if (!_pickFileLoading) return const SizedBox.shrink();
 
+    final styles = TpTextStyles.of(context);
     return Container(
       color: Colors.black.withValues(alpha: 0.5),
       child: Center(
@@ -51,11 +53,9 @@ class _HomePageState extends State<HomePage> {
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
             ),
             SizedBox(height: 16),
-            Text(context.hujiL10n.homeLoading, style: TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+            Text(
+              context.hujiL10n.homeLoading,
+              style: styles.lgMediumColored(Colors.white),
             ),
           ],
         ),
@@ -154,26 +154,27 @@ class _HomePageState extends State<HomePage> {
                     bottom: 40,
                     left: 20,
                     right: 60, // 为指示器留出空间
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.hujiL10n.homeCarouselAiClipTitle,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          context.hujiL10n.homeCarouselAiClipSubtitle,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            color: Colors.white70,
-                          ),
-                        ),
-                      ],
+                    child: Builder(
+                      builder: (context) {
+                        final styles = TpTextStyles.of(context);
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.hujiL10n.homeCarouselAiClipTitle,
+                              style: styles.display.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.white,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              context.hujiL10n.homeCarouselAiClipSubtitle,
+                              style: styles.lgColored(Colors.white70),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   // 指示器 - 左下角
@@ -207,13 +208,14 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
     return Scaffold(
       appBar: CommonAppBar(
         title: context.hujiL10n.navHome,
         leftWidget: _buildMenuButton(),
         rightWidget: _buildMessageButton(),
       ),
-      backgroundColor: Colors.grey[50],
+      backgroundColor: cs.legacyPageBackground,
       body: SafeArea(
         child: Stack(children: [_buildMainContent(), _buildLoadingOverlay()]),
       ),
@@ -223,7 +225,6 @@ class _HomePageState extends State<HomePage> {
   Widget _buildMenuButton() {
     return TpIconButton(
       icon: Icons.menu,
-      color: Colors.black,
       onTap: () {
         Throttles.throttle(
           'home_menu',
@@ -238,13 +239,13 @@ class _HomePageState extends State<HomePage> {
     return Obx(() {
       final messageStore = MessageStore.instance;
       final unreadCount = messageStore.unreadCount;
+      final styles = TpTextStyles.of(context);
       // final unreadCount = 0;
 
       return Stack(
         children: [
           TpIconButton(
             icon: Icons.mail_outline,
-            color: Colors.black,
             onTap: () {
               Throttles.throttle(
                 'home_message',
@@ -258,7 +259,7 @@ class _HomePageState extends State<HomePage> {
               right: 8,
               top: 8,
               child: Container(
-                padding: const EdgeInsets.all(2),
+                padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Colors.red,
                   borderRadius: BorderRadius.circular(10),
@@ -266,12 +267,9 @@ class _HomePageState extends State<HomePage> {
                 constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
                 child: Text(
                   unreadCount > 99 ? '99+' : unreadCount.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
                   textAlign: TextAlign.center,
+                  textScaler: kLegacyCaptionTextScaler,
+                  style: styles.xsBoldColored(Colors.white).copyWith(height: 1.0),
                 ),
               ),
             ),
@@ -281,65 +279,71 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget buildStartClipWidget() {
-    return TpHover(
-      onTap: () {
-        Throttles.throttle(
-          'start_clip',
-          const Duration(milliseconds: 500),
-          () => _pickVideoAndGoToConfig(null),
-        );
-      },
-      borderRadius: BorderRadius.circular(16),
-      pressScale: 0.97,
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Row(
-          children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.blue[50],
-                shape: BoxShape.circle,
-              ),
-              padding: const EdgeInsets.all(12),
-              child: const Icon(
-                Icons.cloud_upload,
-                color: Colors.blue,
-                size: 24,
-              ),
-            ),
-            SizedBox(width: 16),
-            Expanded(
-              child: Text(context.hujiL10n.homeStartClip, style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+    return TpCard(
+      padding: EdgeInsets.zero,
+      borderRadius: 16,
+      outlined: true,
+      elevation: TpCardElevation.medium,
+      color: cs.legacyCardFill,
+      child: TpHover(
+        onTap: () {
+          Throttles.throttle(
+            'start_clip',
+            const Duration(milliseconds: 500),
+            () => _pickVideoAndGoToConfig(null),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        pressScale: 0.97,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: cs.primaryContainer,
+                  shape: BoxShape.circle,
+                ),
+                padding: const EdgeInsets.all(12),
+                child: Icon(
+                  Icons.cloud_upload,
+                  color: cs.primary,
+                  size: 24,
                 ),
               ),
-            ),
-            const Icon(Icons.arrow_forward_ios, color: Colors.grey),
-          ],
+              SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  context.hujiL10n.homeStartClip,
+                  style: styles.xl.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: cs.onSurface,
+                  ),
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios, color: cs.mutedForeground),
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildToolsSection() {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(context.hujiL10n.homeToolsSection, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        Text(
+          context.hujiL10n.homeToolsSection,
+          textScaler: kLegacySectionTitleTextScaler,
+          style: styles.xl.copyWith(
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
         ),
         SizedBox(height: 12),
         GridView.count(
@@ -351,107 +355,96 @@ class _HomePageState extends State<HomePage> {
           physics: const NeverScrollableScrollPhysics(),
           padding: EdgeInsets.zero,
           children: [
-            Container(
-              child: _buildToolCard(
-                icon: Icons.sports_golf,
-                title: context.hujiL10n.homePingpongClip,
-                subtitle: context.hujiL10n.homePingpongClipDesc,
-                color: Colors.red,
-                onTap: () {
-                  Throttles.throttle(
-                    'pingpong_clip',
-                    const Duration(milliseconds: 500),
-                    () => _pickVideoAndGoToConfig(SportType.pingpong),
-                  );
-                },
-              ),
+            _buildToolCard(
+              icon: Icons.sports_golf,
+              title: context.hujiL10n.homePingpongClip,
+              subtitle: context.hujiL10n.homePingpongClipDesc,
+              color: Colors.red,
+              onTap: () {
+                Throttles.throttle(
+                  'pingpong_clip',
+                  const Duration(milliseconds: 500),
+                  () => _pickVideoAndGoToConfig(SportType.pingpong),
+                );
+              },
             ),
-            Container(
-              child: _buildToolCard(
+            _buildToolCard(
+              icon: Icons.sports_tennis,
+              title: context.hujiL10n.homeBadmintonClip,
+              subtitle: context.hujiL10n.homeBadmintonClipDesc,
+              color: Colors.blue,
+              onTap: () {
+                Throttles.throttle(
+                  'badminton_clip',
+                  const Duration(milliseconds: 500),
+                  () => _pickVideoAndGoToConfig(SportType.badminton),
+                );
+              },
+            ),
+            _buildToolCard(
+              icon: Icons.image,
+              title: context.hujiL10n.taskTypeImageCompress,
+              subtitle: context.hujiL10n.homeImageCompressDesc,
+              color: Colors.purple,
+              onTap: () {
+                Throttles.throttle(
+                  'image_compress',
+                  const Duration(milliseconds: 500),
+                  () async {
+                    final result = await FileSelection.selectImages(
+                      context: context,
+                      allowMultiple: true,
+                    );
+                    if (result != null && result.isNotEmpty) {
+                      if (mounted) {
+                        context.push(
+                          ToolsRoute.imageCompress,
+                          extra: result.map((e) => File(e.path)).toList(),
+                        );
+                      }
+                    }
+                  },
+                );
+              },
+            ),
+            _buildToolCard(
+              icon: Icons.video_file,
+              title: context.hujiL10n.taskTypeVideoCompress,
+              subtitle: context.hujiL10n.homeVideoCompressDesc,
+              color: Colors.teal,
+              onTap: () {
+                Throttles.throttle(
+                  'video_compress',
+                  const Duration(milliseconds: 500),
+                  () async {
+                    final files = await FileSelection.selectVideos(
+                      context: context,
+                      allowMultiple: false,
+                      initialTab: TabType.photoGallery,
+                    );
+                    if (files != null && files.isNotEmpty && mounted) {
+                      context.push(
+                        ToolsRoute.videoCompress,
+                        extra: File(files.first.path),
+                      );
+                    }
+                  },
+                );
+              },
+            ),
+            if (EnvironmentConfig.isDevelopment)
+              _buildToolCard(
                 icon: Icons.sports_tennis,
-                title: context.hujiL10n.homeBadmintonClip,
-                subtitle: context.hujiL10n.homeBadmintonClipDesc,
+                title: context.hujiL10n.testPageTitle,
+                subtitle: context.hujiL10n.testEnvironmentSubtitle,
                 color: Colors.blue,
                 onTap: () {
                   Throttles.throttle(
-                    'badminton_clip',
+                    'test_page',
                     const Duration(milliseconds: 500),
-                    () => _pickVideoAndGoToConfig(SportType.badminton),
+                    () => context.push(ToolsRoute.test),
                   );
                 },
-              ),
-            ),
-            Container(
-              child: _buildToolCard(
-                icon: Icons.image,
-                title: context.hujiL10n.taskTypeImageCompress,
-                subtitle: context.hujiL10n.homeImageCompressDesc,
-                color: Colors.purple,
-                onTap: () {
-                  Throttles.throttle(
-                    'image_compress',
-                    const Duration(milliseconds: 500),
-                    () async {
-                      final result = await FileSelection.selectImages(
-                        context: context,
-                        allowMultiple: true,
-                      );
-                      if (result != null && result.isNotEmpty) {
-                        if (mounted) {
-                          context.push(
-                            ToolsRoute.imageCompress,
-                            extra: result.map((e) => File(e.path)).toList(),
-                          );
-                        }
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-            Container(
-              child: _buildToolCard(
-                icon: Icons.video_file,
-                title: context.hujiL10n.taskTypeVideoCompress,
-                subtitle: context.hujiL10n.homeVideoCompressDesc,
-                color: Colors.teal,
-                onTap: () {
-                  Throttles.throttle(
-                    'video_compress',
-                    const Duration(milliseconds: 500),
-                    () async {
-                      final files = await FileSelection.selectVideos(
-                        context: context,
-                        allowMultiple: false,
-                        initialTab: TabType.photoGallery,
-                      );
-                      if (files != null && files.isNotEmpty && mounted) {
-                        context.push(
-                          ToolsRoute.videoCompress,
-                          extra: File(files.first.path),
-                        );
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
-
-            if (EnvironmentConfig.isDevelopment)
-              Container(
-                child: _buildToolCard(
-                  icon: Icons.sports_tennis,
-                  title: context.hujiL10n.testPageTitle,
-                  subtitle: context.hujiL10n.testEnvironmentSubtitle,
-                  color: Colors.blue,
-                  onTap: () {
-                    Throttles.throttle(
-                      'test_page',
-                      const Duration(milliseconds: 500),
-                      () => context.push(ToolsRoute.test),
-                    );
-                  },
-                ),
               ),
           ],
         ),
@@ -466,47 +459,38 @@ class _HomePageState extends State<HomePage> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return TpHover(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      pressScale: 0.97,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[300]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black12,
-              blurRadius: 4,
-              offset: const Offset(0, 1),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(icon, color: color, size: 20),
-                SizedBox(width: 6),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+    return TpCard.tiled(
+      padding: EdgeInsets.zero,
+      color: cs.legacyCardFill,
+      child: TpHover(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        pressScale: 0.97,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(icon, color: color, size: 20),
+                  SizedBox(width: 6),
+                  Text(
+                    title,
+                    style: styles.mdSemiboldColored(cs.onSurface),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 4),
-            Text(
-              subtitle,
-              style: const TextStyle(fontSize: 10, color: Colors.grey),
-            ),
-          ],
+                ],
+              ),
+              SizedBox(height: 4),
+              Text(
+                subtitle,
+                textScaler: kLegacyCaptionTextScaler,
+                style: styles.mutedXs,
+              ),
+            ],
+          ),
         ),
       ),
     );
