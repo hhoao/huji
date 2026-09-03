@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class VideoProgressOverlay extends StatefulWidget {
   final bool isProcessing;
@@ -123,6 +124,7 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
     if (!widget.isProcessing) return const SizedBox.shrink();
 
     final l10n = context.hujiL10n;
+    final cs = context.cs;
     return Container(
       color: Colors.white.withValues(alpha: 0.5),
       child: BackdropFilter(
@@ -131,11 +133,11 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
           child: Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cs.cardFill,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: cs.softShadow,
                   blurRadius: 20,
                   offset: const Offset(0, 10),
                 ),
@@ -156,16 +158,16 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(24),
                           border: Border.all(
-                            color: const Color(0xFF6C63FF),
+                            color: cs.primary,
                             width: 4,
                           ),
                         ),
-                        child: const Padding(
-                          padding: EdgeInsets.all(4),
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Color(0xFF6C63FF),
+                              cs.primary,
                             ),
                           ),
                         ),
@@ -183,9 +185,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                       opacity: 0.7 + (_pulseController.value * 0.3),
                       child: Text(
                         _getStatusText(l10n),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey,
+                          color: cs.mutedForeground,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -203,7 +205,7 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                         opacity: 0.6 + (_pulseController.value * 0.2),
                         child: Text(
                           l10n.leavePageProcessingNotification,
-                          style: const TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: cs.mutedForeground),
                           textAlign: TextAlign.center,
                         ),
                       );
@@ -227,9 +229,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                     ? 100
                                     : widget.progressInfo!.progress) /
                                 100,
-                            backgroundColor: Colors.grey[200],
-                            valueColor: const AlwaysStoppedAnimation<Color>(
-                              Color(0xFF6C63FF),
+                            backgroundColor: cs.subtleFill,
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              cs.primary,
                             ),
                             minHeight: 8,
                           ),
@@ -248,9 +250,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                   l10n.videoDuration(
                                     '${widget.progressInfo!.videoDuration.toStringAsFixed(1)} s',
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -258,9 +260,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                   l10n.estimatedRemainingTimeSeconds(
                                     _estimatedRemainingTime.round(),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 ),
                               ],
@@ -275,9 +277,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                     widget.progressInfo!.processSpeed
                                         .toStringAsFixed(2),
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 ),
                                 const SizedBox(height: 4),
@@ -286,9 +288,9 @@ class _VideoProgressOverlayState extends State<VideoProgressOverlay>
                                     l10n,
                                     widget.progressInfo!.status,
                                   ),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 12,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 ),
                               ],

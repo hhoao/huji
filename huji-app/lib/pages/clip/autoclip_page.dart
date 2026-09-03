@@ -28,6 +28,7 @@ import 'package:huji_app/utils/video_utils.dart';
 import 'package:uuid/uuid.dart';
 import 'package:video_player/video_player.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class VideoEditConfigPage extends StatefulWidget {
   final RawVideoRecord rawVideoRecord;
@@ -337,14 +338,17 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cs.surface,
         elevation: 0,
         leading: TpIconButton(
           icon: Icons.arrow_back,
-          color: Colors.black87,
+          color: cs.onSurface,
           onTap: () {
             Throttles.throttle(
               'autoclip_back',
@@ -358,11 +362,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
           children: [
             Text(
               _getSportTypeTitle(context),
-              style: const TextStyle(
-                color: Colors.black87,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+              style: styles.lgBold.copyWith(color: cs.onSurface),
             ),
           ],
         ),
@@ -382,12 +382,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                   Container(
                     decoration: BoxDecoration(
                       border: Border.all(
-                        color: Colors.grey[300]!,
+                        color: cs.outlineVariant,
                         style: BorderStyle.solid,
                         width: 2,
                       ),
                       borderRadius: BorderRadius.circular(16),
-                      color: Colors.grey[100],
+                      color: cs.subtleFill,
                     ),
                     child: Stack(
                       children: [
@@ -409,7 +409,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         context.hujiL10n.currentFile(_currentPath!),
-                        style: const TextStyle(fontSize: 12),
+                        style: styles.xs.copyWith(color: cs.mutedForeground),
                       ),
                     ),
                 ],
@@ -421,12 +421,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: cs.cardFill,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey[300]!),
+                  border: Border.all(color: cs.outlineVariant),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
+                      color: cs.softShadow,
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -457,10 +457,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
           Container(
             padding: const EdgeInsets.all(16.0),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cs.surface,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black12,
+                  color: cs.softShadow,
                   blurRadius: 8,
                   offset: Offset(0, -2),
                 ),
@@ -487,23 +487,27 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                         padding: const EdgeInsets.all(16),
                         margin: const EdgeInsets.only(bottom: 16),
                         decoration: BoxDecoration(
-                          color: Colors.blue[50],
+                          color: cs.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.blue[200]!),
+                          border: Border.all(
+                            color: cs.primary.withValues(alpha: 0.3),
+                          ),
                         ),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Row(
                               children: [
-                                const CircularProgressIndicator(),
+                                CircularProgressIndicator(color: cs.primary),
                                 SizedBox(width: 16),
                                 Expanded(
                                   child: Text(
                                     isUploading
                                         ? uploadStatus ?? ''
                                         : processStatus ?? '',
-                                    style: const TextStyle(fontSize: 16),
+                                    style: styles.lg.copyWith(
+                                      color: cs.onSurface,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -513,10 +517,9 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                 padding: const EdgeInsets.only(top: 8.0),
                                 child: LinearProgressIndicator(
                                   value: uploadProgress,
-                                  backgroundColor: Colors.grey[300],
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                    Colors.blue,
+                                  backgroundColor: cs.outlineVariant,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    cs.primary,
                                   ),
                                 ),
                               ),
@@ -619,10 +622,12 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
   }
 
   Widget _buildPlaceholder() {
+    final cs = context.cs;
+
     return Container(
       height: 180,
       width: double.infinity,
-      color: Colors.grey[300],
+      color: cs.outlineVariant,
       child: TpEmptyState(
         centered: true,
         icon: Icons.video_library,

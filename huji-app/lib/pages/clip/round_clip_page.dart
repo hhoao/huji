@@ -26,6 +26,7 @@ import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// 回合编辑页面
@@ -314,7 +315,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 child: Icon(
                   Icons.drag_handle,
                   size: 18,
-                  color: Colors.grey[600],
+                  color: context.cs.mutedForeground,
                 ),
               ),
               SizedBox(width: 8),
@@ -422,6 +423,7 @@ class _RoundClipPageState extends State<RoundClipPage>
           child: Opacity(
             opacity: 0.8,
             child: _buildRoundItemStatic(
+              context: context,
               segment: segment,
               index: index,
               themeColor: themeColor,
@@ -442,6 +444,7 @@ class _RoundClipPageState extends State<RoundClipPage>
               ? Opacity(
                   opacity: 0.3,
                   child: _buildRoundItemStatic(
+                    context: context,
                     segment: segment,
                     index: index,
                     themeColor: themeColor,
@@ -449,6 +452,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                   ),
                 )
               : _buildRoundItemStatic(
+                  context: context,
                   segment: segment,
                   index: index,
                   themeColor: themeColor,
@@ -588,6 +592,7 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   /// 构建静态回合项（不依赖 Bloc，用于拖动时的反馈）
   Widget _buildRoundItemStatic({
+    required BuildContext context,
     required SegmentInfo segment,
     required int index,
     Color? themeColor,
@@ -595,12 +600,13 @@ class _RoundClipPageState extends State<RoundClipPage>
   }) {
     final duration = segment.endSeconds - segment.startSeconds;
     final effectiveThemeColor = themeColor ?? Colors.blue;
+    final cs = context.cs;
 
     return Container(
       width: 60,
       height: 60,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.cardFill,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: effectiveThemeColor.withValues(alpha: 0.3),
@@ -608,7 +614,7 @@ class _RoundClipPageState extends State<RoundClipPage>
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
+            color: cs.softShadow,
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -685,6 +691,7 @@ class _RoundClipPageState extends State<RoundClipPage>
         final isCurrentSegment = state.currentPlayingSegment == segment;
         final isFavorite = state.isSegmentFavorite(segment);
         final effectiveThemeColor = themeColor ?? Colors.blue;
+        final cs = context.cs;
 
         return Container(
           key: key,
@@ -698,7 +705,7 @@ class _RoundClipPageState extends State<RoundClipPage>
               decoration: BoxDecoration(
                 color: isCurrentSegment
                     ? effectiveThemeColor.withValues(alpha: 0.1)
-                    : Colors.white,
+                    : cs.cardFill,
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
                   color: isCurrentSegment
@@ -708,7 +715,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
+                    color: cs.softShadow,
                     blurRadius: 2,
                     offset: const Offset(0, 1),
                   ),
@@ -780,7 +787,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                             '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                             style: TextStyle(
                               fontSize: 6,
-                              color: Colors.grey[600],
+                              color: context.cs.mutedForeground,
                             ),
                           ),
                         ],
@@ -829,7 +836,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 child: Icon(
                   Icons.drag_handle,
                   size: 18,
-                  color: Colors.grey[600],
+                  color: context.cs.mutedForeground,
                 ),
               ),
               SizedBox(width: 8),
@@ -920,7 +927,7 @@ class _RoundClipPageState extends State<RoundClipPage>
                 child: Icon(
                   Icons.open_in_full,
                   size: 20,
-                  color: Colors.grey[600],
+                  color: context.cs.mutedForeground,
                 ),
               ),
             ],

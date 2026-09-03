@@ -8,6 +8,7 @@ import 'bloc/round_clip_bloc.dart';
 import 'bloc/round_clip_event.dart';
 import 'bloc/round_clip_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// 通用回合选择弹窗
@@ -120,7 +121,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                                 : Icons.star_border,
                             color: _isCurrentFavorite(state)
                                 ? Colors.orange
-                                : Colors.grey,
+                                : context.cs.mutedForeground,
                             size: 20,
                           ),
                         ),
@@ -141,7 +142,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                   ),
                 ),
 
-                Divider(color: Colors.grey[300], height: 1),
+                Divider(color: context.cs.outlineVariant, height: 1),
 
                 // 回合列表
                 Expanded(
@@ -163,6 +164,8 @@ class RoundsSelectionDialog extends StatelessWidget {
                         final isCurrentSegment =
                             state.currentPlayingSegment == segment;
                         final isFavorite = state.isSegmentFavorite(segment);
+
+                        final cs = context.cs;
 
                         return TpHover(
                           onTap: () {
@@ -187,7 +190,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                             decoration: BoxDecoration(
                               color: isCurrentSegment
                                   ? titleColor.withValues(alpha: 0.1)
-                                  : Colors.white,
+                                  : cs.cardFill,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: isCurrentSegment
@@ -197,7 +200,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.1),
+                                  color: cs.softShadow,
                                   blurRadius: 4,
                                   offset: const Offset(0, 2),
                                 ),
@@ -298,7 +301,7 @@ class RoundsSelectionDialog extends StatelessWidget {
                                           '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                                           style: TextStyle(
                                             fontSize: 8,
-                                            color: Colors.grey[600],
+                                            color: cs.mutedForeground,
                                           ),
                                         ),
                                       ],
@@ -493,6 +496,8 @@ class SimpleSegmentsDialog extends StatelessWidget {
         builder: (context, record, _) {
           final segments = record?.allMatchSegments ?? [];
 
+          final cs = context.cs;
+
           return SizedBox(
             width: media.width * 0.9,
             height: media.height * 0.8,
@@ -550,7 +555,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                   ),
                 ),
 
-                Divider(color: Colors.grey[300], height: 1),
+                Divider(color: context.cs.outlineVariant, height: 1),
 
                 // 片段列表
                 Expanded(
@@ -561,7 +566,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                             child: Text(
                               context.hujiL10n.noSegmentsYet,
                               style: TextStyle(
-                                color: Colors.grey[600],
+                                color: cs.mutedForeground,
                                 fontSize: 14,
                               ),
                             ),
@@ -582,7 +587,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
 
                               return Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.white,
+                                  color: cs.cardFill,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
                                     color: titleColor.withValues(alpha: 0.3),
@@ -590,9 +595,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.1,
-                                      ),
+                                      color: cs.softShadow,
                                       blurRadius: 4,
                                       offset: const Offset(0, 2),
                                     ),
@@ -662,7 +665,7 @@ class SimpleSegmentsDialog extends StatelessWidget {
                                               '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
                                               style: TextStyle(
                                                 fontSize: 8,
-                                                color: Colors.grey[600],
+                                                color: cs.mutedForeground,
                                               ),
                                             ),
                                           ],

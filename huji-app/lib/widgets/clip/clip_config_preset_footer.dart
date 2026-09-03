@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/widgets/feature_stub_actions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// Shared "save as preset" stub — same on mobile and desktop until implemented.
@@ -21,7 +22,7 @@ class ClipConfigPresetFooter extends StatelessWidget {
     final styles = TpTextStyles.of(context);
     final muted = outlined
         ? Theme.of(context).colorScheme.onSurfaceVariant
-        : Colors.grey;
+        : context.cs.mutedForeground;
 
     return Padding(
       padding: padding,

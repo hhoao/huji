@@ -12,6 +12,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class SportSelectionPage extends StatefulWidget {
@@ -129,14 +130,17 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: cs.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: cs.surface,
         elevation: 0,
         leading: TpIconButton(
           icon: Icons.arrow_back,
-          color: Colors.black87,
+          color: cs.onSurface,
           onTap: () {
             Throttles.throttle(
               'sport_selection_back',
@@ -145,11 +149,9 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
             );
           },
         ),
-        title: Text(context.hujiL10n.selectSportType, style: TextStyle(
-            color: Colors.black87,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
+        title: Text(
+          context.hujiL10n.selectSportType,
+          style: styles.lgBold.copyWith(color: cs.onSurface),
         ),
         centerTitle: true,
       ),
@@ -204,14 +206,14 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
               ],
 
               // 运动类型选择
-              Text(context.hujiL10n.selectSportType, style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black87,
-                ),
+              Text(
+                context.hujiL10n.selectSportType,
+                style: styles.lgBold.copyWith(color: cs.onSurface),
               ),
               SizedBox(height: 8),
-              Text(context.hujiL10n.selectSportTypeHint, style: TextStyle(fontSize: 14, color: Colors.grey),
+              Text(
+                context.hujiL10n.selectSportTypeHint,
+                style: styles.md.copyWith(color: cs.mutedForeground),
               ),
               SizedBox(height: 24),
 
@@ -241,14 +243,14 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 SizedBox(height: 32),
                 const Divider(),
                 SizedBox(height: 24),
-                Text(context.hujiL10n.quickTry, style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
+                Text(
+                  context.hujiL10n.quickTry,
+                  style: styles.lgBold.copyWith(color: cs.onSurface),
                 ),
                 SizedBox(height: 8),
-                Text(context.hujiL10n.quickTryHint, style: TextStyle(fontSize: 14, color: Colors.grey),
+                Text(
+                  context.hujiL10n.quickTryHint,
+                  style: styles.md.copyWith(color: cs.mutedForeground),
                 ),
                 SizedBox(height: 16),
                 DemoVideoPicker(
@@ -271,6 +273,9 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
     required Color color,
     required String description,
   }) {
+    final cs = context.cs;
+    final styles = TpTextStyles.of(context);
+
     return TpHover(
       onTap: () {
         Throttles.throttle(
@@ -284,12 +289,12 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cs.cardFill,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: cs.outlineVariant),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: cs.softShadow,
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -312,26 +317,22 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
+                    style: styles.lgBold.copyWith(color: cs.onSurface),
                   ),
                   SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: styles.md.copyWith(color: cs.mutedForeground),
                   ),
                   SizedBox(height: 8),
                   Text(
                     description,
-                    style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                    style: styles.sm.copyWith(color: cs.mutedForeground),
                   ),
                 ],
               ),
             ),
-            Icon(Icons.arrow_forward_ios, color: Colors.grey[400], size: 16),
+            Icon(Icons.arrow_forward_ios, color: cs.mutedForeground, size: 16),
           ],
         ),
       ),

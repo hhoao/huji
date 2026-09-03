@@ -3,6 +3,7 @@ import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/clip/types.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 // 视频配置组件
@@ -150,6 +151,7 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
   }
 
   Widget _buildSwitchItem(ConfigItem item) {
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
@@ -159,10 +161,10 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
             const SizedBox(width: 8),
             Tooltip(
               message: item.tooltip!,
-              child: const Icon(
+              child: Icon(
                 Icons.help_outline,
                 size: 18,
-                color: Colors.grey,
+                color: cs.mutedForeground,
               ),
             ),
           ],
@@ -179,6 +181,7 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
   Widget _buildSliderItem(ConfigItem item) {
     final sliderConfig = item.sliderConfig!;
     final value = item.value as double;
+    final cs = context.cs;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
@@ -192,10 +195,10 @@ class _VideoConfigWidgetState extends State<VideoConfigWidget> {
                 const SizedBox(width: 8),
                 Tooltip(
                   message: item.tooltip!,
-                  child: const Icon(
+                  child: Icon(
                     Icons.help_outline,
                     size: 18,
-                    color: Colors.grey,
+                    color: cs.mutedForeground,
                   ),
                 ),
               ],

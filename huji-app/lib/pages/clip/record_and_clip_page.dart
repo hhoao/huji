@@ -25,6 +25,7 @@ import 'package:uuid/uuid.dart';
 
 import 'round_selection_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// 边拍边剪辑页面
@@ -273,11 +274,11 @@ class _RecordAndClipPageState extends State<RecordAndClipPage> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(context.hujiL10n.recordAndClip),
-          backgroundColor: Colors.white,
+          backgroundColor: context.cs.surface,
           elevation: 0,
           leading: TpIconButton(
             icon: Icons.arrow_back,
-            color: Colors.black87,
+            color: context.cs.onSurface,
             onTap: () {
               Throttles.throttle(
                 'record_clip_back',
