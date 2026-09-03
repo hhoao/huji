@@ -4,6 +4,7 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class TaskFilter {
@@ -82,11 +83,12 @@ class _TaskTabContentFilterDialogState
     extends State<TaskTabContentFilterDialog> {
   @override
   Widget build(BuildContext context) {
+    final cs = context.cs;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -95,14 +97,14 @@ class _TaskTabContentFilterDialogState
           // 标题栏
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cs.surface,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
             ),
             child: Row(
               children: [
-                const Icon(Icons.filter_list, color: Colors.blue),
+                Icon(Icons.filter_list, color: cs.primary),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(context.hujiL10n.filterConditions, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

@@ -8,6 +8,7 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 typedef TaskTabItemBuilder = Widget Function(
   BuildContext context,
@@ -148,7 +149,10 @@ class TaskTabLoadMoreIndicator {
     return Padding(
       padding: EdgeInsets.all(16),
       child: Center(
-        child: Text(context.hujiL10n.noMoreData, style: TextStyle(color: Colors.grey)),
+        child: Text(
+          context.hujiL10n.noMoreData,
+          style: TextStyle(color: context.cs.mutedForeground),
+        ),
       ),
     );
   }

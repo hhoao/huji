@@ -8,6 +8,7 @@ import 'package:huji_app/pages/task/record/bloc/video_records_tab_state.dart';
 import 'package:huji_app/pages/task/record/video_record_detail_dialog.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class VideoRecordsTabContent extends StatefulWidget {
   final VideoRecordsTabBloc? bloc;
@@ -268,6 +269,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
     // 如果有活跃的筛选条件，按钮不高亮
     final bool isSelected =
         !state.hasActiveFilters && state.selectedStatButton == buttonKey;
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 1.0),
       child: TpButton(
@@ -280,12 +282,12 @@ class _VideoRecordsTabContent extends StatelessWidget {
         },
         child: Row(
           children: [
-            Icon(icon, color: isSelected ? Colors.white : color, size: 16),
+            Icon(icon, color: isSelected ? cs.onPrimary : color, size: 16),
             SizedBox(width: 4),
             Text(
               label,
               style: styles.sm.copyWith(
-                color: isSelected ? Colors.white : Colors.black,
+                color: isSelected ? cs.onPrimary : cs.onSurface,
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -293,13 +295,13 @@ class _VideoRecordsTabContent extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.grey[300],
+                color: isSelected ? cs.onPrimary : cs.subtleFill,
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 count,
                 style: styles.sm.copyWith(
-                  color: isSelected ? color : Colors.grey[800],
+                  color: isSelected ? color : cs.onSurface,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -313,7 +315,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
   Widget _buildRecordCard(BuildContext context, VideoProcessRecordVO record) {
     final l10n = context.hujiL10n;
     final styles = TpTextStyles.of(context);
-    final cs = Theme.of(context).colorScheme;
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: TpCard(
@@ -366,7 +368,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.grey[300],
+                                color: cs.subtleFill,
                                 borderRadius: BorderRadius.circular(4),
                               ),
                               child: Text(
@@ -409,7 +411,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
               // 进度条
               LinearProgressIndicator(
                 value: record.progress / 100,
-                backgroundColor: Colors.grey[300],
+                backgroundColor: cs.subtleFill,
                 valueColor: AlwaysStoppedAnimation<Color>(
                   _getStatusColor(record.status),
                 ),
@@ -467,7 +469,7 @@ class _VideoRecordsTabContent extends StatelessWidget {
       child: Center(
         child: Text(
           context.hujiL10n.noMoreData,
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: context.cs.mutedForeground),
         ),
       ),
     );

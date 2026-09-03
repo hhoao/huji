@@ -10,6 +10,7 @@ import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/huji_l10n_helpers.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 
 class VideoRecordDetailDialog extends StatelessWidget {
   final VideoProcessRecordVO record;
@@ -36,6 +37,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
+    final cs = context.cs;
     return TpDialog(
       maxWidth: 450,
       maxHeight: 700,
@@ -86,13 +88,15 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildDetailSection(l10n, l10n.basicInfo, [
-                  _buildDetailRow(l10n, l10n.videoNameLabel, record.videoName),
+                  _buildDetailRow(context, l10n, l10n.videoNameLabel, record.videoName),
                   _buildDetailRow(
+                    context,
                     l10n,
                     l10n.filterSportType,
                     l10n.sportTypeLabel(record.sportType),
                   ),
                   _buildDetailRow(
+                    context,
                     l10n,
                     l10n.createTimeLabel,
                     timeStampToDateString(record.createTime),
@@ -139,7 +143,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                   const SizedBox(height: 8),
                   LinearProgressIndicator(
                     value: record.progress / 100,
-                    backgroundColor: Colors.grey[300],
+                    backgroundColor: cs.subtleFill,
                     valueColor: AlwaysStoppedAnimation<Color>(
                       _getStatusColor(record.status),
                     ),
@@ -152,12 +156,12 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                         previous.inputVideo != current.inputVideo ||
                         previous.outputVideo != current.outputVideo,
                     builder: (context, state) {
-                      return _buildVideoComparisonSection(l10n, state);
+                      return _buildVideoComparisonSection(context, l10n, state);
                     },
                   ),
                 if (record.videoClipConfigReqVo != null) ...[
                   const SizedBox(height: 16),
-                  _buildConfigSection(l10n, record.videoClipConfigReqVo!),
+                  _buildConfigSection(context, l10n, record.videoClipConfigReqVo!),
                 ],
                 if (record.extraInfo != null &&
                     record.extraInfo!.isNotEmpty) ...[
@@ -167,14 +171,14 @@ class _VideoRecordDetailDialog extends StatelessWidget {
                       width: double.infinity,
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.grey[100],
+                        color: cs.subtleFill,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(
                         record.extraInfo!,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[800],
+                          color: cs.onSurface,
                         ),
                       ),
                     ),
@@ -240,6 +244,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
   }
 
   Widget _buildVideoComparisonSection(
+    BuildContext context,
     HujiLocalizations l10n,
     VideoRecordDetailState state,
   ) {
@@ -280,18 +285,21 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-            _buildDetailRow(l10n, l10n.fileName, inputVideo.fileName),
+            _buildDetailRow(context, l10n, l10n.fileName, inputVideo.fileName),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelDuration,
               _formatDuration(inputVideo.duration),
             ),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelSize,
               _formatFileSize(inputVideo.size),
             ),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelType,
               l10n.videoProcessTypeLabel(inputVideo.videoProcessType),
@@ -328,18 +336,21 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               ],
             ),
             SizedBox(height: 8),
-            _buildDetailRow(l10n, l10n.fileName, outputVideo.fileName),
+            _buildDetailRow(context, l10n, l10n.fileName, outputVideo.fileName),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelDuration,
               _formatDuration(outputVideo.duration),
             ),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelSize,
               _formatFileSize(outputVideo.size),
             ),
             _buildDetailRow(
+              context,
               l10n,
               l10n.labelType,
               l10n.videoProcessTypeLabel(outputVideo.videoProcessType),
@@ -377,12 +388,14 @@ class _VideoRecordDetailDialog extends StatelessWidget {
             ),
             SizedBox(height: 8),
             _buildComparisonRow(
+              context,
               l10n.durationShortenedLabel,
               _formatDuration(durationReduction),
               '${durationReductionPercent.toStringAsFixed(1)}%',
               durationReductionPercent > 0 ? Colors.green : Colors.red,
             ),
             _buildComparisonRow(
+              context,
               l10n.sizeReducedLabel,
               _formatFileSize(sizeReduction),
               '${sizeReductionPercent.toStringAsFixed(1)}%',
@@ -395,11 +408,13 @@ class _VideoRecordDetailDialog extends StatelessWidget {
   }
 
   Widget _buildComparisonRow(
+    BuildContext context,
     String label,
     String value,
     String percent,
     Color color,
   ) {
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -410,7 +425,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               '$label:',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: cs.mutedForeground,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -467,7 +482,13 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildDetailRow(HujiLocalizations l10n, String label, String value) {
+  Widget _buildDetailRow(
+    BuildContext context,
+    HujiLocalizations l10n,
+    String label,
+    String value,
+  ) {
+    final cs = context.cs;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 2),
       child: Row(
@@ -479,7 +500,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
               '$label:',
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[600],
+                color: cs.mutedForeground,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -496,6 +517,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
   }
 
   Widget _buildConfigSection(
+    BuildContext context,
     HujiLocalizations l10n,
     VideoClipConfigReqVo config,
   ) {
@@ -503,12 +525,13 @@ class _VideoRecordDetailDialog extends StatelessWidget {
 
     if (config.mode != null) {
       configItems.add(
-        _buildDetailRow(l10n, l10n.clipMode, l10n.modeLabel(config.mode!)),
+        _buildDetailRow(context, l10n, l10n.clipMode, l10n.modeLabel(config.mode!)),
       );
     }
     if (config.matchType != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.matchType,
           l10n.matchTypeLabel(config.matchType!),
@@ -518,6 +541,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.greatBallEditing != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.highlightClip,
           l10n.booleanLabel(config.greatBallEditing!),
@@ -527,6 +551,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.removeReplay != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.removeReplay,
           l10n.booleanLabel(config.removeReplay!),
@@ -536,6 +561,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.getMatchSegments != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.getMatchSegments,
           l10n.booleanLabel(config.getMatchSegments!),
@@ -545,6 +571,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.reserveTimeBeforeSingleRound != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.reserveBeforeRound,
           l10n.durationSeconds(config.reserveTimeBeforeSingleRound!.round()),
@@ -554,6 +581,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.reserveTimeAfterSingleRound != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.reserveAfterRound,
           l10n.durationSeconds(config.reserveTimeAfterSingleRound!.round()),
@@ -563,6 +591,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.minimumDurationSingleRound != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.minRoundDuration,
           l10n.durationSeconds(config.minimumDurationSingleRound!.round()),
@@ -572,6 +601,7 @@ class _VideoRecordDetailDialog extends StatelessWidget {
     if (config.minimumDurationGreatBall != null) {
       configItems.add(
         _buildDetailRow(
+          context,
           l10n,
           l10n.minHighlightDurationSeconds,
           l10n.durationSeconds(config.minimumDurationGreatBall!.round()),

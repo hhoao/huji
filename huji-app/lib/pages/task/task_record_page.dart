@@ -97,7 +97,6 @@ class _TaskRecordPageState extends State<TaskRecordPage>
   Widget _buildMenuButton() {
     return TpIconButton(
       icon: Icons.menu,
-      color: Colors.black,
       onTap: () {
         context.push(ProfileRoute.settings);
       },
@@ -130,13 +129,11 @@ class _TaskRecordPageState extends State<TaskRecordPage>
       // 本地任务 tab - 显示本地任务筛选
       return TpIconButton(
         icon: Icons.filter_list,
-        color: Colors.black,
         onTap: _onLocalTaskFilter,
       );
     } else {
       return TpIconButton(
         icon: Icons.filter_list,
-        color: Colors.black,
         onTap: _onVideoRecordsFilter,
       );
     }

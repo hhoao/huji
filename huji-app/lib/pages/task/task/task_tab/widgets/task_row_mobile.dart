@@ -10,6 +10,7 @@ import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/pages/task/task/task_tab/widgets/task_row_callbacks.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/time_utils.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class TaskRowMobile extends StatelessWidget {
@@ -36,22 +37,23 @@ class TaskRowMobile extends StatelessWidget {
     return Icons.insert_drive_file;
   }
 
-  Widget _buildTaskIcon(IconData icon, String typeDesc) {
+  Widget _buildTaskIcon(BuildContext context, IconData icon, String typeDesc) {
+    final cs = context.cs;
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(8),
-        color: Colors.deepPurple[50],
+        color: cs.primaryContainer,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.deepPurple, size: 24),
+          Icon(icon, color: cs.primary, size: 24),
           const SizedBox(height: 2),
           Text(
             typeDesc,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 8,
-              color: Colors.deepPurple,
+              color: cs.primary,
               fontWeight: FontWeight.w500,
             ),
             textAlign: TextAlign.center,
@@ -66,6 +68,7 @@ class TaskRowMobile extends StatelessWidget {
   Widget _buildActionButtons(BuildContext context, Task currentTask) {
     final actions = TaskTabListUtils.resolveTaskActions(currentTask);
     if (actions.isEmpty) return const SizedBox.shrink();
+    final cs = context.cs;
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -109,7 +112,7 @@ class TaskRowMobile extends StatelessWidget {
           ),
           TaskRowAction.delete => (
             Icons.close,
-            Colors.grey,
+            cs.mutedForeground,
             context.hujiL10n.deleteTask,
             () => callbacks.onDelete(currentTask),
           ),
@@ -168,6 +171,7 @@ class TaskRowMobile extends StatelessWidget {
             previousTask.image != currentTask.image;
       },
       builder: (context, state) {
+        final cs = context.cs;
         final taskMap = {for (final t in state.allTasks) t.id: t};
         final currentTask = taskMap[task.id] ?? task;
         final isSelected = state.selectedTaskIds.contains(currentTask.id);
@@ -213,16 +217,16 @@ class TaskRowMobile extends StatelessWidget {
                         shape: BoxShape.circle,
                         color: isSelected
                             ? Theme.of(context).primaryColor
-                            : Colors.grey[300],
+                            : cs.surfaceContainerHighest,
                         border: Border.all(
                           color: isSelected
                               ? Theme.of(context).primaryColor
-                              : Colors.grey[400]!,
+                              : cs.outline,
                           width: 2,
                         ),
                       ),
                       child: isSelected
-                          ? const Icon(Icons.check, size: 16, color: Colors.white)
+                          ? Icon(Icons.check, size: 16, color: cs.onPrimary)
                           : null,
                     ),
                     const SizedBox(width: 12),
@@ -232,7 +236,7 @@ class TaskRowMobile extends StatelessWidget {
                     height: _imageSize,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey[100],
+                      color: cs.cardFill,
                     ),
                     child: currentTask.image != null &&
                             currentTask.image!.isNotEmpty
@@ -242,11 +246,11 @@ class TaskRowMobile extends StatelessWidget {
                               File(currentTask.image!),
                               fit: BoxFit.cover,
                               errorBuilder: (context, error, stackTrace) {
-                                return _buildTaskIcon(icon, typeDesc);
+                                return _buildTaskIcon(context, icon, typeDesc);
                               },
                             ),
                           )
-                        : _buildTaskIcon(icon, typeDesc),
+                        : _buildTaskIcon(context, icon, typeDesc),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
@@ -280,7 +284,7 @@ class TaskRowMobile extends StatelessWidget {
                             return LinearProgressIndicator(
                               value: taskForProgress.progress,
                               minHeight: 6,
-                              backgroundColor: Colors.grey[200],
+                              backgroundColor: cs.subtleFill,
                               valueColor: AlwaysStoppedAnimation<Color>(
                                 progressColor,
                               ),
@@ -332,9 +336,9 @@ class TaskRowMobile extends StatelessWidget {
                                 const Spacer(),
                                 Text(
                                   timeStampToTimeAgo(currentTask.createdAt),
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     fontSize: 11,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 ),
                               ],
@@ -347,7 +351,7 @@ class TaskRowMobile extends StatelessWidget {
                   if (state.isBatchMode)
                     TpIconButton(
                       icon: Icons.close,
-                      color: Colors.grey,
+                      color: cs.mutedForeground,
                       onTap: () {
                         Throttles.throttle(
                           'delete_task_${currentTask.id}',

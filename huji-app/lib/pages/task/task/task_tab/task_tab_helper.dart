@@ -16,6 +16,7 @@ import 'bloc/task_tab_bloc.dart';
 import 'bloc/task_tab_state.dart';
 import '../video_records_tab/video_clip_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/widgets/feature_stub_actions.dart';
@@ -88,11 +89,13 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
     context: context,
     isScrollControlled: true,
     backgroundColor: Colors.transparent,
-    builder: (context) => Container(
+    builder: (context) {
+      final cs = context.cs;
+      return Container(
       height: MediaQuery.of(context).size.height * 0.8,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      decoration: BoxDecoration(
+        color: cs.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
         children: [
@@ -100,13 +103,13 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: cs.surface,
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(20),
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.1),
+                  color: cs.softShadow,
                   blurRadius: 4,
                   offset: const Offset(0, 2),
                 ),
@@ -114,7 +117,7 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
             ),
             child: Row(
               children: [
-                const Icon(Icons.image, color: Colors.blue),
+                Icon(Icons.image, color: cs.primary),
                 SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -171,10 +174,10 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
                               width: double.infinity,
                               errorBuilder: (context, error, stackTrace) {
                                 return Container(
-                                  color: Colors.grey[200],
-                                  child: const Icon(
+                                  color: cs.subtleFill,
+                                  child: Icon(
                                     Icons.broken_image,
-                                    color: Colors.grey,
+                                    color: cs.mutedForeground,
                                   ),
                                 );
                               },
@@ -275,7 +278,8 @@ void showImageCompressResults(BuildContext context, ImageCompressTask task) {
           ),
         ],
       ),
-    ),
+    );
+    },
   );
 }
 
@@ -289,7 +293,9 @@ void _showImageDetail(
 
   showTpDialog<void>(
     context: context,
-    builder: (context) => TpDialog(
+    builder: (context) {
+      final cs = context.cs;
+      return TpDialog(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -303,26 +309,30 @@ void _showImageDetail(
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey[200],
-                  child: const Icon(Icons.broken_image, size: 48),
+                  color: cs.subtleFill,
+                  child: Icon(Icons.broken_image, size: 48, color: cs.mutedForeground),
                 );
               },
             ),
           ),
           SizedBox(height: 16),
           _buildDetailRow(
+            context,
             context.hujiL10n.fileName,
             fileNameFromPath(originalFile.path),
           ),
           _buildDetailRow(
+            context,
             context.hujiL10n.originalSize,
             '${(originalFile.lengthSync() / 1024).toStringAsFixed(1)} KB',
           ),
           _buildDetailRow(
+            context,
             context.hujiL10n.compressedSize,
             '${(compressedFile.lengthSync() / 1024).toStringAsFixed(1)} KB',
           ),
           _buildDetailRow(
+            context,
             context.hujiL10n.compressionRatio,
             '${((1 - compressedFile.lengthSync() / originalFile.lengthSync()) * 100).toStringAsFixed(1)}%',
           ),
@@ -345,7 +355,8 @@ void _showImageDetail(
           ),
         ],
       ),
-    ),
+    );
+    },
   );
 }
 
@@ -428,14 +439,15 @@ void _openImageFolder(BuildContext context, String imagePath) {
   FeatureStubActions.showOpenFolder(context);
 }
 
-Widget _buildDetailRow(String label, String value) {
+Widget _buildDetailRow(BuildContext context, String label, String value) {
+  final cs = context.cs;
   return Padding(
     padding: const EdgeInsets.symmetric(vertical: 4),
     child: Row(
       children: [
         Text('$label: ', style: const TextStyle(fontWeight: FontWeight.w500)),
         Expanded(
-          child: Text(value, style: const TextStyle(color: Colors.grey)),
+          child: Text(value, style: TextStyle(color: cs.mutedForeground)),
         ),
       ],
     ),
