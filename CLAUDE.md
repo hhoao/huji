@@ -55,7 +55,7 @@ AMD / Intel GPUs are not covered by this path (CUDA-only).
 
 - `huji-app/` — Flutter app (mobile + desktop), package name `huji_app`
 - `huji-algorithm/` — Python ML pipeline (Git submodule; training + inference)
-- `huji-app/packages/shared_ui` — git submodule (`hhoao/shared_ui`): **Tp\*** design system only (`TpTheme`, `TpTextStyles`, `TpToast`, …). Import via `package:shared_ui/shared_ui.dart`. Appearance / desktop chrome / workspace surfaces live under `huji-app/lib/` (not in the package). Pin: `45f7c245bde1f076ecc7738ee80445ce386ef6a8`.
+- `huji-app/packages/shared_ui` — git submodule (`hhoao/shared_ui`): **Tp\*** design system only (`TpTheme`, `TpTextStyles`, `TpToast`, …). Import via `package:shared_ui/shared_ui.dart`. Appearance / desktop chrome / workspace surfaces live under `huji-app/lib/` (not in the package). Pin: `d2a349302a82d75f9d2663248f926c0273e2931c`.
 - Desktop pages use `media_kit` for video playback (libmpv backend)
 - Mobile pages use `video_player` plugin
 - `MultiVideoPlayerBloc` supports both backends via `PlatformCapability.isDesktop`
