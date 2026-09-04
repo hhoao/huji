@@ -1025,6 +1025,8 @@
   "shortcutsUnbind": "Unbind",
   "shortcutsViewCheatsheet": "View all shortcuts",
   "showSystemLogsLabel": "Show system logs",
+  "sidebarOpenTabsSection": "Open pages",
+  "workspaceNoOpenTabs": "No open pages",
   "sidebarProcessingSection": "In progress",
   "sizeReducedLabel": "Size reduced",
   "slowMotion": "Slow motion",

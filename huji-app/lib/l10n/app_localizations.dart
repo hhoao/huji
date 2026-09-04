@@ -6248,6 +6248,18 @@ abstract class HujiLocalizations {
   /// **'Show system logs'**
   String get showSystemLogsLabel;
 
+  /// No description provided for @sidebarOpenTabsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Open pages'**
+  String get sidebarOpenTabsSection;
+
+  /// No description provided for @workspaceNoOpenTabs.
+  ///
+  /// In en, this message translates to:
+  /// **'No open pages'**
+  String get workspaceNoOpenTabs;
+
   /// No description provided for @sidebarProcessingSection.
   ///
   /// In en, this message translates to:

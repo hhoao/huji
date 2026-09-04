@@ -21,9 +21,70 @@ void main() {
         .whereType<StatefulShellRoute>()
         .single;
 
-    // Sidebar nav areas (home / tasks / settings) plus the clip-workflow
-    // branch that preserves preview / edit state across sidebar switches.
+    // Sidebar nav areas (home / tasks / settings) plus the workspace-tab
+    // branch that hosts dynamic sidebar tabs.
     expect(shell.branches, hasLength(4));
+  });
+
+  test('workspace branch renders the tab host for every tab route', () {
+    final shell = DesktopRoutes
+        .getRoutes()
+        .whereType<StatefulShellRoute>()
+        .single;
+    final workspaceBranch = shell.branches[3];
+
+    final workspaceRoutes = [
+      for (final route in workspaceBranch.routes)
+        ..._selfAndDescendants(route as GoRoute),
+    ];
+
+    // route.path holds the declared (relative for children) path; normalize
+    // to the full matched path for the assertion.
+    String fullPath(GoRoute route) =>
+        route.path.startsWith('/')
+        ? route.path
+        : Uri(path: '/workspace/${route.path}').path;
+
+    expect(
+      workspaceRoutes.map(fullPath),
+      containsAll([
+        '/workspace',
+        '/workspace/video/player',
+        '/workspace/clip/new',
+        '/workspace/clip/:id/preview',
+        '/workspace/clip/:id/edit',
+        '/workspace/tools/video-compress',
+      ]),
+    );
+    for (final route in workspaceRoutes) {
+      expect(route.pageBuilder, isNotNull);
+    }
+  });
+
+  test('legacy workspace paths redirect into the workspace branch', () {
+    String? redirect(String location) => DesktopRoutes.workspaceRedirectPath(
+      Uri.parse(location).path,
+      Uri.parse(location).queryParameters,
+    );
+
+    expect(redirect('/video/player'), '/workspace/video/player');
+    expect(
+      redirect('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a'),
+      '/workspace/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a',
+    );
+    expect(redirect('/clip/new'), '/workspace/clip/new');
+    expect(redirect('/clip/abc/preview'), '/workspace/clip/abc/preview');
+    expect(redirect('/clip/abc/edit'), '/workspace/clip/abc/edit');
+    expect(
+      redirect('/tools/video-compress'),
+      '/workspace/tools/video-compress',
+    );
+
+    // Non-workspace routes pass through untouched.
+    expect(redirect('/tasks'), isNull);
+    expect(redirect('/'), isNull);
+    expect(redirect('/workspace'), isNull);
+    expect(redirect('/login'), isNull);
   });
 
   test('desktop shell child routes disable route-level page transitions', () {
@@ -82,4 +143,11 @@ void main() {
       );
     },
   );
+}
+
+Iterable<GoRoute> _selfAndDescendants(GoRoute route) sync* {
+  yield route;
+  for (final child in route.routes.whereType<GoRoute>()) {
+    yield* _selfAndDescendants(child);
+  }
 }

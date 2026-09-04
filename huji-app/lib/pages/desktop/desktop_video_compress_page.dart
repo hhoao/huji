@@ -23,7 +23,18 @@ import 'package:uuid/uuid.dart';
 class DesktopVideoCompressPage extends StatefulWidget {
   final File? initialFile;
 
-  const DesktopVideoCompressPage({super.key, this.initialFile});
+  /// Closes the hosting workspace tab once the task is submitted.
+  final void Function()? onSubmitted;
+
+  /// Closes the hosting workspace tab when the user cancels.
+  final void Function()? onCancel;
+
+  const DesktopVideoCompressPage({
+    super.key,
+    this.initialFile,
+    this.onSubmitted,
+    this.onCancel,
+  });
 
   @override
   State<DesktopVideoCompressPage> createState() =>
@@ -125,7 +136,8 @@ class _DesktopVideoCompressPageState extends State<DesktopVideoCompressPage> {
       message: context.hujiL10n.taskSubmittedWaiting,
       variant: TpToastVariant.success,
     );
-    context.go('/tasks');
+    widget.onSubmitted?.call();
+    if (mounted) context.go('/tasks');
   }
 
   String _qualityLabel(VideoCompressQuality quality) {
@@ -150,7 +162,7 @@ class _DesktopVideoCompressPageState extends State<DesktopVideoCompressPage> {
       actions: [
         TpButton(
           variant: TpButtonVariant.outline,
-          onPressed: () => context.go('/'),
+          onPressed: widget.onCancel ?? () => context.go('/'),
           child: Text(l10n.taskStatusCancelledShort),
         ),
         SizedBox(width: 8),

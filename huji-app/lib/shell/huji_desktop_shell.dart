@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
 import 'package:huji_app/shell/huji_desktop_sidebar.dart';
 import 'package:huji_app/shell/sidebar/sidebar.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/widgets/chrome/desktop_window_title_bar.dart';
 import 'package:huji_app/widgets/message/message_bell_button.dart';
@@ -72,7 +74,13 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
 
   @override
   Widget build(BuildContext context) {
-    ShortcutRouteScope.instance.update(widget.currentRoute);
+    // Fixed-nav routes are remembered so closing the last workspace tab has
+    // somewhere to go back to; the workspace branch's own routes are skipped
+    // (the host tracks the active tab there instead).
+    if (!DesktopRoutes.isWorkspaceRoute(widget.currentRoute)) {
+      ShortcutRouteScope.instance.update(widget.currentRoute);
+      WorkspaceTabStore.instance.noteNavRoute(widget.currentRoute);
+    }
     final cs = Theme.of(context).colorScheme;
     return Scaffold(
       backgroundColor: cs.workspacePage,

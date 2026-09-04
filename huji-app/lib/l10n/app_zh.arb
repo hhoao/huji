@@ -1025,6 +1025,8 @@
   "shortcutsUnbind": "清除绑定",
   "shortcutsViewCheatsheet": "查看全部快捷键",
   "showSystemLogsLabel": "显示系统日志",
+  "sidebarOpenTabsSection": "打开的页面",
+  "workspaceNoOpenTabs": "没有打开的页面",
   "sidebarProcessingSection": "正在处理",
   "sizeReducedLabel": "大小减少",
   "slowMotion": "慢放",

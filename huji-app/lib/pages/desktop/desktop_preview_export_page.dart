@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
-import 'package:huji_app/shell/desktop_clip_session_store.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -34,7 +34,15 @@ import 'package:uuid/uuid.dart';
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
   final String clipId;
-  const DesktopPreviewExportPage({super.key, required this.clipId});
+
+  /// Switches the hosting workflow tab to the precision-edit page.
+  final void Function()? onOpenEdit;
+
+  const DesktopPreviewExportPage({
+    super.key,
+    required this.clipId,
+    this.onOpenEdit,
+  });
 
   @override
   State<DesktopPreviewExportPage> createState() =>
@@ -59,9 +67,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   bool _commandsRegistered = false;
   PlaybackCommandRegistration? _playbackRegistration;
   final ScrollController _roundStripScrollController = ScrollController();
-  // Sidebar 会话所有权 token:dispose 时凭它注销,避免误删接手同 clip 的新页面会话。
-  Object? _sessionToken;
-  // 最近一次导出任务:完成后该工作流视为结束(会话条目消失、离开时释放页面)。
+  // 工作流 tab 回填句柄:加载记录后把标题/缩略图回填到侧栏 tab。
+  String? _ownTabId;
+  // 最近一次导出任务:完成后该工作流视为结束(侧栏 tab 消失、离开时释放页面)。
   String? _exportTaskId;
   bool _exportCompleted = false;
   static const _roundStripItemStride = 128.0; // 120 width + 8 separator
@@ -87,12 +95,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     );
     if (stillActive) return;
     _playerBloc.add(const PauseEvent());
-    // 导出已完成,用户又离开了:结束会话并释放本页状态。
-    // (closeClipWorkflow 自身会先导航到 /clip,该次路由变化凭
-    // route != clipRoot 跳过,不会递归。)
-    if (_exportCompleted && route != DesktopRoutes.clipRoot) {
-      DesktopRoutes.closeClipWorkflow(context, route);
-    }
   }
 
   @override
@@ -119,10 +121,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   void dispose() {
-    final sessionToken = _sessionToken;
-    if (sessionToken != null) {
-      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
-    }
     _playbackRegistration?.unregister();
     _roundStripScrollController.dispose();
     ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
@@ -150,15 +148,16 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
               : context.hujiL10n.defaultHighlightName;
           _isLoading = false;
         });
-        // 注册侧边栏"正在处理"会话(take ownership,新 token)。
-        _sessionToken = DesktopClipSessionStore.instance.register(
-          DesktopClipSession(
-            clipId: r.id,
-            routePath: DesktopRoutes.clipPreviewPath(r.id),
+        // 回填侧栏工作流 tab 的标题/缩略图。
+        final tab = WorkspaceTabStore.instance.sessionFor(widget.clipId);
+        if (tab != null) {
+          _ownTabId = tab.tabId;
+          WorkspaceTabStore.instance.updateTab(
+            tab.tabId,
             title: _fileName,
             thumbnailPath: r.thumbnailPath,
-          ),
-        );
+          );
+        }
         if (segments.isNotEmpty && r.filePath != null) {
           final videoFile = File(r.filePath!);
           if (await videoFile.exists()) {
@@ -297,16 +296,23 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       ).then((_) {
         // 导出已成功且用户关掉了结果对话框:整个工作流就此结束。
         if (!mounted || !_exportCompleted) return;
-        DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home);
+        _closeOwnTab();
       }),
     );
   }
 
-  /// 导出任务完成即视为工作流结束:移除侧边栏"正在处理"条目。
-  ///
-  /// 用户此刻已不在本页时,顺带在原地重置工作流 branch(不打扰用户当前
-  /// 页面),释放本页状态;用户还在本页(比如看着进度对话框)则保持现状,
-  /// 等他们关掉对话框或离开时再收尾。
+  /// Closes this page's workspace tab; when it was the last one, go back to
+  /// the last fixed-nav route instead of leaving an empty workspace.
+  void _closeOwnTab() {
+    final tabId = _ownTabId;
+    if (tabId == null) return;
+    final next = WorkspaceTabStore.instance.close(tabId);
+    if (next == null && mounted) {
+      context.go(WorkspaceTabStore.instance.lastNavRoute);
+    }
+  }
+
+  /// 导出任务完成即视为工作流结束:关闭侧栏工作流 tab。
   void _onExportTaskChanged() {
     final taskId = _exportTaskId;
     if (taskId == null) return;
@@ -315,19 +321,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
     TaskStorage().removeListener(_onExportTaskChanged);
     _exportCompleted = true;
-
-    final sessionToken = _sessionToken;
-    if (sessionToken != null) {
-      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
-    }
-
-    final route = ShortcutRouteScope.instance.currentRoute ?? '';
-    final onThisPage = route.startsWith(
-      '/clip/${Uri.encodeComponent(widget.clipId)}/',
-    );
-    if (!onThisPage && route != DesktopRoutes.clipRoot) {
-      DesktopRoutes.closeClipWorkflow(context, route);
-    }
+    _closeOwnTab();
   }
 
   Future<void> _openPrecisionEdit(BuildContext context) async {
@@ -336,7 +330,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       if (!context.mounted) return;
       if (!context.read<UserBloc>().state.isLoggedIn) return;
     }
-    context.go(DesktopRoutes.clipEditPath(widget.clipId));
+    widget.onOpenEdit?.call();
   }
 
   @override
@@ -355,8 +349,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         actions: [
           TpButton(
             variant: TpButtonVariant.outline,
-            onPressed: () =>
-                DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home),
+            onPressed: _closeOwnTab,
             child: Text(context.hujiL10n.taskStatusCancelledShort),
           ),
           SizedBox(width: 8),

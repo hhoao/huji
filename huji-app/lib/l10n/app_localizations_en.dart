@@ -3498,6 +3498,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get showSystemLogsLabel => 'Show system logs';
 
   @override
+  String get sidebarOpenTabsSection => 'Open pages';
+
+  @override
+  String get workspaceNoOpenTabs => 'No open pages';
+
+  @override
   String get sidebarProcessingSection => 'In progress';
 
   @override

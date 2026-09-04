@@ -30,7 +30,10 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 /// Smart clip configuration page: left config panel + right upload area.
 /// Mockup reference: smart-edit-v3.html
 class DesktopClipConfigPage extends StatefulWidget {
-  const DesktopClipConfigPage({super.key});
+  /// Closes the hosting workspace tab when the user cancels.
+  final void Function()? onCancel;
+
+  const DesktopClipConfigPage({super.key, this.onCancel});
 
   @override
   State<DesktopClipConfigPage> createState() => _DesktopClipConfigPageState();
@@ -433,7 +436,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       actions: [
         TpButton(
           variant: TpButtonVariant.outline,
-          onPressed: () => context.go('/'),
+          onPressed: widget.onCancel ?? () => context.go('/'),
           child: Text(context.hujiL10n.taskStatusCancelledShort),
         ),
         SizedBox(width: 8),

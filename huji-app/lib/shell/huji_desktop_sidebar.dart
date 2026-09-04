@@ -9,7 +9,7 @@ import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/user_service.dart';
-import 'package:huji_app/shell/desktop_clip_session_store.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/user/user_state.dart';
@@ -79,7 +79,7 @@ class HujiDesktopSidebar extends StatelessWidget {
                   trailing: const _RunningTaskBadge(),
                   onTap: () => context.go('/tasks'),
                 ),
-                _ClipSessionSection(currentRoute: currentRoute),
+                _OpenTabsSection(currentRoute: currentRoute),
               ],
             ),
           ),
@@ -223,11 +223,11 @@ class _AccountAreaState extends State<_AccountArea> {
   }
 }
 
-/// "正在处理" section: unfinished clip-workflow sessions kept alive in the
-/// workflow branch. Clicking an entry goes back to that page with its state
-/// intact; the close button resets the branch and discards the session.
-class _ClipSessionSection extends StatelessWidget {
-  const _ClipSessionSection({required this.currentRoute});
+/// "打开的页面" section: dynamic workspace tabs (player, compress, new clip,
+/// clip workflow). Clicking an entry activates that tab; the close button
+/// removes it and disposes its page state.
+class _OpenTabsSection extends StatelessWidget {
+  const _OpenTabsSection({required this.currentRoute});
 
   final String currentRoute;
 
@@ -238,10 +238,10 @@ class _ClipSessionSection extends StatelessWidget {
     final styles = TpTextStyles.of(context);
 
     return ListenableBuilder(
-      listenable: DesktopClipSessionStore.instance,
+      listenable: WorkspaceTabStore.instance,
       builder: (context, _) {
-        final sessions = DesktopClipSessionStore.instance.sessions;
-        if (sessions.isEmpty) return const SizedBox.shrink();
+        final tabs = WorkspaceTabStore.instance.tabs;
+        if (tabs.isEmpty) return const SizedBox.shrink();
 
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -249,17 +249,17 @@ class _ClipSessionSection extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(8, 16, 8, 4),
               child: Text(
-                l10n.sidebarProcessingSection,
+                l10n.sidebarOpenTabsSection,
                 style: styles.sm.copyWith(
                   color: cs.onSurfaceVariant,
                   fontWeight: FontWeight.w600,
                 ),
               ),
             ),
-            for (final session in sessions)
-              _ClipSessionTile(
-                key: ValueKey(session.clipId),
-                session: session,
+            for (final tab in tabs)
+              _WorkspaceTabTile(
+                key: ValueKey(tab.tabId),
+                tab: tab,
                 currentRoute: currentRoute,
               ),
           ],
@@ -269,34 +269,27 @@ class _ClipSessionSection extends StatelessWidget {
   }
 }
 
-class _ClipSessionTile extends StatelessWidget {
-  const _ClipSessionTile({
-    required this.session,
-    required this.currentRoute,
+class _WorkspaceTabTile extends StatelessWidget {
+  const _WorkspaceTabTile({
     super.key,
+    required this.tab,
+    required this.currentRoute,
   });
 
-  final DesktopClipSession session;
+  final WorkspaceTab tab;
   final String currentRoute;
-
-  bool get _inWorkflowBranch =>
-      currentRoute.startsWith('${DesktopRoutes.clipRoot}/');
-
-  String get _closeReturnRoute =>
-      currentRoute.isEmpty || _inWorkflowBranch
-      ? DesktopRoutes.home
-      : currentRoute;
 
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
-    final selected = currentRoute == session.routePath;
+    final selected = currentRoute.startsWith(DesktopRoutes.workspace) &&
+        WorkspaceTabStore.instance.activeTabId == tab.tabId;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TpHover(
-        onTap: () => context.go(session.routePath),
+        onTap: () => context.go(DesktopRoutes.workspace),
         borderRadius: BorderRadius.circular(12),
         backgroundColor: selected ? cs.primaryContainer : Colors.transparent,
         child: SizedBox(
@@ -310,15 +303,16 @@ class _ClipSessionTile extends StatelessWidget {
                   child: SizedBox(
                     width: 44,
                     height: 34,
-                    child: _SessionThumbnail(
-                      thumbnailPath: session.thumbnailPath,
+                    child: _TabThumbnail(
+                      thumbnailPath: tab.thumbnailPath,
+                      icon: tab.kind.icon,
                     ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(
-                    session.title,
+                    tab.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: styles.md.copyWith(
@@ -329,11 +323,20 @@ class _ClipSessionTile extends StatelessWidget {
                     ),
                   ),
                 ),
-                TpHover(
-                  onTap: () => DesktopRoutes.closeClipWorkflow(
-                    context,
-                    _closeReturnRoute,
+                if (tab.statusBadge != null) ...[
+                  Text(
+                    tab.statusBadge!,
+                    style: styles.sm.copyWith(
+                      color: selected
+                          ? cs.onPrimaryContainer
+                          : cs.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
+                  const SizedBox(width: 4),
+                ],
+                TpHover(
+                  onTap: () => _closeTab(context),
                   borderRadius: BorderRadius.circular(999),
                   padding: const EdgeInsets.all(4),
                   child: Icon(
@@ -351,12 +354,24 @@ class _ClipSessionTile extends StatelessWidget {
       ),
     );
   }
+
+  void _closeTab(BuildContext context) {
+    final next = WorkspaceTabStore.instance.close(tab.tabId);
+    if (next == null) {
+      // Last tab closed: leave the workspace branch for the last nav page —
+      // or stay put when we're not in the workspace branch right now.
+      if (currentRoute.startsWith(DesktopRoutes.workspace)) {
+        context.go(WorkspaceTabStore.instance.lastNavRoute);
+      }
+    }
+  }
 }
 
-class _SessionThumbnail extends StatelessWidget {
-  const _SessionThumbnail({required this.thumbnailPath});
+class _TabThumbnail extends StatelessWidget {
+  const _TabThumbnail({required this.thumbnailPath, required this.icon});
 
   final String? thumbnailPath;
+  final IconData icon;
 
   @override
   Widget build(BuildContext context) {
@@ -375,8 +390,17 @@ class _SessionThumbnail extends StatelessWidget {
 
   Widget _placeholder(ColorScheme cs) => ColoredBox(
     color: cs.surfaceContainerHigh,
-    child: Center(child: Icon(Icons.videocam, size: 18, color: cs.outline)),
+    child: Center(child: Icon(icon, size: 18, color: cs.outline)),
   );
+}
+
+extension _TabKindIcon on WorkspaceTabKind {
+  IconData get icon => switch (this) {
+    WorkspaceTabKind.videoPlayer => Icons.play_circle_outline,
+    WorkspaceTabKind.videoCompress => Icons.compress,
+    WorkspaceTabKind.clipNew => Icons.content_cut,
+    WorkspaceTabKind.clipWorkflow => Icons.content_cut,
+  };
 }
 
 /// Badge on the tasks nav item showing how many tasks are pending/processing.

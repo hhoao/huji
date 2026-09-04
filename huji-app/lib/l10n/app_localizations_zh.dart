@@ -3411,6 +3411,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get showSystemLogsLabel => '显示系统日志';
 
   @override
+  String get sidebarOpenTabsSection => '打开的页面';
+
+  @override
+  String get workspaceNoOpenTabs => '没有打开的页面';
+
+  @override
   String get sidebarProcessingSection => '正在处理';
 
   @override

@@ -7,7 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
-import 'package:huji_app/shell/desktop_clip_session_store.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/command_tooltip_label.dart';
@@ -45,7 +45,15 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 
 class DesktopPrecisionEditPage extends StatefulWidget {
   final String clipId;
-  const DesktopPrecisionEditPage({super.key, required this.clipId});
+
+  /// Switches the hosting workflow tab back to the preview page.
+  final void Function()? onOpenPreview;
+
+  const DesktopPrecisionEditPage({
+    super.key,
+    required this.clipId,
+    this.onOpenPreview,
+  });
 
   @override
   State<DesktopPrecisionEditPage> createState() =>
@@ -68,8 +76,8 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   PlaybackCommandRegistration? _playbackRegistration;
   final PrecisionEditSeekAccelerator _seekAccelerator =
       PrecisionEditSeekAccelerator();
-  // Sidebar 会话所有权 token:dispose 时凭它注销,避免误删接手同 clip 的新页面会话。
-  Object? _sessionToken;
+  // 工作流 tab 回填句柄:加载记录后把标题/缩略图回填到侧栏 tab。
+  String? _ownTabId;
 
   // 回合缩略图缓存。按 SegmentInfo 值缓存（freezed 值相等），
   // 片段被裁剪编辑后起点/终点变化会自动重新抽帧。
@@ -145,17 +153,19 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       if (mounted) {
         _roundClipBloc.add(RoundClipInitializeEvent(edittingRecord));
       }
-      // 注册/接管侧边栏"正在处理"会话(新 token,旧页面的注销会被忽略)。
-      _sessionToken = DesktopClipSessionStore.instance.register(
-        DesktopClipSession(
-          clipId: widget.clipId,
+      // 回填侧栏工作流 tab 的标题/缩略图。
+      final tab = WorkspaceTabStore.instance.sessionFor(widget.clipId);
+      if (tab != null) {
+        _ownTabId = tab.tabId;
+        WorkspaceTabStore.instance.updateTab(
+          tab.tabId,
           routePath: DesktopRoutes.clipEditPath(widget.clipId),
           title: record.filePath != null
               ? p.basenameWithoutExtension(record.filePath!)
               : widget.clipId,
           thumbnailPath: record.thumbnailPath,
-        ),
-      );
+        );
+      }
       if (edittingRecord.filePath != null) {
         _initTrimmer(edittingRecord.filePath!, edittingRecord.allMatchSegments);
       }
@@ -264,10 +274,6 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   @override
   void dispose() {
-    final sessionToken = _sessionToken;
-    if (sessionToken != null) {
-      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
-    }
     _unregisterPrecisionEditCommands();
     _thumbQueue.clear();
     _thumbQueueDebounce?.cancel();
@@ -283,6 +289,17 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     final minutes = (totalSeconds / 60).floor();
     final seconds = (totalSeconds % 60).floor();
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
+
+  /// Closes this page's workspace tab; when it was the last one, go back to
+  /// the last fixed-nav route instead of leaving an empty workspace.
+  void _closeOwnTab() {
+    final tabId = _ownTabId;
+    if (tabId == null) return;
+    final next = WorkspaceTabStore.instance.close(tabId);
+    if (next == null && mounted) {
+      context.go(WorkspaceTabStore.instance.lastNavRoute);
+    }
   }
 
   String _formatActionType(BuildContext context, ActionType type) =>
@@ -526,8 +543,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
       actions: [
         TpButton(
           variant: TpButtonVariant.outline,
-          onPressed: () =>
-              context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
+          onPressed: widget.onOpenPreview,
           child: Text(l10n.backToPreview),
         ),
       ],
@@ -592,22 +608,19 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
             actions: [
               TpButton(
                 variant: TpButtonVariant.outline,
-                onPressed: () =>
-                    DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home),
+                onPressed: _closeOwnTab,
                 child: Text(context.hujiL10n.taskStatusCancelledShort),
               ),
               SizedBox(width: 8),
               TpButton(
                 variant: TpButtonVariant.outline,
-                onPressed: () =>
-                    context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
+                onPressed: widget.onOpenPreview,
                 child: Text(context.hujiL10n.backToPreview),
               ),
               SizedBox(width: 8),
               TpButton(
                 variant: TpButtonVariant.primary,
-                onPressed: () =>
-                    context.go(DesktopRoutes.clipPreviewPath(widget.clipId)),
+                onPressed: widget.onOpenPreview,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [

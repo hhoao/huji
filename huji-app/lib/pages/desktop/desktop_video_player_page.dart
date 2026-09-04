@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
+import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
@@ -24,10 +25,14 @@ class DesktopVideoPlayerPage extends StatefulWidget {
   final String videoPath;
   final String fileName;
 
+  /// Closes the hosting workspace tab.
+  final void Function()? onClose;
+
   const DesktopVideoPlayerPage({
     super.key,
     required this.videoPath,
     required this.fileName,
+    this.onClose,
   });
 
   @override
@@ -46,6 +51,14 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
   void initState() {
     super.initState();
     _load();
+    // 工作区 tab 保活:切去其他 tab / 导航页时暂停播放,避免后台继续出声。
+    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
+  }
+
+  void _handleRouteChanged() {
+    final route = ShortcutRouteScope.instance.currentRoute ?? '';
+    if (route == '/video/player') return;
+    _playerBloc.add(const PauseEvent());
   }
 
   @override
@@ -68,6 +81,7 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
 
   @override
   void dispose() {
+    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
     _playbackRegistration?.unregister();
     _playerBloc.close();
     super.dispose();
@@ -152,7 +166,7 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
           const SizedBox(width: 8),
           TpButton(
             variant: TpButtonVariant.primary,
-            onPressed: () => context.pop(),
+            onPressed: widget.onClose ?? () => context.pop(),
             child: Text(l10n.actionClose),
           ),
         ],
