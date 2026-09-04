@@ -29,6 +29,7 @@ import 'package:huji_app/theme/app_font_prepare.dart';
 import 'package:huji_app/theme/huji_toast_config.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
+import 'package:huji_app/theme/themed_mobile.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 void main(List<String> args) async {
@@ -230,13 +231,19 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
     return Scaffold(
       // 使用 IndexedStack 保持所有页面状态，只显示当前索引的页面
       body: IndexedStack(index: _selectedIndex, children: _pages),
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Theme.of(context).colorScheme.onSurfaceVariant,
+        // restcut 式干净卡片底（浅色主题纯白，深色随主题 surface）
+        backgroundColor: cs.legacyCardFill,
+        selectedItemColor: cs.primary,
+        unselectedItemColor: cs.onSurfaceVariant,
+        // 12px 标签配紧凑行高，对齐 restcut 底栏字体观感；不设则继承
+        // M3 bodyMedium 的 ~1.43 行高，标签明显偏高。
+        selectedLabelStyle: const TextStyle(height: 1.2),
+        unselectedLabelStyle: const TextStyle(height: 1.2),
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: (index) {
@@ -245,6 +252,10 @@ class _MainNavigationState extends State<MainNavigation> {
           });
         },
         iconSize: 18,
+        // 必须：FCS 的 bottomNavigationBarTheme 设了 IconThemeData(size: 24)
+        // 且优先于 [iconSize] 生效，不显式覆盖时图标恒为 24。
+        selectedIconTheme: const IconThemeData(size: 18),
+        unselectedIconTheme: const IconThemeData(size: 18),
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: _navigationItems(context),

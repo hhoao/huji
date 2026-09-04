@@ -7,6 +7,14 @@ import 'package:huji_app/store/user/user_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/themed_mobile.dart';
 
+/// restcut 对齐：标题 18px（xl 20 × 0.9）、按钮 48px 高、内容边距 16×12。
+const double _kLoginMaskTitleFontSize = 18;
+const double _kLoginMaskButtonHeight = 48;
+const EdgeInsets _kLoginMaskButtonPadding = EdgeInsets.symmetric(
+  horizontal: 16,
+  vertical: 12,
+);
+
 class NeedLoginWrapperWidget extends StatelessWidget {
   final Widget? child;
 
@@ -48,7 +56,14 @@ class NeedLoginWrapperWidget extends StatelessWidget {
                   SizedBox(height: 32),
                   Text(
                     context.hujiL10n.loginNeedLoginTitle,
-                    style: styles.lgMedium.copyWith(color: cs.onSurface),
+                    // restcut: 18/w500；xl(20)×(18/20) 逻辑映射，随文字缩放设置。
+                    textScaler: const TextScaler.linear(
+                      _kLoginMaskTitleFontSize / 20,
+                    ),
+                    style: styles.xl.copyWith(
+                      fontWeight: FontWeight.w500,
+                      color: cs.onSurface,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(height: 16),
@@ -60,10 +75,20 @@ class NeedLoginWrapperWidget extends StatelessWidget {
                   SizedBox(height: 32),
                   SizedBox(
                     width: double.infinity,
-                    child: TpButton(
+                    height: _kLoginMaskButtonHeight,
+                    child: FilledButton(
                       onPressed: () async {
                         await LoginDialog.show(context);
                       },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: cs.primary,
+                        foregroundColor: cs.onPrimary,
+                        padding: _kLoginMaskButtonPadding,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        textStyle: styles.lgMedium,
+                      ),
                       child: Text(context.hujiL10n.loginLoginNow),
                     ),
                   ),
