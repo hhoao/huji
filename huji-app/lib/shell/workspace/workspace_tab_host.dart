@@ -47,7 +47,7 @@ class WorkspaceTabHost extends StatelessWidget {
             activeTab.routePath,
           );
         } else {
-          ShortcutRouteScope.instance.updateNavRoute('/workspace');
+          ShortcutRouteScope.instance.updateNavRoute(DesktopRoutes.workspace);
         }
 
         if (tabs.isEmpty) {
@@ -132,7 +132,7 @@ void openClipNewTab(BuildContext context) {
     WorkspaceTab(
       tabId: _uuid.v4(),
       kind: WorkspaceTabKind.clipNew,
-      routePath: '/clip/new',
+      routePath: DesktopRoutes.clipNew,
       title: context.hujiL10n.desktopNewClip,
     ),
   );

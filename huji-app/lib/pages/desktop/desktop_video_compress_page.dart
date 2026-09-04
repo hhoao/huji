@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/models/ffmpeg.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
@@ -159,7 +160,7 @@ class _DesktopVideoCompressPageState extends State<DesktopVideoCompressPage> {
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
     return DesktopPageShell(
-      currentRoute: '/tools/video-compress',
+      currentRoute: DesktopRoutes.videoCompress,
       title: l10n.taskTypeVideoCompress,
       backgroundColor: Colors.transparent,
       breadcrumbs: [l10n.desktopNavLibrary, l10n.taskTypeVideoCompress],

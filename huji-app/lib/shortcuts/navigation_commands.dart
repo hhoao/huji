@@ -1,3 +1,4 @@
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 
@@ -13,9 +14,9 @@ void Function() registerDesktopNavigationCommands(
   required void Function([Object? result]) pop,
   required void Function() showCheatsheet,
 }) {
-  void newClip() => go('/clip/new');
-  void openTasks() => go('/tasks');
-  void openSettings() => go('/settings');
+  void newClip() => go(DesktopRoutes.clipNew);
+  void openTasks() => go(DesktopRoutes.tasks);
+  void openSettings() => go(DesktopRoutes.settings);
   void closeOrBack() {
     if (canPop()) {
       pop();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
 import 'package:huji_app/pages/desktop/desktop_preview_export_page.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 
 /// Which workflow page a [ClipWorkflowTab] starts on.
@@ -57,11 +58,11 @@ class _ClipWorkflowTabState extends State<ClipWorkflowTab> {
     );
   }
 
+  String get _clipId => widget.tab.params['clipId'] as String? ?? '';
+
   String _routePath(_Page page) => switch (page) {
-    _Page.preview =>
-      '/clip/${Uri.encodeComponent(widget.tab.params['clipId'] as String? ?? '')}/preview',
-    _Page.edit =>
-      '/clip/${Uri.encodeComponent(widget.tab.params['clipId'] as String? ?? '')}/edit',
+    _Page.preview => DesktopRoutes.clipPreviewPath(_clipId),
+    _Page.edit => DesktopRoutes.clipEditPath(_clipId),
   };
 
   @override

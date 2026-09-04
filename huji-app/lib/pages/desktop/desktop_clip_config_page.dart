@@ -26,6 +26,7 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 
 /// Smart clip configuration page: left config panel + right upload area.
 /// Mockup reference: smart-edit-v3.html
@@ -433,7 +434,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   @override
   Widget build(BuildContext context) {
     return DesktopPageShell(
-      currentRoute: '/clip/new',
+      currentRoute: DesktopRoutes.clipNew,
       title: context.hujiL10n.desktopNewClip,
       backgroundColor: Colors.transparent,
       breadcrumbs: [
