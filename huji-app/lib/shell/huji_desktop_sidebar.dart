@@ -9,6 +9,7 @@ import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/user_service.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
@@ -289,7 +290,10 @@ class _WorkspaceTabTile extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: TpHover(
-        onTap: () => context.go(DesktopRoutes.workspace),
+        onTap: () {
+          WorkspaceTabStore.instance.setActive(tab.tabId);
+          context.go(DesktopRoutes.workspace);
+        },
         borderRadius: BorderRadius.circular(12),
         backgroundColor: selected ? cs.primaryContainer : Colors.transparent,
         child: SizedBox(
@@ -336,7 +340,7 @@ class _WorkspaceTabTile extends StatelessWidget {
                   const SizedBox(width: 4),
                 ],
                 TpHover(
-                  onTap: () => _closeTab(context),
+                  onTap: () => closeWorkspaceTab(context, tab.tabId),
                   borderRadius: BorderRadius.circular(999),
                   padding: const EdgeInsets.all(4),
                   child: Icon(
@@ -353,17 +357,6 @@ class _WorkspaceTabTile extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  void _closeTab(BuildContext context) {
-    final next = WorkspaceTabStore.instance.close(tab.tabId);
-    if (next == null) {
-      // Last tab closed: leave the workspace branch for the last nav page —
-      // or stay put when we're not in the workspace branch right now.
-      if (currentRoute.startsWith(DesktopRoutes.workspace)) {
-        context.go(WorkspaceTabStore.instance.lastNavRoute);
-      }
-    }
   }
 }
 

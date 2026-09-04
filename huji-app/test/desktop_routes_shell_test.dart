@@ -26,7 +26,7 @@ void main() {
     expect(shell.branches, hasLength(4));
   });
 
-  test('workspace branch renders the tab host for every tab route', () {
+  test('workspace branch renders flat sibling routes under one host key', () {
     final shell = DesktopRoutes
         .getRoutes()
         .whereType<StatefulShellRoute>()
@@ -38,15 +38,11 @@ void main() {
         ..._selfAndDescendants(route as GoRoute),
     ];
 
-    // route.path holds the declared (relative for children) path; normalize
-    // to the full matched path for the assertion.
-    String fullPath(GoRoute route) =>
-        route.path.startsWith('/')
-        ? route.path
-        : Uri(path: '/workspace/${route.path}').path;
-
+    // Flat siblings — never nested sub-routes (nesting would stack a parent
+    // page *and* a child page, duplicating the tab host).
+    expect(workspaceRoutes, hasLength(6));
     expect(
-      workspaceRoutes.map(fullPath),
+      workspaceRoutes.map((r) => r.path),
       containsAll([
         '/workspace',
         '/workspace/video/player',
@@ -58,6 +54,8 @@ void main() {
     );
     for (final route in workspaceRoutes) {
       expect(route.pageBuilder, isNotNull);
+      expect(route.routes, isEmpty,
+          reason: '${route.path} must not nest sub-routes');
     }
   });
 

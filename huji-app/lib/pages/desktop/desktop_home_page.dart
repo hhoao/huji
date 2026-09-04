@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
@@ -106,7 +107,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
         DesktopLibraryToolbar(
           gridView: _gridView,
           onToggleView: (grid) => setState(() => _gridView = grid),
-          onNewClip: () => context.go('/clip/new'),
+          onNewClip: () => openClipNewTab(context),
           itemCount: _records.isEmpty ? null : _records.length,
         ),
         const SizedBox(height: 16),

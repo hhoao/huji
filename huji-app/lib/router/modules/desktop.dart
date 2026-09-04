@@ -83,6 +83,17 @@ class DesktopRoutes {
     );
   }
 
+  /// Workspace-branch page: identical to [_noTransitionPage] except every
+  /// workspace route shares ONE fixed page key, so navigating between
+  /// workspace routes updates the same WorkspaceTabHost element in place
+  /// instead of recreating it (which would destroy the tab IndexedStack).
+  static Page<void> _workspaceHostPage(Widget child) {
+    return NoTransitionPage<void>(
+      key: const ValueKey('desktop-workspace-host'),
+      child: ColoredBox(color: Colors.transparent, child: child),
+    );
+  }
+
   static List<RouteBase> getRoutes() {
     return [
       GoRoute(
@@ -147,98 +158,96 @@ class DesktopRoutes {
           // to library / tasks / settings and back, and closing a tab
           // disposes it. Navigating to /workspace just shows the active tab.
           //
-          // Sub-route paths are nested under /workspace (matching requires
-          // relative sub-paths); full URLs stay /workspace/video/player etc.
+          // All workspace routes are FLAT siblings sharing one fixed page
+          // key — never nested sub-routes. Nesting would push a parent page
+          // *and* a child page into the branch navigator (two host elements,
+          // two IndexedStacks, duplicated tab state), and per-route page
+          // keys would recreate the host on every move between workspace
+          // routes, destroying the tab pages' state. The shared key makes
+          // every navigation between them update the same element in place.
+          //
           // The shared mobile entry points call context.go('/video/player'),
-          // which never matches this branch — instead the desktop shell
-          // intercepts those in the router-level redirect below and forwards
-          // them into the workspace branch.
+          // '/clip/new', '/clip/:id/…' and '/tools/video-compress'; the
+          // router-level redirect (see main_desktop.dart) forwards them into
+          // this branch.
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/workspace',
                 name: 'desktop-workspace',
-                pageBuilder: (context, state) => _noTransitionPage(
-                  state,
+                pageBuilder: (context, state) => _workspaceHostPage(
                   WorkspaceTabHost(sourceRoute: state.uri.toString()),
                 ),
-                routes: [
-                  GoRoute(
-                    path: 'video/player',
-                    name: 'desktop-video-player',
-                    pageBuilder: (context, state) {
-                      final videoPath =
-                          state.uri.queryParameters['videoUrl'] ?? '';
-                      final fileName =
-                          state.uri.queryParameters['fileName'] ?? videoPath;
-                      return _noTransitionPage(
-                        state,
-                        WorkspaceTabHost(
-                          sourceRoute: state.uri.toString(),
-                          openVideoPath: videoPath,
-                          openVideoName: fileName,
-                        ),
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'clip/new',
-                    name: 'desktop-clip-new',
-                    pageBuilder: (context, state) => _noTransitionPage(
-                      state,
-                      WorkspaceTabHost(sourceRoute: state.uri.toString()),
+              ),
+              GoRoute(
+                path: '/workspace/video/player',
+                name: 'desktop-video-player',
+                pageBuilder: (context, state) {
+                  final videoPath =
+                      state.uri.queryParameters['videoUrl'] ?? '';
+                  final fileName =
+                      state.uri.queryParameters['fileName'] ?? videoPath;
+                  return _workspaceHostPage(
+                    WorkspaceTabHost(
+                      sourceRoute: state.uri.toString(),
+                      openVideoPath: videoPath,
+                      openVideoName: fileName,
                     ),
-                  ),
-                  GoRoute(
-                    path: 'clip/:id/preview',
-                    name: 'desktop-clip-preview',
-                    // Note: Async guards are not supported in synchronous redirect.
-                    // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
-                    redirect: (context, state) => null,
-                    pageBuilder: (context, state) {
-                      final clipId = state.pathParameters['id'] ?? 'unknown';
-                      return _noTransitionPage(
-                        state,
-                        WorkspaceTabHost(
-                          sourceRoute: state.uri.toString(),
-                          openClipId: clipId,
-                        ),
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'clip/:id/edit',
-                    name: 'desktop-clip-edit',
-                    // Note: Async guards are not supported in synchronous redirect.
-                    // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
-                    redirect: (context, state) => null,
-                    pageBuilder: (context, state) {
-                      final clipId = state.pathParameters['id'] ?? 'unknown';
-                      return _noTransitionPage(
-                        state,
-                        WorkspaceTabHost(
-                          sourceRoute: state.uri.toString(),
-                          openClipId: clipId,
-                          openClipPage: 'edit',
-                        ),
-                      );
-                    },
-                  ),
-                  GoRoute(
-                    path: 'tools/video-compress',
-                    name: 'desktop-video-compress',
-                    pageBuilder: (context, state) {
-                      final initialFile = state.extra as File?;
-                      return _noTransitionPage(
-                        state,
-                        WorkspaceTabHost(
-                          sourceRoute: state.uri.toString(),
-                          openCompressFile: initialFile,
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/workspace/clip/new',
+                name: 'desktop-clip-new',
+                pageBuilder: (context, state) => _workspaceHostPage(
+                  WorkspaceTabHost(sourceRoute: state.uri.toString()),
+                ),
+              ),
+              GoRoute(
+                path: '/workspace/clip/:id/preview',
+                name: 'desktop-clip-preview',
+                // Note: Async guards are not supported in synchronous redirect.
+                // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
+                redirect: (context, state) => null,
+                pageBuilder: (context, state) {
+                  final clipId = state.pathParameters['id'] ?? 'unknown';
+                  return _workspaceHostPage(
+                    WorkspaceTabHost(
+                      sourceRoute: state.uri.toString(),
+                      openClipId: clipId,
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/workspace/clip/:id/edit',
+                name: 'desktop-clip-edit',
+                // Note: Async guards are not supported in synchronous redirect.
+                // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
+                redirect: (context, state) => null,
+                pageBuilder: (context, state) {
+                  final clipId = state.pathParameters['id'] ?? 'unknown';
+                  return _workspaceHostPage(
+                    WorkspaceTabHost(
+                      sourceRoute: state.uri.toString(),
+                      openClipId: clipId,
+                      openClipPage: 'edit',
+                    ),
+                  );
+                },
+              ),
+              GoRoute(
+                path: '/workspace/tools/video-compress',
+                name: 'desktop-video-compress',
+                pageBuilder: (context, state) {
+                  final initialFile = state.extra as File?;
+                  return _workspaceHostPage(
+                    WorkspaceTabHost(
+                      sourceRoute: state.uri.toString(),
+                      openCompressFile: initialFile,
+                    ),
+                  );
+                },
               ),
             ],
           ),

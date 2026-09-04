@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
@@ -291,15 +291,12 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 
-  /// Closes this page's workspace tab; when it was the last one, go back to
-  /// the last fixed-nav route instead of leaving an empty workspace.
+  /// Closes this page's workspace tab; navigation back to the last fixed-nav
+  /// route (or /workspace when other tabs remain) is handled by the helper.
   void _closeOwnTab() {
     final tabId = _ownTabId;
-    if (tabId == null) return;
-    final next = WorkspaceTabStore.instance.close(tabId);
-    if (next == null && mounted) {
-      context.go(WorkspaceTabStore.instance.lastNavRoute);
-    }
+    if (tabId == null || !mounted) return;
+    closeWorkspaceTab(context, tabId);
   }
 
   String _formatActionType(BuildContext context, ActionType type) =>

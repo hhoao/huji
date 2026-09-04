@@ -33,6 +33,10 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   bool _isSeeking = false;
   /// 滚动节流窗口内最近一次的滚动时间值（leading+trailing 更新用）
   int _latestScrollTimeMs = 0;
+  /// close() 已开始清理：_onLoadVideo 的异步初始化在恢复后须立即退出，
+  /// 不能再向已 close 的 ClipSegmentBloc 加事件（"Cannot add new events
+  /// after calling close"），也不能再触碰播放器。
+  bool _closed = false;
   /// media_kit may briefly report position 0 after seeking far into the file.
   int? _postSeekTargetMs;
   static const _postSeekToleranceMs = 1500;
@@ -76,6 +80,13 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
             : VideoPlayerControllerAdapter();
         await controller.initialize(file);
 
+        // close() 可能在异步初始化期间发生：放弃加载，并释放刚创建的
+        // controller（close() 只清理已存入 state 的资源）。
+        if (_closed) {
+          await controller.dispose();
+          return;
+        }
+
         final duration = controller.duration;
         // One thumbnail tile = 1s on all platforms (including long desktop clips).
         const timeInterval = 1.0;
@@ -101,6 +112,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
           format: 'jpg', // JPEG：编码/解码比 PNG 快数倍，滚动不卡
           reuseExisting: true,
         );
+
+        if (_closed) return;
 
         // 保存缩略图配置信息，用于按需生成
         final thumbnailConfig = ThumbnailConfig(
@@ -623,6 +636,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
 
   @override
   Future<void> close() {
+    _closed = true;
     _stopPlaybackTimer();
     _positionSub?.cancel();
     Throttles.cancel('trimmer_scroll_current_time');

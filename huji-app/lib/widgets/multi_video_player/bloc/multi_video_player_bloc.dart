@@ -43,6 +43,10 @@ class MultiVideoPlayerBloc
   /// 操作锁，防止竞态条件
   final Lock _operationLock = Lock();
 
+  /// close() 已开始清理：进行中的异步 handler 在恢复后须立即退出，
+  /// 不能再触碰播放器（否则会命中 "[Player] has been disposed"）
+  bool _disposed = false;
+
   bool _waitForGoNext = false;
   bool _isScrubbing = false;
   bool _resumeAfterScrub = false;
@@ -339,7 +343,7 @@ class MultiVideoPlayerBloc
   Future<void> _preloadDesktopPlayers(List<VideoPlaybackItem> items) async {
     final Object? current = state.currentVideoController;
     if (current is media_kit.Player) {
-      await current.pause();
+      await _pausePlayerIfAlive(current);
     }
 
     _itemIdToPath.clear();
@@ -365,6 +369,7 @@ class MultiVideoPlayerBloc
 
     // Create new players — VideoController must exist before open().
     for (final path in uniquePaths) {
+      if (_disposed) return;
       if (_desktopPlayers.containsKey(path)) continue;
       final player = media_kit.Player();
       _desktopVideoControllers[path] = media_kit_video.VideoController(player);
@@ -440,6 +445,8 @@ class MultiVideoPlayerBloc
         }
       }
 
+      if (_disposed) return;
+
       if (!emit.isDone) {
         final videoStartTime = Duration(milliseconds: newItem.startTimeMs);
         final seekTime = Duration(
@@ -454,15 +461,20 @@ class MultiVideoPlayerBloc
         }
       }
 
+      if (_disposed) return;
+
       if (state.isPlaying) {
         await _playController(currentController);
       } else if (currentController is media_kit.Player) {
-        await currentController.pause();
+        await _pausePlayerIfAlive(currentController);
       }
 
-      if (preVideoController != currentController) {
-        preVideoController?.pause();
+      if (preVideoController is media_kit.Player &&
+          preVideoController != currentController) {
+        await _pausePlayerIfAlive(preVideoController);
       }
+
+      if (_disposed || emit.isDone) return;
 
       emit(
         state.copyWith(
@@ -492,7 +504,18 @@ class MultiVideoPlayerBloc
     if (controller is VideoPlayerController) {
       await controller.pause();
     } else if (controller is media_kit.Player) {
-      await controller.pause();
+      await _pausePlayerIfAlive(controller);
+    }
+  }
+
+  /// close() 可能已 dispose 该 player（operation lock 不拦截 close），
+  /// 恢复后的 pause() 会命中 "[Player] has been disposed" 断言，吞掉即可
+  Future<void> _pausePlayerIfAlive(media_kit.Player player) async {
+    if (_disposed) return;
+    try {
+      await player.pause();
+    } catch (e) {
+      debugPrint('[MultiVideoPlayerBloc] pause on disposed player ignored: $e');
     }
   }
 
@@ -644,7 +667,11 @@ class MultiVideoPlayerBloc
 
   @override
   Future<void> close() async {
+    _disposed = true;
     _stopProgressTimer();
+    // 等待进行中的事件 handler 走完（它们会看到 _disposed 并提前退出），
+    // 避免 dispose 撞上 handler 里恢复后的 player 调用
+    await _operationLock.synchronized(() async {});
     for (final controller in _preloadedControllers.values) {
       controller.dispose();
     }

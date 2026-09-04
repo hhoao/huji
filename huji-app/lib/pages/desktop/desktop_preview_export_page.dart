@@ -3,10 +3,10 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
@@ -238,6 +238,14 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       _pendingRoundStripScrollIndex = null;
       if (!_roundStripScrollController.hasClients) return;
 
+      // hasClients 只代表 position 已 attach，布局还没跑完时
+      // maxScrollExtent 内部是 null（"Null check operator"），下一帧再试
+      if (!_roundStripScrollController.position.hasContentDimensions) {
+        _pendingRoundStripScrollIndex = targetIndex;
+        _scrollRoundStripToIndex(targetIndex);
+        return;
+      }
+
       final targetOffset = targetIndex * _roundStripItemStride;
       final position = _roundStripScrollController.position;
       final maxExtent = position.maxScrollExtent;
@@ -301,15 +309,12 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     );
   }
 
-  /// Closes this page's workspace tab; when it was the last one, go back to
-  /// the last fixed-nav route instead of leaving an empty workspace.
+  /// Closes this page's workspace tab; navigation back to the last fixed-nav
+  /// route (or /workspace when other tabs remain) is handled by the helper.
   void _closeOwnTab() {
     final tabId = _ownTabId;
-    if (tabId == null) return;
-    final next = WorkspaceTabStore.instance.close(tabId);
-    if (next == null && mounted) {
-      context.go(WorkspaceTabStore.instance.lastNavRoute);
-    }
+    if (tabId == null || !mounted) return;
+    closeWorkspaceTab(context, tabId);
   }
 
   /// 导出任务完成即视为工作流结束:关闭侧栏工作流 tab。
