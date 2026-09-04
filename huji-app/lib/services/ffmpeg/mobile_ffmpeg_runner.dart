@@ -11,12 +11,16 @@ class MobileFFmpegRunner implements FFmpegRunner {
   /// 会话状态轮询间隔。走 method channel（请求-响应，可靠）。
   static const _pollInterval = Duration(milliseconds: 20);
 
+  /// 诊断：状态心跳间隔（区分“还在跑”和“挂死”）。
+  static const _stateHeartbeat = Duration(seconds: 3);
+
   @override
   Future<FFmpegResult> execute(
     List<String> arguments, {
     void Function(double progress)? onProgress,
   }) async {
     final cmd = arguments.join(' ');
+    final startedAt = DateTime.now();
     // executeAsync 的 Dart Future 在 native 侧把会话丢进线程池后立即完成，
     // 并不代表 ffmpeg 跑完；直接取返回码会读到 null 被误判为失败。
     // 该包的 complete 回调经 EventChannel 派发，实测存在丢失
@@ -35,6 +39,7 @@ class MobileFFmpegRunner implements FFmpegRunner {
             },
     );
 
+    DateTime? lastHeartbeat;
     while (true) {
       final state = await session.getState();
       if (state == SessionState.completed ||
@@ -42,6 +47,13 @@ class MobileFFmpegRunner implements FFmpegRunner {
           state == SessionState.created) {
         // created：会话尚未被调度执行（线程池排队中），继续等
         if (state != SessionState.created) break;
+      }
+      final now = DateTime.now();
+      if (lastHeartbeat == null ||
+          now.difference(lastHeartbeat) >= _stateHeartbeat) {
+        lastHeartbeat = now;
+        _log('ffmpeg 仍在运行 (${now.difference(startedAt).inSeconds}s): '
+            '${_shortCmd(cmd)}');
       }
       await Future<void>.delayed(_pollInterval);
     }
@@ -56,11 +68,26 @@ class MobileFFmpegRunner implements FFmpegRunner {
             ? -1
             : 1;
 
+    _log(
+      'ffmpeg 结束 (${DateTime.now().difference(startedAt).inSeconds}s, '
+      'code=$code): ${_shortCmd(cmd)}'
+      '${code != 0 && (output?.isNotEmpty ?? false) ? '\n输出: ${output!.length > 500 ? output.substring(0, 500) : output}' : ''}',
+    );
+
     return FFmpegResult(
       returnCode: code,
       output: output,
       failStackTrace: failStackTrace,
     );
+  }
+
+  static void _log(String message) {
+    // ignore: avoid_print
+    print('[MobileFFmpeg] $message');
+  }
+
+  static String _shortCmd(String cmd) {
+    return cmd.length > 120 ? '${cmd.substring(0, 120)}…' : cmd;
   }
 
   @override

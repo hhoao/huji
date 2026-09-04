@@ -6,6 +6,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/inference/inference_model_registry.dart';
+import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/onnx_model_predictor.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/image_utils.dart';
@@ -28,24 +31,42 @@ class _RecordClipWidgetTestTabState extends State<RecordClipWidgetTestTab> {
   File? _recordedVideo;
   late final CameraXBloc _recordClipBloc;
   final ValueNotifier<AnalysisImage?> _imageAnalysisImage = ValueNotifier(null);
-  late final FastModelPredictor _predictor;
+  ModelPredictor? _predictor;
 
   @override
   void initState() {
     super.initState();
-    _predictor = FastModelPredictor(
-      AutoclipConstants.modelNamePathMapping[AutoclipConstants
-          .pingPongModelName]!,
-    );
     _recordClipBloc = CameraXBloc(
       onImageForAnalysis: (image, timestamp) =>
           _onImageForAnalysis(image, timestamp),
     );
+    _initPredictor();
     _addLog('RecordClipWidget 测试页面已初始化');
+  }
+
+  /// 三端统一 ONNX 推理：按乒乓默认模型解析资产并构造预测器
+  Future<void> _initPredictor() async {
+    try {
+      final spec = await OnnxModelAssetResolver.resolve(
+        sportType: InferenceModelRegistry.sportTypeForModel(
+          AutoclipConstants.pingPongModelName,
+        ),
+        matchType: InferenceModelRegistry.defaultMatchTypeForModel(
+          AutoclipConstants.pingPongModelName,
+        ),
+      );
+      _predictor = OnnxModelPredictor(
+        modelFilePath: spec.modelFilePath,
+        fallbackClassNames: spec.classNames,
+      );
+    } catch (e) {
+      _addLog('模型初始化失败: $e');
+    }
   }
 
   @override
   void dispose() {
+    _predictor?.dispose();
     _recordClipBloc.close();
     super.dispose();
   }
@@ -59,8 +80,10 @@ class _RecordClipWidgetTestTabState extends State<RecordClipWidgetTestTab> {
   Future<void> _onImageForAnalysis(AnalysisImage image, int timestamp) async {
     if (_recordClipBloc.state.isRecording) {
       _imageAnalysisImage.value = image;
+      final predictor = _predictor;
+      if (predictor == null) return;
       toJpeg(image)?.then((value) async {
-        final actionType = await _predictor.predictWithBytes(
+        final actionType = await predictor.predictWithBytes(
           value.bytes,
           ClassMappings.pingPongClassesMapping,
         );

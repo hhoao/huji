@@ -2,13 +2,14 @@
 ///
 /// Created on the UI isolate by [OnnxModelAssetResolver] and passed into
 /// worker isolates — workers must never load Flutter assets directly.
-class DesktopInferenceSpec {
+/// Platform-agnostic: Android / iOS / desktop all run the same ONNX models.
+class InferenceSpec {
   final String modelFilePath;
   final List<String> classNames;
   final String sportType;
   final String matchType;
 
-  const DesktopInferenceSpec({
+  const InferenceSpec({
     required this.modelFilePath,
     required this.classNames,
     required this.sportType,
@@ -22,8 +23,8 @@ class DesktopInferenceSpec {
         'matchType': matchType,
       };
 
-  factory DesktopInferenceSpec.fromIsolateMessage(Map<String, dynamic> message) {
-    return DesktopInferenceSpec(
+  factory InferenceSpec.fromIsolateMessage(Map<String, dynamic> message) {
+    return InferenceSpec(
       modelFilePath: message['modelFilePath'] as String,
       classNames: List<String>.from(message['classNames'] as List),
       sportType: message['sportType'] as String,

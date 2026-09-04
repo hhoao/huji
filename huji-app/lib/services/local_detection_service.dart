@@ -5,7 +5,7 @@ import 'package:huji_app/core/batch/badminton_batch_action_segment_detector.dart
 import 'package:huji_app/core/batch/batch_action_segment_detector.dart';
 import 'package:huji_app/core/batch/pingpong_batch_action_segment_detector.dart';
 import 'package:huji_app/models/autoclip_models.dart';
-import 'package:huji_app/services/inference/desktop_inference_spec.dart';
+import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/services/local_detection_isolate.dart';
@@ -38,12 +38,12 @@ class LocalDetectionService {
 
   /// Run full batch autoclip pipeline (frame extract → classify → segment filter).
   ///
-  /// On desktop, [desktopInferenceSpec] must be provided (or resolvable via
-  /// [sportTypeKey] + [matchType] on the UI isolate only).
+  /// [desktopInferenceSpec] may be provided to skip asset resolution; otherwise
+  /// the model is resolved via [sportTypeKey] + [matchType] on the UI isolate.
   Future<LocalDetectionResult> runAutoclip({
     required String videoPath,
     required VideoClipConfigReqVo clipConfig,
-    DesktopInferenceSpec? desktopInferenceSpec,
+    InferenceSpec? desktopInferenceSpec,
     String? sportTypeKey,
     String? matchType,
     ProgressHandler? progressHandler,
@@ -76,19 +76,16 @@ class LocalDetectionService {
           progressHandler: handler,
         );
 
-    if (PlatformCapability.isDesktop) {
-      final spec = desktopInferenceSpec ??
-          await OnnxModelAssetResolver.resolve(
-            sportType: sportTypeKey!,
-            matchType: matchType!,
-          );
-      await largeModelService.runWithDesktopSpec(
-        spec: spec,
-        action: runPipeline,
-      );
-    } else {
-      await runPipeline();
-    }
+    final spec =
+        desktopInferenceSpec ??
+        await OnnxModelAssetResolver.resolve(
+          sportType: sportTypeKey!,
+          matchType: matchType!,
+        );
+    await largeModelService.runWithInferenceSpec(
+      spec: spec,
+      action: runPipeline,
+    );
 
     stopwatch.stop();
     final output = await completer.future;

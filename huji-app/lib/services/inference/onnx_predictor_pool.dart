@@ -29,6 +29,8 @@ class OnnxPredictorPool {
       (_) => OnnxModelPredictor(
         modelFilePath: modelFilePath,
         fallbackClassNames: fallbackClassNames,
+        // 并行度来自 worker 数；每个 session 单线程，避免 N×N 线程超订阅。
+        cpuThreadCount: 1,
       ),
     );
     return OnnxPredictorPool._(predictors);

@@ -79,7 +79,6 @@ dependencies:
   flutter_video_caching: ^0.3.9
   flutter_background_service: ^5.1.0
   photo_manager: ^3.7.1
-  ultralytics_yolo: 0.6.8
   camera: ^0.11.2
   transparent_image: ^2.0.1
   multi_split_view: ^3.6.1
@@ -130,10 +129,6 @@ flutter:
     - assets/models/ping_pong/profession/
     - assets/models/badminton/singles/
     - assets/models/badminton/doubles/
-    # tflite 分类模型：ultralytics_yolo 0.6.x 只接受 Flutter asset（assets/ 前缀）
-    # 或绝对路径，会自动复制到 documents 目录后再加载
-    - assets/models/ping_pong_singles.tflite
-    - assets/models/badminton_singles.tflite
     - assets/demo/
     - CHANGELOG.md
 
@@ -166,3 +161,10 @@ flutter_native_splash:
   android_12:
     image: assets/icons/logo_splash.png
     icon_background_color: "#ffffff"
+
+dependency_overrides:
+  # 本地 fork（基于 1.8.4）：Linux 端把 runInference 移到后台线程执行，
+  # 避免 Ort::Session::Run 阻塞平台（GTK 主）线程导致桌面检测时 UI 卡死。
+  # 详见 third_party/flutter_onnxruntime/README.huji.md。
+  flutter_onnxruntime:
+    path: ../third_party/flutter_onnxruntime

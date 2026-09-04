@@ -64,8 +64,23 @@ class OnnxImagePreprocessor {
     return out;
   }
 
+  /// /255 查找表：把逐像素的 int→double 除法换成一次数组读，
+  /// 对 640×640 帧能省掉 ~120 万次除法。
+  static final Float32List _inv255Lut = Float32List.fromList(
+    List.generate(256, (v) => v / 255.0),
+  );
+
   /// Convert letterboxed RGB24 (HWC) to CHW float32 tensor with /255 scaling.
-  static Float32List toTensor(Uint8List rgb, int width, int height) {
+  ///
+  /// 传入 [output] 可跨调用复用缓冲区（模型输入固定尺寸时避免每帧
+  /// 分配 4.9MB 的 Float32List 造成 GC 抖动）；[OrtValue.fromList] 会
+  /// 把数据拷贝进原生内存，复用是安全的。
+  static Float32List toTensor(
+    Uint8List rgb,
+    int width,
+    int height, [
+    Float32List? output,
+  ]) {
     final spatialSize = width * height;
     final expectedLen = 3 * spatialSize;
     if (rgb.length < expectedLen) {
@@ -74,11 +89,26 @@ class OnnxImagePreprocessor {
       );
     }
 
-    final tensor = Float32List(expectedLen);
+    final tensor = output ?? Float32List(expectedLen);
+    if (tensor.length < expectedLen) {
+      throw ArgumentError(
+        'Output buffer length ${tensor.length} is too small for '
+        '${width}x$height',
+      );
+    }
+
+    final lut = _inv255Lut;
+    // 逐平面写入（CHW）：每个平面一趟紧密循环，比单循环内三分支更缓存友好
+    final plane1 = spatialSize;
+    final plane2 = 2 * spatialSize;
     for (var i = 0; i < spatialSize; i++) {
-      tensor[i] = rgb[i * 3] / 255.0;
-      tensor[spatialSize + i] = rgb[i * 3 + 1] / 255.0;
-      tensor[2 * spatialSize + i] = rgb[i * 3 + 2] / 255.0;
+      tensor[i] = lut[rgb[i * 3]];
+    }
+    for (var i = 0; i < spatialSize; i++) {
+      tensor[plane1 + i] = lut[rgb[i * 3 + 1]];
+    }
+    for (var i = 0; i < spatialSize; i++) {
+      tensor[plane2 + i] = lut[rgb[i * 3 + 2]];
     }
     return tensor;
   }

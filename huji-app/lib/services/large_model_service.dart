@@ -1,110 +1,11 @@
-import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/services.dart';
 import 'package:logger/logger.dart';
-import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/models/large_model.dart';
-import 'package:huji_app/services/inference/desktop_inference_spec.dart';
+import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/inference/onnx_model_predictor.dart';
-import 'package:huji_app/services/platform_capability.dart';
-import 'package:huji_app/l10n/l10n_resolve.dart';
-import 'package:huji_app/utils/logger_utils.dart';
-import 'package:ultralytics_yolo/yolo.dart';
 
-import '../constants/autoclip_constants.dart';
 import '../models/autoclip_models.dart';
-
-class FastModelPredictor implements ModelPredictor {
-  final String _modelPath;
-  YOLO? _modelCache;
-
-  FastModelPredictor(this._modelPath);
-
-  @override
-  Future<ActionType> predictWithBytes(
-    Uint8List imageBytes,
-    Map<String, ActionType> classMappings,
-  ) async {
-    final model = _getModel();
-    final result = await model.predict(imageBytes);
-    final top1 = result["detections"][0]["className"];
-    final actionType = classMappings[top1];
-
-    if (actionType == null) {
-      throw Exception('Unknown action type: $top1');
-    }
-    return actionType;
-  }
-
-  @override
-  Future<ClassifierResult> predictWithBytesForResult(
-    Uint8List imageBytes,
-    Map<String, ActionType> classMappings,
-  ) async {
-    final model = _getModel();
-    final result = await model.predict(imageBytes);
-
-    final classifierResult = ClassifierResult.fromJson(result);
-
-    if (EnvironmentConfig.isDevelopment) {
-      final speed = classifierResult.speed;
-      final classificationName = classifierResult.classification.topClass;
-      final classificationConfidence =
-          classifierResult.classification.topConfidence;
-      AppLogger().d(
-        "speed: ${speed * 1000}ms, classificationName: $classificationName, classificationConfidence: $classificationConfidence",
-      );
-    }
-
-    return classifierResult;
-  }
-
-  @override
-  Future<ActionType> predict(
-    String imagePath,
-    Map<String, ActionType> classMappings,
-  ) async {
-    final imageBytes = File(imagePath).readAsBytesSync();
-
-    final actionType = await predictWithBytes(imageBytes, classMappings);
-
-    return actionType;
-  }
-
-  @override
-  Future<ClassifierResult> predictForResult(
-    String imagePath,
-    Map<String, ActionType> classMappings,
-  ) async {
-    final imageBytes = File(imagePath).readAsBytesSync();
-    final classifierResult = await predictWithBytesForResult(
-      imageBytes,
-      classMappings,
-    );
-    return classifierResult;
-  }
-
-  YOLO _getModel() {
-    if (!PlatformCapability.supportsLocalDetection) {
-      throw UnsupportedError(
-        'On-device YOLO inference is not supported on this platform.',
-      );
-    }
-    if (_modelCache != null) {
-      return _modelCache!;
-    }
-    _modelCache = YOLO(modelPath: _modelPath, task: YOLOTask.classify);
-    return _modelCache!;
-  }
-
-  @override
-  Future<void> dispose() async {
-    await _modelCache?.dispose();
-    _modelCache = null;
-    return;
-  }
-}
 
 /// 模型预测器接口
 abstract class ModelPredictor {
@@ -116,6 +17,15 @@ abstract class ModelPredictor {
 
   Future<ActionType> predictWithBytes(
     Uint8List imageBytes,
+    Map<String, ActionType> classMappings,
+  );
+
+  /// 分类 FFmpeg 输出的 letterboxed RGB24 裸帧文件（width×height×3 字节），
+  /// 跳过图片解码，供视频抽帧推理走快路径。
+  Future<ActionType> predictRgb24FromFile(
+    String rgbFilePath,
+    int width,
+    int height,
     Map<String, ActionType> classMappings,
   );
 
@@ -142,47 +52,33 @@ class LargeModelService {
   static LargeModelService get instance => _instance ??= LargeModelService._();
   factory LargeModelService() => instance;
 
-  final Map<String, ModelPredictor> _predictorCache = {};
-
-  /// Active desktop ONNX spec for the current inference scope.
-  DesktopInferenceSpec? _desktopInferenceSpec;
+  /// Active ONNX spec for the current inference scope.
+  InferenceSpec? _inferenceSpec;
 
   LargeModelService._();
 
-  final Map<String, String> _modelNamePathMapping =
-      AutoclipConstants.modelNamePathMapping;
-
-  /// Run [action] with a resolved desktop ONNX model on disk.
-  Future<T> runWithDesktopSpec<T>({
-    required DesktopInferenceSpec spec,
+  /// Run [action] with a resolved ONNX model on disk.
+  ///
+  /// 三端统一入口：调用方先通过 [OnnxModelAssetResolver.resolve] 把模型
+  /// 落盘，再在此作用域内构造检测器；检测器构造时经 [getPredictor] 取到
+  /// 基于该模型的 ONNX 预测器。
+  Future<T> runWithInferenceSpec<T>({
+    required InferenceSpec spec,
     required Future<T> Function() action,
   }) async {
-    _desktopInferenceSpec = spec;
+    _inferenceSpec = spec;
     try {
       return await action();
     } finally {
-      _desktopInferenceSpec = null;
+      _inferenceSpec = null;
     }
   }
 
   ModelPredictor getPredictor(String modelName) {
-    if (PlatformCapability.isDesktop) {
-      return _getDesktopPredictor(modelName);
-    }
-
-    if (_predictorCache.containsKey(modelName)) {
-      return _predictorCache[modelName]!;
-    }
-    final predictor = FastModelPredictor(getModelPath(modelName));
-    _predictorCache[modelName] = predictor;
-    return predictor;
-  }
-
-  ModelPredictor _getDesktopPredictor(String modelName) {
-    final spec = _desktopInferenceSpec;
+    final spec = _inferenceSpec;
     if (spec == null) {
       throw StateError(
-        'Desktop inference requires runWithDesktopSpec() before getPredictor()',
+        'Inference requires runWithInferenceSpec() before getPredictor()',
       );
     }
 
@@ -191,13 +87,6 @@ class LargeModelService {
       modelFilePath: spec.modelFilePath,
       fallbackClassNames: spec.classNames,
     );
-  }
-
-  String getModelPath(String modelName) {
-    if (!_modelNamePathMapping.containsKey(modelName)) {
-      throw Exception(resolveHujiL10n().modelNotFound(modelName));
-    }
-    return _modelNamePathMapping[modelName]!;
   }
 
   Future<void> dispose() async {

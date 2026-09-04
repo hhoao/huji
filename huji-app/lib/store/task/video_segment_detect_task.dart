@@ -12,6 +12,11 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/services/memory_stream_service.dart';
+import 'package:huji_app/services/inference/isolate_onnx_predictor.dart';
+import 'package:huji_app/services/inference/onnx_model_predictor.dart';
+import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
+import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
@@ -24,11 +29,30 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
   static const String videoSegmentDetectTable = 'video_segment_detect_tasks';
   final TaskStorage _taskStorage;
   RealtimeActionSegmentDetector? _actionSegmentDetector;
+  ModelPredictor? _inferencePredictor;
   final LargeModelService _largeModelService = LargeModelService();
   StreamSubscription<Tuple<double, String>?>? _frameStreamSubscription;
   final Map<String, Completer<void>> _taskCompleters = {};
   // 用于节流进度更新的 Throttler 映射，key 为任务 ID
   final Map<String, Throttler> _progressThrottlers = {};
+
+  /// 诊断：抽帧流到达计数与上次心跳时间（与检测器侧心跳对照定位卡点）
+  int _receivedFrames = 0;
+  DateTime? _lastFrameHeartbeat;
+
+  void _maybeLogFrameHeartbeat(Tuple<double, String> frame) {
+    _receivedFrames++;
+    final now = DateTime.now();
+    final last = _lastFrameHeartbeat;
+    if (last != null && now.difference(last) < const Duration(seconds: 3)) {
+      return;
+    }
+    _lastFrameHeartbeat = now;
+    AppLogger().i(
+      '抽帧心跳: 已接收 $_receivedFrames 帧'
+      '(${(frame.item1).toStringAsFixed(1)}s)',
+    );
+  }
 
   VideoSegmentDetectTaskManager(this._taskStorage);
 
@@ -52,16 +76,23 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
     );
 
     double currentTime = 0;
+    // 直接抽 letterbox 到模型输入尺寸的 RGB24 裸帧：缩放/填充由 FFmpeg 完成，
+    // 预测侧免掉 Dart PNG 解码（纯 Dart image 包解码每帧要数百毫秒）。
+    final frameSize = OnnxImagePreprocessor.inputSize;
     final thumbnailsStream =
         (await VideoUtils.generateThumbnails(
           videoPath,
           6,
           dirPath: tempDir.path,
+          letterboxSize: frameSize,
         )).map((e) {
           currentTime += 1 / 6.0;
           // 直接返回文件路径，而不是读取字节
           return Tuple(item1: currentTime, item2: e);
         });
+    AppLogger().i(
+      '抽帧流创建: 视频路径=$videoPath, 临时目录=${tempDir.path}',
+    );
     return thumbnailsStream;
   }
 
@@ -120,11 +151,14 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
       await _initializeRealtimeDetector(task);
 
       // 使用 listen 而不是 await for，以便可以取消订阅
+      _receivedFrames = 0;
+      _lastFrameHeartbeat = null;
       _frameStreamSubscription = frameStream.listen(
         (frame) async {
           if (frame == null) {
             return;
           }
+          _maybeLogFrameHeartbeat(frame);
           // 检查任务是否已被取消
           final currentTask =
               _taskStorage.getTaskById(task.id) as VideoSegmentDetectTask?;
@@ -136,10 +170,18 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
             }
             return;
           }
-          await _actionSegmentDetector?.addPrediction(
-            frame.item2,
-            frame.item1.toDouble(),
-          );
+          // 文件抽帧流是 FFmpeg 输出的 RGB24 裸帧；相机实时流是 JPEG 文件
+          if (task.frameStreamId == null) {
+            await _actionSegmentDetector?.addRgb24Prediction(
+              frame.item2,
+              frame.item1.toDouble(),
+            );
+          } else {
+            await _actionSegmentDetector?.addPrediction(
+              frame.item2,
+              frame.item1.toDouble(),
+            );
+          }
         },
         onError: (error) {
           AppLogger().e(
@@ -225,6 +267,33 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
 
   // 初始化实时检测器
   Future<void> _initializeRealtimeDetector(VideoSegmentDetectTask task) async {
+    // 三端统一走 ONNX：先把模型资产落盘，再用常驻 worker isolate 跑推理
+    //（读帧 → toTensor → session.run 全在 worker，不阻塞 UI）。
+    final sportTypeKey = task.sportType == SportType.badminton
+        ? 'badminton'
+        : 'ping_pong';
+    // 与桌面端/云端对齐：乒乓球默认 profession，羽毛球默认 singles。
+    final matchTypeKey = task.sportType == SportType.badminton
+        ? 'singles'
+        : 'profession';
+    final inferenceSpec = await OnnxModelAssetResolver.resolve(
+      sportType: sportTypeKey,
+      matchType: matchTypeKey,
+    );
+    // 移动端不套 worker isolate：flutter_onnxruntime 的 Android 实现本身就把
+    // 推理放到后台 TaskQueue（上游 1.7.0+），主 isolate 不会被 session.run
+    // 阻塞；且实测 worker 的回复消息在 Android 上不达（worker 已回复、主
+    // isolate 收不到，流水线死锁在首帧）。桌面保留 worker：读帧 + toTensor
+    // 是重 CPU 操作，需要离开主 isolate。
+    if (PlatformCapability.supportsFFmpegKit) {
+      _inferencePredictor = OnnxModelPredictor(
+        modelFilePath: inferenceSpec.modelFilePath,
+        fallbackClassNames: inferenceSpec.classNames,
+      );
+    } else {
+      _inferencePredictor = await IsolateOnnxPredictor.create(inferenceSpec);
+    }
+
     // 根据运动类型创建相应的实时检测器
     if (task.sportType == SportType.badminton) {
       final badmintonConfig =
@@ -235,6 +304,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
         config: badmintonConfig,
         largeModelService: _largeModelService,
         segmentDetectConfig: defaultBadmintonSegmentDetectConfig,
+        modelPredictor: _inferencePredictor,
       );
     } else {
       final pingPongConfig =
@@ -245,6 +315,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
         config: pingPongConfig,
         largeModelService: _largeModelService,
         segmentDetectConfig: defaultPingPongSegmentDetectConfig,
+        modelPredictor: _inferencePredictor,
       );
     }
     final edittingRecordId = task.edittingRecordId!;
@@ -307,6 +378,9 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
       await _actionSegmentDetector!.stop(force: force);
       _actionSegmentDetector = null;
     }
+    // 检测器停了以后推理资源（worker isolate 或主 isolate 引擎）不再需要
+    await _inferencePredictor?.dispose();
+    _inferencePredictor = null;
   }
 
   /// 处理检测到的片段，应用与批量检测相同的过滤和处理逻辑

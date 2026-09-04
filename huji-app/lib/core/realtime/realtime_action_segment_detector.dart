@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'package:logger/logger.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
+import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
 import 'package:huji_app/utils/time_utils.dart' as time_utils;
 import 'package:synchronized/synchronized.dart';
 
@@ -20,7 +21,15 @@ class _PendingPredictionTask {
   final String imagePath;
   final double timestamp;
 
-  _PendingPredictionTask({required this.imagePath, required this.timestamp});
+  /// true 时 [imagePath] 指向 FFmpeg 输出的 letterboxed RGB24 裸帧文件
+  /// （size×size×3 字节），直接喂 [predictRgb24FromFile]，跳过图片解码。
+  final bool isRgb24Frame;
+
+  _PendingPredictionTask({
+    required this.imagePath,
+    required this.timestamp,
+    this.isRgb24Frame = false,
+  });
 }
 
 /// 实时动作片段检测器
@@ -63,10 +72,13 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
     required super.config,
     required super.largeModelService,
     required super.segmentDetectConfig,
+    ModelPredictor? modelPredictor,
   }) {
-    _modelPredictor = largeModelService.getPredictor(
-      getCurrentPredictModel(config),
-    );
+    // 可注入预测器（如 isolate 代理）；默认经 LargeModelService 解析。
+    // 注意：默认路径要求处于 runWithInferenceSpec 作用域内。
+    _modelPredictor =
+        modelPredictor ??
+        largeModelService.getPredictor(getCurrentPredictModel(config));
     _classMappings = getClassesMapping(config);
   }
 
@@ -125,6 +137,37 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
     _processPendingPredictionQueue();
   }
 
+  /// 添加 letterboxed RGB24 裸帧文件（FFmpeg 输出，跳过图片解码）
+  Future<void> addRgb24Prediction(
+    String rgbPath,
+    double timestamp, {
+    int size = OnnxImagePreprocessor.inputSize,
+  }) async {
+    if (!_isRunning) {
+      _logger.w('实时检测器未运行，无法添加预测');
+      return;
+    }
+    _pendingPredictionQueue.add(
+      _PendingPredictionTask(
+        imagePath: rgbPath,
+        timestamp: timestamp,
+        isRgb24Frame: true,
+      ),
+    );
+    _frameSize = size;
+    _processPendingPredictionQueue();
+  }
+
+  int _frameSize = OnnxImagePreprocessor.inputSize;
+
+  /// 诊断计数：已处理帧数与上次心跳日志时间（区分“帧源停了”和“推理太慢”）
+  int _processedFrames = 0;
+  DateTime? _lastQueueHeartbeat;
+
+  /// 诊断：首帧链路打点（worker 回复 → 入窗）
+  bool _firstPredictReturned = false;
+  bool _firstWindowLogged = false;
+
   Future<void> _processPendingPredictionQueue() async {
     if (!_isProcessingQueue && _pendingPredictionQueue.isNotEmpty) {
       await _queueLock.synchronized(() async {
@@ -132,26 +175,58 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
           _isProcessingQueue = true;
           while (_pendingPredictionQueue.isNotEmpty) {
             final task = _pendingPredictionQueue.removeFirst();
+            final frameStopwatch = Stopwatch()..start();
             try {
-              // 使用文件路径进行预测
-              final actionType = await _modelPredictor.predict(
-                task.imagePath,
-                _classMappings,
-              );
+              final actionType = task.isRgb24Frame
+                  ? await _modelPredictor.predictRgb24FromFile(
+                      task.imagePath,
+                      _frameSize,
+                      _frameSize,
+                      _classMappings,
+                    )
+                  : await _modelPredictor.predict(
+                      task.imagePath,
+                      _classMappings,
+                    );
+              if (!_firstPredictReturned) {
+                _firstPredictReturned = true;
+                _logger.i('首帧推理已返回: $actionType');
+              }
               final frameInfo = PredictedFrameInfo(
                 actionType: actionType,
                 seconds: task.timestamp,
               );
               await _addToWindow(frameInfo);
+              if (!_firstWindowLogged) {
+                _firstWindowLogged = true;
+                _logger.i('首帧已入窗');
+              }
             } catch (e, stackTrace) {
               _logger.e('处理预测任务失败: $e', error: e, stackTrace: stackTrace);
               // 继续处理下一个任务
             }
+            _processedFrames++;
+            _maybeLogQueueHeartbeat(task, frameStopwatch.elapsedMilliseconds);
           }
           _isProcessingQueue = false;
         }
       });
     }
+  }
+
+  /// 每 3 秒一条心跳：处理帧数、积压长度、单帧耗时。
+  void _maybeLogQueueHeartbeat(_PendingPredictionTask task, int frameMs) {
+    final now = DateTime.now();
+    final last = _lastQueueHeartbeat;
+    if (last != null && now.difference(last) < const Duration(seconds: 3)) {
+      return;
+    }
+    _lastQueueHeartbeat = now;
+    _logger.i(
+      '检测心跳: 已处理 $_processedFrames 帧'
+      '(${time_utils.formatMillisecondsToHHMMSSS((task.timestamp * 1000).toInt())}), '
+      '积压 ${_pendingPredictionQueue.length} 帧, 上帧 ${frameMs}ms',
+    );
   }
 
   /// 添加预测结果到滑动窗口

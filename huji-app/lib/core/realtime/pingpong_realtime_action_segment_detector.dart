@@ -9,6 +9,7 @@ class PingPongRealtimeActionSegmentDetector
     required super.config,
     required super.segmentDetectConfig,
     required super.largeModelService,
+    super.modelPredictor,
   });
 
   @override

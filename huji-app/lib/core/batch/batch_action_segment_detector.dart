@@ -310,7 +310,9 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       return 1;
     }
     final cpuWorkers = math.max(1, Platform.numberOfProcessors ~/ 2);
-    return math.max(1, math.min(cpuWorkers, segmentCount));
+    // 每个 session 单线程（pool 传 cpuThreadCount=1），worker 数即并行核数；
+    // 封顶避免大核机器开出过多重复 ORT session。
+    return math.max(1, math.min(math.min(cpuWorkers, segmentCount), 8));
   }
 
   Future<List<PredictedFrameInfo>> _predictVideoActionPointsInternalV2({

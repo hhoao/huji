@@ -124,6 +124,10 @@ class TaskTabListUtils {
     final progress = normalizedProgress(task);
     return switch (task.status) {
       TaskStatusEnum.pending => l10n.taskPhasePending,
+      // 本地检测任务没有上传阶段；进度长时间偏低（推理慢）时别误报"正在上传"
+      TaskStatusEnum.processing
+          when task.type == TaskTypeEnum.videoSegmentDetect =>
+        l10n.taskPhaseAnalyzing,
       TaskStatusEnum.processing when progress <= 0 => l10n.taskPhaseProcessing,
       TaskStatusEnum.processing when progress < 0.1 => l10n.taskPhaseUploading,
       TaskStatusEnum.processing when progress < 0.3 => l10n.taskPhaseAnalyzing,

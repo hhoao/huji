@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
@@ -7,15 +9,32 @@ class OnnxEpSelector {
 
   static final AppLogger _logger = AppLogger();
 
-  /// Preference order for desktop accelerators (first match wins as primary).
-  static const List<OrtProvider> acceleratorPreference = [
-    OrtProvider.TENSOR_RT,
-    OrtProvider.CUDA,
-    OrtProvider.DIRECT_ML,
-    OrtProvider.ROCM,
-    OrtProvider.CORE_ML,
-    OrtProvider.OPEN_VINO,
-  ];
+  /// Preference order for hardware accelerators (first match wins as primary).
+  ///
+  /// Desktop: TensorRT/CUDA/DirectML/ROCm/CoreML/OpenVINO.
+  ///
+  /// Mobile: XNNPACK before NNAPI — XNNPACK (CPU SIMD + thread pool) is the
+  /// most reliable accelerator for small classify models, while NNAPI
+  /// sessions routinely degrade into slow per-op CPU fallbacks on some
+  /// devices (observed ~3× slower than XNNPACK on a Dimensity SoC; NNAPI is
+  /// also deprecated by Android 15+).
+  static List<OrtProvider> get acceleratorPreference {
+    if (Platform.isAndroid || Platform.isIOS) {
+      return const [
+        OrtProvider.CORE_ML,
+        OrtProvider.XNNPACK,
+        OrtProvider.NNAPI,
+      ];
+    }
+    return const [
+      OrtProvider.TENSOR_RT,
+      OrtProvider.CUDA,
+      OrtProvider.DIRECT_ML,
+      OrtProvider.ROCM,
+      OrtProvider.CORE_ML,
+      OrtProvider.OPEN_VINO,
+    ];
+  }
 
   static List<OrtProvider>? _cachedSelected;
   static bool? _cachedHasAccelerator;

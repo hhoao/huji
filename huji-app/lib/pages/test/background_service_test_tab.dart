@@ -89,7 +89,9 @@ class _BackgroundServiceTestTabState extends State<BackgroundServiceTestTab> {
 
     // 自动滚动到底部
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
+      if (_scrollController.hasClients &&
+          // 布局未完成时 maxScrollExtent 为 null
+          _scrollController.position.hasContentDimensions) {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),

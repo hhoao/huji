@@ -8,6 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:watcher/watcher.dart';
 
@@ -1073,6 +1074,10 @@ class VideoUtils {
   /// 批量生成视频缩略图（按时间间隔）
   ///
   /// 返回一个Stream，每生成一个缩略图就会发送其文件路径
+  ///
+  /// [letterboxSize] 非空时改为输出 letterbox 到正方形的 RGB24 裸帧
+  /// （每帧恰好 size×size×3 字节，供 ONNX [predictRgb24] 直接推理，
+  /// 跳过 Dart 侧图片解码）。
   static Future<Stream<String>> generateThumbnails(
     String videoPath,
     double interval, {
@@ -1082,10 +1087,15 @@ class VideoUtils {
     int? width,
     int? quality,
     String format = 'png',
+    int? letterboxSize,
     ThumbnailProgressCallback? onProgress,
   }) async {
     if (!await File(videoPath).exists()) {
       throw VideoFileNotFoundException(videoPath);
+    }
+
+    if (letterboxSize != null) {
+      format = 'rgb';
     }
 
     final outputDir = await _getDirPath(dirPath);
@@ -1142,13 +1152,80 @@ class VideoUtils {
       }
     }
 
+    // 诊断心跳：区分“ffmpeg 没写文件”和“watcher 没收到事件”
+    int watcherEventCount = 0;
+    DateTime? lastWatcherHeartbeat;
+
     eventStream = watcher.events.listen((event) {
       if (event.type == ChangeType.ADD && event.path.endsWith('.$format')) {
         final fileNumber = extractFileNumber(event.path);
         if (fileNumber != null) {
+          watcherEventCount++;
+          final now = DateTime.now();
+          if (lastWatcherHeartbeat == null ||
+              now.difference(lastWatcherHeartbeat!) >=
+                  const Duration(seconds: 3)) {
+            lastWatcherHeartbeat = now;
+            _logger.i(
+              'watcher 心跳: 收到 $watcherEventCount 个新文件事件, '
+              '已发流 $currentCount/$totalCount, '
+              '待发序号 $nextExpectedIndex',
+            );
+          }
           pendingFiles[fileNumber] = event.path;
           tryEmitNextFiles(); // 尝试按顺序发送文件
         }
+      }
+    });
+
+    // 轮询兜底 + 诊断：实测 Android 上 inotify 只送达首个 ADD 事件
+    // （ffmpeg code=0 正常写完 140 帧但 watcher 只收到 1 个事件），
+    // 周期扫描目录补发。与 watcher 双通道并存，pendingFiles 去重。
+    int lastScanFileCount = 0;
+    DateTime? lastPollHeartbeat;
+    var scanRunning = false;
+
+    Future<void> scanForNewFiles() async {
+      if (scanRunning || controller.isClosed) return;
+      scanRunning = true;
+      try {
+        final dir = Directory(outputDir.path);
+        if (!await dir.exists()) return;
+        var fileCount = 0;
+        await for (final entity in dir.list()) {
+          if (entity is! File || !entity.path.endsWith('.$format')) continue;
+          fileCount++;
+          final fileNumber = extractFileNumber(entity.path);
+          if (fileNumber != null && !pendingFiles.containsKey(fileNumber)) {
+            pendingFiles[fileNumber] = entity.path;
+            tryEmitNextFiles();
+            if (controller.isClosed) break;
+          }
+        }
+        lastScanFileCount = fileCount;
+      } catch (e) {
+        _logger.w('轮询扫描目录出错: $e');
+      } finally {
+        scanRunning = false;
+      }
+    }
+
+    // 自取消：controller 关闭后（发满或兜底收尾）下一次 tick 自行 cancel。
+    Timer.periodic(const Duration(milliseconds: 300), (timer) {
+      if (controller.isClosed) {
+        timer.cancel();
+        return;
+      }
+      unawaited(scanForNewFiles());
+      final now = DateTime.now();
+      if (lastPollHeartbeat == null ||
+          now.difference(lastPollHeartbeat!) >= const Duration(seconds: 3)) {
+        lastPollHeartbeat = now;
+        _logger.i(
+          'poll 心跳: 目录文件 $lastScanFileCount, '
+          '已发流 $currentCount/$totalCount, '
+          'watcher 事件 $watcherEventCount',
+        );
       }
     });
 
@@ -1161,6 +1238,7 @@ class VideoUtils {
       width: width,
       quality: quality,
       format: format,
+      letterboxSize: letterboxSize,
       completeCallback: () async {
         // FFmpeg 完成后，等待所有文件生成并发送完成
         // 在回调执行时捕获当前状态
@@ -1415,6 +1493,8 @@ class VideoUtils {
     int? width,
     int? quality,
     String format = 'png',
+    int? letterboxSize,
+    int padValue = OnnxImagePreprocessor.padValue,
     Future<void> Function()? completeCallback,
   }) async {
     if (!await File(videoPath).exists()) {
@@ -1442,10 +1522,33 @@ class VideoUtils {
     commands.add('-vf');
     final vf = <String>[];
     vf.add('fps=$interval');
-    if (width != null) {
+    if (letterboxSize != null) {
+      // Letterbox 到模型输入尺寸的 RGB24 裸帧：缩放/填充由 FFmpeg 原生完成，
+      // 省去 Dart 侧 PNG 解码 + resize（每帧数百毫秒的开销）。
+      final padHex = padValue.toRadixString(16).padLeft(2, '0');
+      vf.add(
+        'scale=$letterboxSize:$letterboxSize'
+        ':force_original_aspect_ratio=decrease:flags=bicubic',
+      );
+      vf.add(
+        'pad=$letterboxSize:$letterboxSize:(ow-iw)/2:(oh-ih)/2'
+        ':color=0x$padHex$padHex$padHex',
+      );
+    } else if (width != null) {
       vf.add('scale=$width:-1');
     }
     commands.add(vf.join(','));
+
+    if (letterboxSize != null) {
+      commands.addAll([
+        '-f',
+        'image2',
+        '-vcodec',
+        'rawvideo',
+        '-pix_fmt',
+        'rgb24',
+      ]);
+    }
 
     commands.add('-y');
     commands.add(outputPattern);

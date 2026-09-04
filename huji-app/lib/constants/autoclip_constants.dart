@@ -52,7 +52,8 @@ class AutoclipConstants {
   static const String resizedDirName = 'resized';
   static const String debugFrameOutputDirName = 'debug_frames';
 
-  // 模型相关常量
+  // 模型相关常量：逻辑模型 ID（三端统一跑 ONNX，具体文件由
+  // InferenceModelRegistry 按 sport/matchType 解析）
   static const String pingPongModelName = '乒乓球单打模型';
   static const String badmintonModelName = '羽毛球单打模型';
 
@@ -60,15 +61,6 @@ class AutoclipConstants {
     pingPongModelName,
     badmintonModelName,
   ];
-
-  // ultralytics_yolo 0.6.x 的模型解析器：'assets/' 前缀的 Flutter asset 会先复制到
-  // documents 目录再以绝对路径加载；裸相对路径会被原生层当作文件系统路径导致加载失败。
-  static const String modelDirName = 'assets/models';
-
-  static const Map<String, String> modelNamePathMapping = {
-    pingPongModelName: '$modelDirName/ping_pong_singles.tflite',
-    badmintonModelName: '$modelDirName/badminton_singles.tflite',
-  };
 
   // 视频格式常量
   static final List<String> supportedVideoFormats =

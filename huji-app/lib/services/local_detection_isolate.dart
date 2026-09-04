@@ -5,7 +5,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/models/autoclip_models.dart';
-import 'package:huji_app/services/inference/desktop_inference_spec.dart';
+import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 
 /// Runs batch autoclip off the UI isolate so inference does not freeze the app.
@@ -18,7 +18,7 @@ class LocalDetectionIsolateRunner {
   static Future<LocalDetectionResult> run({
     required String videoPath,
     required VideoClipConfigReqVo clipConfig,
-    required DesktopInferenceSpec inferenceSpec,
+    required InferenceSpec inferenceSpec,
     void Function(double progress, String message)? onProgress,
   }) async {
     final rootToken = RootIsolateToken.instance;
@@ -103,7 +103,7 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
 
   try {
     final inferenceSpec =
-        DesktopInferenceSpec.fromIsolateMessage(args.inferenceSpecMessage);
+        InferenceSpec.fromIsolateMessage(args.inferenceSpecMessage);
     final clipConfig = _decodeClipConfig(
       args.clipConfigJson,
       inferenceSpec.sportType,

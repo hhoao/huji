@@ -1,5 +1,4 @@
 import 'package:huji_app/constants/autoclip_constants.dart';
-import 'package:huji_app/services/inference/onnx_inference_engine.dart';
 
 /// Resolves ONNX model assets for desktop inference.
 class InferenceModelRegistry {
@@ -37,8 +36,15 @@ class InferenceModelRegistry {
     }
   }
 
-  static String onnxAssetFor(String sportType, String matchType) =>
-      OnnxInferenceEngine.modelAssetFor(sportType, matchType);
+  static String onnxAssetFor(
+    String sportType,
+    String matchType, {
+    bool preferFp16 = false,
+  }) {
+    final base = 'assets/models/$sportType/$matchType';
+    if (preferFp16) return '$base/best_fp16.onnx';
+    return '$base/best.onnx';
+  }
 
   static List<String> classNamesFor(String sportType, String matchType) {
     return _classNamesBySportMatch['$sportType/$matchType'] ??

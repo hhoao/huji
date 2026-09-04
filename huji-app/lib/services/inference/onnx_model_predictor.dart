@@ -15,17 +15,27 @@ class OnnxModelPredictor implements ModelPredictor {
   final String modelFilePath;
   final List<String> fallbackClassNames;
 
+  /// CPU-only sessions: ORT op threads (see [OnnxInferenceEngine.cpuThreadCount]).
+  final int? cpuThreadCount;
+
   OnnxInferenceEngine? _engine;
   Future<void>? _predictQueue;
+
+  /// 复用的输入张量缓冲区（尺寸变化时重建）。
+  /// 所有预测经 [_enqueue] 串行执行，复用安全。
+  Float32List? _tensorBuffer;
+  int _tensorWidth = 0;
+  int _tensorHeight = 0;
 
   OnnxModelPredictor({
     required this.modelFilePath,
     required this.fallbackClassNames,
+    this.cpuThreadCount,
   });
 
   Future<OnnxInferenceEngine> _ensureLoaded() async {
     if (_engine != null) return _engine!;
-    final engine = OnnxInferenceEngine();
+    final engine = OnnxInferenceEngine(cpuThreadCount: cpuThreadCount);
     await engine.loadModelFromFile(
       modelFilePath,
       fallbackClassNames: fallbackClassNames,
@@ -90,6 +100,19 @@ class OnnxModelPredictor implements ModelPredictor {
     return _mapClassName(result.classification.topClass, classMappings);
   }
 
+  /// Classify a pre-letterboxed RGB24 frame file written by FFmpeg
+  /// (exactly [width]*[height]*3 bytes per file).
+  @override
+  Future<ActionType> predictRgb24FromFile(
+    String rgbFilePath,
+    int width,
+    int height,
+    Map<String, ActionType> classMappings,
+  ) async {
+    final rgb = await File(rgbFilePath).readAsBytes();
+    return predictRgb24(rgb, width, height, classMappings);
+  }
+
   Future<ClassifierResult> predictRgb24ForResult(
     Uint8List rgb,
     int width,
@@ -115,7 +138,12 @@ class OnnxModelPredictor implements ModelPredictor {
     final engine = await _ensureLoaded();
     final classNames = engine.classNames;
 
-    final tensor = OnnxImagePreprocessor.toTensor(rgb, width, height);
+    final tensor = OnnxImagePreprocessor.toTensor(
+      rgb,
+      width,
+      height,
+      _tensorBufferFor(width, height),
+    );
     final logits = await engine.predict(tensor, width, height);
 
     final (topIdx, topConfidence) = _topPrediction(logits, classNames.length);
@@ -145,6 +173,18 @@ class OnnxModelPredictor implements ModelPredictor {
         ),
       ],
     );
+  }
+
+  /// 取（或按尺寸重建）复用的输入张量缓冲区，消除每帧 4.9MB 分配。
+  Float32List _tensorBufferFor(int width, int height) {
+    if (_tensorBuffer == null ||
+        _tensorWidth != width ||
+        _tensorHeight != height) {
+      _tensorBuffer = Float32List(3 * width * height);
+      _tensorWidth = width;
+      _tensorHeight = height;
+    }
+    return _tensorBuffer!;
   }
 
   ActionType _mapClassName(
@@ -185,5 +225,6 @@ class OnnxModelPredictor implements ModelPredictor {
     await _engine?.dispose();
     _engine = null;
     _predictQueue = null;
+    _tensorBuffer = null;
   }
 }

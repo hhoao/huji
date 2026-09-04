@@ -10,6 +10,15 @@ class OnnxInferenceEngine {
   static const inputName = 'images';
   static const outputName = 'output0';
 
+  /// CPU-only sessions: intra/inter op threads for this session.
+  ///
+  /// Null leaves the ORT default (= all cores). Pooled predictors pass 1 so
+  /// parallelism comes from worker count instead of N sessions × N threads
+  /// oversubscribing the CPU.
+  final int? cpuThreadCount;
+
+  OnnxInferenceEngine({this.cpuThreadCount});
+
   final AppLogger _logger = AppLogger();
   final OnnxRuntime _ort = OnnxRuntime();
 
@@ -37,10 +46,6 @@ class OnnxInferenceEngine {
     return names;
   }
 
-  /// Asset key under `assets/models/`, e.g. `assets/models/ping_pong/normal/best.onnx`.
-  static String modelAssetFor(String sportType, String matchType) =>
-      'assets/models/$sportType/$matchType/best.onnx';
-
   /// Load an ONNX model from an on-disk file path.
   ///
   /// Prefers GPU EPs when the linked ORT build exposes them; falls back to CPU
@@ -58,7 +63,7 @@ class OnnxInferenceEngine {
     try {
       _session = await _ort.createSession(
         filePath,
-        options: OrtSessionOptions(providers: providers),
+        options: _sessionOptions(providers),
       );
     } catch (e) {
       final triedGpu = providers.any((p) => p != OrtProvider.CPU);
@@ -68,7 +73,7 @@ class OnnxInferenceEngine {
       _activeProviders = const [OrtProvider.CPU];
       _session = await _ort.createSession(
         filePath,
-        options: OrtSessionOptions(providers: const [OrtProvider.CPU]),
+        options: _sessionOptions(const [OrtProvider.CPU]),
       );
     }
 
@@ -77,6 +82,17 @@ class OnnxInferenceEngine {
       'ORT session ready providers=${_activeProviders.map((p) => p.name).join(",")}',
     );
     await _loadClassNames(filePath, fallbackClassNames);
+  }
+
+  /// Session options with CPU thread caps applied for CPU-only provider sets.
+  OrtSessionOptions _sessionOptions(List<OrtProvider> providers) {
+    final cpuOnly = providers.every((p) => p == OrtProvider.CPU);
+    final threads = cpuOnly ? cpuThreadCount : null;
+    return OrtSessionOptions(
+      providers: providers,
+      intraOpNumThreads: threads,
+      interOpNumThreads: threads,
+    );
   }
 
   Future<void> _loadClassNames(
@@ -181,6 +197,10 @@ class OnnxInferenceEngine {
       throw StateError('Model not loaded. Call loadModelFromFile() first.');
     }
 
+    // 首帧耗时：定位“模型加载成功但首帧推理不返回”类问题（如 XNNPACK
+    // + fp16）——卡住时这行日志永远不会出现。
+    final stopwatch = _firstRunLogged ? null : (Stopwatch()..start());
+
     final input = await OrtValue.fromList(
       inputTensor,
       [1, 3, inputHeight, inputWidth],
@@ -196,6 +216,12 @@ class OnnxInferenceEngine {
       try {
         final flat = await output.asFlattenedList();
         final classCount = _classCountFromOutput(output, _numClasses);
+        if (!_firstRunLogged) {
+          _firstRunLogged = true;
+          _logger.i(
+            'First inference done in ${stopwatch!.elapsedMilliseconds}ms',
+          );
+        }
         return _parseLogits(flat, classCount);
       } finally {
         await output.dispose();
@@ -204,6 +230,8 @@ class OnnxInferenceEngine {
       await input.dispose();
     }
   }
+
+  bool _firstRunLogged = false;
 
   bool get isLoaded => _loaded;
 
