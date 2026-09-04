@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 
 void main() {
@@ -26,107 +28,115 @@ void main() {
     expect(shell.branches, hasLength(4));
   });
 
-  test('workspace branch renders flat sibling routes under one host key', () {
+  test('workspace branch is one stable host route', () {
     final shell = DesktopRoutes
         .getRoutes()
         .whereType<StatefulShellRoute>()
         .single;
     final workspaceBranch = shell.branches[3];
 
-    final workspaceRoutes = [
-      for (final route in workspaceBranch.routes)
-        ..._selfAndDescendants(route as GoRoute),
-    ];
-
-    // Flat siblings — never nested sub-routes (nesting would stack a parent
-    // page *and* a child page, duplicating the tab host).
-    expect(workspaceRoutes, hasLength(6));
-    expect(
-      workspaceRoutes.map((r) => r.path),
-      containsAll([
-        '/workspace',
-        '/workspace/video/player',
-        '/workspace/clip/new',
-        '/workspace/clip/:id/preview',
-        '/workspace/clip/:id/edit',
-        '/workspace/tools/video-compress',
-      ]),
-    );
-    for (final route in workspaceRoutes) {
-      expect(route.pageBuilder, isNotNull);
-      expect(route.routes, isEmpty,
-          reason: '${route.path} must not nest sub-routes');
-    }
+    // A single route — tab semantics live in WorkspaceTabStore, driven by
+    // the router-level redirect. No param routes: page/widget reuse could
+    // skip re-opening a closed tab (the close-then-reopen bug), and nested
+    // routes would stack two host elements.
+    expect(workspaceBranch.routes, hasLength(1));
+    final route = workspaceBranch.routes.single as GoRoute;
+    expect(route.path, '/workspace');
+    expect(route.routes, isEmpty);
+    expect(route.pageBuilder, isNotNull);
   });
 
-  test('legacy workspace paths redirect into the workspace branch', () {
-    String? redirect(String location) => DesktopRoutes.workspaceRedirectPath(
-      Uri.parse(location).path,
-      Uri.parse(location).queryParameters,
-    );
-
-    expect(redirect('/video/player'), '/workspace/video/player');
-    expect(
-      redirect('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a'),
-      '/workspace/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a',
-    );
-    expect(redirect('/clip/new'), '/workspace/clip/new');
-    expect(redirect('/clip/abc/preview'), '/workspace/clip/abc/preview');
-    expect(redirect('/clip/abc/edit'), '/workspace/clip/abc/edit');
-    expect(
-      redirect('/tools/video-compress'),
-      '/workspace/tools/video-compress',
-    );
-
-    // Non-workspace routes pass through untouched.
-    expect(redirect('/tasks'), isNull);
-    expect(redirect('/'), isNull);
-    expect(redirect('/workspace'), isNull);
-    expect(redirect('/login'), isNull);
-  });
-
-  testWidgets('router redirects unmatched legacy paths before error page', (
+  testWidgets('legacy paths open tabs via redirect and land on /workspace', (
     tester,
   ) async {
-    // Regression: /clip/<id>/preview matches no route in the desktop table.
-    // The redirect must fire at the *router* level (route-level redirects
-    // only run after a route matches) or navigation falls to the error page
-    // and unmounts the shell. Mirrors the GoRouter wiring in
-    // main_desktop.dart with a minimal route table.
-    final router = GoRouter(
-      initialLocation: '/',
-      routes: [
-        GoRoute(
-          path: '/',
-          builder: (context, state) => const SizedBox.shrink(),
-        ),
-        GoRoute(
-          path: '/workspace',
-          builder: (context, state) => const SizedBox.shrink(),
-          routes: [
-            GoRoute(
-              path: 'clip/:id/preview',
-              builder: (context, state) => const SizedBox.shrink(),
-            ),
-          ],
-        ),
-      ],
-      redirect: (context, state) => DesktopRoutes.workspaceRedirectPath(
-        state.uri.path,
-        state.uri.queryParameters,
-      ),
-      errorBuilder: (context, state) => const _ErrorSentinel(),
-    );
+    final store = _resetStore();
+    final router = _redirectTestRouter();
     await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
-    router.go('/clip/1788340599999_ping_pong_demo.mp4/preview');
+    router.go('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a.mp4');
+    await tester.pumpAndSettle();
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/workspace');
+    expect(store.tabs, hasLength(1));
+    expect(store.tabs.single.kind, WorkspaceTabKind.videoPlayer);
+    expect(store.tabs.single.params['videoPath'], '/tmp/a.mp4');
+    expect(store.activeTabId, store.tabs.single.tabId);
+
+    router.go('/clip/abc/preview');
+    await tester.pumpAndSettle();
+    expect(store.tabs, hasLength(2));
+    expect(store.tabs.last.kind, WorkspaceTabKind.clipWorkflow);
+    expect(store.tabs.last.params['clipId'], 'abc');
+
+    router.go('/clip/abc/edit');
+    await tester.pumpAndSettle();
+    // Same clip id → find-or-create reuses the existing tab.
+    expect(store.tabs, hasLength(2));
+    expect(store.activeTabId, store.tabs.last.tabId);
+
+    // Non-workspace routes pass through untouched.
+    router.go('/tasks');
+    await tester.pumpAndSettle();
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/tasks');
+    expect(store.tabs, hasLength(2));
+    expect(find.byType(_ErrorSentinel), findsNothing);
+  });
+
+  testWidgets('closing the last tab and re-opening the same video works', (
+    tester,
+  ) async {
+    // Regression for the reported bug: open a video tab, close it, re-enter
+    // the same video — the tab must be re-created, not left showing the
+    // empty workspace.
+    final store = _resetStore();
+    final router = _redirectTestRouter();
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
     await tester.pumpAndSettle();
 
-    expect(router.routerDelegate.currentConfiguration.uri.path,
-        '/workspace/clip/1788340599999_ping_pong_demo.mp4/preview');
-    expect(find.byType(_ErrorSentinel), findsNothing,
-        reason: 'must not land on the error page');
+    router.go('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a.mp4');
+    await tester.pumpAndSettle();
+    expect(store.tabs, hasLength(1));
+
+    // Close via the same helper the sidebar/player use; last tab closed
+    // while the workspace branch shows → back to the last nav route.
+    final context = router.routerDelegate.navigatorKey.currentContext!;
+    closeWorkspaceTab(context, store.tabs.single.tabId);
+    await tester.pumpAndSettle();
+    expect(store.tabs, isEmpty);
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/');
+
+    // Re-open the SAME video location.
+    router.go('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a.mp4');
+    await tester.pumpAndSettle();
+    expect(store.tabs, hasLength(1), reason: 'tab must be re-created');
+    expect(store.tabs.single.params['videoPath'], '/tmp/a.mp4');
+    expect(store.activeTabId, store.tabs.single.tabId);
+    expect(router.routerDelegate.currentConfiguration.uri.path, '/workspace');
+  });
+
+  testWidgets('opening the same video while its tab exists reuses it', (
+    tester,
+  ) async {
+    final store = _resetStore();
+    final router = _redirectTestRouter();
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    router.go('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a.mp4');
+    await tester.pumpAndSettle();
+    router.go('/video/player?videoUrl=%2Ftmp%2Fb.mp4&fileName=b.mp4');
+    await tester.pumpAndSettle();
+    expect(store.tabs, hasLength(2));
+
+    // Re-open video A: same instance key → focus, no third tab.
+    router.go('/video/player?videoUrl=%2Ftmp%2Fa.mp4&fileName=a.mp4');
+    await tester.pumpAndSettle();
+    expect(store.tabs, hasLength(2));
+    expect(
+      store.activeTab?.params['videoPath'],
+      '/tmp/a.mp4',
+      reason: 'existing tab is focused',
+    );
   });
 
   test('desktop shell child routes disable route-level page transitions', () {
@@ -187,11 +197,38 @@ void main() {
   );
 }
 
-Iterable<GoRoute> _selfAndDescendants(GoRoute route) sync* {
-  yield route;
-  for (final child in route.routes.whereType<GoRoute>()) {
-    yield* _selfAndDescendants(child);
+/// Mirrors the GoRouter wiring in main_desktop.dart (router-level
+/// DesktopRoutes.workspaceRedirect) with a minimal route table, so the
+/// redirect + store interplay is exercised by a real router.
+GoRouter _redirectTestRouter() {
+  return GoRouter(
+    initialLocation: '/',
+    routes: [
+      GoRoute(
+        path: '/',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/tasks',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+      GoRoute(
+        path: '/workspace',
+        builder: (context, state) => const SizedBox.shrink(),
+      ),
+    ],
+    redirect: DesktopRoutes.workspaceRedirect,
+    errorBuilder: (context, state) => const _ErrorSentinel(),
+  );
+}
+
+/// Empties the store singleton between tests.
+WorkspaceTabStore _resetStore() {
+  final store = WorkspaceTabStore.instance;
+  for (final tab in store.tabs.toList()) {
+    store.close(tab.tabId);
   }
+  return store;
 }
 
 class _ErrorSentinel extends StatelessWidget {

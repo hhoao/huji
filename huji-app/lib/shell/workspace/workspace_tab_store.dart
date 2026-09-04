@@ -138,6 +138,19 @@ class WorkspaceTabStore extends ChangeNotifier {
     return existing;
   }
 
+  /// Activates the most recent tab of the same kind, or opens [tab] when
+  /// none exists. Used by route entries whose kind has focus-or-create
+  /// semantics (new clip, compress without a pre-selected file).
+  void openOrFocus(WorkspaceTab tab) {
+    for (final id in _order.reversed) {
+      if (_tabs[id]!.kind == tab.kind) {
+        setActive(id);
+        return;
+      }
+    }
+    open(tab);
+  }
+
   void setActive(String tabId) {
     if (!_tabs.containsKey(tabId) || _activeTabId == tabId) return;
     _activeTabId = tabId;

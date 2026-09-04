@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/desktop/desktop_home_page.dart';
 import 'package:huji_app/pages/desktop/desktop_account_page.dart';
 import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
@@ -13,6 +14,9 @@ import 'package:huji_app/router/modules/subscription.dart';
 import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/shell/huji_desktop_shell.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
+import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
+import 'package:path/path.dart' as p;
+import 'package:uuid/uuid.dart';
 
 class DesktopRoutes {
   DesktopRoutes._();
@@ -53,21 +57,112 @@ class DesktopRoutes {
   }
 
   /// Shared mobile/desktop entry points call context.go('/video/player'),
-  /// '/clip/new', '/clip/:id/preview|edit' and '/tools/video-compress'. On
-  /// desktop those pages live in the workspace-tab branch under
-  /// /workspace/..., so this maps a legacy path to the branch path (query
-  /// params preserved), or returns null when [path] is not a workspace
-  /// path.
-  static String? workspaceRedirectPath(String path, Map<String, String> query) {
-    final matches = path == '/video/player' ||
-        path == '/clip/new' ||
-        _isLegacyClipWorkflowPath(path) ||
-        path == '/tools/video-compress';
-    if (!matches) return null;
-    return Uri(
-      path: '/workspace$path',
-      queryParameters: query.isEmpty ? null : query,
-    ).toString();
+  /// '/clip/new', '/clip/:id/preview|edit' and '/tools/video-compress'.
+  ///
+  /// This router-level redirect (wired in main_desktop.dart) turns those
+  /// legacy paths into their workspace tab as a SIDE EFFECT — find-or-create
+  /// by content key (player video path, clip id, compress file), focus-or-
+  /// open for fresh-instance kinds — and then lands on /workspace, where the
+  /// tab host renders the active tab.
+  ///
+  /// Opening tabs here, not in the host widget, is what makes close-then-
+  /// reopen work: the redirect is evaluated for every navigation regardless
+  /// of widget/page reuse, so a re-entry can never be silently skipped.
+  /// Returns null for non-workspace paths (no redirect).
+  static String? workspaceRedirect(BuildContext context, GoRouterState state) {
+    final uri = state.uri;
+    switch (uri.path) {
+      case '/video/player':
+        final videoPath = uri.queryParameters['videoUrl'] ?? '';
+        final fileName = uri.queryParameters['fileName'] ?? videoPath;
+        if (videoPath.isNotEmpty) {
+          WorkspaceTabStore.instance.open(
+            WorkspaceTab(
+              tabId: _redirectUuid.v4(),
+              kind: WorkspaceTabKind.videoPlayer,
+              routePath: '/video/player',
+              title: fileName,
+              params: {'videoPath': videoPath, 'fileName': fileName},
+            ),
+          );
+        }
+        return workspace;
+      case '/clip/new':
+        WorkspaceTabStore.instance.openOrFocus(
+          WorkspaceTab(
+            tabId: _redirectUuid.v4(),
+            kind: WorkspaceTabKind.clipNew,
+            routePath: '/clip/new',
+            title: _redirectL10n(
+              context,
+              '新建剪辑',
+              (l10n) => l10n.desktopNewClip,
+            ),
+          ),
+        );
+        return workspace;
+      case '/tools/video-compress':
+        final file = state.extra as File?;
+        if (file != null) {
+          WorkspaceTabStore.instance.open(
+            WorkspaceTab(
+              tabId: _redirectUuid.v4(),
+              kind: WorkspaceTabKind.videoCompress,
+              routePath: '/tools/video-compress',
+              title: p.basename(file.path),
+              params: {'initialFile': file.path},
+            ),
+          );
+        } else {
+          WorkspaceTabStore.instance.openOrFocus(
+            WorkspaceTab(
+              tabId: _redirectUuid.v4(),
+              kind: WorkspaceTabKind.videoCompress,
+              routePath: '/tools/video-compress',
+              title: _redirectL10n(
+                context,
+                '视频压缩',
+                (l10n) => l10n.taskTypeVideoCompress,
+              ),
+            ),
+          );
+        }
+        return workspace;
+      default:
+        if (_isLegacyClipWorkflowPath(uri.path)) {
+          final segments = uri.pathSegments;
+          final clipId = segments[1];
+          final startOnEdit = segments[2] == 'edit';
+          WorkspaceTabStore.instance.open(
+            WorkspaceTab(
+              tabId: _redirectUuid.v4(),
+              kind: WorkspaceTabKind.clipWorkflow,
+              routePath: '/clip/${Uri.encodeComponent(clipId)}/${segments[2]}',
+              title: clipId,
+              params: {'clipId': clipId, 'startOnEdit': startOnEdit},
+            ),
+          );
+          return workspace;
+        }
+        return null;
+    }
+  }
+
+  static const _redirectUuid = Uuid();
+
+  /// The redirect can run before localizations are ready (cold start) or
+  /// with a context that has none (tests) — fall back to a hardcoded label
+  /// then; tab titles are cosmetic and the pages own the real content.
+  static String _redirectL10n(
+    BuildContext context,
+    String fallback,
+    String Function(HujiLocalizations) resolve,
+  ) {
+    try {
+      return resolve(context.hujiL10n);
+    } catch (_) {
+      return fallback;
+    }
   }
 
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {
@@ -151,103 +246,21 @@ class DesktopRoutes {
               ),
             ],
           ),
-          // Workspace-tab branch: every dynamic sidebar-tab page renders the
-          // same WorkspaceTabHost. The host turns the route parameters into a
-          // find-or-create tab (route == "open this tab") and shows the
-          // active tab in an IndexedStack, so page state survives switching
-          // to library / tasks / settings and back, and closing a tab
-          // disposes it. Navigating to /workspace just shows the active tab.
-          //
-          // All workspace routes are FLAT siblings sharing one fixed page
-          // key — never nested sub-routes. Nesting would push a parent page
-          // *and* a child page into the branch navigator (two host elements,
-          // two IndexedStacks, duplicated tab state), and per-route page
-          // keys would recreate the host on every move between workspace
-          // routes, destroying the tab pages' state. The shared key makes
-          // every navigation between them update the same element in place.
-          //
-          // The shared mobile entry points call context.go('/video/player'),
-          // '/clip/new', '/clip/:id/…' and '/tools/video-compress'; the
-          // router-level redirect (see main_desktop.dart) forwards them into
-          // this branch.
+          // Workspace-tab branch: ONE stable route rendering the tab host.
+          // All tab semantics live in WorkspaceTabStore — tabs are opened by
+          // the router-level redirect (see workspaceRedirect, wired in
+          // main_desktop.dart) or direct helpers (openClipNewTab), never by
+          // the host widget. Opening tabs in the redirect makes it
+          // independent of widget lifecycle: no dependence on
+          // didUpdateWidget/page reuse, and a same-location go() can't skip
+          // it.
           StatefulShellBranch(
             routes: [
               GoRoute(
                 path: '/workspace',
                 name: 'desktop-workspace',
-                pageBuilder: (context, state) => _workspaceHostPage(
-                  WorkspaceTabHost(sourceRoute: state.uri.toString()),
-                ),
-              ),
-              GoRoute(
-                path: '/workspace/video/player',
-                name: 'desktop-video-player',
-                pageBuilder: (context, state) {
-                  final videoPath =
-                      state.uri.queryParameters['videoUrl'] ?? '';
-                  final fileName =
-                      state.uri.queryParameters['fileName'] ?? videoPath;
-                  return _workspaceHostPage(
-                    WorkspaceTabHost(
-                      sourceRoute: state.uri.toString(),
-                      openVideoPath: videoPath,
-                      openVideoName: fileName,
-                    ),
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/workspace/clip/new',
-                name: 'desktop-clip-new',
-                pageBuilder: (context, state) => _workspaceHostPage(
-                  WorkspaceTabHost(sourceRoute: state.uri.toString()),
-                ),
-              ),
-              GoRoute(
-                path: '/workspace/clip/:id/preview',
-                name: 'desktop-clip-preview',
-                // Note: Async guards are not supported in synchronous redirect.
-                // Missing-record handling is done inside the page itself (DesktopPreviewExportPage).
-                redirect: (context, state) => null,
-                pageBuilder: (context, state) {
-                  final clipId = state.pathParameters['id'] ?? 'unknown';
-                  return _workspaceHostPage(
-                    WorkspaceTabHost(
-                      sourceRoute: state.uri.toString(),
-                      openClipId: clipId,
-                    ),
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/workspace/clip/:id/edit',
-                name: 'desktop-clip-edit',
-                // Note: Async guards are not supported in synchronous redirect.
-                // Missing-record handling is done inside the page itself (DesktopPrecisionEditPage).
-                redirect: (context, state) => null,
-                pageBuilder: (context, state) {
-                  final clipId = state.pathParameters['id'] ?? 'unknown';
-                  return _workspaceHostPage(
-                    WorkspaceTabHost(
-                      sourceRoute: state.uri.toString(),
-                      openClipId: clipId,
-                      openClipPage: 'edit',
-                    ),
-                  );
-                },
-              ),
-              GoRoute(
-                path: '/workspace/tools/video-compress',
-                name: 'desktop-video-compress',
-                pageBuilder: (context, state) {
-                  final initialFile = state.extra as File?;
-                  return _workspaceHostPage(
-                    WorkspaceTabHost(
-                      sourceRoute: state.uri.toString(),
-                      openCompressFile: initialFile,
-                    ),
-                  );
-                },
+                pageBuilder: (context, state) =>
+                    _workspaceHostPage(const WorkspaceTabHost()),
               ),
             ],
           ),

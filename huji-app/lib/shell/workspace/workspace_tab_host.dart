@@ -15,214 +15,18 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
-/// Hosts the dynamic workspace tabs inside the shell body.
+/// Hosts the dynamic workspace tabs inside the shell body — a PURE renderer
+/// over [WorkspaceTabStore].
 ///
-/// Every route of the workspace branch renders this widget (they all share
-/// one page key — see DesktopRoutes._workspaceHostPage — so a single host
-/// State lives for the whole app session). Route parameters act as an "open
-/// this tab" instruction, reconciled idempotently in [didUpdateWidget]:
-/// find-or-create by instance key for content-keyed kinds (player, clip
-/// workflow, compress-with-file), focus-or-open for fresh-instance kinds.
-/// `/workspace` alone just shows whichever tab is active. Tabs are stacked in
-/// an [IndexedStack], so switching tabs (or navigating to library / tasks /
-/// settings and back) keeps every tab's page state alive, while closing a tab
-/// disposes it.
-class WorkspaceTabHost extends StatefulWidget {
-  const WorkspaceTabHost({
-    super.key,
-    required this.sourceRoute,
-    this.openVideoPath,
-    this.openVideoName,
-    this.openClipId,
-    this.openClipPage,
-    this.openCompressFile,
-  });
-
-  /// Full URI of the route this host instance was built for.
-  final String sourceRoute;
-
-  /// `videoUrl` query of a `/video/player` navigation, if any.
-  final String? openVideoPath;
-
-  /// `fileName` query of a `/video/player` navigation, if any.
-  final String? openVideoName;
-
-  /// Clip id of a `/clip/:id/...` navigation, if any.
-  final String? openClipId;
-
-  /// `edit` when the workflow should open on the precision-edit page.
-  final String? openClipPage;
-
-  /// Pre-selected file of a `/tools/video-compress` navigation, if any.
-  final File? openCompressFile;
-
-  @override
-  State<WorkspaceTabHost> createState() => _WorkspaceTabHostState();
-}
-
-/// Closes [tabId] and normalizes navigation:
-///
-/// - last tab closed while in the workspace branch → go to the last fixed-nav
-///   route (the workspace has nothing left to show);
-/// - active tab closed with others remaining → reset the branch URL to
-///   [/workspace]. Otherwise the URL lingers on the closed tab's route, and
-///   re-opening that same location later is a go_router no-op that never
-///   reaches the host — the "re-open shows no open tabs" bug;
-/// - closing a background tab (or closing while on library / tasks /
-///   settings) → no navigation, the visible page stays.
-void closeWorkspaceTab(BuildContext context, String tabId) {
-  final store = WorkspaceTabStore.instance;
-  final wasActive = store.activeTabId == tabId;
-  final next = store.close(tabId);
-
-  final path = GoRouter.of(
-    context,
-  ).routeInformationProvider.value.uri.path;
-  final inWorkspace = DesktopRoutes.isWorkspaceRoute(path);
-  if (next == null) {
-    if (inWorkspace) {
-      context.go(store.lastNavRoute);
-    }
-    return;
-  }
-  if (!wasActive) return;
-  if (inWorkspace && path != DesktopRoutes.workspace) {
-    context.go(DesktopRoutes.workspace);
-  }
-}
-
-/// Opens a brand-new clip-configuration tab directly (bypassing the route).
-///
-/// The toolbar's 新建剪辑 button uses this so repeated clicks keep opening
-/// fresh tabs even when the URL already sits on `/workspace/clip/new` — a
-/// same-location `go()` would be a no-op and never reach the host.
-void openClipNewTab(BuildContext context) {
-  WorkspaceTabStore.instance.open(
-    WorkspaceTab(
-      tabId: _uuid.v4(),
-      kind: WorkspaceTabKind.clipNew,
-      routePath: '/clip/new',
-      title: context.hujiL10n.desktopNewClip,
-    ),
-  );
-  context.go(DesktopRoutes.workspace);
-}
-
-class _WorkspaceTabHostState extends State<WorkspaceTabHost> {
-  @override
-  void initState() {
-    super.initState();
-    _openFromRoute();
-  }
-
-  @override
-  void didUpdateWidget(WorkspaceTabHost oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    // Always reconcile — NOT only when sourceRoute changed. When a tab is
-    // closed and the same route is re-entered later, go_router reuses this
-    // host element and the widget's sourceRoute is identical to the stale
-    // one; skipping here would leave the closed tab un-reopened (empty
-    // workspace). The reconcile itself is idempotent.
-    _openFromRoute();
-  }
-
-  /// Turns the route parameters into tabs, idempotently.
-  void _openFromRoute() {
-    final store = WorkspaceTabStore.instance;
-    final videoPath = widget.openVideoPath;
-    if (videoPath != null && videoPath.isNotEmpty) {
-      // Find-or-create by video path.
-      store.open(
-        WorkspaceTab(
-          tabId: _uuid.v4(),
-          kind: WorkspaceTabKind.videoPlayer,
-          routePath: '/video/player',
-          title: widget.openVideoName ?? videoPath,
-          params: {
-            'videoPath': videoPath,
-            'fileName': widget.openVideoName ?? videoPath,
-          },
-        ),
-      );
-      return;
-    }
-
-    final clipId = widget.openClipId;
-    if (clipId != null) {
-      // Find-or-create by clip id.
-      final startOnEdit = widget.openClipPage == 'edit';
-      store.open(
-        WorkspaceTab(
-          tabId: _uuid.v4(),
-          kind: WorkspaceTabKind.clipWorkflow,
-          routePath: startOnEdit
-              ? '/clip/${Uri.encodeComponent(clipId)}/edit'
-              : '/clip/${Uri.encodeComponent(clipId)}/preview',
-          title: clipId,
-          params: {'clipId': clipId, 'startOnEdit': startOnEdit},
-        ),
-      );
-      return;
-    }
-
-    final path = Uri.parse(widget.sourceRoute).path;
-    if (path == '/workspace/tools/video-compress') {
-      final file = widget.openCompressFile;
-      if (file != null) {
-        // Find-or-create by initial file.
-        store.open(
-          WorkspaceTab(
-            tabId: _uuid.v4(),
-            kind: WorkspaceTabKind.videoCompress,
-            routePath: '/tools/video-compress',
-            title: context.hujiL10n.taskTypeVideoCompress,
-            params: {'initialFile': file.path},
-          ),
-        );
-      } else {
-        // No pre-selected file: focus the latest compress tab, or open one.
-        _focusOrOpen(
-          WorkspaceTab(
-            tabId: _uuid.v4(),
-            kind: WorkspaceTabKind.videoCompress,
-            routePath: '/tools/video-compress',
-            title: context.hujiL10n.taskTypeVideoCompress,
-          ),
-        );
-      }
-      return;
-    }
-
-    if (path == '/workspace/clip/new') {
-      // Focus the latest new-clip tab, or open one. (The toolbar button
-      // always wants a fresh instance and goes through openClipNewTab.)
-      _focusOrOpen(
-        WorkspaceTab(
-          tabId: _uuid.v4(),
-          kind: WorkspaceTabKind.clipNew,
-          routePath: '/clip/new',
-          title: context.hujiL10n.desktopNewClip,
-        ),
-      );
-      return;
-    }
-
-    // Plain /workspace (sidebar tile click, close-tab normalization): the
-    // active tab is set by the caller; nothing to reconcile here.
-  }
-
-  /// Activates the most recent tab of [tab.kind], or opens [tab] when none
-  /// exists.
-  void _focusOrOpen(WorkspaceTab tab) {
-    final store = WorkspaceTabStore.instance;
-    for (final existing in store.tabs.reversed) {
-      if (existing.kind == tab.kind) {
-        store.setActive(existing.tabId);
-        return;
-      }
-    }
-    store.open(tab);
-  }
+/// Tabs are opened by the router-level redirect (DesktopRoutes
+/// .workspaceRedirect, wired in main_desktop.dart) or direct helpers
+/// ([openClipNewTab]), never by this widget: opening must not depend on
+/// widget/page reuse, or a re-entry after closing a tab can be silently
+/// skipped. Tabs are stacked in an [IndexedStack], so switching tabs (or
+/// navigating to library / tasks / settings and back) keeps every tab's page
+/// state alive, while closing a tab disposes it.
+class WorkspaceTabHost extends StatelessWidget {
+  const WorkspaceTabHost({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -249,14 +53,17 @@ class _WorkspaceTabHostState extends State<WorkspaceTabHost> {
           index: active == null ? 0 : tabs.indexOf(active),
           children: [
             for (final tab in tabs)
-              KeyedSubtree(key: ValueKey(tab.tabId), child: _buildTab(tab)),
+              KeyedSubtree(
+                key: ValueKey(tab.tabId),
+                child: _buildTab(context, tab),
+              ),
           ],
         );
       },
     );
   }
 
-  Widget _buildTab(WorkspaceTab tab) {
+  Widget _buildTab(BuildContext context, WorkspaceTab tab) {
     switch (tab.kind) {
       case WorkspaceTabKind.videoPlayer:
         return DesktopVideoPlayerPage(
@@ -284,4 +91,38 @@ class _WorkspaceTabHostState extends State<WorkspaceTabHost> {
         );
     }
   }
+}
+
+/// Closes [tabId] from inside a tab page or the sidebar. When it was the
+/// last open tab while the workspace branch is showing, returns to the last
+/// fixed-nav route. The branch URL is always plain /workspace (the redirect
+/// rewrites legacy paths before commit), so there is no per-tab route left
+/// dangling that a re-entry could no-op on.
+void closeWorkspaceTab(BuildContext context, String tabId) {
+  final store = WorkspaceTabStore.instance;
+  final next = store.close(tabId);
+  if (next != null) return;
+  final path = GoRouter.of(
+    context,
+  ).routeInformationProvider.value.uri.path;
+  if (DesktopRoutes.isWorkspaceRoute(path)) {
+    context.go(store.lastNavRoute);
+  }
+}
+
+/// Opens a brand-new clip-configuration tab directly (bypassing the route).
+///
+/// The toolbar's 新建剪辑 button uses this so repeated clicks keep opening
+/// fresh tabs — a same-location `go()` would be a no-op and never reach the
+/// redirect.
+void openClipNewTab(BuildContext context) {
+  WorkspaceTabStore.instance.open(
+    WorkspaceTab(
+      tabId: _uuid.v4(),
+      kind: WorkspaceTabKind.clipNew,
+      routePath: '/clip/new',
+      title: context.hujiL10n.desktopNewClip,
+    ),
+  );
+  context.go(DesktopRoutes.workspace);
 }
