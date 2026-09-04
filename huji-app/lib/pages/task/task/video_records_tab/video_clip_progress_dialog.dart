@@ -13,6 +13,8 @@ import 'bloc/video_clip_progress_dialog_state.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/router/modules/desktop.dart';
+import 'package:open_file/open_file.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class VideoClipProgressDialog extends StatefulWidget {
@@ -283,9 +285,14 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                 Navigator.of(context).pop();
                                 if (currentTask is VideoClipTask &&
                                     currentTask.outputPath.isNotEmpty) {
-                                  context.push(
-                                    '/video/player?videoUrl=${Uri.encodeComponent(currentTask.outputPath)}&fileName=${Uri.encodeComponent(currentTask.name)}',
-                                  );
+                                  // 桌面端没有 /video/player 路由，用系统播放器打开。
+                                  if (PlatformCapability.isDesktop) {
+                                    await OpenFile.open(currentTask.outputPath);
+                                  } else {
+                                    context.push(
+                                      '/video/player?videoUrl=${Uri.encodeComponent(currentTask.outputPath)}&fileName=${Uri.encodeComponent(currentTask.name)}',
+                                    );
+                                  }
                                 }
                                 if (currentTask is VideoSegmentDetectTask) {
                                   if (currentTask.edittingRecordId != null) {
@@ -296,10 +303,19 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                             as EdittingVideoRecord?;
                                     if (context.mounted &&
                                         edittingRecord != null) {
-                                      context.push(
-                                        ClipRoute.roundClip,
-                                        extra: edittingRecord,
-                                      );
+                                      // 桌面端跳预览/导出页，与任务列表点击行为一致。
+                                      if (PlatformCapability.isDesktop) {
+                                        context.go(
+                                          DesktopRoutes.clipPreviewPath(
+                                            edittingRecord.id,
+                                          ),
+                                        );
+                                      } else {
+                                        context.push(
+                                          ClipRoute.roundClip,
+                                          extra: edittingRecord,
+                                        );
+                                      }
                                     }
                                   }
                                 }

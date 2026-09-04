@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -60,6 +61,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   final ScrollController _roundStripScrollController = ScrollController();
   // Sidebar 会话所有权 token:dispose 时凭它注销,避免误删接手同 clip 的新页面会话。
   Object? _sessionToken;
+  // 最近一次导出任务:完成后该工作流视为结束(会话条目消失、离开时释放页面)。
+  String? _exportTaskId;
+  bool _exportCompleted = false;
   static const _roundStripItemStride = 128.0; // 120 width + 8 separator
   int? _pendingRoundStripScrollIndex;
 
@@ -81,8 +85,13 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final stillActive = route.startsWith(
       '/clip/${Uri.encodeComponent(widget.clipId)}/',
     );
-    if (!stillActive) {
-      _playerBloc.add(const PauseEvent());
+    if (stillActive) return;
+    _playerBloc.add(const PauseEvent());
+    // 导出已完成,用户又离开了:结束会话并释放本页状态。
+    // (closeClipWorkflow 自身会先导航到 /clip,该次路由变化凭
+    // route != clipRoot 跳过,不会递归。)
+    if (_exportCompleted && route != DesktopRoutes.clipRoot) {
+      DesktopRoutes.closeClipWorkflow(context, route);
     }
   }
 
@@ -117,6 +126,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     _playbackRegistration?.unregister();
     _roundStripScrollController.dispose();
     ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
+    TaskStorage().removeListener(_onExportTaskChanged);
     _playerBloc.close();
     super.dispose();
   }
@@ -274,12 +284,50 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     await TaskStorage().addAndAsyncProcessTask(task);
     if (!mounted) return;
 
-    VideoExportProgressDialog.show(
-      context,
-      title: l10n.exportVideoTitle,
-      subtitle: '$_fileName.mp4 · ${_qualityLabel(l10n)}',
-      taskId: task.id,
+    _exportTaskId = task.id;
+    _exportCompleted = false;
+    TaskStorage().addListener(_onExportTaskChanged);
+
+    unawaited(
+      VideoExportProgressDialog.show(
+        context,
+        title: l10n.exportVideoTitle,
+        subtitle: '$_fileName.mp4 · ${_qualityLabel(l10n)}',
+        taskId: task.id,
+      ).then((_) {
+        // 导出已成功且用户关掉了结果对话框:整个工作流就此结束。
+        if (!mounted || !_exportCompleted) return;
+        DesktopRoutes.closeClipWorkflow(context, DesktopRoutes.home);
+      }),
     );
+  }
+
+  /// 导出任务完成即视为工作流结束:移除侧边栏"正在处理"条目。
+  ///
+  /// 用户此刻已不在本页时,顺带在原地重置工作流 branch(不打扰用户当前
+  /// 页面),释放本页状态;用户还在本页(比如看着进度对话框)则保持现状,
+  /// 等他们关掉对话框或离开时再收尾。
+  void _onExportTaskChanged() {
+    final taskId = _exportTaskId;
+    if (taskId == null) return;
+    final task = TaskStorage().getTaskById(taskId);
+    if (task == null || task.status != TaskStatusEnum.completed) return;
+
+    TaskStorage().removeListener(_onExportTaskChanged);
+    _exportCompleted = true;
+
+    final sessionToken = _sessionToken;
+    if (sessionToken != null) {
+      DesktopClipSessionStore.instance.remove(widget.clipId, sessionToken);
+    }
+
+    final route = ShortcutRouteScope.instance.currentRoute ?? '';
+    final onThisPage = route.startsWith(
+      '/clip/${Uri.encodeComponent(widget.clipId)}/',
+    );
+    if (!onThisPage && route != DesktopRoutes.clipRoot) {
+      DesktopRoutes.closeClipWorkflow(context, route);
+    }
   }
 
   Future<void> _openPrecisionEdit(BuildContext context) async {
