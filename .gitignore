@@ -12,3 +12,4 @@ restcut_app/
 
 # Vendored package clones (not wired into the build)
 huji-app/packages/flutter-shadcn-ui/
+.claude/

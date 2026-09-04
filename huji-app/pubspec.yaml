@@ -163,8 +163,9 @@ flutter_native_splash:
     icon_background_color: "#ffffff"
 
 dependency_overrides:
-  # 本地 fork（基于 1.8.4）：Linux 端把 runInference 移到后台线程执行，
+  # hhoao fork（基于 1.8.4）：Linux 端把 runInference 移到后台线程执行，
   # 避免 Ort::Session::Run 阻塞平台（GTK 主）线程导致桌面检测时 UI 卡死。
-  # 详见 third_party/flutter_onnxruntime/README.huji.md。
+  # 详见 https://github.com/hhoao/flutter_onnxruntime 的 README.huji.md。
   flutter_onnxruntime:
-    path: ../third_party/flutter_onnxruntime
+    git:
+      url: https://github.com/hhoao/flutter_onnxruntime.git
