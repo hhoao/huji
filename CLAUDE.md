@@ -51,6 +51,16 @@ flutter clean && flutter run -d linux
 
 AMD / Intel GPUs are not covered by this path (CUDA-only).
 
+## Vendored flutter_onnxruntime Fork
+
+`third_party/flutter_onnxruntime` is a vendored fork of flutter_onnxruntime
+1.8.4 (wired via `dependency_overrides` in `huji-app/pubspec.yaml`). The Linux
+implementation is patched so `runInference` executes on a background thread —
+upstream runs `Ort::Session::Run` on the platform (GTK main) thread, which
+froze the whole UI during local detection. Never resolve that override away;
+details and upgrade steps in `third_party/flutter_onnxruntime/README.huji.md`.
+
+
 ## Architecture
 
 - `huji-app/` — Flutter app (mobile + desktop), package name `huji_app`
