@@ -25,9 +25,10 @@ class DesktopRoutes {
   static const String account = '/account';
   static const String workspace = '/workspace';
   static const String clipNew = '/clip/new';
-  static const String videoCompress = '/tools/video-compress';
+  static const String videoCompress = ToolsRoute.videoCompress;
   static const String clipPreview = '/clip/:id/preview';
   static const String clipEdit = '/clip/:id/edit';
+  static const String videoPlayer = '/video/player';
   static const String tasks = '/tasks';
   static const String settings = '/settings';
 
@@ -37,24 +38,56 @@ class DesktopRoutes {
   static String clipEditPath(String clipId) =>
       '/clip/${Uri.encodeComponent(clipId)}/edit';
 
+  /// Whether [route] (a concrete path, no query string) matches [template].
+  ///
+  /// Templates are the route constants above: `/clip/:id/edit` etc. A segment
+  /// starting with `:` matches any non-empty segment. Matching is on the
+  /// decoded path segments, so an encoded id (`foo%20bar`) matches `:id`.
+  static bool routeMatchesTemplate(String? route, String template) {
+    if (route == null || route.isEmpty) return false;
+    final routeSegments = Uri.parse(route).pathSegments;
+    final templateSegments = Uri.parse(template).pathSegments;
+    if (routeSegments.length != templateSegments.length) return false;
+    for (var i = 0; i < templateSegments.length; i++) {
+      final t = templateSegments[i];
+      if (t.startsWith(':')) {
+        if (routeSegments[i].isEmpty) return false;
+      } else if (routeSegments[i] != t) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// True when [route] is a `/clip/<id>/edit` path.
+  static bool isClipEditRoute(String? route) =>
+      routeMatchesTemplate(route, clipEdit);
+
+  /// True when [route] is a `/clip/<id>/preview` path.
+  static bool isClipPreviewRoute(String? route) =>
+      routeMatchesTemplate(route, clipPreview);
+
+  /// True when [route] is the standalone video player page.
+  static bool isVideoPlayerRoute(String? route) => route == videoPlayer;
+
   /// Whether [route] lives in the workspace-tab branch (dynamic sidebar
   /// tabs). The shell uses this to know when the shortcut scope should
   /// track the active tab's virtual route instead of the real route.
   static bool isWorkspaceRoute(String route) {
-    return route == workspace ||
-        route.startsWith('/video/player') ||
-        route == clipNew ||
-        route.startsWith('/clip/') ||
-        route == videoCompress;
+    // Query strings never reach here in practice (callers pass uri.path or
+    // virtual tab routePaths), but strip defensively like the old startsWith
+    // chain implicitly tolerated them.
+    final path = Uri.parse(route).path;
+    return path == workspace ||
+        isVideoPlayerRoute(path) ||
+        path.startsWith('/clip/') ||
+        path == clipNew ||
+        path == videoCompress;
   }
 
   /// `/clip/<id>/preview` or `/clip/<id>/edit` (already-encoded id).
-  static bool _isLegacyClipWorkflowPath(String path) {
-    final segments = Uri.parse(path).pathSegments;
-    return segments.length == 3 &&
-        segments[0] == 'clip' &&
-        (segments[2] == 'preview' || segments[2] == 'edit');
-  }
+  static bool _isLegacyClipWorkflowPath(String path) =>
+      isClipEditRoute(path) || isClipPreviewRoute(path);
 
   /// Shared mobile/desktop entry points call context.go('/video/player'),
   /// '/clip/new', '/clip/:id/preview|edit' and '/tools/video-compress'.
@@ -72,7 +105,7 @@ class DesktopRoutes {
   static String? workspaceRedirect(BuildContext context, GoRouterState state) {
     final uri = state.uri;
     switch (uri.path) {
-      case '/video/player':
+      case videoPlayer: // was '/video/player'
         final videoPath = uri.queryParameters['videoUrl'] ?? '';
         final fileName = uri.queryParameters['fileName'] ?? videoPath;
         if (videoPath.isNotEmpty) {
@@ -80,19 +113,19 @@ class DesktopRoutes {
             WorkspaceTab(
               tabId: _redirectUuid.v4(),
               kind: WorkspaceTabKind.videoPlayer,
-              routePath: '/video/player',
+              routePath: videoPlayer,
               title: fileName,
               params: {'videoPath': videoPath, 'fileName': fileName},
             ),
           );
         }
         return workspace;
-      case '/clip/new':
+      case clipNew: // was '/clip/new'
         WorkspaceTabStore.instance.openOrFocus(
           WorkspaceTab(
             tabId: _redirectUuid.v4(),
             kind: WorkspaceTabKind.clipNew,
-            routePath: '/clip/new',
+            routePath: clipNew,
             title: _redirectL10n(
               context,
               '新建剪辑',
@@ -101,14 +134,14 @@ class DesktopRoutes {
           ),
         );
         return workspace;
-      case '/tools/video-compress':
+      case videoCompress: // was '/tools/video-compress'
         final file = state.extra as File?;
         if (file != null) {
           WorkspaceTabStore.instance.open(
             WorkspaceTab(
               tabId: _redirectUuid.v4(),
               kind: WorkspaceTabKind.videoCompress,
-              routePath: '/tools/video-compress',
+              routePath: videoCompress,
               title: p.basename(file.path),
               params: {'initialFile': file.path},
             ),
@@ -118,7 +151,7 @@ class DesktopRoutes {
             WorkspaceTab(
               tabId: _redirectUuid.v4(),
               kind: WorkspaceTabKind.videoCompress,
-              routePath: '/tools/video-compress',
+              routePath: videoCompress,
               title: _redirectL10n(
                 context,
                 '视频压缩',

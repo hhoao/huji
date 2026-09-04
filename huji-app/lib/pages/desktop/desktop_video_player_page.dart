@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
 import 'package:huji_app/shortcuts/surface_command_binding.dart';
@@ -65,7 +66,7 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
       _commandBinding = SurfaceCommandBinding(
         bus: context.read<CommandBus>(),
         tabId: widget.tabId,
-        routePath: '/video/player',
+        routePath: DesktopRoutes.videoPlayer,
         onDeactivated: () => _playerBloc.add(const PauseEvent()),
       )..registerPlayback(
           playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
@@ -147,7 +148,7 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
     return BlocProvider.value(
       value: _playerBloc,
       child: DesktopPageShell(
-        currentRoute: '/video/player',
+        currentRoute: DesktopRoutes.videoPlayer,
         title: widget.fileName,
         actions: [
           TpButton(

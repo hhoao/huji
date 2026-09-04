@@ -2,6 +2,7 @@ import 'dart:async' show scheduleMicrotask;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 
 /// Category of a workspace tab — decides which page the host renders.
 enum WorkspaceTabKind {
@@ -103,10 +104,7 @@ class WorkspaceTabStore extends ChangeNotifier {
 
   /// Remembers the fixed-nav route so [close] has somewhere to go back to.
   void noteNavRoute(String route) {
-    if (route.startsWith('/workspace') ||
-        route.startsWith('/video/player') ||
-        route.startsWith('/clip') ||
-        route.startsWith('/tools/video-compress')) {
+    if (DesktopRoutes.isWorkspaceRoute(route)) {
       return;
     }
     _lastNavRoute = route;
