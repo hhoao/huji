@@ -30,10 +30,17 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 /// Smart clip configuration page: left config panel + right upload area.
 /// Mockup reference: smart-edit-v3.html
 class DesktopClipConfigPage extends StatefulWidget {
+  /// Owning workspace-tab id — anchors the drop zone's command ownership.
+  final String tabId;
+
   /// Closes the hosting workspace tab when the user cancels.
   final void Function()? onCancel;
 
-  const DesktopClipConfigPage({super.key, this.onCancel});
+  const DesktopClipConfigPage({
+    super.key,
+    required this.tabId,
+    this.onCancel,
+  });
 
   @override
   State<DesktopClipConfigPage> createState() => _DesktopClipConfigPageState();
@@ -731,6 +738,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Widget _buildDropZone() {
     return DesktopDropZone(
+      tabId: widget.tabId,
       file: _selectedFile,
       demoLoading: _demoLoading,
       demoSportTypeKey: _sportType,

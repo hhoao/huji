@@ -132,7 +132,7 @@ void main() {
       if (CommandInvocationScope.instance.isRepeat) repeatCount++;
     });
 
-    ShortcutRouteScope.instance.update('/clip/test-id/edit');
+    ShortcutRouteScope.instance.updateTabRoute('tab-1', '/clip/test-id/edit');
 
     final handled = dispatcher.handle(
       KeyRepeatEvent(

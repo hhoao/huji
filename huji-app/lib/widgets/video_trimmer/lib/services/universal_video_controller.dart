@@ -14,6 +14,9 @@ abstract class UniversalVideoController {
   Future<void> pause();
   Future<void> seekTo(Duration position);
   Future<void> setPlaybackSpeed(double speed);
+
+  /// 音量统一为 0.0–1.0 归一化刻度；实现负责换算到平台刻度
+  /// （media_kit 是 0–100，video_player 同为 0.0–1.0）。
   Future<void> setVolume(double volume);
 
   void addListener(VoidCallback listener);

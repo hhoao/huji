@@ -230,10 +230,9 @@ class MultiVideoPlayerBloc
     Emitter<MultiVideoPlayerState> emit,
   ) async {
     await _operationLock.synchronized(() async {
-      await state.currentVideoController?.setVolume(
-        event.volume.clamp(0.0, 1.0),
-      );
-      emit(state.copyWith(volume: event.volume.clamp(0.0, 1.0)));
+      final volume = event.volume.clamp(0.0, 1.0);
+      await _setControllerVolume(state.currentVideoController, volume);
+      emit(state.copyWith(volume: volume));
     });
   }
 
@@ -565,7 +564,20 @@ class MultiVideoPlayerBloc
       await controller.setLooping(state.isLooping);
     } else if (controller is media_kit.Player) {
       controller.setRate(state.playbackSpeed);
-      controller.setVolume(state.volume);
+      await _setControllerVolume(controller, state.volume);
+    }
+  }
+
+  /// 设置控制器音量 (dual-backend)。
+  ///
+  /// app 侧音量统一为 0.0–1.0 归一化刻度；video_player 同刻度直传，
+  /// media_kit 是 0–100（mpv 惯例），必须换算——直传 1.0 会变成 1% 音量。
+  Future<void> _setControllerVolume(dynamic controller, double volume) async {
+    final normalized = volume.clamp(0.0, 1.0);
+    if (controller is VideoPlayerController) {
+      await controller.setVolume(normalized);
+    } else if (controller is media_kit.Player) {
+      await controller.setVolume(normalized * 100);
     }
   }
 
@@ -576,7 +588,7 @@ class MultiVideoPlayerBloc
   ) async {
     await _operationLock.synchronized(() async {
       final newVolume = state.volume > 0 ? 0.0 : 1.0;
-      await state.currentVideoController?.setVolume(newVolume);
+      await _setControllerVolume(state.currentVideoController, newVolume);
       emit(state.copyWith(volume: newVolume));
     });
   }
@@ -588,7 +600,7 @@ class MultiVideoPlayerBloc
   ) async {
     await _operationLock.synchronized(() async {
       final newVolume = event.isMuted ? 0.0 : 1.0;
-      await state.currentVideoController?.setVolume(newVolume);
+      await _setControllerVolume(state.currentVideoController, newVolume);
       emit(state.copyWith(volume: newVolume));
     });
   }

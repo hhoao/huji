@@ -68,7 +68,9 @@ class MediaKitPlayerAdapter implements UniversalVideoController {
   Future<void> setPlaybackSpeed(double speed) => _player.setRate(speed);
 
   @override
-  Future<void> setVolume(double volume) => _player.setVolume(volume);
+  Future<void> setVolume(double volume) =>
+      // 接口契约为 0.0–1.0 归一化音量；media_kit 是 0–100（mpv 惯例）。
+      _player.setVolume((volume.clamp(0.0, 1.0)) * 100);
 
   @override
   void addListener(VoidCallback listener) => _listeners.add(listener);

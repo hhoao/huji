@@ -35,6 +35,7 @@ void main() {
       expect(isVideoPlaybackRoute('/clip/new'), isTrue);
       expect(isVideoPlaybackRoute('/tools/video-compress'), isTrue);
       expect(isVideoPlaybackRoute('/clip/a/edit'), isTrue);
+      expect(isVideoPlaybackRoute('/video/player'), isTrue);
     });
   });
 
@@ -64,6 +65,10 @@ void main() {
       );
       expect(
         commandScopeMatches(CommandScope.videoPlayback, '/clip/x/edit'),
+        isTrue,
+      );
+      expect(
+        commandScopeMatches(CommandScope.videoPlayback, '/video/player'),
         isTrue,
       );
       expect(commandScopeMatches(CommandScope.videoPlayback, '/'), isFalse);

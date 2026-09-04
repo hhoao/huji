@@ -82,7 +82,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
     // somewhere to go back to; the workspace branch's own routes are skipped
     // (the host tracks the active tab there instead).
     if (!DesktopRoutes.isWorkspaceRoute(widget.currentRoute)) {
-      ShortcutRouteScope.instance.update(widget.currentRoute);
+      ShortcutRouteScope.instance.updateNavRoute(widget.currentRoute);
       WorkspaceTabStore.instance.noteNavRoute(widget.currentRoute);
     }
     final cs = Theme.of(context).colorScheme;

@@ -19,6 +19,9 @@ class TrimmerLoadVideo extends TrimmerEvent {
 
 class TrimmerTogglePlayPause extends TrimmerEvent {}
 
+/// 无条件暂停（页面被切走、失活等场景）；未播放时为 no-op。
+class TrimmerPause extends TrimmerEvent {}
+
 class TrimmerSeekTo extends TrimmerEvent {
   final Duration position;
 

@@ -11,8 +11,7 @@ import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/shortcuts/command_tooltip_label.dart';
-import 'package:huji_app/shortcuts/playback_command_registration.dart';
-import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
+import 'package:huji_app/shortcuts/surface_command_binding.dart';
 import 'package:uuid/uuid.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
@@ -46,12 +45,16 @@ import 'package:huji_app/utils/debounce/throttles.dart';
 class DesktopPrecisionEditPage extends StatefulWidget {
   final String clipId;
 
+  /// Owning workspace-tab id — anchors command ownership to this tab.
+  final String tabId;
+
   /// Switches the hosting workflow tab back to the preview page.
   final void Function()? onOpenPreview;
 
   const DesktopPrecisionEditPage({
     super.key,
     required this.clipId,
+    required this.tabId,
     this.onOpenPreview,
   });
 
@@ -70,10 +73,7 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   int? _activeRoundIndex;
   bool _trimmerLoading = false;
   bool _blocsInitialized = false;
-  bool _commandsRegistered = false;
-  CommandBus? _commandBus;
-  final List<(String, CommandHandler)> _commandHandlers = [];
-  PlaybackCommandRegistration? _playbackRegistration;
+  SurfaceCommandBinding? _commandBinding;
   final PrecisionEditSeekAccelerator _seekAccelerator =
       PrecisionEditSeekAccelerator();
   // 工作流 tab 回填句柄:加载记录后把标题/缩略图回填到侧栏 tab。
@@ -97,27 +97,13 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
   void initState() {
     super.initState();
     _multiVideoPlayerBloc = MultiVideoPlayerBloc();
-    // 工作流 branch 保活:切去其他页面时暂停播放,避免后台继续出声。
-    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
-  }
-
-  void _handleRouteChanged() {
-    final route = ShortcutRouteScope.instance.currentRoute ?? '';
-    final stillActive = route.startsWith(
-      '/clip/${Uri.encodeComponent(widget.clipId)}/',
-    );
-    if (!stillActive) {
-      _multiVideoPlayerBloc.add(const PauseEvent());
-    }
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_commandsRegistered) {
-      _commandsRegistered = true;
-      _commandBus = context.read<CommandBus>();
-      _registerPrecisionEditCommands();
+    if (_commandBinding == null) {
+      _attachCommandBinding();
     }
     if (!_blocsInitialized) {
       _blocsInitialized = true;
@@ -154,12 +140,14 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
         _roundClipBloc.add(RoundClipInitializeEvent(edittingRecord));
       }
       // 回填侧栏工作流 tab 的标题/缩略图。
+      // 注意不能回填 routePath：本页在 IndexedStack 里隐藏挂载，回填会把
+      // tab 路由翻到 /edit，抢走预览页的快捷键归属（routePath 只归
+      // ClipWorkflowTab 管理）。
       final tab = WorkspaceTabStore.instance.sessionFor(widget.clipId);
       if (tab != null) {
         _ownTabId = tab.tabId;
         WorkspaceTabStore.instance.updateTab(
           tab.tabId,
-          routePath: DesktopRoutes.clipEditPath(widget.clipId),
           title: record.filePath != null
               ? p.basenameWithoutExtension(record.filePath!)
               : widget.clipId,
@@ -274,11 +262,11 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
 
   @override
   void dispose() {
-    _unregisterPrecisionEditCommands();
+    _commandBinding?.detach();
+    _commandBinding = null;
     _thumbQueue.clear();
     _thumbQueueDebounce?.cancel();
     _roundListScrollController.dispose();
-    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
     _disposeTrimmer();
     _roundClipBloc.close();
     _multiVideoPlayerBloc.close();
@@ -416,40 +404,42 @@ class _DesktopPrecisionEditPageState extends State<DesktopPrecisionEditPage> {
     _scrollRoundListToIndex(index);
   }
 
-  void _registerPrecisionEditCommands() {
-    final bus = _commandBus;
-    if (bus == null) return;
-
-    void reg(String id, CommandHandler handler) {
-      bus.register(id, handler);
-      _commandHandlers.add((id, handler));
-    }
-
-    reg(CommandIds.precisionSplit, _shortcutSplit);
-    reg(CommandIds.precisionAddSegment, _shortcutAddSegment);
-    reg(CommandIds.precisionDeleteSegment, _shortcutDeleteSegment);
-    reg(CommandIds.precisionPlaySelectedOnly, _shortcutPlaySelectedOnly);
-    reg(CommandIds.precisionToggleSlowMotion, _shortcutToggleSlowMotion);
-
-    _playbackRegistration = PlaybackCommandRegistration(bus);
-    _playbackRegistration!.register(
-      playPause: _shortcutPlayPause,
-      seekBackward: () => _shortcutSeek(-1),
-      seekForward: () => _shortcutSeek(1),
-      prevSegment: () => _shortcutSelectRound(-1),
-      nextSegment: () => _shortcutSelectRound(1),
+  /// 命令注册跟随"当前界面"：仅当本 tab 正展示 /edit 时持有精修+播放快捷键，
+  /// 被切走（换 tab、切回预览页、回固定导航页）即注销并暂停所有播放。
+  void _attachCommandBinding() {
+    final binding = SurfaceCommandBinding(
+      bus: context.read<CommandBus>(),
+      tabId: widget.tabId,
+      routePath: DesktopRoutes.clipEditPath(widget.clipId),
+      onDeactivated: _pauseAllPlayback,
     );
+    binding
+      ..registerPlayback(
+        playPause: _shortcutPlayPause,
+        seekBackward: () => _shortcutSeek(-1),
+        seekForward: () => _shortcutSeek(1),
+        prevSegment: () => _shortcutSelectRound(-1),
+        nextSegment: () => _shortcutSelectRound(1),
+      )
+      ..register(CommandIds.precisionSplit, _shortcutSplit)
+      ..register(CommandIds.precisionAddSegment, _shortcutAddSegment)
+      ..register(CommandIds.precisionDeleteSegment, _shortcutDeleteSegment)
+      ..register(
+        CommandIds.precisionPlaySelectedOnly,
+        _shortcutPlaySelectedOnly,
+      )
+      ..register(
+        CommandIds.precisionToggleSlowMotion,
+        _shortcutToggleSlowMotion,
+      );
+    binding.attach();
+    _commandBinding = binding;
   }
 
-  void _unregisterPrecisionEditCommands() {
-    _playbackRegistration?.unregister();
-    _playbackRegistration = null;
-    final bus = _commandBus;
-    if (bus == null) return;
-    for (final (id, handler) in _commandHandlers) {
-      bus.unregister(id, handler);
-    }
-    _commandHandlers.clear();
+  /// 暂停本页拥有的全部播放器：预览播放 bloc + 隐藏 trimmer 播放器。
+  void _pauseAllPlayback() {
+    _multiVideoPlayerBloc.add(const PauseEvent());
+    _trimmerBlocManager?.trimmerBloc.add(TrimmerPause());
   }
 
   void _shortcutPlayPause() {

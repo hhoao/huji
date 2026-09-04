@@ -28,12 +28,15 @@ import 'package:huji_app/widgets/video_export_progress_dialog.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
-import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
+import 'package:huji_app/shortcuts/surface_command_binding.dart';
 import 'package:uuid/uuid.dart';
 
 /// Preview & export page: left export config panel + right preview player + round strip.
 class DesktopPreviewExportPage extends StatefulWidget {
   final String clipId;
+
+  /// Owning workspace-tab id — anchors command ownership to this tab.
+  final String tabId;
 
   /// Switches the hosting workflow tab to the precision-edit page.
   final void Function()? onOpenEdit;
@@ -41,6 +44,7 @@ class DesktopPreviewExportPage extends StatefulWidget {
   const DesktopPreviewExportPage({
     super.key,
     required this.clipId,
+    required this.tabId,
     this.onOpenEdit,
   });
 
@@ -64,8 +68,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   String _savePath = '';
   String _selectedQuality = _quality1080;
   bool _isLoading = true;
-  bool _commandsRegistered = false;
-  PlaybackCommandRegistration? _playbackRegistration;
+  SurfaceCommandBinding? _commandBinding;
   final ScrollController _roundStripScrollController = ScrollController();
   // 工作流 tab 回填句柄:加载记录后把标题/缩略图回填到侧栏 tab。
   String? _ownTabId;
@@ -84,17 +87,6 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   void initState() {
     super.initState();
     _loadRecord();
-    // 工作流 branch 保活:切去其他页面时暂停播放,避免后台继续出声。
-    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
-  }
-
-  void _handleRouteChanged() {
-    final route = ShortcutRouteScope.instance.currentRoute ?? '';
-    final stillActive = route.startsWith(
-      '/clip/${Uri.encodeComponent(widget.clipId)}/',
-    );
-    if (stillActive) return;
-    _playerBloc.add(const PauseEvent());
   }
 
   @override
@@ -104,26 +96,30 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
       final home = Platform.environment['HOME'] ?? '/tmp';
       _savePath = '$home/Videos/${context.hujiL10n.videosFolderName}';
     }
-    if (!_commandsRegistered) {
-      _commandsRegistered = true;
-      _playbackRegistration = PlaybackCommandRegistration(
-        context.read<CommandBus>(),
-      );
-      _playbackRegistration!.register(
-        playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
-        seekBackward: () => seekMultiVideoPlayerBySeconds(_playerBloc, -1),
-        seekForward: () => seekMultiVideoPlayerBySeconds(_playerBloc, 1),
-        prevSegment: () => goToPreviousMultiVideoPlayerSegment(_playerBloc),
-        nextSegment: () => goToNextMultiVideoPlayerSegment(_playerBloc),
-      );
+    // 命令注册跟随"当前界面"：仅当本 tab 正展示 /preview 时持有播放快捷键，
+    // 被切走（换 tab、切去精修页、回固定导航页）即注销并暂停播放。
+    if (_commandBinding == null) {
+      _commandBinding = SurfaceCommandBinding(
+        bus: context.read<CommandBus>(),
+        tabId: widget.tabId,
+        routePath: DesktopRoutes.clipPreviewPath(widget.clipId),
+        onDeactivated: () => _playerBloc.add(const PauseEvent()),
+      )..registerPlayback(
+          playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
+          seekBackward: () => seekMultiVideoPlayerBySeconds(_playerBloc, -1),
+          seekForward: () => seekMultiVideoPlayerBySeconds(_playerBloc, 1),
+          prevSegment: () => goToPreviousMultiVideoPlayerSegment(_playerBloc),
+          nextSegment: () => goToNextMultiVideoPlayerSegment(_playerBloc),
+        );
+      _commandBinding!.attach();
     }
   }
 
   @override
   void dispose() {
-    _playbackRegistration?.unregister();
+    _commandBinding?.detach();
+    _commandBinding = null;
     _roundStripScrollController.dispose();
-    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
     TaskStorage().removeListener(_onExportTaskChanged);
     _playerBloc.close();
     super.dispose();

@@ -37,9 +37,18 @@ class WorkspaceTabHost extends StatelessWidget {
         final tabs = store.tabs;
         final active = store.activeTab;
 
-        // The shortcut scope tracks the active tab's virtual route so
-        // shortcut-scope matching (playback, precision edit) keeps working.
-        ShortcutRouteScope.instance.update(active?.routePath ?? '/workspace');
+        // The shortcut scope tracks the frontmost surface: which tab is
+        // active plus its current virtual route, so shortcut-scope matching
+        // and command ownership (SurfaceCommandBinding) keep working.
+        final activeTab = active;
+        if (activeTab != null) {
+          ShortcutRouteScope.instance.updateTabRoute(
+            activeTab.tabId,
+            activeTab.routePath,
+          );
+        } else {
+          ShortcutRouteScope.instance.updateNavRoute('/workspace');
+        }
 
         if (tabs.isEmpty) {
           return TpEmptyState(
@@ -69,17 +78,20 @@ class WorkspaceTabHost extends StatelessWidget {
         return DesktopVideoPlayerPage(
           videoPath: tab.params['videoPath'] as String? ?? '',
           fileName: tab.params['fileName'] as String? ?? '',
+          tabId: tab.tabId,
           onClose: () => closeWorkspaceTab(context, tab.tabId),
         );
       case WorkspaceTabKind.videoCompress:
         final filePath = tab.params['initialFile'] as String?;
         return DesktopVideoCompressPage(
+          tabId: tab.tabId,
           initialFile: filePath == null ? null : File(filePath),
           onSubmitted: () => closeWorkspaceTab(context, tab.tabId),
           onCancel: () => closeWorkspaceTab(context, tab.tabId),
         );
       case WorkspaceTabKind.clipNew:
         return DesktopClipConfigPage(
+          tabId: tab.tabId,
           onCancel: () => closeWorkspaceTab(context, tab.tabId),
         );
       case WorkspaceTabKind.clipWorkflow:

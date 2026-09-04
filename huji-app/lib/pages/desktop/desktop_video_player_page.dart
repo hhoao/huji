@@ -6,7 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
-import 'package:huji_app/shortcuts/shortcut_route_scope.dart';
+import 'package:huji_app/shortcuts/surface_command_binding.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
@@ -25,6 +25,9 @@ class DesktopVideoPlayerPage extends StatefulWidget {
   final String videoPath;
   final String fileName;
 
+  /// Owning workspace-tab id — anchors command ownership to this tab.
+  final String tabId;
+
   /// Closes the hosting workspace tab.
   final void Function()? onClose;
 
@@ -32,6 +35,7 @@ class DesktopVideoPlayerPage extends StatefulWidget {
     super.key,
     required this.videoPath,
     required this.fileName,
+    required this.tabId,
     this.onClose,
   });
 
@@ -44,45 +48,40 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
 
   bool _isLoading = true;
   String? _error;
-  PlaybackCommandRegistration? _playbackRegistration;
-  bool _commandsRegistered = false;
+  SurfaceCommandBinding? _commandBinding;
 
   @override
   void initState() {
     super.initState();
     _load();
-    // 工作区 tab 保活:切去其他 tab / 导航页时暂停播放,避免后台继续出声。
-    ShortcutRouteScope.instance.addListener(_handleRouteChanged);
-  }
-
-  void _handleRouteChanged() {
-    final route = ShortcutRouteScope.instance.currentRoute ?? '';
-    if (route == '/video/player') return;
-    _playerBloc.add(const PauseEvent());
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    if (!_commandsRegistered) {
-      _commandsRegistered = true;
-      _playbackRegistration = PlaybackCommandRegistration(
-        context.read<CommandBus>(),
-      );
-      _playbackRegistration!.register(
-        playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
-        seekBackward: () => seekMultiVideoPlayerBySeconds(_playerBloc, -1),
-        seekForward: () => seekMultiVideoPlayerBySeconds(_playerBloc, 1),
-        prevSegment: () => goToPreviousMultiVideoPlayerSegment(_playerBloc),
-        nextSegment: () => goToNextMultiVideoPlayerSegment(_playerBloc),
-      );
+    // 命令注册跟随"当前界面"：仅当本 tab 前台展示时持有播放快捷键，
+    // 被切走（换 tab、回固定导航页）即注销并暂停播放。
+    if (_commandBinding == null) {
+      _commandBinding = SurfaceCommandBinding(
+        bus: context.read<CommandBus>(),
+        tabId: widget.tabId,
+        routePath: '/video/player',
+        onDeactivated: () => _playerBloc.add(const PauseEvent()),
+      )..registerPlayback(
+          playPause: () => toggleMultiVideoPlayerPlayPause(_playerBloc),
+          seekBackward: () => seekMultiVideoPlayerBySeconds(_playerBloc, -1),
+          seekForward: () => seekMultiVideoPlayerBySeconds(_playerBloc, 1),
+          prevSegment: () => goToPreviousMultiVideoPlayerSegment(_playerBloc),
+          nextSegment: () => goToNextMultiVideoPlayerSegment(_playerBloc),
+        );
+      _commandBinding!.attach();
     }
   }
 
   @override
   void dispose() {
-    ShortcutRouteScope.instance.removeListener(_handleRouteChanged);
-    _playbackRegistration?.unregister();
+    _commandBinding?.detach();
+    _commandBinding = null;
     _playerBloc.close();
     super.dispose();
   }

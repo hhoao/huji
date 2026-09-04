@@ -10,6 +10,12 @@ enum ClipWorkflowInitialPage { preview, edit }
 /// One clip-workflow tab hosting the preview page and the precision-edit
 /// page. Page switches happen *inside* the tab (sub-[IndexedStack]) instead
 /// of via routes, so the tab identity — and both pages' state — stay fixed.
+///
+/// This widget is the SOLE owner of the tab's routePath: it flips it on
+/// `_openEdit`/`_openPreview` so the route scope (and with it command
+/// ownership via [SurfaceCommandBinding]) follows the visible page. Pages
+/// must never write routePath themselves — a hidden page doing so would
+/// steal command ownership from the visible one.
 class ClipWorkflowTab extends StatefulWidget {
   const ClipWorkflowTab({
     super.key,
@@ -68,11 +74,13 @@ class _ClipWorkflowTabState extends State<ClipWorkflowTab> {
         DesktopPreviewExportPage(
           key: ValueKey('preview-$clipId'),
           clipId: clipId,
+          tabId: widget.tab.tabId,
           onOpenEdit: _openEdit,
         ),
         DesktopPrecisionEditPage(
           key: ValueKey('edit-$clipId'),
           clipId: clipId,
+          tabId: widget.tab.tabId,
           onOpenPreview: _openPreview,
         ),
       ],

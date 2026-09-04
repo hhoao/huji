@@ -53,6 +53,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
     : super(const TrimmerState()) {
     on<TrimmerLoadVideo>(_onLoadVideo);
     on<TrimmerTogglePlayPause>(_onTogglePlayPause);
+    on<TrimmerPause>(_onPause);
     on<TrimmerSeekTo>(_onSeekTo, transformer: sequential());
     on<TrimmerScrubStart>(_onScrubStart);
     on<TrimmerScrubEnd>(_onScrubEnd);
@@ -451,6 +452,21 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         _startPlaybackTimer();
         emit(state.copyWith(isPlaying: true));
       }
+    } catch (e) {
+      emit(state.copyWith(error: e.toString()));
+    }
+  }
+
+  /// 无条件暂停：页面被切走/失活时调用，避免隐藏 tab 继续出声。
+  Future<void> _onPause(
+    TrimmerPause event,
+    Emitter<TrimmerState> emit,
+  ) async {
+    if (!state.isPlaying) return;
+    try {
+      await state.videoPlayerController?.pause();
+      _stopPlaybackTimer();
+      emit(state.copyWith(isPlaying: false));
     } catch (e) {
       emit(state.copyWith(error: e.toString()));
     }

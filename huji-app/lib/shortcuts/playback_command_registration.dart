@@ -1,46 +1,11 @@
 import 'package:huji_app/shortcuts/command_bus.dart';
-import 'package:huji_app/shortcuts/command_ids.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
 
-/// Registers shared video playback shortcuts on a [CommandBus].
+/// Shared video playback handlers for [SurfaceCommandBinding.registerPlayback].
 ///
-/// Each page that can play video mounts its own handlers and unregisters on
-/// dispose. Only the visible page should register at a time.
-class PlaybackCommandRegistration {
-  PlaybackCommandRegistration(this._bus);
-
-  final CommandBus _bus;
-  final List<(String, CommandHandler)> _handlers = [];
-
-  void register({
-    CommandHandler? playPause,
-    CommandHandler? seekBackward,
-    CommandHandler? seekForward,
-    CommandHandler? prevSegment,
-    CommandHandler? nextSegment,
-  }) {
-    void reg(String id, CommandHandler? handler) {
-      if (handler == null) return;
-      _bus.register(id, handler);
-      _handlers.add((id, handler));
-    }
-
-    reg(CommandIds.playbackPlayPause, playPause);
-    reg(CommandIds.playbackSeekBackward, seekBackward);
-    reg(CommandIds.playbackSeekForward, seekForward);
-    reg(CommandIds.playbackPrevSegment, prevSegment);
-    reg(CommandIds.playbackNextSegment, nextSegment);
-  }
-
-  void unregister() {
-    for (final (id, handler) in _handlers) {
-      _bus.unregister(id, handler);
-    }
-    _handlers.clear();
-  }
-}
-
+/// Registration itself lives in [SurfaceCommandBinding] — commands are owned
+/// by the frontmost surface only, not by every mounted page.
 void toggleMultiVideoPlayerPlayPause(MultiVideoPlayerBloc bloc) {
   if (bloc.state.isPlaying) {
     bloc.add(const PauseEvent());

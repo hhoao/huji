@@ -37,12 +37,16 @@ bool isClipNewRoute(String? route) => route == '/clip/new';
 /// True when [route] is the desktop video-compress tool page.
 bool isVideoCompressRoute(String? route) => route == '/tools/video-compress';
 
+/// True when [route] is the desktop standalone video player page.
+bool isVideoPlayerRoute(String? route) => route == '/video/player';
+
 /// Routes where shared playback shortcuts are eligible.
 bool isVideoPlaybackRoute(String? route) {
   return isPrecisionEditRoute(route) ||
       isPreviewExportRoute(route) ||
       isClipNewRoute(route) ||
-      isVideoCompressRoute(route);
+      isVideoCompressRoute(route) ||
+      isVideoPlayerRoute(route);
 }
 
 /// True when [route] is a desktop precision-edit path.

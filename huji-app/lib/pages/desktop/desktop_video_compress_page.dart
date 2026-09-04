@@ -23,6 +23,9 @@ import 'package:uuid/uuid.dart';
 class DesktopVideoCompressPage extends StatefulWidget {
   final File? initialFile;
 
+  /// Owning workspace-tab id — anchors the drop zone's command ownership.
+  final String tabId;
+
   /// Closes the hosting workspace tab once the task is submitted.
   final void Function()? onSubmitted;
 
@@ -31,6 +34,7 @@ class DesktopVideoCompressPage extends StatefulWidget {
 
   const DesktopVideoCompressPage({
     super.key,
+    required this.tabId,
     this.initialFile,
     this.onSubmitted,
     this.onCancel,
@@ -231,6 +235,7 @@ class _DesktopVideoCompressPageState extends State<DesktopVideoCompressPage> {
                   SizedBox(height: 20),
                   Expanded(
                     child: DesktopDropZone(
+                      tabId: widget.tabId,
                       file: _selectedFile,
                       onFileSelected: _onFileSelected,
                       onClearFile: _onClearFile,

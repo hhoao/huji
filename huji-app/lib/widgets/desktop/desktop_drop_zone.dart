@@ -8,7 +8,7 @@ import 'package:huji_app/constants/file_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/media_kit_playback_commands.dart';
-import 'package:huji_app/shortcuts/playback_command_registration.dart';
+import 'package:huji_app/shortcuts/surface_command_binding.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/time_utils.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -21,6 +21,9 @@ import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 
 class DesktopDropZone extends StatefulWidget {
+  /// Owning workspace-tab id — anchors command ownership to this tab.
+  final String tabId;
+
   final File? file;
   final ValueChanged<File> onFileSelected;
   final VoidCallback onClearFile;
@@ -30,6 +33,7 @@ class DesktopDropZone extends StatefulWidget {
 
   const DesktopDropZone({
     super.key,
+    required this.tabId,
     required this.file,
     required this.onFileSelected,
     required this.onClearFile,
@@ -54,8 +58,7 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
   bool _scrubbing = false;
   double? _scrubFraction;
   String? _loadedPath;
-  PlaybackCommandRegistration? _playbackRegistration;
-  bool _hasCommandBus = false;
+  SurfaceCommandBinding? _commandBinding;
   StreamSubscription<Duration>? _positionSub;
   StreamSubscription<Duration>? _durationSub;
   StreamSubscription<bool>? _playingSub;
@@ -69,8 +72,20 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    _hasCommandBus = true;
-    _syncPlaybackCommands();
+    // 命令注册跟随"当前界面"：仅当本 tab 前台展示时持有播放快捷键。handler
+    // 内部对空播放器 no-op，因此常驻注册即可，无需跟随视频加载/卸载增删。
+    if (_commandBinding == null && PlatformCapability.isDesktop) {
+      _commandBinding = SurfaceCommandBinding(
+        bus: context.read<CommandBus>(),
+        tabId: widget.tabId,
+        onDeactivated: () => _player?.pause(),
+      )..registerPlayback(
+          playPause: _togglePlayPause,
+          seekBackward: () => _seekBySeconds(-1),
+          seekForward: () => _seekBySeconds(1),
+        );
+      _commandBinding!.attach();
+    }
   }
 
   @override
@@ -83,7 +98,8 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
 
   @override
   void dispose() {
-    _playbackRegistration?.unregister();
+    _commandBinding?.detach();
+    _commandBinding = null;
     _player?.dispose();
     _player = null;
     _videoController = null;
@@ -103,7 +119,6 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
     _scrubbing = false;
     _scrubFraction = null;
     _loadedPath = null;
-    _syncPlaybackCommands();
     if (player != null) {
       await player.dispose();
     }
@@ -172,7 +187,6 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
         _isPlaying = false;
       });
       _attachPlayerStreams(player);
-      _syncPlaybackCommands();
     } catch (e, st) {
       AppLogger().e('Failed to load desktop preview video: $e', st, e);
       if (!mounted || _loadedPath != path) return;
@@ -181,30 +195,20 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
         _isVideoReady = false;
         _isPlaying = false;
       });
-      _syncPlaybackCommands();
     }
-  }
-
-  void _syncPlaybackCommands() {
-    _playbackRegistration?.unregister();
-    _playbackRegistration = null;
-    if (!PlatformCapability.isDesktop || !_hasCommandBus) return;
-    final player = _player;
-    if (!_isVideoReady || player == null) return;
-
-    final registration = PlaybackCommandRegistration(context.read<CommandBus>());
-    registration.register(
-      playPause: () => _togglePlayPause(),
-      seekBackward: () => seekMediaKitPlayerBySeconds(player, -1),
-      seekForward: () => seekMediaKitPlayerBySeconds(player, 1),
-    );
-    _playbackRegistration = registration;
   }
 
   Future<void> _togglePlayPause() async {
     final player = _player;
     if (player == null) return;
     await player.playOrPause();
+  }
+
+  void _seekBySeconds(int deltaSeconds) {
+    final player = _player;
+    if (player != null) {
+      seekMediaKitPlayerBySeconds(player, deltaSeconds);
+    }
   }
 
   Future<void> _seekToFraction(double fraction) async {
