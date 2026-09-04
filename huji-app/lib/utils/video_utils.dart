@@ -1313,45 +1313,6 @@ class VideoUtils {
     return controller.stream;
   }
 
-  /// 按指定的帧间隔提取视频帧（可选时间段与缩放，直接输出 PNG，无需重编码）。
-  static Future<void> intervalExtractFrames({
-    required String videoPath,
-    required int frameInterval,
-    required String tempDir,
-    double? startTime,
-    double? duration,
-    int? maxWidth,
-  }) async {
-    final filters = <String>[];
-    if (maxWidth != null) {
-      filters.add('scale=$maxWidth:-1');
-    }
-    filters.add('fps=$frameInterval');
-
-    final args = <String>['-loglevel', logLevel];
-    if (startTime != null && startTime > 0) {
-      args.addAll(['-ss', startTime.toString()]);
-    }
-    args.addAll(['-i', videoPath]);
-    if (duration != null && duration > 0) {
-      args.addAll(['-t', duration.toString()]);
-    }
-    args.addAll([
-      '-vf',
-      filters.join(','),
-      '-y',
-      path.join(tempDir, '%d.png'),
-    ]);
-
-    final result = await FFmpegRunner.instance.execute(args);
-
-    if (!result.isSuccess) {
-      throw Exception(
-        resolveHujiL10n().frameExtractionFailed(result.output ?? ''),
-      );
-    }
-  }
-
   /// Extract letterboxed RGB24 frames for desktop ONNX (skips PNG encode/decode).
   ///
   /// Output files: `000001.rgb`, … each exactly [width]*[height]*3 bytes.

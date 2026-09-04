@@ -293,6 +293,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
     } else {
       _inferencePredictor = await IsolateOnnxPredictor.create(inferenceSpec);
     }
+    final predictor = _inferencePredictor!;
 
     // 根据运动类型创建相应的实时检测器
     if (task.sportType == SportType.badminton) {
@@ -304,7 +305,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
         config: badmintonConfig,
         largeModelService: _largeModelService,
         segmentDetectConfig: defaultBadmintonSegmentDetectConfig,
-        modelPredictor: _inferencePredictor,
+        modelPredictor: predictor,
       );
     } else {
       final pingPongConfig =
@@ -315,7 +316,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
         config: pingPongConfig,
         largeModelService: _largeModelService,
         segmentDetectConfig: defaultPingPongSegmentDetectConfig,
-        modelPredictor: _inferencePredictor,
+        modelPredictor: predictor,
       );
     }
     final edittingRecordId = task.edittingRecordId!;

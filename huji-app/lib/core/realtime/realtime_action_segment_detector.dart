@@ -53,7 +53,7 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
   final List<SegmentInfo> _detectedSegments = [];
 
   /// 模型预测器
-  late ModelPredictor _modelPredictor;
+  final ModelPredictor _modelPredictor;
 
   /// 类别映射
   late Map<String, ActionType> _classMappings;
@@ -72,15 +72,11 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
     required super.config,
     required super.largeModelService,
     required super.segmentDetectConfig,
-    ModelPredictor? modelPredictor,
-  }) {
-    // 可注入预测器（如 isolate 代理）；默认经 LargeModelService 解析。
-    // 注意：默认路径要求处于 runWithInferenceSpec 作用域内。
-    _modelPredictor =
-        modelPredictor ??
-        largeModelService.getPredictor(getCurrentPredictModel(config));
+    required ModelPredictor modelPredictor,
+  }) : _modelPredictor = modelPredictor {
     _classMappings = getClassesMapping(config);
   }
+
 
   /// 添加监听器
   void addListener(RealtimeSegmentListener listener) {

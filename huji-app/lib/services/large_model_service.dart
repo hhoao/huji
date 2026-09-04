@@ -74,7 +74,9 @@ class LargeModelService {
     }
   }
 
-  ModelPredictor getPredictor(String modelName) {
+  /// 三端统一 ONNX 后唯一实现即 [OnnxModelPredictor]（移动端主 isolate、
+  /// 桌面 worker isolate / 批处理 pool 都基于它）。
+  OnnxModelPredictor getPredictor(String modelName) {
     final spec = _inferenceSpec;
     if (spec == null) {
       throw StateError(

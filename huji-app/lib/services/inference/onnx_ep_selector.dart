@@ -102,9 +102,4 @@ class OnnxEpSelector {
     await resolveProviders(ort: ort);
     return _cachedHasAccelerator ?? false;
   }
-
-  static Future<OrtSessionOptions> sessionOptions({OnnxRuntime? ort}) async {
-    final providers = await resolveProviders(ort: ort);
-    return OrtSessionOptions(providers: providers);
-  }
 }

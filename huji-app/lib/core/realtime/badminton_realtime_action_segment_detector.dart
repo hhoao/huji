@@ -9,7 +9,7 @@ class BadmintonRealtimeActionSegmentDetector
     required super.config,
     required super.segmentDetectConfig,
     required super.largeModelService,
-    super.modelPredictor,
+    required super.modelPredictor,
   });
 
   @override
