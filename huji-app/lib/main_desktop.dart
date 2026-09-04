@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/app/boot_splash.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/navigation_commands.dart';
 import 'package:huji_app/shortcuts/shortcut_dispatcher_host.dart';
@@ -69,8 +70,24 @@ class _DesktopAppState extends State<DesktopApp> {
     NotificationManager().initialize();
 
     if (PlatformCapability.isDesktop) {
-      _initWindowManager();
+      // _initWindowManager() awaits the first app frame (see
+      // _revealAfterFirstFrame) before fading the boot splash away, so the
+      // splash overlay never disappears onto a blank window.
+      unawaited(_initWindowManager());
     }
+  }
+
+  /// Waits until the app has actually painted a frame, so the splash
+  /// cross-fade lands on the real UI (the runner stacks the splash overlay
+  /// over the Flutter view — see boot_splash.dart).
+  Future<void> _revealAfterFirstFrame() async {
+    final binding = WidgetsBinding.instance;
+    final painted = Completer<void>();
+    binding.addPostFrameCallback((_) {
+      if (!painted.isCompleted) painted.complete();
+    });
+    binding.scheduleFrame();
+    await painted.future;
   }
 
   void _showCheatsheet() {
@@ -136,6 +153,12 @@ class _DesktopAppState extends State<DesktopApp> {
       await windowManager.show();
       await windowManager.focus();
     });
+
+    // The window is mapped and the app has painted under the splash overlay;
+    // cross-fade the overlay away. See boot_splash.dart — the GTK runner
+    // stacks it over the Flutter view at startup.
+    await _revealAfterFirstFrame();
+    await completeBootSplashTransition();
   }
 
   @override

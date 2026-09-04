@@ -1412,6 +1412,12 @@ abstract class HujiLocalizations {
   /// **'Device type'**
   String get deviceTypeLabel;
 
+  /// No description provided for @discordCommunity.
+  ///
+  /// In en, this message translates to:
+  /// **'Discord community'**
+  String get discordCommunity;
+
   /// No description provided for @distroNameLabel.
   ///
   /// In en, this message translates to:
@@ -4609,6 +4615,18 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Purchase feature is under development...'**
   String get purchaseFeatureInDevelopment;
+
+  /// No description provided for @qqGroup.
+  ///
+  /// In en, this message translates to:
+  /// **'QQ group'**
+  String get qqGroup;
+
+  /// No description provided for @qqGroupCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'QQ group number copied'**
+  String get qqGroupCopied;
 
   /// No description provided for @qualityLabel.
   ///

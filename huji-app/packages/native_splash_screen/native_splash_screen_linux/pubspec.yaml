@@ -1,0 +1,31 @@
+name: native_splash_screen_linux
+description: "Linux implementation of the native_splash_screen plugin."
+repository: https://github.com/anicine/native_splash_screen
+version: 3.0.0
+# homepage:
+
+topics:
+  - linux
+
+platforms:
+  linux:
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.22.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  native_splash_screen_platform_interface:
+    path: ../native_splash_screen_platform_interface
+
+flutter:
+  plugin:
+    implements: native_splash_screen
+    platforms:
+      linux:
+        pluginClass: NativeSplashScreenLinuxPlugin
+
+dev_dependencies:
+  flutter_lints:

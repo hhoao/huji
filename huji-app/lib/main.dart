@@ -19,6 +19,7 @@ import 'package:huji_app/pages/video/video_list_page.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/app/boot_splash.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
@@ -66,6 +67,8 @@ void main(List<String> args) async {
       stack,
       module: 'App Initialization',
     );
+    // Don't leave the boot splash covering the error app (desktop only).
+    await completeBootSplashTransition();
     showInitErrorApp(error: "App Initialization Error: $e", stackTrace: stack);
   }
 }

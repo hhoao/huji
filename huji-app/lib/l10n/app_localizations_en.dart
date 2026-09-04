@@ -747,6 +747,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get deviceTypeLabel => 'Device type';
 
   @override
+  String get discordCommunity => 'Discord community';
+
+  @override
   String get distroNameLabel => 'Distribution';
 
   @override
@@ -2582,6 +2585,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   @override
   String get purchaseFeatureInDevelopment =>
       'Purchase feature is under development...';
+
+  @override
+  String get qqGroup => 'QQ group';
+
+  @override
+  String get qqGroupCopied => 'QQ group number copied';
 
   @override
   String get qualityLabel => 'Quality';

@@ -5,7 +5,30 @@
 #include <gdk/gdkx.h>
 #endif
 
+#include <native_splash_screen_linux/native_splash_screen_linux_plugin.h>
+
+#include <limits.h>
+#include <unistd.h>
+#include <libgen.h>
+
 #include "flutter/generated_plugin_registrant.h"
+
+// Resolve the absolute path of the bundled application icon by walking up from
+// the running executable to <bundle>/data/flutter_assets/assets/icons/logo_bg.png.
+static gchar* resolve_app_icon_path() {
+  char exe_path[PATH_MAX] = {0};
+  ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
+  if (len <= 0) {
+    return nullptr;
+  }
+  exe_path[len] = '\0';
+  gchar* exe_dir = g_path_get_dirname(exe_path);
+  gchar* icon_path = g_build_filename(
+      exe_dir, "data", "flutter_assets", "assets", "icons", "logo_bg.png",
+      nullptr);
+  g_free(exe_dir);
+  return icon_path;
+}
 
 struct _MyApplication {
   GtkApplication parent_instance;
@@ -20,46 +43,56 @@ static void my_application_activate(GApplication* application) {
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  // Use a header bar when running in GNOME as this is the common style used
-  // by applications and is the setup most users will be using (e.g. Ubuntu
-  // desktop).
-  // If running on X and not using GNOME then just use a traditional title bar
-  // in case the window manager does more exotic layout, e.g. tiling.
-  // If running on Wayland assume the header bar will work (may need changing
-  // if future cases occur).
-  gboolean use_header_bar = TRUE;
-#ifdef GDK_WINDOWING_X11
-  GdkScreen* screen = gtk_window_get_screen(window);
-  if (GDK_IS_X11_SCREEN(screen)) {
-    const gchar* wm_name = gdk_x11_screen_get_window_manager_name(screen);
-    if (g_strcmp0(wm_name, "GNOME Shell") != 0) {
-      use_header_bar = FALSE;
+  // Client-side decorations: Flutter + window_manager draw the title bar
+  // (see DesktopWindowTitleBar). Starting frameless avoids the visible
+  // GtkHeaderBar -> custom title bar swap on every launch.
+  gtk_window_set_title(window, "弧迹");
+  gtk_window_set_decorated(window, FALSE);
+
+  // Keep in sync with kDefaultDesktopWindowSize in lib/main.dart.
+  gtk_window_set_default_size(window, 1280, 800);
+
+  g_autofree gchar* icon_path = resolve_app_icon_path();
+  if (icon_path != nullptr && g_file_test(icon_path, G_FILE_TEST_EXISTS)) {
+    g_autoptr(GError) icon_error = nullptr;
+    if (!gtk_window_set_icon_from_file(window, icon_path, &icon_error)) {
+      g_warning("Failed to load window icon: %s", icon_error->message);
     }
   }
-#endif
-  if (use_header_bar) {
-    GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
-    gtk_widget_show(GTK_WIDGET(header_bar));
-    gtk_header_bar_set_title(header_bar, "弧迹");
-    gtk_header_bar_set_show_close_button(header_bar, TRUE);
-    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));
-  } else {
-    gtk_window_set_title(window, "弧迹");
-  }
-
-  gtk_window_set_default_size(window, 1280, 720);
-  gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);
 
   FlView* view = fl_view_new(project);
   gtk_widget_show(GTK_WIDGET(view));
-  gtk_container_add(GTK_CONTAINER(window), GTK_WIDGET(view));
+
+  // Overlay-mode boot splash: stack the splash bitmap over the Flutter view in
+  // THIS window (instead of a separate top-level splash window), so it paints
+  // background+logo from the first map and Dart fades it out via close() once
+  // the app has painted. Avoids the second-top-level decoration/alignment
+  // artifacts on GNOME/Wayland. This replaces adding the view to the window
+  // directly.
+  native_splash_screen_attach_overlay(window, view);
 
   fl_register_plugins(FL_PLUGIN_REGISTRY(view));
 
   gtk_widget_grab_focus(GTK_WIDGET(view));
+
+  // Default to the dark scaffold tone (kDefaultBootSplashColor); the window CSS
+  // only shows through before the first Flutter paint, which the splash
+  // overlay already covers.
+  GtkCssProvider* css_provider = gtk_css_provider_new();
+  gtk_css_provider_load_from_data(
+      css_provider, "window { background-color: #15181C; }", -1, nullptr);
+  GtkStyleContext* style_context = gtk_widget_get_style_context(GTK_WIDGET(window));
+  gtk_style_context_add_provider(
+      style_context, GTK_STYLE_PROVIDER(css_provider),
+      GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
+  g_object_unref(css_provider);
+
+  // The widget tree (including the splash overlay) is built, so the first paint
+  // already shows the splash.
+  gtk_widget_show(GTK_WIDGET(window));
 }
 
 // Implements GApplication::local_command_line.

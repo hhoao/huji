@@ -1,0 +1,35 @@
+# Regenerate: dart run native_splash_screen_cli gen
+# (after `dart run native_splash_screen_cli setup` created the cmake wiring)
+#
+# window_width/height keep in sync with kDefaultDesktopWindowSize in
+# lib/main_desktop.dart and gtk_window_set_default_size in
+# linux/runner/my_application.cc.
+#
+# The bitmap is baked full-window (background_color + background_width/height
+# == window size, image resized onto it) so the GTK draw never leaves
+# transparent gutters. window_color is the dark amber page surface
+# (workspacePage on the dark theme) that the first Flutter frame also paints.
+version: v1
+
+platforms:
+  linux:
+    enabled: true
+    fallback: true
+
+release:
+  linux:
+    window_width: 1280
+    window_height: 800
+    window_title: 弧迹
+    window_color: "#1C1814"
+    background_color: "#1C1814"
+    background_width: 1280
+    background_height: 800
+    background_border_radius: 0.0
+    image_path: assets/icons/logo_no_bg.png
+    image_width: 256
+    image_height: 256
+    image_scaling: true
+    image_border_radius: 0.0
+    blur_radius: 0.0
+    with_animation: false

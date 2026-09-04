@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:huji_app/api/api_manager.dart';
@@ -105,6 +106,16 @@ class _HujiHelpFeedbackSettingsSectionState
     }
   }
 
+  Future<void> _copyQqGroup() async {
+    await Clipboard.setData(const ClipboardData(text: '112856301'));
+    if (!mounted) return;
+    TpToast.show(
+      context,
+      message: context.hujiL10n.qqGroupCopied,
+      variant: TpToastVariant.info,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.hujiL10n;
@@ -171,6 +182,22 @@ class _HujiHelpFeedbackSettingsSectionState
                   l10n.officialWebsite,
                   'www.restcut.com',
                   () => _launchUrl('https://www.restcut.com'),
+                ),
+                _buildDivider(),
+                _buildContactRow(
+                  Icons.discord,
+                  l10n.discordCommunity,
+                  'discord.com/channels/1518551459053178960',
+                  () => _launchUrl(
+                    'https://discord.com/channels/1518551459053178960/1518551461242474558',
+                  ),
+                ),
+                _buildDivider(),
+                _buildContactRow(
+                  Icons.groups,
+                  l10n.qqGroup,
+                  '112856301',
+                  () => _copyQqGroup(),
                 ),
               ],
             ),

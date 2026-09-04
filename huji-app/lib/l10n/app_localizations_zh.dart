@@ -732,6 +732,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get deviceTypeLabel => '设备类型';
 
   @override
+  String get discordCommunity => 'Discord 社区';
+
+  @override
   String get distroNameLabel => '发行版名称';
 
   @override
@@ -2514,6 +2517,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get purchaseFeatureInDevelopment => '购买功能开发中...';
+
+  @override
+  String get qqGroup => 'QQ 群';
+
+  @override
+  String get qqGroupCopied => 'QQ 群号已复制';
 
   @override
   String get qualityLabel => '清晰度';
