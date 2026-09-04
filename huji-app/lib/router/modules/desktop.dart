@@ -10,6 +10,7 @@ import 'package:huji_app/pages/desktop/desktop_preview_export_page.dart';
 import 'package:huji_app/pages/desktop/desktop_precision_edit_page.dart';
 import 'package:huji_app/pages/desktop/desktop_tasks_page.dart';
 import 'package:huji_app/pages/desktop/desktop_settings_page.dart';
+import 'package:huji_app/pages/desktop/desktop_video_player_page.dart';
 import 'package:huji_app/pages/login/login_page.dart';
 import 'package:huji_app/router/modules/message.dart';
 import 'package:huji_app/router/modules/profile.dart';
@@ -87,6 +88,21 @@ class DesktopRoutes {
         name: 'desktop-login',
         pageBuilder: (context, state) =>
             _noTransitionPage(state, const LoginPage()),
+      ),
+      // 桌面端应用内播放页（media_kit 后端）。顶层路由：push 后覆盖整个
+      // 窗口，不进 StatefulShellRoute 分支（不需要侧栏导航）。
+      GoRoute(
+        path: '/video/player',
+        name: 'desktop-video-player',
+        pageBuilder: (context, state) {
+          final videoPath = state.uri.queryParameters['videoUrl'] ?? '';
+          final fileName =
+              state.uri.queryParameters['fileName'] ?? videoPath;
+          return _noTransitionPage(
+            state,
+            DesktopVideoPlayerPage(videoPath: videoPath, fileName: fileName),
+          );
+        },
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

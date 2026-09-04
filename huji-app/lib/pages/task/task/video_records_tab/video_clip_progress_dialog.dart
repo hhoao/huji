@@ -14,7 +14,6 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/router/modules/desktop.dart';
-import 'package:open_file/open_file.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 class VideoClipProgressDialog extends StatefulWidget {
@@ -285,14 +284,10 @@ class _VideoClipProgressDialogState extends State<VideoClipProgressDialog> {
                                 Navigator.of(context).pop();
                                 if (currentTask is VideoClipTask &&
                                     currentTask.outputPath.isNotEmpty) {
-                                  // 桌面端没有 /video/player 路由，用系统播放器打开。
-                                  if (PlatformCapability.isDesktop) {
-                                    await OpenFile.open(currentTask.outputPath);
-                                  } else {
-                                    context.push(
-                                      '/video/player?videoUrl=${Uri.encodeComponent(currentTask.outputPath)}&fileName=${Uri.encodeComponent(currentTask.name)}',
-                                    );
-                                  }
+                                  // 桌面/移动端都有 /video/player 路由。
+                                  context.push(
+                                    '/video/player?videoUrl=${Uri.encodeComponent(currentTask.outputPath)}&fileName=${Uri.encodeComponent(currentTask.name)}',
+                                  );
                                 }
                                 if (currentTask is VideoSegmentDetectTask) {
                                   if (currentTask.edittingRecordId != null) {

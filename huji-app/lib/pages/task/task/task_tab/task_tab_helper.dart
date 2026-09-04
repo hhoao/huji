@@ -485,22 +485,8 @@ Future<void> handleTaskTap(BuildContext context, Task task) async {
       return;
     }
     if (!context.mounted) return;
-    // 桌面端路由表没有 /video/player（video_player 插件也不支持桌面），
-    // 用系统默认播放器打开本地文件。
-    if (PlatformCapability.isDesktop && !TaskTabListUtils.isNetworkMediaPath(path)) {
-      try {
-        await OpenFile.open(path);
-      } catch (e) {
-        if (context.mounted) {
-          TpToast.show(
-            context,
-            message: context.hujiL10n.openFileFailed('$e'),
-            variant: TpToastVariant.error,
-          );
-        }
-      }
-      return;
-    }
+    // 桌面/移动端都有 /video/player 路由：桌面端是 media_kit 播放页，
+    // 移动端是 video_player 播放页。
     context.push(
       '/video/player?videoUrl=${Uri.encodeComponent(path)}&fileName=${Uri.encodeComponent(fileName)}',
     );
