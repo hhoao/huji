@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:huji_app/services/storage_service.dart';
@@ -9,6 +8,7 @@ import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
+import 'package:huji_app/widgets/video_trimmer/lib/no_wheel_scroll_controller.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_layout.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/state/trimmer_event.dart';
@@ -77,7 +77,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         // One thumbnail tile = 1s on all platforms (including long desktop clips).
         const timeInterval = 1.0;
 
-        final scrollController = ScrollController();
+        // 禁用滚轮/触摸板滚动：hover 片段边界手柄时触摸板横向滚动会误触平移时间轴
+        final scrollController = NoWheelScrollController();
 
         // 持久缩略图缓存目录（key 含 size+mtime，视频变更自动失效）
         final thumbCacheDir = (await storage
