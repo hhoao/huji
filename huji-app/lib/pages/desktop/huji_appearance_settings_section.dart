@@ -239,6 +239,7 @@ class _AppearancePreferenceTile extends StatelessWidget {
 
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
+    // Vertical tiles mirror TpPreferenceRow's touch title treatment.
     final titleStyle = Theme.of(context).textTheme.titleMedium?.copyWith(
           height: 1.35,
         ) ??

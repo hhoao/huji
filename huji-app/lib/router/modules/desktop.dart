@@ -92,13 +92,6 @@ class DesktopRoutes {
             _noTransitionPage(state, const LoginPage()),
       ),
       StatefulShellRoute.indexedStack(
-        // Legacy shared paths (see workspaceRedirectPath) forward into the
-        // workspace branch, keeping query params. Extra payload passes
-        // through the redirect untouched.
-        redirect: (context, state) => workspaceRedirectPath(
-          state.uri.path,
-          state.uri.queryParameters,
-        ),
         builder: (context, state, navigationShell) {
           return HujiDesktopShell(
             currentRoute: state.uri.path,

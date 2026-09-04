@@ -87,6 +87,50 @@ void main() {
     expect(redirect('/login'), isNull);
   });
 
+  testWidgets('router redirects unmatched legacy paths before error page', (
+    tester,
+  ) async {
+    // Regression: /clip/<id>/preview matches no route in the desktop table.
+    // The redirect must fire at the *router* level (route-level redirects
+    // only run after a route matches) or navigation falls to the error page
+    // and unmounts the shell. Mirrors the GoRouter wiring in
+    // main_desktop.dart with a minimal route table.
+    final router = GoRouter(
+      initialLocation: '/',
+      routes: [
+        GoRoute(
+          path: '/',
+          builder: (context, state) => const SizedBox.shrink(),
+        ),
+        GoRoute(
+          path: '/workspace',
+          builder: (context, state) => const SizedBox.shrink(),
+          routes: [
+            GoRoute(
+              path: 'clip/:id/preview',
+              builder: (context, state) => const SizedBox.shrink(),
+            ),
+          ],
+        ),
+      ],
+      redirect: (context, state) => DesktopRoutes.workspaceRedirectPath(
+        state.uri.path,
+        state.uri.queryParameters,
+      ),
+      errorBuilder: (context, state) => const _ErrorSentinel(),
+    );
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+    await tester.pumpAndSettle();
+
+    router.go('/clip/1788340599999_ping_pong_demo.mp4/preview');
+    await tester.pumpAndSettle();
+
+    expect(router.routerDelegate.currentConfiguration.uri.path,
+        '/workspace/clip/1788340599999_ping_pong_demo.mp4/preview');
+    expect(find.byType(_ErrorSentinel), findsNothing,
+        reason: 'must not land on the error page');
+  });
+
   test('desktop shell child routes disable route-level page transitions', () {
     final shell = DesktopRoutes
         .getRoutes()
@@ -150,4 +194,11 @@ Iterable<GoRoute> _selfAndDescendants(GoRoute route) sync* {
   for (final child in route.routes.whereType<GoRoute>()) {
     yield* _selfAndDescendants(child);
   }
+}
+
+class _ErrorSentinel extends StatelessWidget {
+  const _ErrorSentinel();
+
+  @override
+  Widget build(BuildContext context) => const SizedBox.expand();
 }

@@ -57,6 +57,13 @@ class _DesktopAppState extends State<DesktopApp> {
     _router = GoRouter(
       initialLocation: '/',
       routes: DesktopRoutes.getRoutes(),
+      // Router-level (not route-level): the legacy paths like /video/player
+      // match no route in the desktop table, so a route-level redirect would
+      // never fire — the router redirect is consulted for every navigation.
+      redirect: (context, state) => DesktopRoutes.workspaceRedirectPath(
+        state.uri.path,
+        state.uri.queryParameters,
+      ),
       errorBuilder: (context, state) => DesktopErrorPage(state.error),
     );
     _disposeCommands = registerDesktopNavigationCommands(

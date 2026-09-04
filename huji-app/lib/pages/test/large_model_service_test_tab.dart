@@ -94,7 +94,8 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
         _logs.add('开始初始化模型: $_selectedModelName');
       });
 
-      // 对于模型文件，tflite_flutter插件会自动处理assets路径
+      // ultralytics_yolo 0.6.x 要求 Flutter asset（assets/ 前缀）或绝对路径，
+      // 模型路径由 AutoclipConstants.modelNamePathMapping 统一提供
       setState(() {
         _logs.add('使用模型文件: $_selectedModelPath');
       });

@@ -130,6 +130,10 @@ flutter:
     - assets/models/ping_pong/profession/
     - assets/models/badminton/singles/
     - assets/models/badminton/doubles/
+    # tflite 分类模型：ultralytics_yolo 0.6.x 只接受 Flutter asset（assets/ 前缀）
+    # 或绝对路径，会自动复制到 documents 目录后再加载
+    - assets/models/ping_pong_singles.tflite
+    - assets/models/badminton_singles.tflite
     - assets/demo/
     - CHANGELOG.md
 

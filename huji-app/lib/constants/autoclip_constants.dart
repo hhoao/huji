@@ -61,8 +61,9 @@ class AutoclipConstants {
     badmintonModelName,
   ];
 
-  // static const String modelDirName = 'assets/models';
-  static const String modelDirName = 'models';
+  // ultralytics_yolo 0.6.x 的模型解析器：'assets/' 前缀的 Flutter asset 会先复制到
+  // documents 目录再以绝对路径加载；裸相对路径会被原生层当作文件系统路径导致加载失败。
+  static const String modelDirName = 'assets/models';
 
   static const Map<String, String> modelNamePathMapping = {
     pingPongModelName: '$modelDirName/ping_pong_singles.tflite',

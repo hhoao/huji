@@ -35,10 +35,14 @@ class HujiDesktopShell extends StatefulWidget {
 class _HujiDesktopShellState extends State<HujiDesktopShell> {
   late final PaneController _panes;
   CommandHandler? _toggleSidebarHandler;
+  // Cached in initState: dispose may run while the element is already
+  // deactivated, when ancestor lookups (context.read) are forbidden.
+  late final CommandBus _commandBus;
 
   @override
   void initState() {
     super.initState();
+    _commandBus = context.read<CommandBus>();
     _panes = PaneController(
       entries: const [
         PaneEntry(
@@ -54,7 +58,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
       ],
     );
     _toggleSidebarHandler = _toggleSidebar;
-    context.read<CommandBus>().register(
+    _commandBus.register(
       CommandIds.toggleSidebar,
       _toggleSidebarHandler!,
     );
@@ -64,7 +68,7 @@ class _HujiDesktopShellState extends State<HujiDesktopShell> {
   void dispose() {
     final handler = _toggleSidebarHandler;
     if (handler != null) {
-      context.read<CommandBus>().unregister(CommandIds.toggleSidebar, handler);
+      _commandBus.unregister(CommandIds.toggleSidebar, handler);
     }
     _panes.dispose();
     super.dispose();
