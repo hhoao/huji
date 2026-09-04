@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/widgets/file_picker/adapters/desktop_file_picker_port.dart';
+import 'package:huji_app/widgets/file_picker/adapters/ffmpeg_file_media_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/io_filesystem_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/permission_handler_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/photo_manager_gallery_port.dart';
@@ -18,6 +19,7 @@ TpFileSelectionDeps hujiFileSelectionDeps(BuildContext context) {
         : null,
     desktop: PlatformCapability.isDesktop ? DesktopFilePickerPort() : null,
     preview: VideoPlayerPreviewPort(),
+    fileMedia: FfmpegFileMediaPort(),
     strings: tpFileSelectionStringsFromL10n(context.hujiL10n),
     isDesktop: () => PlatformCapability.isDesktop,
   );
@@ -34,8 +36,12 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     addSelectedFiles: l10n.addSelectedFiles,
     albumAllMediaSubtitle: l10n.albumAllMediaSubtitle,
     albumCount: l10n.albumCount,
+    albumsSection: l10n.albumsSection,
+    allImagesTile: l10n.allImagesTile,
+    allVideosTile: l10n.allVideosTile,
     appFoldersTab: l10n.appFoldersTab,
     authorize: l10n.authorize,
+    backToParent: l10n.backToParent,
     calculating: l10n.calculating,
     calculatingFileSize: l10n.calculatingFileSize,
     cannotAccessDirectory: l10n.cannotAccessDirectory,
@@ -58,6 +64,7 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     folderCreatedSuccess: l10n.folderCreatedSuccess,
     folderEmpty: l10n.folderEmpty,
     folderInfo: l10n.folderInfo,
+    folderItemCount: l10n.folderItemCount,
     folderNameHint: l10n.folderNameHint,
     foundFileCount: l10n.foundFileCount,
     fullDiskSearchTab: l10n.fullDiskSearchTab,
@@ -76,6 +83,7 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     inputFileNameHint: l10n.inputFileNameHint,
     inputFileNameKeywordHint: l10n.inputFileNameKeywordHint,
     inputKeywordHint: l10n.inputKeywordHint,
+    internalStorageSection: l10n.internalStorageSection,
     itemCountUnit: l10n.itemCountUnit,
     itemTypeDirectory: l10n.itemTypeDirectory,
     itemTypeFile: l10n.itemTypeFile,
@@ -87,6 +95,7 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     loading: l10n.loading,
     maxSelectionCountReached: l10n.maxSelectionCountReached,
     maxSelectionCountReachedFor: l10n.maxSelectionCountReachedFor,
+    mediaFilesSection: l10n.mediaFilesSection,
     mediaItemCount: l10n.mediaItemCount,
     mediaTypeAll: l10n.mediaTypeAll,
     mediaTypeImage: l10n.mediaTypeImage,
@@ -123,12 +132,14 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     searchingFiles: l10n.searchingFiles,
     selectAlbum: l10n.selectAlbum,
     selectAll: l10n.selectAll,
+    selectAction: l10n.selectAction,
     selectDirectoryPrompt: l10n.selectDirectoryPrompt,
     selectDirectoryTitle: l10n.selectDirectoryTitle,
     selectFilesAndDirectoriesTitle: l10n.selectFilesAndDirectoriesTitle,
     selectFilesOrDirectoriesPrompt: l10n.selectFilesOrDirectoriesPrompt,
     selectFilesPrompt: l10n.selectFilesPrompt,
     selectFilesTitle: l10n.selectFilesTitle,
+    selectionPromptForType: l10n.selectionPromptForType,
     selectImagesTitle: l10n.selectImagesTitle,
     selectMediaTitle: l10n.selectMediaTitle,
     selectThisDirectory: l10n.selectThisDirectory,
@@ -145,6 +156,7 @@ TpFileSelectionStrings tpFileSelectionStringsFromL10n(HujiLocalizations l10n) {
     sortByName: l10n.sortByName,
     sortOptionsTitle: l10n.sortOptionsTitle,
     storagePermissionRequired: l10n.storagePermissionRequired,
+    storageSummary: l10n.storageSummary,
     switchTabClearSelectionMessage: l10n.switchTabClearSelectionMessage,
     switchTabTitle: l10n.switchTabTitle,
     switchToGridMode: l10n.switchToGridMode,

@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
 
-/// Full-width time ruler painted in the same overlay coordinate space as
-/// segment borders (not per thumbnail tile).
+/// Viewport-fixed time ruler: ticks are painted at their on-screen position
+/// (timeline x + [leftWidgetWidth] - [scrollOffset]), so the CustomPaint layer
+/// itself never moves and each repaint covers only the visible window instead
+/// of the whole video duration.
 class TimeRulerPainter extends CustomPainter {
   TimeRulerPainter({
     required this.totalDurationSeconds,
     required this.totalWidth,
+    required this.scrollOffset,
+    required this.leftWidgetWidth,
     required this.shortInterval,
     required this.longInterval,
     required this.textInterval,
@@ -16,6 +20,8 @@ class TimeRulerPainter extends CustomPainter {
 
   final double totalDurationSeconds;
   final double totalWidth;
+  final double scrollOffset;
+  final double leftWidgetWidth;
   final double shortInterval;
   final double longInterval;
   final int textInterval;
@@ -31,6 +37,17 @@ class TimeRulerPainter extends CustomPainter {
     final longIntervalCount = (longInterval / shortInterval).round().clamp(1, 1000);
     final endMark = (totalDurationSeconds / shortInterval).ceil();
 
+    final translateX = leftWidgetWidth - scrollOffset;
+    final pxPerSecond = totalWidth / totalDurationSeconds;
+
+    // 只画视口内的刻度；两侧各留一个标签宽度的溢出量，让边缘标签
+    // 仍能跨刻度显示（与整条绘制时的视觉一致）。
+    const labelPadPx = 64.0;
+    final minTickTime = (-labelPadPx - translateX) / pxPerSecond;
+    final maxTickTime = (size.width + labelPadPx - translateX) / pxPerSecond;
+    final firstTick = (minTickTime / shortInterval).floor();
+    final lastTick = (maxTickTime / shortInterval).ceil();
+
     final paint = Paint()
       ..color = tickColor
       ..strokeWidth = 1.0
@@ -38,15 +55,15 @@ class TimeRulerPainter extends CustomPainter {
 
     final textPainter = TextPainter(textDirection: TextDirection.ltr);
 
-    for (var i = 0; i <= endMark; i++) {
+    for (
+      var i = firstTick < 0 ? 0 : firstTick;
+      i <= endMark && i <= lastTick;
+      i++
+    ) {
       final time = i * shortInterval;
       if (time > totalDurationSeconds + 1e-9) break;
 
-      final x = timeToTimelineX(
-        timeSeconds: time,
-        totalDurationSeconds: totalDurationSeconds,
-        totalWidth: totalWidth,
-      );
+      final x = time * pxPerSecond + translateX;
 
       final isLongLine = (i % longIntervalCount) == 0;
       canvas.drawLine(Offset(x, 0), Offset(x, isLongLine ? 8 : 4), paint);
@@ -73,6 +90,8 @@ class TimeRulerPainter extends CustomPainter {
   bool shouldRepaint(covariant TimeRulerPainter oldDelegate) {
     return oldDelegate.totalDurationSeconds != totalDurationSeconds ||
         oldDelegate.totalWidth != totalWidth ||
+        oldDelegate.scrollOffset != scrollOffset ||
+        oldDelegate.leftWidgetWidth != leftWidgetWidth ||
         oldDelegate.shortInterval != shortInterval ||
         oldDelegate.longInterval != longInterval ||
         oldDelegate.textInterval != textInterval ||

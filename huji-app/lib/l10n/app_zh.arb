@@ -14,7 +14,7 @@
   "actionClear": "清除",
   "actionClose": "关闭",
   "actionConfirm": "确定",
-  "actionConfirmWithCount": "确定 ({count})",
+  "actionConfirmWithCount": "选择({count})",
   "actionContinue": "继续",
   "actionCountdownSeconds": "{countdown}s",
   "actionCreate": "创建",
@@ -48,7 +48,10 @@
   "addSelectedFiles": "添加 {count} 个文件",
   "albumAllMediaSubtitle": "所有{mediaType}文件",
   "albumCount": "共 {count} 个相册",
+  "albumsSection": "相册",
+  "allImagesTile": "所有图片",
   "allRounds": "全部回合",
+  "allVideosTile": "所有视频",
   "analyzingVideoContent": "正在分析视频内容...",
   "androidVersionLabel": "Android版本",
   "appFoldersTab": "应用文件夹",
@@ -65,6 +68,7 @@
   "backToPreview": "↩ 返回预览",
   "backendClip": "后台剪辑",
   "backgroundDownload": "后台下载",
+  "backToParent": "返回上一级",
   "backgroundMediaProcessingDescription": "允许应用在后台处理视频压缩任务，即使您切换到其他应用或锁屏，压缩任务也会继续执行。",
   "backgroundMediaProcessingPermission": "后台媒体处理权限",
   "backgroundServicePermissionDeniedHint": "如果拒绝授权，视频压缩将在前台进行，可能会影响您使用其他应用。",
@@ -107,7 +111,7 @@
   "clearFilters": "清除筛选",
   "clearLogsFailed": "清理日志失败: {error}",
   "clearSearch": "清除搜索",
-  "clearSelection": "取消勾选",
+  "clearSelection": "清除选择",
   "clearTypeFilter": "清除类型筛选",
   "clearedLogsOlderThan7Days": "已清理7天前的日志",
   "clipCompleted": "剪辑完成！",
@@ -264,7 +268,7 @@
   "enterPhoneOrEmail": "请输入手机/邮箱",
   "enterSearchKeyword": "请输入搜索关键词",
   "enterVerificationCode": "请输入验证码",
-  "entityInfoDateAndItemCount": "{date} {count}项",
+  "entityInfoDateAndItemCount": "{date} · {count}个项目",
   "errorGalleryReadFailed": "读取相册失败，请重试或检查系统相册权限",
   "errorImageLoadFailed": "图片加载失败，可能是图片损坏或当前设备暂不支持该格式",
   "errorLoginExpired": "登录已失效，请重新登录",
@@ -367,6 +371,7 @@
   "folderCreatedSuccess": "文件夹创建成功",
   "folderEmpty": "此文件夹为空",
   "folderInfo": "文件夹信息",
+  "folderItemCount": "{count}个项目",
   "folderNameHint": "输入文件夹名称",
   "formatLabel": "格式",
   "foundFileCount": "找到 {count} 个文件",
@@ -432,6 +437,7 @@
   "infoModifiedAt": "修改时间",
   "infoPath": "路径",
   "infoTotalItems": "总项目",
+  "internalStorageSection": "内部存储设备",
   "infoUpdateFailed": "信息更新失败: {error}",
   "infoUpdatedSuccessfully": "信息更新成功",
   "initFailedWithError": "初始化失败: {error}",
@@ -559,6 +565,7 @@
   "maxServeDuration": "最大发球时长",
   "maxServeDurationTooltip": "限制发球时长(秒)",
   "mediaItemCount": "{count} 个{mediaType}",
+  "mediaFilesSection": "媒体文件",
   "mediaTypeAll": "媒体",
   "mediaTypeImage": "图片",
   "mediaTypeVideo": "视频",
@@ -862,6 +869,7 @@
   "segmentsDetectedResult": "检测到 {count} 个比赛片段 ({seconds}s)",
   "selectAlbum": "选择相册",
   "selectAll": "全选",
+"selectAction": "选择",
   "selectClipMode": "选择剪辑方式",
   "selectClipModeHint": "请选择您想要的剪辑方式",
   "selectDirectoryPrompt": "请选择目录",
@@ -872,6 +880,7 @@
   "selectFilesOrDirectoriesPrompt": "请选择文件或目录",
   "selectFilesPrompt": "请选择文件",
   "selectFilesTitle": "选择文件",
+"selectionPromptForType": "请选择{mediaType}文件",
   "selectGender": "选择性别",
   "selectImagesTitle": "选择图片",
   "selectMediaTitle": "选择媒体文件",
@@ -890,7 +899,7 @@
   "selectionSummaryDirsOnly": " ({dirCount}个目录)",
   "selectionSummaryFilesAndDirs": " ({fileCount}个文件, {dirCount}个目录)",
   "selectionSummaryFilesOnly": " ({fileCount}个文件)",
-  "selectionSummaryItems": "{count}个项目",
+  "selectionSummaryItems": "已选择{count}个项目",
   "settings": "设置",
   "settingsAllDownloadFiles": "所有下载文件",
   "settingsAllFilesCleanupDone": "全部文件清理完成",
@@ -1046,6 +1055,7 @@
   "storageInfoCalculating": "正在计算存储信息...",
   "storageInfoFetchFailedWithError": "无法获取存储信息: {error}",
   "storagePermissionRequired": "需要存储权限才能访问文件",
+  "storageSummary": "{folderCount}个文件夹，{fileCount}个项目",
   "submitFailedRetryLater": "提交失败，请稍后重试",
   "submitFeedback": "提交反馈",
   "subscribe": "订阅",
@@ -2291,6 +2301,13 @@
   "@selectionSummaryFilesOnly": {
     "placeholders": {
       "fileCount": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectionPromptForType": {
+    "placeholders": {
+      "mediaType": {
         "type": "String"
       }
     }

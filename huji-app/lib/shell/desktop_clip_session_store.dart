@@ -1,4 +1,7 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+import 'package:flutter/scheduler.dart';
 
 /// One unfinished clip-workflow session (preview / precision edit) that the
 /// desktop sidebar surfaces as a "正在处理" entry.
@@ -83,7 +86,19 @@ class DesktopClipSessionStore extends ChangeNotifier {
     final registration = _registrations[clipId];
     if (registration == null || !identical(registration.token, token)) return;
     _registrations.remove(clipId);
-    notifyListeners();
+    _notifyListenersUnlocked();
+  }
+
+  /// [remove] runs from State.dispose, i.e. during tree unmount while the
+  /// framework is locked — a synchronous notifyListeners there trips
+  /// "setState() called when widget tree was locked". Defer until the current
+  /// frame is done; when idle we keep the synchronous notification.
+  void _notifyListenersUnlocked() {
+    if (SchedulerBinding.instance.schedulerPhase == SchedulerPhase.idle) {
+      notifyListeners();
+    } else {
+      scheduleMicrotask(notifyListeners);
+    }
   }
 }
 

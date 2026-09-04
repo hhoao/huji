@@ -52,7 +52,10 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
         ),
         title: Text(
           context.hujiL10n.selectClipMode,
-          style: styles.lgBold.copyWith(color: cs.onSurface),
+          style: styles.xl.copyWith(
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
         ),
         centerTitle: true,
       ),
@@ -63,7 +66,10 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
           children: [
             Text(
               context.hujiL10n.selectClipMode,
-              style: styles.lgBold.copyWith(color: cs.onSurface),
+              style: styles.xl.copyWith(
+                fontWeight: FontWeight.bold,
+                color: cs.onSurface,
+              ),
             ),
             SizedBox(height: 8),
             Text(
@@ -167,7 +173,11 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
                     children: [
                       Text(
                         title,
-                        style: styles.lgBold.copyWith(color: cs.onSurface),
+                        textScaler: kLegacySectionTitleTextScaler,
+                        style: styles.xl.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: cs.onSurface,
+                        ),
                       ),
                       SizedBox(height: 4),
                       Text(

@@ -50,20 +50,22 @@ class DesktopRoutes {
   /// preview/edit pages are disposed and unregister their sessions — and the
   /// deferred go() moves the user on.
   ///
-  /// The second navigation is deferred with [Timer(Duration.zero)] on
-  /// purpose: `Router` invalidates the previous navigation's parse
-  /// transaction when a new one arrives, so two back-to-back `go()` calls in
-  /// the same tick silently drop the first — the branch reset would never
-  /// happen. The timer fires only after the first navigation's microtask
-  /// chain has fully applied, and typically before the next frame is painted,
-  /// so the placeholder page is not visible.
+  /// The second navigation is deferred to a post-frame callback on purpose:
+  /// `Router` invalidates the previous navigation's parse transaction when a
+  /// new one arrives, so two `go()` calls in quick succession (even spaced by
+  /// a zero timer) silently drop the first — the branch reset would never
+  /// happen. Running after the next frame guarantees the reset has fully
+  /// applied. The one painted frame of the inert [clipRoot] page is blank but
+  /// harmless.
   ///
   /// [returnRoute] must not itself be a workflow page (preview/edit); routes
   /// like '/clip/new' that live in the library branch are fine.
   static void closeClipWorkflow(BuildContext context, String returnRoute) {
     final router = GoRouter.of(context);
     router.go(clipRoot);
-    Timer(Duration.zero, () => router.go(returnRoute));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      router.go(returnRoute);
+    });
   }
 
   static Page<void> _noTransitionPage(GoRouterState state, Widget child) {

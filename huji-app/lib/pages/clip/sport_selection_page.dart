@@ -151,7 +151,10 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
         ),
         title: Text(
           context.hujiL10n.selectSportType,
-          style: styles.lgBold.copyWith(color: cs.onSurface),
+          style: styles.xl.copyWith(
+            fontWeight: FontWeight.bold,
+            color: cs.onSurface,
+          ),
         ),
         centerTitle: true,
       ),
@@ -208,7 +211,10 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
               // 运动类型选择
               Text(
                 context.hujiL10n.selectSportType,
-                style: styles.lgBold.copyWith(color: cs.onSurface),
+                style: styles.xl.copyWith(
+                  fontWeight: FontWeight.bold,
+                  color: cs.onSurface,
+                ),
               ),
               SizedBox(height: 8),
               Text(
@@ -245,7 +251,11 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 SizedBox(height: 24),
                 Text(
                   context.hujiL10n.quickTry,
-                  style: styles.lgBold.copyWith(color: cs.onSurface),
+                  textScaler: kLegacySectionTitleTextScaler,
+                  style: styles.xl.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: cs.onSurface,
+                  ),
                 ),
                 SizedBox(height: 8),
                 Text(
@@ -317,7 +327,11 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 children: [
                   Text(
                     title,
-                    style: styles.lgBold.copyWith(color: cs.onSurface),
+                    textScaler: kLegacySectionTitleTextScaler,
+                    style: styles.xl.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: cs.onSurface,
+                    ),
                   ),
                   SizedBox(height: 4),
                   Text(

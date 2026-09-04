@@ -14,7 +14,7 @@
   "actionClear": "Clear",
   "actionClose": "Close",
   "actionConfirm": "Confirm",
-  "actionConfirmWithCount": "Confirm ({count})",
+  "actionConfirmWithCount": "Select ({count})",
   "actionContinue": "Continue",
   "actionCountdownSeconds": "{countdown}s",
   "actionCreate": "Create",
@@ -48,7 +48,10 @@
   "addSelectedFiles": "Add {count} file(s)",
   "albumAllMediaSubtitle": "All {mediaType} files",
   "albumCount": "{count} album(s)",
+  "albumsSection": "Albums",
+  "allImagesTile": "All images",
   "allRounds": "All rounds",
+  "allVideosTile": "All videos",
   "analyzingVideoContent": "Analyzing video content...",
   "androidVersionLabel": "Android version",
   "appFoldersTab": "App folders",
@@ -65,6 +68,7 @@
   "backToPreview": "↩ Back to preview",
   "backendClip": "Background clip",
   "backgroundDownload": "Download in background",
+  "backToParent": "Back",
   "backgroundMediaProcessingDescription": "Allows the app to process video compression in the background, even when you switch apps or lock the screen.",
   "backgroundMediaProcessingPermission": "Background media processing permission",
   "backgroundServicePermissionDeniedHint": "If you deny this permission, video compression will run in the foreground and may affect other apps.",
@@ -264,7 +268,7 @@
   "enterPhoneOrEmail": "Enter phone or email",
   "enterSearchKeyword": "Enter a search keyword",
   "enterVerificationCode": "Enter verification code",
-  "entityInfoDateAndItemCount": "{date} {count} items",
+  "entityInfoDateAndItemCount": "{date} · {count} items",
   "errorGalleryReadFailed": "Failed to read the photo library. Retry or check album permissions.",
   "errorImageLoadFailed": "Failed to load image. It may be corrupted or unsupported on this device.",
   "errorLoginExpired": "Session expired. Please sign in again.",
@@ -367,6 +371,7 @@
   "folderCreatedSuccess": "Folder created",
   "folderEmpty": "This folder is empty",
   "folderInfo": "Folder info",
+  "folderItemCount": "{count} item(s)",
   "folderNameHint": "Enter folder name",
   "formatLabel": "Format",
   "foundFileCount": "Found {count} file(s)",
@@ -432,6 +437,7 @@
   "infoModifiedAt": "Modified",
   "infoPath": "Path",
   "infoTotalItems": "Total items",
+  "internalStorageSection": "Internal storage",
   "infoUpdateFailed": "Failed to update profile: {error}",
   "infoUpdatedSuccessfully": "Profile updated successfully",
   "initFailedWithError": "Initialization failed: {error}",
@@ -559,6 +565,7 @@
   "maxServeDuration": "Max serve duration",
   "maxServeDurationTooltip": "Limit serve duration (seconds)",
   "mediaItemCount": "{count} {mediaType}",
+  "mediaFilesSection": "Media files",
   "mediaTypeAll": "media",
   "mediaTypeImage": "images",
   "mediaTypeVideo": "videos",
@@ -862,6 +869,7 @@
   "segmentsDetectedResult": "Detected {count} match segment(s) ({seconds}s)",
   "selectAlbum": "Select album",
   "selectAll": "Select all",
+"selectAction": "Select",
   "selectClipMode": "Select clipping method",
   "selectClipModeHint": "Choose how you want to clip your video",
   "selectDirectoryPrompt": "Please select a directory",
@@ -872,6 +880,7 @@
   "selectFilesOrDirectoriesPrompt": "Please select file(s) or directory",
   "selectFilesPrompt": "Please select file(s)",
   "selectFilesTitle": "Select files",
+"selectionPromptForType": "Please select {mediaType} files",
   "selectGender": "Select gender",
   "selectImagesTitle": "Select images",
   "selectMediaTitle": "Select media",
@@ -890,7 +899,7 @@
   "selectionSummaryDirsOnly": " ({dirCount} dirs)",
   "selectionSummaryFilesAndDirs": " ({fileCount} files, {dirCount} dirs)",
   "selectionSummaryFilesOnly": " ({fileCount} files)",
-  "selectionSummaryItems": "{count} items",
+  "selectionSummaryItems": "{count} items selected",
   "settings": "Settings",
   "settingsAllDownloadFiles": "All downloaded files",
   "settingsAllFilesCleanupDone": "All files cleaned",
@@ -1046,6 +1055,7 @@
   "storageInfoCalculating": "Calculating storage info...",
   "storageInfoFetchFailedWithError": "Failed to get storage info: {error}",
   "storagePermissionRequired": "Storage permission is required to access files",
+  "storageSummary": "{folderCount} folder(s), {fileCount} item(s)",
   "submitFailedRetryLater": "Submission failed. Please try again later.",
   "submitFeedback": "Submit feedback",
   "subscribe": "Subscribe",
@@ -2291,6 +2301,13 @@
   "@selectionSummaryFilesOnly": {
     "placeholders": {
       "fileCount": {
+        "type": "String"
+      }
+    }
+  },
+  "@selectionPromptForType": {
+    "placeholders": {
+      "mediaType": {
         "type": "String"
       }
     }

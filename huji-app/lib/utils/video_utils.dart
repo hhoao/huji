@@ -1005,9 +1005,12 @@ class VideoUtils {
     }
 
     // 构建FFmpeg命令
+    // -threads 1：解码单线程即可出一帧，避免与 UI/光栅线程抢核
     final args = [
       '-loglevel',
       logLevel,
+      '-threads',
+      '1',
       '-ss',
       timeOffset.toString(),
       '-i',

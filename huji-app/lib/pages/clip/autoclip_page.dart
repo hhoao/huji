@@ -362,7 +362,10 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
           children: [
             Text(
               _getSportTypeTitle(context),
-              style: styles.lgBold.copyWith(color: cs.onSurface),
+              style: styles.xl.copyWith(
+                fontWeight: FontWeight.bold,
+                color: cs.onSurface,
+              ),
             ),
           ],
         ),
@@ -409,7 +412,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
                         context.hujiL10n.currentFile(_currentPath!),
-                        style: styles.xs.copyWith(color: cs.mutedForeground),
+                        style: styles.sm.copyWith(color: cs.mutedForeground),
                       ),
                     ),
                 ],

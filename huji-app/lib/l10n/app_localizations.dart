@@ -185,7 +185,7 @@ abstract class HujiLocalizations {
   /// No description provided for @actionConfirmWithCount.
   ///
   /// In en, this message translates to:
-  /// **'Confirm ({count})'**
+  /// **'Select ({count})'**
   String actionConfirmWithCount(int count);
 
   /// No description provided for @actionContinue.
@@ -386,11 +386,29 @@ abstract class HujiLocalizations {
   /// **'{count} album(s)'**
   String albumCount(int count);
 
+  /// No description provided for @albumsSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Albums'**
+  String get albumsSection;
+
+  /// No description provided for @allImagesTile.
+  ///
+  /// In en, this message translates to:
+  /// **'All images'**
+  String get allImagesTile;
+
   /// No description provided for @allRounds.
   ///
   /// In en, this message translates to:
   /// **'All rounds'**
   String get allRounds;
+
+  /// No description provided for @allVideosTile.
+  ///
+  /// In en, this message translates to:
+  /// **'All videos'**
+  String get allVideosTile;
 
   /// No description provided for @analyzingVideoContent.
   ///
@@ -487,6 +505,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Download in background'**
   String get backgroundDownload;
+
+  /// No description provided for @backToParent.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get backToParent;
 
   /// No description provided for @backgroundMediaProcessingDescription.
   ///
@@ -1685,7 +1709,7 @@ abstract class HujiLocalizations {
   /// No description provided for @entityInfoDateAndItemCount.
   ///
   /// In en, this message translates to:
-  /// **'{date} {count} items'**
+  /// **'{date} · {count} items'**
   String entityInfoDateAndItemCount(String date, int count);
 
   /// No description provided for @errorGalleryReadFailed.
@@ -2300,6 +2324,12 @@ abstract class HujiLocalizations {
   /// **'Folder info'**
   String get folderInfo;
 
+  /// No description provided for @folderItemCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} item(s)'**
+  String folderItemCount(Object count);
+
   /// No description provided for @folderNameHint.
   ///
   /// In en, this message translates to:
@@ -2689,6 +2719,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Total items'**
   String get infoTotalItems;
+
+  /// No description provided for @internalStorageSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Internal storage'**
+  String get internalStorageSection;
 
   /// No description provided for @infoUpdateFailed.
   ///
@@ -3451,6 +3487,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'{count} {mediaType}'**
   String mediaItemCount(int count, String mediaType);
+
+  /// No description provided for @mediaFilesSection.
+  ///
+  /// In en, this message translates to:
+  /// **'Media files'**
+  String get mediaFilesSection;
 
   /// No description provided for @mediaTypeAll.
   ///
@@ -5270,6 +5312,12 @@ abstract class HujiLocalizations {
   /// **'Select all'**
   String get selectAll;
 
+  /// No description provided for @selectAction.
+  ///
+  /// In en, this message translates to:
+  /// **'Select'**
+  String get selectAction;
+
   /// No description provided for @selectClipMode.
   ///
   /// In en, this message translates to:
@@ -5329,6 +5377,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Select files'**
   String get selectFilesTitle;
+
+  /// No description provided for @selectionPromptForType.
+  ///
+  /// In en, this message translates to:
+  /// **'Please select {mediaType} files'**
+  String selectionPromptForType(String mediaType);
 
   /// No description provided for @selectGender.
   ///
@@ -5441,7 +5495,7 @@ abstract class HujiLocalizations {
   /// No description provided for @selectionSummaryItems.
   ///
   /// In en, this message translates to:
-  /// **'{count} items'**
+  /// **'{count} items selected'**
   String selectionSummaryItems(int count);
 
   /// No description provided for @settings.
@@ -6373,6 +6427,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Storage permission is required to access files'**
   String get storagePermissionRequired;
+
+  /// No description provided for @storageSummary.
+  ///
+  /// In en, this message translates to:
+  /// **'{folderCount} folder(s), {fileCount} item(s)'**
+  String storageSummary(Object fileCount, Object folderCount);
 
   /// No description provided for @submitFailedRetryLater.
   ///

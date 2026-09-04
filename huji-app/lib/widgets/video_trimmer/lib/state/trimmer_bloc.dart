@@ -7,6 +7,7 @@ import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/utils/debounce/debounces.dart';
+import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/managers/video_clip_segment.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/no_wheel_scroll_controller.dart';
 import 'package:huji_app/widgets/video_trimmer/lib/trim_viewer/time_ruler_intervals.dart';
@@ -30,6 +31,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   bool _isScrubbing = false;
   bool _resumeAfterScrub = false;
   bool _isSeeking = false;
+  /// 滚动节流窗口内最近一次的滚动时间值（leading+trailing 更新用）
+  int _latestScrollTimeMs = 0;
   /// media_kit may briefly report position 0 after seeking far into the file.
   int? _postSeekTargetMs;
   static const _postSeekToleranceMs = 1500;
@@ -77,7 +80,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         // One thumbnail tile = 1s on all platforms (including long desktop clips).
         const timeInterval = 1.0;
 
-        // 禁用滚轮/触摸板滚动：hover 片段边界手柄时触摸板横向滚动会误触平移时间轴
+        // 禁用滚轮/触摸板滚动：hover 片段边界时触摸板横向滚动误触平移时间轴
         final scrollController = NoWheelScrollController();
 
         // 持久缩略图缓存目录（key 含 size+mtime，视频变更自动失效）
@@ -92,10 +95,10 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         final coverImage = await VideoUtils.generateVideoThumbnail(
           file.path,
           dirPath: thumbCacheDir,
-          fileName: 'cover_$generateWidth.png',
+          fileName: 'cover_$generateWidth.jpg',
           width: 200, // 适合高DPI显示
-          quality: 1, // 最高质量
-          format: 'png', // PNG 无损，更清晰
+          quality: 2, // JPEG 视觉无损级别
+          format: 'jpg', // JPEG：编码/解码比 PNG 快数倍，滚动不卡
           reuseExisting: true,
         );
 
@@ -104,8 +107,8 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
           videoPath: file.path,
           dirPath: thumbCacheDir,
           timeIntervalSeconds: timeInterval,
-          quality: 1, // 最高质量
-          format: 'png', // PNG 无损压缩，更清晰
+          quality: 2, // JPEG 视觉无损级别
+          format: 'jpg', // JPEG：编码/解码比 PNG 快数倍，滚动不卡
           width: generateWidth,
         );
 
@@ -231,8 +234,9 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
       }
     }
 
-    // 立即更新时间显示（不等待 seekTo）
-    add(TrimmerUpdateCurrentMilliseconds(timeChange));
+    // 立即更新时间显示（不等待 seekTo）：节流到 ~100ms，避免滚动每帧
+    // 都触发进度条区域重建
+    _throttledUpdateCurrentMilliseconds(timeChange);
 
     // 使用防抖：取消之前的计时器，设置新的计时器，用户停止滚动100ms后才真正 seek
     _scrollDebouncer ??= Debouncer(
@@ -275,6 +279,26 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
         );
       }
     });
+  }
+
+  void _throttledUpdateCurrentMilliseconds(int timeChange) {
+    _latestScrollTimeMs = timeChange;
+    // leading：立即刷新一次；trailing（onAfter）：节流窗结束后再补一次
+    // 最新值，保证停止滚动后显示不会停在中间值
+    Throttles.throttle(
+      'trimmer_scroll_current_time',
+      const Duration(milliseconds: 100),
+      () {
+        if (!isClosed) {
+          add(TrimmerUpdateCurrentMilliseconds(_latestScrollTimeMs));
+        }
+      },
+      onAfter: () {
+        if (!isClosed) {
+          add(TrimmerUpdateCurrentMilliseconds(_latestScrollTimeMs));
+        }
+      },
+    );
   }
 
   void _onVideoPlayerControllerChanged() {
@@ -601,6 +625,7 @@ class TrimmerBloc extends Bloc<TrimmerEvent, TrimmerState> {
   Future<void> close() {
     _stopPlaybackTimer();
     _positionSub?.cancel();
+    Throttles.cancel('trimmer_scroll_current_time');
     _scrollDebouncer?.dispose(); // 释放防抖器
     state.videoPlayerController?.removeListener(
       _onVideoPlayerControllerChanged,

@@ -37,6 +37,7 @@ class PhotoManagerGalleryPort implements TpGalleryPort {
           id: album.id,
           name: album.name,
           assetCount: await album.assetCountAsync,
+          isAll: album.isAll,
         ),
       );
     }

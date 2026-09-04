@@ -185,73 +185,30 @@ class ScrollableThumbnailViewer extends StatelessWidget {
   }
 }
 
-/// 刻度 + 片段边框：与 ListView 共用 scroll offset，保证同一时间轴坐标。
-class _TimelineChromeOverlay extends StatelessWidget {
-  const _TimelineChromeOverlay({
+/// 片段边框层：与 ListView 共用 scroll offset，保证同一时间轴坐标。
+/// 刻度改由 viewport-fixed 的 [TimeRulerPainter] 绘制（见 _ThumbnailListBuilder）。
+class _SegmentChromeOverlay extends StatelessWidget {
+  const _SegmentChromeOverlay({
     required this.totalWidth,
-    required this.totalDurationSeconds,
-    required this.timeRulerHeight,
     required this.thumbnailHeight,
   });
 
   final double totalWidth;
-  final double totalDurationSeconds;
-  final double timeRulerHeight;
   final double thumbnailHeight;
 
   @override
   Widget build(BuildContext context) {
-    final trimmerTheme = context.trimmerTheme;
-    final layout = context.trimmerLayout;
-    final textTheme = Theme.of(context).textTheme;
-    final intervals = totalDurationSeconds > 0
-        ? resolveTimeRulerIntervals(totalWidth / totalDurationSeconds)
-        : const TimeRulerIntervals(
-            shortInterval: 1,
-            longInterval: 1,
-            textInterval: 1,
-          );
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        IgnorePointer(
-          child: SizedBox(
-            width: totalWidth,
-            height: timeRulerHeight,
-            child: CustomPaint(
-              size: Size(totalWidth, timeRulerHeight),
-              painter: TimeRulerPainter(
-                totalDurationSeconds: totalDurationSeconds,
-                totalWidth: totalWidth,
-                shortInterval: intervals.shortInterval,
-                longInterval: intervals.longInterval,
-                textInterval: intervals.textInterval,
-                tickColor: trimmerTheme.rulerTickColor,
-                textStyle:
-                    textTheme.labelSmall?.copyWith(
-                      color: trimmerTheme.rulerLabelColor,
-                      fontSize: layout.rulerLabelFontSize,
-                      fontWeight: FontWeight.w500,
-                    ) ??
-                    TextStyle(
-                      color: trimmerTheme.rulerLabelColor,
-                      fontSize: layout.rulerLabelFontSize,
-                      fontWeight: FontWeight.w500,
-                    ),
-              ),
-            ),
-          ),
+    return SizedBox(
+      width: totalWidth,
+      height: thumbnailHeight,
+      // RepaintBoundary：拖动滚动时 overlay 只是平移缓存的 layer，
+      // 不会每帧重画所有片段边框
+      child: RepaintBoundary(
+        child: ClipSegmentOverlay(
+          thumbnailHeight: thumbnailHeight,
+          totalWidth: totalWidth,
         ),
-        SizedBox(
-          width: totalWidth,
-          height: thumbnailHeight,
-          child: ClipSegmentOverlay(
-            thumbnailHeight: thumbnailHeight,
-            totalWidth: totalWidth,
-          ),
-        ),
-      ],
+      ),
     );
   }
 }
@@ -359,7 +316,64 @@ class _ThumbnailListBuilder extends StatelessWidget {
             );
           },
         ),
-        // 刻度 + 片段边框：同一 Positioned，避免分格 ListView 与整条 overlay 坐标漂移
+        // 刻度：viewport 固定层，每帧按 scrollOffset 重画但只画可见窗口内的
+        // 刻度（旧实现每帧全量重画整个视频时长的刻度 + 标签排版）
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: timeRulerHeight,
+          child: IgnorePointer(
+            child: ClipRect(
+              child: RepaintBoundary(
+                child: AnimatedBuilder(
+                  animation: scrollController,
+                  builder: (context, _) {
+                    final intervals = totalDurationSeconds > 0
+                        ? resolveTimeRulerIntervals(
+                            totalWidth / totalDurationSeconds,
+                          )
+                        : const TimeRulerIntervals(
+                            shortInterval: 1,
+                            longInterval: 1,
+                            textInterval: 1,
+                          );
+                    final trimmerTheme = context.trimmerTheme;
+                    final layout = context.trimmerLayout;
+                    final textTheme = Theme.of(context).textTheme;
+
+                    return CustomPaint(
+                      painter: TimeRulerPainter(
+                        totalDurationSeconds: totalDurationSeconds,
+                        totalWidth: totalWidth,
+                        scrollOffset: scrollController.hasClients
+                            ? scrollController.offset
+                            : 0.0,
+                        leftWidgetWidth: leftWidgetWidth,
+                        shortInterval: intervals.shortInterval,
+                        longInterval: intervals.longInterval,
+                        textInterval: intervals.textInterval,
+                        tickColor: trimmerTheme.rulerTickColor,
+                        textStyle:
+                            textTheme.labelSmall?.copyWith(
+                              color: trimmerTheme.rulerLabelColor,
+                              fontSize: layout.rulerLabelFontSize,
+                              fontWeight: FontWeight.w500,
+                            ) ??
+                            TextStyle(
+                              color: trimmerTheme.rulerLabelColor,
+                              fontSize: layout.rulerLabelFontSize,
+                              fontWeight: FontWeight.w500,
+                            ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+        ),
+        // 片段边框：同一坐标系平移；RepaintBoundary 内部缓存，滚动时只挪 layer
         AnimatedBuilder(
           animation: scrollController,
           builder: (context, child) {
@@ -368,17 +382,15 @@ class _ThumbnailListBuilder extends StatelessWidget {
                 : 0.0;
 
             return Positioned(
-              top: 0,
+              top: timeRulerHeight,
               left: leftWidgetWidth - scrollOffset,
               width: totalWidth,
-              height: timeRulerHeight + thumbnailHeight,
+              height: thumbnailHeight,
               child: child!,
             );
           },
-          child: _TimelineChromeOverlay(
+          child: _SegmentChromeOverlay(
             totalWidth: totalWidth,
-            totalDurationSeconds: totalDurationSeconds,
-            timeRulerHeight: timeRulerHeight,
             thumbnailHeight: thumbnailHeight,
           ),
         ),
@@ -749,8 +761,10 @@ class _ThumbnailGenerationManager {
   factory _ThumbnailGenerationManager() => _instance;
   _ThumbnailGenerationManager._internal();
 
-  // 最大并发数（同时生成的缩略图数量）
-  static const int _maxConcurrent = 8;
+  // 最大并发数（同时生成的缩略图数量）。
+  // 每个 ffmpeg 自身还开多线程解码，8 并发会打满 CPU 拖垮滚动帧率；
+  // 2 已足够流水线供图，且给 UI/光栅线程留出余量。
+  static const int _maxConcurrent = 2;
   // 最大队列长度（超过则拒绝新任务）
   static const int _maxQueueLength = 100;
 
@@ -993,7 +1007,8 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
         fit: widget.fit,
         width: widget.thumbnailHeight,
         height: widget.thumbnailHeight,
-        // 移除 cacheWidth/cacheHeight 限制，使用原始图片质量
+        // 按显示尺寸×2 解码（高 DPI 清晰）；解码原始 384px PNG 约 4 倍内存/上传开销
+        cacheWidth: (widget.thumbnailHeight * 2).round(),
         gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) {
           // 加载失败时也使用第一帧缩略图作为后备
@@ -1013,7 +1028,8 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
       fit: widget.fit,
       width: widget.thumbnailHeight,
       height: widget.thumbnailHeight,
-      // 移除 cacheWidth/cacheHeight 限制，使用原始图片质量
+      // 同上：封面图也按显示尺寸×2 解码
+      cacheWidth: (widget.thumbnailHeight * 2).round(),
       gaplessPlayback: true,
       errorBuilder: (context, error, stackTrace) {
         // 如果连第一帧也加载失败，显示灰色占位符

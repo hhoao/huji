@@ -68,16 +68,24 @@ Future<String> runConcatVideoExport({
     ]);
     onProcessStarted?.call(process);
 
-    final attached = onProgress != null
-        ? _attachProgressListener(process, totalDurationSec, onProgress)
-        : null;
+    // ffmpeg 的 banner / 报错都写 stderr：必须边跑边排空管道，否则写满
+    // ~64KB 缓冲后 ffmpeg 会阻塞在写 stderr 上永不退出。
+    final stderrFuture = process.stderr.transform(utf8.decoder).join();
+
+    // out_time_ms 实际单位是微秒（ffmpeg 历史遗留，与 out_time_us 同值），
+    // 除以 1e6 才是秒；按毫秒算会把进度放大 1000 倍，刚开始编码就显示 100%。
+    final attached = _attachProgressListener(
+      process,
+      totalDurationSec,
+      onProgress ?? (_) {},
+    );
 
     final exitCode = await process.exitCode;
     await attached;
     await File(concatPath).delete();
 
     if (exitCode != 0) {
-      final stderr = await process.stderr.transform(utf8.decoder).join();
+      final stderr = await stderrFuture;
       throw Exception(
         stderr.trim().isEmpty ? 'ffmpeg exited with code $exitCode' : stderr,
       );
@@ -103,9 +111,10 @@ Future<void> _attachProgressListener(
       .transform(const LineSplitter());
   await for (final line in outLines) {
     if (line.startsWith('out_time_ms=')) {
-      final ms = int.tryParse(line.substring(12)) ?? 0;
+      // out_time_ms 的值其实是微秒（ffmpeg 历史遗留命名），换算成秒。
+      final micros = int.tryParse(line.substring(12)) ?? 0;
       if (totalDurationSec > 0) {
-        onProgress(((ms / 1000) / totalDurationSec).clamp(0.0, 1.0));
+        onProgress(((micros / 1e6) / totalDurationSec).clamp(0.0, 1.0));
       }
     }
   }

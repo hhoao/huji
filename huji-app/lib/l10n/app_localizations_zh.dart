@@ -53,7 +53,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String actionConfirmWithCount(int count) {
-    return '确定 ($count)';
+    return '选择($count)';
   }
 
   @override
@@ -166,7 +166,16 @@ class HujiLocalizationsZh extends HujiLocalizations {
   }
 
   @override
+  String get albumsSection => '相册';
+
+  @override
+  String get allImagesTile => '所有图片';
+
+  @override
   String get allRounds => '全部回合';
+
+  @override
+  String get allVideosTile => '所有视频';
 
   @override
   String get analyzingVideoContent => '正在分析视频内容...';
@@ -217,6 +226,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get backgroundDownload => '后台下载';
+
+  @override
+  String get backToParent => '返回上一级';
 
   @override
   String get backgroundMediaProcessingDescription =>
@@ -360,7 +372,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get clearSearch => '清除搜索';
 
   @override
-  String get clearSelection => '取消勾选';
+  String get clearSelection => '清除选择';
 
   @override
   String get clearTypeFilter => '清除类型筛选';
@@ -874,7 +886,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String entityInfoDateAndItemCount(String date, int count) {
-    return '$date $count项';
+    return '$date · $count个项目';
   }
 
   @override
@@ -1217,6 +1229,11 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get folderInfo => '文件夹信息';
 
   @override
+  String folderItemCount(Object count) {
+    return '$count个项目';
+  }
+
+  @override
   String get folderNameHint => '输入文件夹名称';
 
   @override
@@ -1428,6 +1445,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get infoTotalItems => '总项目';
+
+  @override
+  String get internalStorageSection => '内部存储设备';
 
   @override
   String infoUpdateFailed(String error) {
@@ -1859,6 +1879,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String mediaItemCount(int count, String mediaType) {
     return '$count 个$mediaType';
   }
+
+  @override
+  String get mediaFilesSection => '媒体文件';
 
   @override
   String get mediaTypeAll => '媒体';
@@ -2880,6 +2903,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get selectAll => '全选';
 
   @override
+  String get selectAction => '选择';
+
+  @override
   String get selectClipMode => '选择剪辑方式';
 
   @override
@@ -2908,6 +2934,11 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get selectFilesTitle => '选择文件';
+
+  @override
+  String selectionPromptForType(String mediaType) {
+    return '请选择$mediaType文件';
+  }
 
   @override
   String get selectGender => '选择性别';
@@ -2977,7 +3008,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String selectionSummaryItems(int count) {
-    return '$count个项目';
+    return '已选择$count个项目';
   }
 
   @override
@@ -3474,6 +3505,11 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get storagePermissionRequired => '需要存储权限才能访问文件';
+
+  @override
+  String storageSummary(Object fileCount, Object folderCount) {
+    return '$folderCount个文件夹，$fileCount个项目';
+  }
 
   @override
   String get submitFailedRetryLater => '提交失败，请稍后重试';

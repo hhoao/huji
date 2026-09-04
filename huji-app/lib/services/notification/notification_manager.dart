@@ -32,6 +32,7 @@ class NotificationManager implements NotificationService<dynamic> {
       VideoCompressTask: taskNotificationService,
       ImageCompressTask: taskNotificationService,
       VideoSegmentDetectTask: taskNotificationService,
+      VideoExportTask: taskNotificationService,
     };
   }
 
@@ -47,7 +48,15 @@ class NotificationManager implements NotificationService<dynamic> {
       );
       return;
     }
-    _services[params.runtimeType]!.showOrUpdateTaskNotification(params);
+    final service = _services[params.runtimeType];
+    if (service == null) {
+      AppLogger().w(
+        'No notification service registered for ${params.runtimeType}',
+        StackTrace.current,
+      );
+      return;
+    }
+    service.showOrUpdateTaskNotification(params);
   }
 
   Future<void> initialize() async {

@@ -14,6 +14,14 @@ enum SelectionMode { files, directories, both }
 class FileSelection {
   FileSelection._();
 
+  /// Huji restores the legacy Material TabBar look on mobile.
+  static const TpFileSelectionTabStyle _defaultTabStyle =
+      TpFileSelectionTabStyle.tabBar;
+
+  /// Huji restores the legacy sectioned storage home on mobile.
+  static const TpFileSelectionLayout _defaultLayout =
+      TpFileSelectionLayout.classic;
+
   static Future<List<FileSystemEntity>?> show({
     required BuildContext context,
     bool allowMultiple = false,
@@ -24,6 +32,8 @@ class FileSelection {
     String? initialPath,
     SelectionMode selectionMode = SelectionMode.files,
     bool showHiddenFiles = false,
+    TpFileSelectionTabStyle? tabStyle,
+    TpFileSelectionLayout? layout,
   }) {
     return _pick(
       context: context,
@@ -35,6 +45,8 @@ class FileSelection {
       initialPath: initialPath,
       selectionMode: selectionMode,
       showHiddenFiles: showHiddenFiles,
+      tabStyle: tabStyle ?? _defaultTabStyle,
+      layout: layout ?? _defaultLayout,
     );
   }
 
@@ -145,6 +157,8 @@ class FileSelection {
     String? initialPath,
     SelectionMode selectionMode = SelectionMode.files,
     bool showHiddenFiles = false,
+    TpFileSelectionTabStyle tabStyle = _defaultTabStyle,
+    TpFileSelectionLayout layout = _defaultLayout,
   }) async {
     final entries = await showTpFileSelection(
       context: context,
@@ -158,6 +172,8 @@ class FileSelection {
         initialPath: initialPath,
         selectionMode: _mapSelectionMode(selectionMode),
         showHiddenFiles: showHiddenFiles,
+        tabStyle: tabStyle,
+        layout: layout,
       ),
     );
     return _mapEntries(entries);

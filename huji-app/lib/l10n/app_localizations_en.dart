@@ -54,7 +54,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String actionConfirmWithCount(int count) {
-    return 'Confirm ($count)';
+    return 'Select ($count)';
   }
 
   @override
@@ -167,7 +167,16 @@ class HujiLocalizationsEn extends HujiLocalizations {
   }
 
   @override
+  String get albumsSection => 'Albums';
+
+  @override
+  String get allImagesTile => 'All images';
+
+  @override
   String get allRounds => 'All rounds';
+
+  @override
+  String get allVideosTile => 'All videos';
 
   @override
   String get analyzingVideoContent => 'Analyzing video content...';
@@ -218,6 +227,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get backgroundDownload => 'Download in background';
+
+  @override
+  String get backToParent => 'Back';
 
   @override
   String get backgroundMediaProcessingDescription =>
@@ -892,7 +904,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String entityInfoDateAndItemCount(String date, int count) {
-    return '$date $count items';
+    return '$date · $count items';
   }
 
   @override
@@ -1249,6 +1261,11 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get folderInfo => 'Folder info';
 
   @override
+  String folderItemCount(Object count) {
+    return '$count item(s)';
+  }
+
+  @override
   String get folderNameHint => 'Enter folder name';
 
   @override
@@ -1465,6 +1482,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get infoTotalItems => 'Total items';
+
+  @override
+  String get internalStorageSection => 'Internal storage';
 
   @override
   String infoUpdateFailed(String error) {
@@ -1910,6 +1930,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String mediaItemCount(int count, String mediaType) {
     return '$count $mediaType';
   }
+
+  @override
+  String get mediaFilesSection => 'Media files';
 
   @override
   String get mediaTypeAll => 'media';
@@ -2955,6 +2978,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get selectAll => 'Select all';
 
   @override
+  String get selectAction => 'Select';
+
+  @override
   String get selectClipMode => 'Select clipping method';
 
   @override
@@ -2984,6 +3010,11 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get selectFilesTitle => 'Select files';
+
+  @override
+  String selectionPromptForType(String mediaType) {
+    return 'Please select $mediaType files';
+  }
 
   @override
   String get selectGender => 'Select gender';
@@ -3054,7 +3085,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String selectionSummaryItems(int count) {
-    return '$count items';
+    return '$count items selected';
   }
 
   @override
@@ -3564,6 +3595,11 @@ class HujiLocalizationsEn extends HujiLocalizations {
   @override
   String get storagePermissionRequired =>
       'Storage permission is required to access files';
+
+  @override
+  String storageSummary(Object fileCount, Object folderCount) {
+    return '$folderCount folder(s), $fileCount item(s)';
+  }
 
   @override
   String get submitFailedRetryLater =>

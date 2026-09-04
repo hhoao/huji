@@ -34,8 +34,6 @@ void main(List<String> args) async {
   try {
     // 必须先初始化 Flutter 绑定，才能使用平台通道（如 path_provider）
     WidgetsFlutterBinding.ensureInitialized();
-    // 后台清理持久缩略图缓存（源视频已删 + 容量 LRU），不阻塞启动
-    unawaited(StorageService.instance.evictVideoThumbnailCache());
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
       GoogleFonts.config.allowRuntimeFetching = false;
@@ -46,6 +44,9 @@ void main(List<String> args) async {
       await windowManager.ensureInitialized();
     }
     await preInit();
+    // 后台清理持久缩略图缓存（源视频已删 + 容量 LRU），不阻塞启动。
+    // 须在 preInit() 之后：evictVideoThumbnailCache 依赖 StorageService.instance。
+    unawaited(StorageService.instance.evictVideoThumbnailCache());
     await postInit();
     final appearanceCubit = await AppearanceCubit.load();
     if (PlatformCapability.isDesktop) {
