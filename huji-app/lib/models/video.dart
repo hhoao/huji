@@ -98,7 +98,10 @@ VideoClipConfigReqVo _videoClipConfigReqVoFromJson(dynamic value) {
 
 @JsonSerializable()
 class RawVideoRecord extends LocalVideoRecord {
-  @JsonKey(toJson: _videoClipConfigReqVoToJson)
+  @JsonKey(
+    toJson: _videoClipConfigReqVoToJson,
+    fromJson: _videoClipConfigReqVoFromJson,
+  )
   final VideoClipConfigReqVo videoClipConfigReqVo;
 
   RawVideoRecord({

@@ -19,8 +19,8 @@ RawVideoRecord _$RawVideoRecordFromJson(Map<String, dynamic> json) =>
         clipMode:
             $enumDecodeNullable(_$ClipModeEnumMap, json['clipMode']) ??
             ClipMode.existingVideo,
-        videoClipConfigReqVo: VideoClipConfigReqVo.fromJson(
-          json['videoClipConfigReqVo'] as Map<String, dynamic>,
+        videoClipConfigReqVo: _videoClipConfigReqVoFromJson(
+          json['videoClipConfigReqVo'],
         ),
       )
       ..createdAt = (json['createdAt'] as num).toInt()
