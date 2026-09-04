@@ -2,11 +2,13 @@
 
 part of 'app_setting_api.dart';
 
+// dart format off
+
 // **************************************************************************
 // RetrofitGenerator
 // **************************************************************************
 
-// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter
+// ignore_for_file: unnecessary_brace_in_string_interps,no_leading_underscores_for_local_identifiers,unused_element,unnecessary_string_interpolations,unused_element_parameter,avoid_unused_constructor_parameters,unreachable_from_main,avoid_redundant_argument_values
 
 class _AppSettingApi implements AppSettingApi {
   _AppSettingApi(this._dio, {this.baseUrl, this.errorLogger});
@@ -44,7 +46,7 @@ class _AppSettingApi implements AppSettingApi {
         (json) => AppSettingRespVO.fromJson(json as Map<String, dynamic>),
       );
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -56,7 +58,7 @@ class _AppSettingApi implements AppSettingApi {
     final queryParameters = <String, dynamic>{r'code': code};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<String>(
+    final _options = _setStreamType<String?>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -71,7 +73,7 @@ class _AppSettingApi implements AppSettingApi {
     try {
       _value = _result.data;
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -98,7 +100,7 @@ class _AppSettingApi implements AppSettingApi {
     try {
       _value = _result.data!;
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -110,7 +112,7 @@ class _AppSettingApi implements AppSettingApi {
     final queryParameters = <String, dynamic>{r'code': code};
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
-    final _options = _setStreamType<int>(
+    final _options = _setStreamType<int?>(
       Options(method: 'GET', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
@@ -125,7 +127,7 @@ class _AppSettingApi implements AppSettingApi {
     try {
       _value = _result.data;
     } on Object catch (e, s) {
-      errorLogger?.logError(e, s, _options);
+      errorLogger?.logError(e, s, _options, response: _result);
       rethrow;
     }
     return _value;
@@ -158,3 +160,5 @@ class _AppSettingApi implements AppSettingApi {
     return Uri.parse(dioBaseUrl).resolveUri(url).toString();
   }
 }
+
+// dart format on

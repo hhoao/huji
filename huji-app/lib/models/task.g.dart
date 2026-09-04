@@ -357,7 +357,7 @@ VideoExportTask _$VideoExportTaskFromJson(Map<String, dynamic> json) =>
       fileName: json['fileName'] as String,
       quality: json['quality'] as String,
       segments: segmentListFromJsonStr(json['segments'] as String?),
-      outputPath: json['outputPath'] as String,
+      outputPath: json['outputPath'] as String? ?? '',
       total: (json['total'] as num?)?.toInt(),
       processed: (json['processed'] as num?)?.toInt(),
       createdAt: (json['createdAt'] as num).toInt(),

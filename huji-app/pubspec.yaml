@@ -37,7 +37,7 @@ dependencies:
   media_kit_video: ^2.0.1
   media_kit_libs_video: ^1.0.7
 
-  retrofit: ^4.6.0
+  retrofit: ">=4.9.2 <4.10.0"
   dio: ^5.8.0
   web_socket_channel: ^2.4.0
   sqflite_common_ffi: ^2.3.6
@@ -99,7 +99,7 @@ dev_dependencies:
     sdk: flutter
 
   flutter_lints: ^5.0.0
-  retrofit_generator: "10.0.0"
+  retrofit_generator: "10.2.9"
   build_runner: ^2.6.0
   json_serializable: ^6.9.5
   freezed: ^3.1.0
@@ -108,7 +108,7 @@ dev_dependencies:
   rename: ^3.1.0
   husky: ^0.1.7
   change_app_package_name: ^1.5.0
-  go_router_builder: ^3.3.1
+  go_router_builder: ^4.5.0
 
 flutter:
   generate: true
