@@ -21,7 +21,9 @@ void main() {
         .whereType<StatefulShellRoute>()
         .single;
 
-    expect(shell.branches, hasLength(3));
+    // Sidebar nav areas (home / tasks / settings) plus the clip-workflow
+    // branch that preserves preview / edit state across sidebar switches.
+    expect(shell.branches, hasLength(4));
   });
 
   test('desktop shell child routes disable route-level page transitions', () {
