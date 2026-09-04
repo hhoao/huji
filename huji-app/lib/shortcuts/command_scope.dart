@@ -1,3 +1,5 @@
+import 'package:huji_app/router/modules/desktop.dart';
+
 /// Where a shortcut command is eligible to match key events.
 enum CommandScope {
   /// Always eligible regardless of route.
@@ -23,22 +25,19 @@ bool commandScopeMatches(CommandScope scope, String? route) {
 }
 
 /// True when [route] is a desktop preview-export path.
-bool isPreviewExportRoute(String? route) {
-  if (route == null || route.isEmpty) return false;
-  final segments = Uri.parse(route).pathSegments;
-  return segments.length == 3 &&
-      segments[0] == 'clip' &&
-      segments[2] == 'preview';
-}
+bool isPreviewExportRoute(String? route) =>
+    DesktopRoutes.isClipPreviewRoute(route);
 
 /// True when [route] is the new-clip configuration page.
-bool isClipNewRoute(String? route) => route == '/clip/new';
+bool isClipNewRoute(String? route) => route == DesktopRoutes.clipNew;
 
 /// True when [route] is the desktop video-compress tool page.
-bool isVideoCompressRoute(String? route) => route == '/tools/video-compress';
+bool isVideoCompressRoute(String? route) =>
+    route == DesktopRoutes.videoCompress;
 
 /// True when [route] is the desktop standalone video player page.
-bool isVideoPlayerRoute(String? route) => route == '/video/player';
+bool isVideoPlayerRoute(String? route) =>
+    DesktopRoutes.isVideoPlayerRoute(route);
 
 /// Routes where shared playback shortcuts are eligible.
 bool isVideoPlaybackRoute(String? route) {
@@ -50,10 +49,5 @@ bool isVideoPlaybackRoute(String? route) {
 }
 
 /// True when [route] is a desktop precision-edit path.
-bool isPrecisionEditRoute(String? route) {
-  if (route == null || route.isEmpty) return false;
-  final segments = Uri.parse(route).pathSegments;
-  return segments.length == 3 &&
-      segments[0] == 'clip' &&
-      segments[2] == 'edit';
-}
+bool isPrecisionEditRoute(String? route) =>
+    DesktopRoutes.isClipEditRoute(route);
