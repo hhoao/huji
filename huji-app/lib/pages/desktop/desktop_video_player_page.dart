@@ -6,8 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/shortcuts/command_bus.dart';
 import 'package:huji_app/shortcuts/playback_command_registration.dart';
-import 'package:huji_app/utils/desktop_style.dart';
 import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc_multi_video_player_widget.dart';
@@ -17,8 +17,9 @@ import 'package:shared_ui/shared_ui.dart';
 
 /// 桌面端应用内视频播放页（media_kit/libmpv 后端）。
 ///
-/// 通过 `/video/player?videoPath=&fileName=` 打开任意本地/网络视频，
-/// 供任务列表等"查看"入口使用（移动端走 video_player 版的 VideoPlayerPage）。
+/// 通过 `/video/player?videoUrl=&fileName=` 打开任意本地/网络视频，渲染在
+/// 桌面 shell 右侧 body 区（任务分支内 push，侧栏保持可见），供任务列表等
+/// "查看"入口使用；移动端走 video_player 版的 VideoPlayerPage。
 class DesktopVideoPlayerPage extends StatefulWidget {
   final String videoPath;
   final String fileName;
@@ -128,83 +129,16 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
 
   @override
   Widget build(BuildContext context) {
-    final cs = context.desktopColors;
     final l10n = context.hujiL10n;
 
     return BlocProvider.value(
       value: _playerBloc,
-      child: Scaffold(
-        backgroundColor: const Color(0xFF0A0A0C),
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildTopBar(context, cs, l10n),
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.white70),
-                    )
-                  : _error != null
-                  ? Center(
-                      child: TpEmptyState(
-                        centered: true,
-                        icon: Icons.error_outline,
-                        title: _error!,
-                        actionLabel: l10n.actionClose,
-                        onAction: () => context.pop(),
-                      ),
-                    )
-                  : Center(
-                      child: BlocMultiVideoPlayerWidget(
-                        bloc: _playerBloc,
-                        backgroundColor: Colors.transparent,
-                        showControls: true,
-                        padding: const EdgeInsets.all(24),
-                      ),
-                    ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTopBar(
-    BuildContext context,
-    dynamic cs,
-    HujiLocalizations l10n,
-  ) {
-    final styles = TpTextStyles.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF0A0A0C),
-        border: Border(bottom: BorderSide(color: context.desktopBorderLight)),
-      ),
-      child: Row(
-        children: [
-          TpIconButton(
-            icon: Icons.arrow_back,
-            size: 32,
-            iconSize: 18,
-            color: Colors.white70,
-            onTap: () => context.pop(),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              widget.fileName,
-              style: styles.md.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          const SizedBox(width: 12),
+      child: DesktopPageShell(
+        currentRoute: '/video/player',
+        title: widget.fileName,
+        actions: [
           TpButton(
-            variant: TpButtonVariant.ghost,
+            variant: TpButtonVariant.outline,
             onPressed: _openContainingFolder,
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -215,7 +149,36 @@ class _DesktopVideoPlayerPageState extends State<DesktopVideoPlayerPage> {
               ],
             ),
           ),
+          const SizedBox(width: 8),
+          TpButton(
+            variant: TpButtonVariant.primary,
+            onPressed: () => context.pop(),
+            child: Text(l10n.actionClose),
+          ),
         ],
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: Colors.white70),
+              )
+            : _error != null
+            ? Center(
+                child: TpEmptyState(
+                  centered: true,
+                  icon: Icons.error_outline,
+                  title: _error!,
+                ),
+              )
+            : ColoredBox(
+                color: const Color(0xFF0A0A0C),
+                child: Center(
+                  child: BlocMultiVideoPlayerWidget(
+                    bloc: _playerBloc,
+                    backgroundColor: Colors.transparent,
+                    showControls: true,
+                    padding: const EdgeInsets.all(24),
+                  ),
+                ),
+              ),
       ),
     );
   }

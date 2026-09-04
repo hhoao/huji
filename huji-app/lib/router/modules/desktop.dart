@@ -89,21 +89,6 @@ class DesktopRoutes {
         pageBuilder: (context, state) =>
             _noTransitionPage(state, const LoginPage()),
       ),
-      // 桌面端应用内播放页（media_kit 后端）。顶层路由：push 后覆盖整个
-      // 窗口，不进 StatefulShellRoute 分支（不需要侧栏导航）。
-      GoRoute(
-        path: '/video/player',
-        name: 'desktop-video-player',
-        pageBuilder: (context, state) {
-          final videoPath = state.uri.queryParameters['videoUrl'] ?? '';
-          final fileName =
-              state.uri.queryParameters['fileName'] ?? videoPath;
-          return _noTransitionPage(
-            state,
-            DesktopVideoPlayerPage(videoPath: videoPath, fileName: fileName),
-          );
-        },
-      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {
           return HujiDesktopShell(
@@ -155,6 +140,24 @@ class DesktopRoutes {
                   return _noTransitionPage(
                     state,
                     DesktopTasksPage(clipTaskId: clipTaskId),
+                  );
+                },
+              ),
+              // 应用内播放页（media_kit 后端）：挂在任务分支下，push 后在
+              // 右侧 body 区展示，侧栏保持可见。
+              GoRoute(
+                path: '/video/player',
+                name: 'desktop-video-player',
+                pageBuilder: (context, state) {
+                  final videoPath = state.uri.queryParameters['videoUrl'] ?? '';
+                  final fileName =
+                      state.uri.queryParameters['fileName'] ?? videoPath;
+                  return _noTransitionPage(
+                    state,
+                    DesktopVideoPlayerPage(
+                      videoPath: videoPath,
+                      fileName: fileName,
+                    ),
                   );
                 },
               ),

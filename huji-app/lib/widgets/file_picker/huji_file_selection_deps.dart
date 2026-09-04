@@ -2,7 +2,6 @@ import 'package:flutter/widgets.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/widgets/file_picker/adapters/desktop_file_picker_port.dart';
-import 'package:huji_app/widgets/file_picker/adapters/ffmpeg_file_media_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/io_filesystem_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/permission_handler_port.dart';
 import 'package:huji_app/widgets/file_picker/adapters/photo_manager_gallery_port.dart';
@@ -19,7 +18,6 @@ TpFileSelectionDeps hujiFileSelectionDeps(BuildContext context) {
         : null,
     desktop: PlatformCapability.isDesktop ? DesktopFilePickerPort() : null,
     preview: VideoPlayerPreviewPort(),
-    fileMedia: FfmpegFileMediaPort(),
     strings: tpFileSelectionStringsFromL10n(context.hujiL10n),
     isDesktop: () => PlatformCapability.isDesktop,
   );
