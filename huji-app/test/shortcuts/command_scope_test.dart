@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shortcuts/command_scope.dart';
 
 void main() {
@@ -72,6 +73,42 @@ void main() {
         isTrue,
       );
       expect(commandScopeMatches(CommandScope.videoPlayback, '/'), isFalse);
+    });
+  });
+
+  group('playback route registration completeness', () {
+    // Every desktop playback surface must be scope-registered. A new page
+    // that plays video is added to DesktopRoutes AND this list; forgetting
+    // the scope half fails here (the /video/player bug of 2026-09-04).
+    const playbackSurfaces = <String, String>{
+      'clipEdit': '/clip/sample-id/edit',
+      'clipPreview': '/clip/sample-id/preview',
+      'videoPlayer': '/video/player',
+      'clipNew': '/clip/new',
+      'videoCompress': '/tools/video-compress',
+    };
+
+    test('every playback surface route matches videoPlayback scope', () {
+      for (final entry in playbackSurfaces.entries) {
+        expect(
+          commandScopeMatches(CommandScope.videoPlayback, entry.value),
+          isTrue,
+          reason:
+              '${entry.key} (${entry.value}) is a playback surface but is '
+              'not covered by CommandScope.videoPlayback — register it in '
+              'isVideoPlaybackRoute (command_scope.dart).',
+        );
+      }
+    });
+
+    test('constants stay in sync with the instantiated sample routes', () {
+      expect(DesktopRoutes.clipEditPath('sample-id'),
+          playbackSurfaces['clipEdit']);
+      expect(DesktopRoutes.clipPreviewPath('sample-id'),
+          playbackSurfaces['clipPreview']);
+      expect(DesktopRoutes.videoPlayer, playbackSurfaces['videoPlayer']);
+      expect(DesktopRoutes.clipNew, playbackSurfaces['clipNew']);
+      expect(DesktopRoutes.videoCompress, playbackSurfaces['videoCompress']);
     });
   });
 }
