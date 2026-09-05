@@ -27,7 +27,7 @@
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=black)](https://restcut.com/app/index)
 [![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/hhoao/huji/releases)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/hhoao/huji/releases)
-[![QQ 群](https://img.shields.io/badge/QQ%20群-112856301-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/)
+[![QQ 群](https://img.shields.io/badge/QQ%20群-加入群聊-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
 [![Discord](https://img.shields.io/badge/Discord-加入群组-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## 概述
@@ -152,8 +152,12 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 
 ## 社区
 
-- **QQ 群**：112856301
+- **QQ 群**：[点击链接加入群聊【弧迹App】](https://qm.qq.com/q/U5U0zLyyA2)（或扫描下方二维码）
 - **Discord**：[加入群组](https://discord.com/channels/1518551459053178960/1518551461242474558)
+
+<p align="left">
+  <img src="assets/qq-group-qrcode.png" alt="QQ 群二维码" width="220"/>
+</p>
 
 ## License
 
