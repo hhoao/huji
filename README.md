@@ -11,6 +11,7 @@
 <p align="center">
   <a href="README.en.md">English</a> •
   <a href="#概述">概述</a> •
+  <a href="#安装">安装</a> •
   <a href="#主要功能">主要功能</a> •
   <a href="#项目结构">项目结构</a> •
   <a href="#快速开始">快速开始</a> •
@@ -19,6 +20,15 @@
 </p>
 
 [![LICENSE](https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=flat-square)](LICENSE)
+[![Website](https://img.shields.io/badge/官网-restcut.com-00C1D4?style=flat-square&logo=safari&logoColor=white)](https://restcut.com)
+[![Release](https://img.shields.io/github/v/release/hhoao/huji?style=flat-square&logo=github&label=release)](https://github.com/hhoao/huji/releases)
+[![Stars](https://img.shields.io/github/stars/hhoao/huji?style=flat-square&logo=github&label=stars)](https://github.com/hhoao/huji/stargazers)
+[![CI](https://img.shields.io/github/actions/workflow/status/hhoao/huji/ci-verify.yml?style=flat-square&logo=githubactions&logoColor=white&label=CI)](https://github.com/hhoao/huji/actions/workflows/ci-verify.yml)
+[![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=black)](https://restcut.com/app/index)
+[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/hhoao/huji/releases)
+[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/hhoao/huji/releases)
+[![QQ 群](https://img.shields.io/badge/QQ%20群-112856301-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/)
+[![Discord](https://img.shields.io/badge/Discord-加入群组-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## 概述
 
@@ -27,6 +37,11 @@
 </p>
 
 弧迹是一个智能视频剪辑 Android 应用，它用于自动检测乒乓球、羽毛球比赛中的精彩回合，去除捡球等冗余片段，输出精简的比赛集锦。。
+
+## 安装
+
+- **移动端（Android）**：<https://restcut.com/app/index>
+- **桌面端**：<https://github.com/hhoao/huji/releases>
 
 ## 主要功能
 
