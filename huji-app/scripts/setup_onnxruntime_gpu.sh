@@ -25,7 +25,14 @@ case "$ARCH_IN" in
 esac
 
 DEST_DIR="${HUJI_ONNXRUNTIME_GPU_DIR:-$PROJECT_DIR/.onnxruntime-gpu}"
-URL="https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VERSION}/onnxruntime-linux-${ORT_ARCH}-gpu-${ORT_VERSION}.tgz"
+
+# Microsoft only publishes GPU builds for x86_64; aarch64 falls back to the
+# CPU package (CUDA EP is x86_64-only anyway).
+if [[ "$ORT_ARCH" == "aarch64" ]]; then
+  URL="https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VERSION}/onnxruntime-linux-aarch64-${ORT_VERSION}.tgz"
+else
+  URL="https://github.com/microsoft/onnxruntime/releases/download/v${ORT_VERSION}/onnxruntime-linux-${ORT_ARCH}-gpu-${ORT_VERSION}.tgz"
+fi
 ENV_FILE="$SCRIPT_DIR/onnxruntime_gpu_env.sh"
 
 mkdir -p "$DEST_DIR"

@@ -40,7 +40,10 @@ if [[ -f "$TARGET_LIB/libonnxruntime.so.1.22.0" ]]; then
 fi
 
 BUNDLE_CUDA="${HUJI_BUNDLE_CUDA_REDIST:-1}"
-if [[ "$BUNDLE_CUDA" == "1" ]]; then
+# CUDA/cuDNN redist is x86_64-only; nothing to bundle on aarch64.
+if [[ "$ARCH" == aarch64* || "$ARCH" == arm64* ]]; then
+  echo "[skip] aarch64 — CUDA redist is x86_64-only"
+elif [[ "$BUNDLE_CUDA" == "1" ]]; then
   "$SCRIPT_DIR/setup_cuda_redist.sh"
   REDIST="${HUJI_CUDA_REDIST_DIR:-$PROJECT_DIR/.cuda-redist}"
   if [[ -d "$REDIST/lib" ]]; then
