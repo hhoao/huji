@@ -18,7 +18,6 @@
   <a href="#社区">社区</a> •
   <a href="#license">License</a>
 </p>
-
 [![LICENSE](https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=flat-square)](LICENSE)
 [![Website](https://img.shields.io/badge/官网-restcut.com-00C1D4?style=flat-square&logo=safari&logoColor=white)](https://restcut.com)
 [![Release](https://img.shields.io/github/v/release/hhoao/huji?style=flat-square&logo=github&label=release)](https://github.com/hhoao/huji/releases)
@@ -27,7 +26,7 @@
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=black)](https://restcut.com/app/index)
 [![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/hhoao/huji/releases)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/hhoao/huji/releases)
-[![QQ 群](https://img.shields.io/badge/QQ%20群-加入群聊-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
+[![QQ 群](https://img.shields.io/badge/QQ%20群-112856301-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
 [![Discord](https://img.shields.io/badge/Discord-加入群组-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## 概述
@@ -152,7 +151,7 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 
 ## 社区
 
-- **QQ 群**：[点击链接加入群聊【弧迹App】](https://qm.qq.com/q/U5U0zLyyA2)（或扫描下方二维码）
+- **QQ 群**：[112856301](https://qm.qq.com/q/U5U0zLyyA2)（点击加入，或扫描下方二维码）
 - **Discord**：[加入群组](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 <p align="left">

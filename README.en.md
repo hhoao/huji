@@ -27,7 +27,7 @@
 [![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=black)](https://restcut.com/app/index)
 [![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/hhoao/huji/releases)
 [![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/hhoao/huji/releases)
-[![QQ Group](https://img.shields.io/badge/QQ%20Group-Join%20us-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
+[![QQ Group](https://img.shields.io/badge/QQ%20Group-112856301-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
 [![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 ## Overview
@@ -152,7 +152,7 @@ More details: [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
 
 ## Community
 
-- **QQ Group**: [Join the group chat (弧迹App)](https://qm.qq.com/q/U5U0zLyyA2) (or scan the QR code below)
+- **QQ Group**: [112856301](https://qm.qq.com/q/U5U0zLyyA2) (click to join, or scan the QR code below)
 - **Discord**: [Join our server](https://discord.com/channels/1518551459053178960/1518551461242474558)
 
 <p align="left">
