@@ -19,16 +19,19 @@
   <a href="#license">License</a>
 </p>
 
-[![LICENSE](https://img.shields.io/badge/license-AGPL--3.0-blue.svg?style=flat-square)](LICENSE)
-[![Website](https://img.shields.io/badge/Website-restcut.com-00C1D4?style=flat-square&logo=safari&logoColor=white)](https://restcut.com)
-[![Release](https://img.shields.io/github/v/release/hhoao/huji?style=flat-square&logo=github&label=release)](https://github.com/hhoao/huji/releases)
-[![Stars](https://img.shields.io/github/stars/hhoao/huji?style=flat-square&logo=github&label=stars)](https://github.com/hhoao/huji/stargazers)
-[![CI](https://img.shields.io/github/actions/workflow/status/hhoao/huji/ci-verify.yml?style=flat-square&logo=githubactions&logoColor=white&label=CI)](https://github.com/hhoao/huji/actions/workflows/ci-verify.yml)
-[![Android](https://img.shields.io/badge/Android-3DDC84?style=flat-square&logo=android&logoColor=black)](https://restcut.com/app/index)
-[![Linux](https://img.shields.io/badge/Linux-FCC624?style=flat-square&logo=linux&logoColor=black)](https://github.com/hhoao/huji/releases)
-[![Windows](https://img.shields.io/badge/Windows-0078D6?style=flat-square&logo=windows&logoColor=white)](https://github.com/hhoao/huji/releases)
-[![QQ Group](https://img.shields.io/badge/QQ%20Group-112856301-0099FF?style=flat-square&logo=tencentqq&logoColor=white)](https://qm.qq.com/q/U5U0zLyyA2)
-[![Discord](https://img.shields.io/badge/Discord-Join%20us-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.com/channels/1518551459053178960/1518551461242474558)
+<div align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg" alt="License"></a>
+  <a href="https://restcut.com"><img src="https://img.shields.io/badge/Website-restcut.com-00C1D4?logo=safari&logoColor=white" alt="Huji Website"></a>
+  <a href="https://github.com/hhoao/huji/releases"><img src="https://img.shields.io/github/v/release/hhoao/huji?logo=github&label=Release" alt="Huji Release"></a>
+  <a href="https://github.com/hhoao/huji/stargazers"><img src="https://img.shields.io/github/stars/hhoao/huji?logo=github&label=Stars" alt="Huji Stars"></a>
+  <a href="https://github.com/hhoao/huji/actions/workflows/ci-verify.yml"><img src="https://github.com/hhoao/huji/actions/workflows/ci-verify.yml/badge.svg" alt="Huji CI"></a>
+  <br>
+  <a href="https://restcut.com/app/index"><img src="https://img.shields.io/badge/Android-3DDC84?logo=android&logoColor=black" alt="Android"></a>
+  <a href="https://github.com/hhoao/huji/releases"><img src="https://img.shields.io/badge/Linux-FCC624?logo=linux&logoColor=black" alt="Linux"></a>
+  <a href="https://github.com/hhoao/huji/releases"><img src="https://img.shields.io/badge/Windows-0078D6?logo=windows&logoColor=white" alt="Windows"></a>
+  <a href="https://qm.qq.com/q/U5U0zLyyA2"><img src="https://img.shields.io/badge/QQ%20Group-112856301-0099FF?logo=tencentqq&logoColor=white" alt="Huji QQ Group"></a>
+  <a href="https://discord.com/channels/1518551459053178960/1518551461242474558"><img src="https://img.shields.io/badge/Discord-Join%20us-5865F2?logo=discord&logoColor=white" alt="Huji Discord"></a>
+</div>
 
 ## Overview
 
