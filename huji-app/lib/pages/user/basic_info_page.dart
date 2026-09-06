@@ -106,9 +106,7 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(context.hujiL10n.editProfile, style: Theme.of(context).textTheme.headlineMedium),
-      ),
+      appBar: AppBar(title: Text(context.hujiL10n.editProfile)),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -132,7 +130,9 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                     ),
                   ),
                   SizedBox(height: 8),
-                  Text(context.hujiL10n.changeAvatar, style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  Text(
+                    context.hujiL10n.changeAvatar,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       color: Theme.of(
                         context,
                       ).colorScheme.onSurface.withValues(alpha: 0.6),
@@ -191,14 +191,14 @@ class _BasicInfoPageState extends State<BasicInfoPage> {
                                       variant: TpButtonVariant.ghost,
                                       onPressed: () => Navigator.pop(ctx),
                                       child: Text(
-                                        context.hujiL10n.taskStatusCancelledShort,
+                                        context
+                                            .hujiL10n
+                                            .taskStatusCancelledShort,
                                       ),
                                     ),
                                     TpButton(
-                                      onPressed: () => Navigator.pop(
-                                        ctx,
-                                        controller.text,
-                                      ),
+                                      onPressed: () =>
+                                          Navigator.pop(ctx, controller.text),
                                       child: Text(
                                         context.hujiL10n.actionConfirm,
                                       ),

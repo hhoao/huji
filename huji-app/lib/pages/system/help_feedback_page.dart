@@ -56,7 +56,8 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       final contact = _contactController.text.trim();
       final req = IssueCreateReqVO(
         title: _titleController.text.trim(),
-        description: _descController.text.trim() +
+        description:
+            _descController.text.trim() +
             (contact.isNotEmpty ? '\n${l10n.contactInfoPrefix(contact)}' : ''),
         type: _selectedType,
       );
@@ -108,14 +109,11 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
     );
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      appBar: AppBar(
-        title: Text(context.hujiL10n.helpAndFeedback, style: Theme.of(context).textTheme.headlineMedium),
-      ),
+      appBar: AppBar(title: Text(context.hujiL10n.helpAndFeedback)),
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         children: [
@@ -123,7 +121,9 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(context.hujiL10n.faqTitle, style: Theme.of(context).textTheme.titleLarge,
+              child: Text(
+                context.hujiL10n.faqTitle,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             _buildFAQItem(
@@ -151,7 +151,9 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(context.hujiL10n.contactUs, style: Theme.of(context).textTheme.titleLarge,
+              child: Text(
+                context.hujiL10n.contactUs,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             _buildContactRow(
@@ -196,12 +198,17 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           _buildCard([
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Text(context.hujiL10n.feedback, style: Theme.of(context).textTheme.titleLarge,
+              child: Text(
+                context.hujiL10n.feedback,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
             ),
             Row(
               children: [
-                _buildTypeChip(IssueTypeEnum.bug, context.hujiL10n.issueTypeBug),
+                _buildTypeChip(
+                  IssueTypeEnum.bug,
+                  context.hujiL10n.issueTypeBug,
+                ),
                 SizedBox(width: 12),
                 _buildTypeChip(
                   IssueTypeEnum.requirement,
@@ -266,7 +273,10 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
           Center(
             child: Column(
               children: [
-                Text(context.hujiL10n.settingsVersionInfo, style: Theme.of(context).textTheme.titleLarge),
+                Text(
+                  context.hujiL10n.settingsVersionInfo,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
                 SizedBox(height: 8),
                 Text(
                   'AutoClip v1.0.0',
@@ -400,9 +410,7 @@ class _HelpFeedbackPageState extends State<HelpFeedbackPage> {
       selected: selected,
       selectedColor: ThemeManager.to.primaryColor,
       backgroundColor: cs.surface,
-      labelStyle: TextStyle(
-        color: selected ? cs.onPrimary : cs.onSurface,
-      ),
+      labelStyle: TextStyle(color: selected ? cs.onPrimary : cs.onSurface),
       onSelected: (v) {
         if (v) setState(() => _selectedType = type);
       },

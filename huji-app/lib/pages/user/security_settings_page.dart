@@ -47,14 +47,13 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         ? IdentifierType.mail
         : IdentifierType.mobile;
 
-    final error = validateEmailOrPhone(context.hujiL10n, _identifierController.text);
+    final error = validateEmailOrPhone(
+      context.hujiL10n,
+      _identifierController.text,
+    );
 
     if (error != null) {
-      TpToast.show(
-        context,
-        message: error,
-        variant: TpToastVariant.warning,
-      );
+      TpToast.show(context, message: error, variant: TpToastVariant.warning);
       return;
     }
 
@@ -117,13 +116,12 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   }
 
   Future<void> _changePassword(IdentifierType identifierType) async {
-    final error = validatePassword(context.hujiL10n, _newPasswordController.text);
+    final error = validatePassword(
+      context.hujiL10n,
+      _newPasswordController.text,
+    );
     if (error != null) {
-      TpToast.show(
-        context,
-        message: error,
-        variant: TpToastVariant.warning,
-      );
+      TpToast.show(context, message: error, variant: TpToastVariant.warning);
       return;
     }
     if (_newPasswordController.text != _confirmPasswordController.text) {
@@ -227,10 +225,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     return Scaffold(
       backgroundColor: cs.surface,
       appBar: AppBar(
-        title: Text(
-          context.hujiL10n.accountAndSecurity,
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
+        title: Text(context.hujiL10n.accountAndSecurity),
         backgroundColor: cs.surface,
         elevation: 0,
         centerTitle: true,
@@ -328,8 +323,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                       controller: _newPasswordController,
                       obscureText: _isObscure,
                       validator: (value) {
-                        final error =
-                            validatePassword(context.hujiL10n, value);
+                        final error = validatePassword(context.hujiL10n, value);
                         if (error != null) return error;
                         if (value != null && value.length < 6) {
                           return context.hujiL10n.passwordMinLength;
