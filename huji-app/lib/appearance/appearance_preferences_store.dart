@@ -11,7 +11,7 @@ class AppearancePreferencesStore {
   Future<AppearancePreferences> load() async {
     final prefs = await SharedPreferences.getInstance();
     return AppearancePreferences(
-      themeMode: prefs.getString('${_kPrefix}themeMode') ?? 'dark',
+      themeMode: prefs.getString('${_kPrefix}themeMode') ?? 'light',
       themeColorPreset: normalizeThemeColorPreset(
         prefs.getString('${_kPrefix}themeColorPreset'),
       ),

@@ -4,7 +4,7 @@ import 'package:huji_app/theme/app_typography_scale.dart';
 
 class AppearancePreferences extends Equatable {
   const AppearancePreferences({
-    this.themeMode = 'dark',
+    this.themeMode = 'light',
     this.themeColorPreset = kDefaultThemeColorPreset,
     this.typographyScale = kDefaultTypographyScaleId,
     this.typographyScaleCustomMultiplier = kDefaultTypographyCustomMultiplier,
