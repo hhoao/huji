@@ -102,6 +102,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)), () async {
       if (!ffmpegAvailable) {
         markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
       }
 
       final outputPath = p.join(tempDir.path, 'golden_original.mp4');
@@ -140,6 +141,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)), () async {
       if (!ffmpegAvailable) {
         markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
       }
 
       final outputPath = p.join(tempDir.path, 'golden_720p.mp4');
@@ -158,6 +160,7 @@ void main() {
         timeout: const Timeout(Duration(minutes: 3)), () async {
       if (!ffmpegAvailable) {
         markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
       }
 
       final progressValues = <double>[];
