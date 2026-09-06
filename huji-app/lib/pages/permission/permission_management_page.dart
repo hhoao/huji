@@ -356,9 +356,11 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                       final statusColor = _permissionService
                           .getPermissionStatusColor(status);
 
-                      return TpCard(
-                        padding: EdgeInsets.zero,
-                        child: Padding(
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TpCard.elevated(
+                          borderRadius: 12,
+                          elevation: TpCardElevation.low,
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
