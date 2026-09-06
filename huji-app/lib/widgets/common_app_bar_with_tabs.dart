@@ -33,7 +33,14 @@ class CommonAppBar extends StatelessWidget implements PreferredSizeWidget {
           bottom: false,
           child: Row(
             children: [
-              leftWidget ?? const SizedBox.shrink(),
+              // 8px leading inset aligns the back icon with restcut's plain
+              // IconButton (Material 48px tap-target centering, ~12px inset).
+              leftWidget != null
+                  ? Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: leftWidget,
+                    )
+                  : const SizedBox.shrink(),
               Expanded(
                 child: (tabs != null && tabs!.isNotEmpty && controller != null)
                     ? Align(
