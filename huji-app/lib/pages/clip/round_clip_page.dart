@@ -976,13 +976,18 @@ class _RoundClipPageState extends State<RoundClipPage>
           SizedBox(width: 16),
           Expanded(
             child: TpButton(
+              size: TpControlSize.large,
               onPressed: _startEditing,
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(Icons.content_cut),
                   const SizedBox(width: 8),
-                  Text(context.hujiL10n.editRound),
+                  // 对齐 restcut 同款大按钮(56px 高 / 16px 文字)
+                  Text(
+                    context.hujiL10n.editRound,
+                    style: TpTextStyles.of(context).lg,
+                  ),
                 ],
               ),
             ),

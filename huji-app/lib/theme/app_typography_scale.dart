@@ -84,6 +84,12 @@ double autoTextScaleForSystem(double osTextScale, double devicePixelRatio) {
 /// [MediaQuery.textScaler], not in the theme multiplier (avoids double scaling).
 double autoTextScaleForMobile() => 1.0;
 
+/// Mobile control (button/input) scale boost. [TpControlMetrics] are
+/// desktop-density tokens (medium button 26px); touch targets on phones need
+/// Material-sized controls — ×1.5 gives medium ≈ 39px, large ≈ 54px, matching
+/// the raw Material buttons the mobile UI was ported from (40–56px).
+const double kMobileControlScaleBoost = 1.5;
+
 /// Effective scale = [baseline] × the relative preset multiplier (compact 0.92,
 /// standard 1.0, comfortable 1.08, or [customMultiplier] for `custom`). So
 /// `standard` resolves to the auto baseline and the rest are relative to it.

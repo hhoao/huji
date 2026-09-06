@@ -538,6 +538,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                 SizedBox(
                                   width: double.infinity,
                                   child: TpButton(
+                                    size: TpControlSize.large,
                                     onPressed: (isUploading || isProcessing)
                                         ? null
                                         : () {
@@ -555,6 +556,8 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                           ? context
                                                 .hujiL10n.recordAndClipCloud
                                           : context.hujiL10n.cloudClip,
+                                      // 对齐 restcut 同款大按钮(56px 高 / 16px 文字)
+                                      style: TpTextStyles.of(context).lg,
                                     ),
                                   ),
                                 ),
@@ -596,6 +599,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                         ],
                         Expanded(
                           child: TpButton(
+                            size: TpControlSize.large,
                             onPressed: (isUploading || isProcessing)
                                 ? null
                                 : () {
@@ -609,6 +613,7 @@ class _VideoEditConfigPageState extends State<VideoEditConfigPage> {
                                   : rawRecord.clipMode == ClipMode.recordAndClip
                                   ? context.hujiL10n.recordAndClipLocal
                                   : context.hujiL10n.localClip,
+                              style: TpTextStyles.of(context).lg,
                             ),
                           ),
                         ),

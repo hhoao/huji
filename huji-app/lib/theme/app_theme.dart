@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 
 import 'package:flex_color_scheme/flex_color_scheme.dart';
 import 'package:flutter/material.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 import 'app_desktop_cursor_theme.dart';
@@ -212,6 +213,12 @@ ColorScheme _softenedForegroundColorScheme(ColorScheme scheme) {
 TextTheme _textThemeWithForeground(TextTheme theme, ColorScheme scheme) =>
     theme.apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
 
+/// Mobile keeps Flutter's default density (matches the raw Material sizing the
+/// mobile pages were ported from); desktop stays compact for mouse density.
+VisualDensity _densityForPlatform() => PlatformCapability.isDesktop
+    ? VisualDensity.compact
+    : VisualDensity.standard;
+
 ThemeData _withSoftenedForeground(ThemeData base) {
   final scheme = _softenedForegroundColorScheme(base.colorScheme);
   return base.copyWith(
@@ -239,9 +246,10 @@ ThemeData _applyTypography(
   final resolvedFonts = fonts ?? AppFontResolver.resolve();
   final fontTheme = buildTpFontTheme(resolvedFonts);
   final useRuntimeGoogleFonts = _googleFontsNetworkAllowed();
+  final density = _densityForPlatform();
   final compactOutlinedButton = OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      visualDensity: VisualDensity.compact,
+      visualDensity: density,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       minimumSize: const Size(64, 36),
       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -263,7 +271,7 @@ ThemeData _applyTypography(
       scheme,
     );
     return withDesktopClickCursors(flexTheme.copyWith(
-      visualDensity: VisualDensity.compact,
+      visualDensity: density,
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
       iconTheme: TpIconSizes.iconTheme(
         scheme,
@@ -312,7 +320,7 @@ ThemeData _applyTypography(
   );
 
   return withDesktopClickCursors(flexTheme.copyWith(
-    visualDensity: VisualDensity.compact,
+    visualDensity: density,
     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
     iconTheme: TpIconSizes.iconTheme(
       scheme,

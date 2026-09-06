@@ -26,6 +26,7 @@ import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:window_manager/window_manager.dart';
 import 'package:huji_app/theme/app_font_prepare.dart';
+import 'package:huji_app/theme/app_typography_scale.dart';
 import 'package:huji_app/theme/huji_toast_config.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/widgets/video_trimmer/theme/trimmer_theme.dart';
@@ -146,7 +147,9 @@ class _MyAppState extends State<MyApp> with WidgetsBindingObserver {
                   data: TpThemeData.fromColorScheme(
                     scheme,
                     scale: 1.0,
-                    controlScale: bundle.textScaleMultiplier,
+                    // 移动端放大 Tp* 控件尺寸(按钮/输入框),对齐原 Material 按钮的触控大小
+                    controlScale: bundle.textScaleMultiplier *
+                        kMobileControlScaleBoost,
                     iconScale: bundle.iconScaleMultiplier,
                     toast: TpToastTheme.fromColorScheme(
                       scheme,

@@ -60,18 +60,21 @@ class TrimmerLayoutMetrics extends ThemeExtension<TrimmerLayoutMetrics> {
   double get timelineContentHeight =>
       timeRulerHeight + thumbnailTileSize + bottomSpanHeight;
 
+  /// Mobile metrics follow restcut_app's original timeline sizing
+  /// (tile 44 / ruler 40 / span 44 / handle 30x8), restored after the
+  /// centralizing refactor had inflated them.
   static const standard = TrimmerLayoutMetrics(
-    thumbnailTileSize: 72,
-    timeRulerHeight: 48,
-    bottomSpanHeight: 56,
-    leftWidgetWidth: 220,
+    thumbnailTileSize: 44,
+    timeRulerHeight: 40,
+    bottomSpanHeight: 44,
+    leftWidgetWidth: 190,
     segmentBorderWidth: 2,
     segmentSelectedBorderWidth: 3,
-    dividerHandleSize: 52,
-    dividerHandleThickness: 12,
-    dividerHandleBuffer: 20,
+    dividerHandleSize: 30,
+    dividerHandleThickness: 8,
+    dividerHandleBuffer: 12,
     playheadWidth: 3,
-    scrollStripHeight: 20,
+    scrollStripHeight: 18,
     thumbnailGenerateWidth: 320,
     rulerLabelFontSize: 10,
     microLabelFontSize: 8,
