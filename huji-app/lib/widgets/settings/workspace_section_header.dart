@@ -34,7 +34,7 @@ class WorkspaceSectionHeader extends StatelessWidget {
                 title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: styles.mdMedium.copyWith(
+                style: styles.lg.copyWith(
                   fontWeight: FontWeight.w800,
                   color: textBase,
                   height: 1.05,

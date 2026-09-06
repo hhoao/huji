@@ -37,7 +37,7 @@ class WorkspaceHubTitleBar extends StatelessWidget {
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: TpTextStyles.of(context).mdMedium.copyWith(
+            style: TpTextStyles.of(context).lg.copyWith(
               color: textBase,
               fontWeight: FontWeight.w800,
               height: 1.05,
