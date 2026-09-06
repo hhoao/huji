@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
-import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/types.dart';
 import 'package:huji_app/router/modules/clip.dart';
-import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
-import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/themed_mobile.dart';
@@ -33,7 +30,6 @@ class SportSelectionPage extends StatefulWidget {
 
 class _SportSelectionPageState extends State<SportSelectionPage> {
   ClipMode? clipMode;
-  bool _demoLoading = false;
 
   @override
   void initState() {
@@ -90,41 +86,6 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
           variant: TpToastVariant.error,
         );
       }
-    }
-  }
-
-  Future<void> _startDemoClip(DemoVideo demo) async {
-    if (clipMode == ClipMode.recordAndClip) {
-      return;
-    }
-    setState(() => _demoLoading = true);
-    try {
-      final file = await DemoVideoService.materialize(demo);
-      final sportType = demo.sportTypeKey == 'ping_pong'
-          ? SportType.pingpong
-          : SportType.badminton;
-      final config = getDefaultConfig(sportType);
-      final rawRecord = await createRawVideoRecord(
-        file.path,
-        sportType,
-        config,
-        clipMode: clipMode ?? ClipMode.existingVideo,
-        l10n: context.hujiL10n,
-      );
-      await LocalVideoStorage().add(rawRecord);
-      if (mounted) {
-        context.push(ClipRoute.videoEditConfig, extra: rawRecord);
-      }
-    } catch (e) {
-      if (mounted) {
-        TpToast.show(
-          context,
-          message: context.hujiL10n.loadDemoVideoFailed(e.toString()),
-          variant: TpToastVariant.error,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _demoLoading = false);
     }
   }
 
@@ -244,30 +205,6 @@ class _SportSelectionPageState extends State<SportSelectionPage> {
                 color: Colors.green,
                 description: context.hujiL10n.sportClipDescription,
               ),
-
-              if (clipMode != ClipMode.recordAndClip) ...[
-                SizedBox(height: 32),
-                const Divider(),
-                SizedBox(height: 24),
-                Text(
-                  context.hujiL10n.quickTry,
-                  textScaler: kLegacySectionTitleTextScaler,
-                  style: styles.xl.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: cs.onSurface,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  context.hujiL10n.quickTryHint,
-                  style: styles.md.copyWith(color: cs.mutedForeground),
-                ),
-                SizedBox(height: 16),
-                DemoVideoPicker(
-                  loading: _demoLoading,
-                  onDemoSelected: _startDemoClip,
-                ),
-              ],
             ],
           ),
         ),
