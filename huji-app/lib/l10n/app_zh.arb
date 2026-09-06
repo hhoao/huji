@@ -1221,6 +1221,8 @@
   "videoProcessTypeAllMatchMerged": "全部回合",
   "videoProcessTypeGreatMatch": "精彩回合",
   "videoProcessTypeRaw": "原视频",
+  "videoProcessTypeCompressed": "压缩视频",
+  "videoProcessTypeExported": "导出视频",
   "videoProcessingComplete": "视频处理完成",
   "videoProcessingCompletedViewOutput": "视频处理完成，可以查看输出视频",
   "videoProcessingInProgress": "视频处理中...",

@@ -3,20 +3,16 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_ui/shared_ui.dart';
-import 'package:gal/gal.dart';
-import 'package:huji_app/services/platform_capability.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as path;
 import 'package:huji_app/api/models/autoclip/video_models.dart';
-import 'package:huji_app/models/video.dart';
-import 'package:huji_app/store/video.dart';
+import 'package:huji_app/services/video_library_registrar.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/file_utils.dart' as path_utils;
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/widgets/video_player/video_player_page.dart';
-import 'package:uuid/uuid.dart';
 
 import '../models/autoclip_models.dart';
 import '../models/ffmpeg.dart';
@@ -137,44 +133,23 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
           _status = l10n.saveSavingMetadata;
         });
 
-        // 持久化视频元数据到本地数据库
-        try {
-          final videoInfo = await VideoUtils.getVideoInfo(targetPath);
-          String? thumbnailPath;
-          try {
-            thumbnailPath = await VideoUtils.generateVideoThumbnail(targetPath);
-          } catch (e) {
-            AppLogger().w('生成缩略图失败', e);
-          }
-
-          final savedRecord = SavedVideoRecord(
-            id: const Uuid().v4(),
-            sportType: widget.sportType ?? SportType.pingpong,
-            filePath: targetPath,
-            thumbnailPath: thumbnailPath,
-            duration: videoInfo.duration,
-            fileSize: _fileSize,
-            videoProcessType: widget.videoProcessType,
-          );
-          await LocalVideoStorage().add(savedRecord);
-        } catch (e, stackTrace) {
-          AppLogger().w('保存视频元数据失败', e, stackTrace);
-        }
+        // 持久化视频元数据到本地数据库 + （移动端）保存到相册 —— 统一入口。
+        final registered = await VideoLibraryRegistrar.instance.register(
+          VideoLibraryEntry(
+            outputPath: targetPath,
+            processType:
+                widget.videoProcessType ?? VideoProcessType.allMatchMerged,
+            sourceVideoPath: widget.videoPath,
+            sportTypeHint: widget.sportType,
+          ),
+        );
+        AppLogger().i('视频库注册结果: $registered');
 
         if (!mounted) return;
         setState(() {
           _progress = 0.95;
           _status = l10n.saveSavingToGallery;
         });
-
-        // 保存到相册
-        try {
-          if (PlatformCapability.supportsGalleryAccess) {
-            await Gal.putVideo(targetPath);
-          }
-        } catch (e, stackTrace) {
-          AppLogger().w('保存到相册失败', e, stackTrace);
-        }
 
         if (!mounted) return;
         setState(() {

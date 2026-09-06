@@ -1,9 +1,9 @@
-import 'package:gal/gal.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/ffmpeg.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/background_service.dart';
-import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/video_library_registrar.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/ffmpeg_error_utils.dart';
 import 'package:huji_app/utils/video_compress_utils.dart';
@@ -45,9 +45,14 @@ class VideoCompressTaskManager extends AbstractTaskManager {
         },
         onSuccess: (result) async {
           VideoCompressResult videoCompressResult = result;
-          if (PlatformCapability.supportsGalleryAccess) {
-            await Gal.putVideo(videoCompressResult.outputPath!);
-          }
+          // 统一入口：落库 + （移动端）进相册。注册失败被 registrar 吞掉。
+          await VideoLibraryRegistrar.instance.register(
+            VideoLibraryEntry(
+              outputPath: videoCompressResult.outputPath!,
+              processType: VideoProcessType.compressed,
+              sourceVideoPath: currentTask.videoPath,
+            ),
+          );
           final updated = await _updateCompressTask(
             currentTask.id,
             (oldTask) => (oldTask as VideoCompressTask).copyWith(

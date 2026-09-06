@@ -339,6 +339,10 @@ class VideoListTabContentState extends State<VideoListTabContent>
         return Colors.green;
       case VideoProcessType.allMatchMerged:
         return Colors.orange;
+      case VideoProcessType.compressed:
+        return Colors.deepOrange;
+      case VideoProcessType.exported:
+        return Colors.teal;
     }
   }
 

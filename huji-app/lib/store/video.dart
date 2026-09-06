@@ -286,6 +286,20 @@ class LocalVideoStorage extends ChangeNotifier {
     return dbDataToObj(maps.first, (map) => LocalVideoRecord.fromJson(map));
   }
 
+  // 根据文件路径查找记录（视频库注册幂等去重 / sportType 继承用）
+  Future<LocalVideoRecord?> findByFilePath(String filePath) async {
+    final db = await database;
+    final List<Map<String, dynamic>> maps = await db.query(
+      _tableName,
+      where: 'filePath = ?',
+      whereArgs: [filePath],
+      limit: 1,
+    );
+
+    if (maps.isEmpty) return null;
+    return dbDataToObj(maps.first, (map) => LocalVideoRecord.fromJson(map));
+  }
+
   // 根据处理记录ID查找处理记录
   Future<ProcessVideoRecord?> findProcessRecordByProcessRecordId(
     int processRecordId,

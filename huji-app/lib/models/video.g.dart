@@ -207,4 +207,6 @@ const _$VideoProcessTypeEnumMap = {
   VideoProcessType.raw: 0,
   VideoProcessType.greatMatch: 1,
   VideoProcessType.allMatchMerged: 2,
+  VideoProcessType.compressed: 3,
+  VideoProcessType.exported: 4,
 };
