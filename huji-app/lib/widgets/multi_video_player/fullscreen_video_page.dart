@@ -26,20 +26,11 @@ class FullscreenVideoPage extends StatefulWidget {
 
 class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   bool _showControls = true;
-  late SystemUiOverlayStyle _originalSystemUiOverlayStyle;
   Timer? _hideControlsTimer;
 
   @override
   void initState() {
     super.initState();
-    // 保存原始的系统UI样式
-    _originalSystemUiOverlayStyle = const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-      systemNavigationBarColor: Colors.black,
-      systemNavigationBarIconBrightness: Brightness.light,
-    );
-
     // 设置横屏模式
     _setLandscapeMode();
 
@@ -59,8 +50,14 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
     _hideControlsTimer?.cancel();
     // 恢复竖屏模式
     _restorePortraitMode();
-    // 恢复原始的系统UI样式
-    SystemChrome.setSystemUIOverlayStyle(_originalSystemUiOverlayStyle);
+    // 恢复原始的系统UI样式（黑色样式残留到浅色页面会顶栏发黑）
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
     // 退出全屏状态
     widget.bloc.add(const ToggleFullscreenEvent());
     super.dispose();

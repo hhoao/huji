@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -72,18 +73,32 @@ class _TrimmerViewState extends State<TrimmerView> {
       ],
       child: PopScope(
         canPop: !Navigator.of(context).userGestureInProgress,
-        child: SafeArea(
-          child: Scaffold(
-            backgroundColor: trimmerTheme.scaffoldBackground,
-            body: Column(
-              children: [
-                _buildTopBar(context),
-                Expanded(
-                  child: TrimmerEditor(
-                    onSegmentsChanged: widget.onSegmentsChanged,
+        child: AnnotatedRegion<SystemUiOverlayStyle>(
+          // 浅色主题下状态栏图标用深色，避免系统默认黑底状态栏压在浅色顶栏上
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                trimmerTheme.scaffoldBackground.computeLuminance() > 0.5
+                    ? Brightness.dark
+                    : Brightness.light,
+            statusBarBrightness:
+                trimmerTheme.scaffoldBackground.computeLuminance() > 0.5
+                    ? Brightness.light
+                    : Brightness.dark,
+          ),
+          child: SafeArea(
+            child: Scaffold(
+              backgroundColor: trimmerTheme.scaffoldBackground,
+              body: Column(
+                children: [
+                  _buildTopBar(context),
+                  Expanded(
+                    child: TrimmerEditor(
+                      onSegmentsChanged: widget.onSegmentsChanged,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
