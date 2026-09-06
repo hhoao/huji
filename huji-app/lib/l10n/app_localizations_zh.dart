@@ -4067,6 +4067,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get videoProcessTypeRaw => '原视频';
 
   @override
+  String get videoProcessTypeCompressed => '压缩视频';
+
+  @override
+  String get videoProcessTypeExported => '导出视频';
+
+  @override
   String get videoProcessingComplete => '视频处理完成';
 
   @override

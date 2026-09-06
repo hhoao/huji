@@ -7424,6 +7424,18 @@ abstract class HujiLocalizations {
   /// **'Original video'**
   String get videoProcessTypeRaw;
 
+  /// No description provided for @videoProcessTypeCompressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Compressed'**
+  String get videoProcessTypeCompressed;
+
+  /// No description provided for @videoProcessTypeExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Exported'**
+  String get videoProcessTypeExported;
+
   /// No description provided for @videoProcessingComplete.
   ///
   /// In en, this message translates to:

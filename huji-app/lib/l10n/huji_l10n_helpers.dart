@@ -67,6 +67,8 @@ extension HujiVideoRecordL10n on HujiLocalizations {
     VideoProcessType.raw => videoProcessTypeRaw,
     VideoProcessType.greatMatch => videoProcessTypeGreatMatch,
     VideoProcessType.allMatchMerged => videoProcessTypeAllMatchMerged,
+    VideoProcessType.compressed => videoProcessTypeCompressed,
+    VideoProcessType.exported => videoProcessTypeExported,
   };
 
   String matchTypeLabel(MatchType type) => switch (type) {

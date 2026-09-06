@@ -1221,6 +1221,8 @@
   "videoProcessTypeAllMatchMerged": "All rallies",
   "videoProcessTypeGreatMatch": "Highlight rallies",
   "videoProcessTypeRaw": "Original video",
+  "videoProcessTypeCompressed": "Compressed",
+  "videoProcessTypeExported": "Exported",
   "videoProcessingComplete": "Video processing complete",
   "videoProcessingCompletedViewOutput": "Processing complete. You can view the output video.",
   "videoProcessingInProgress": "Video is processing...",

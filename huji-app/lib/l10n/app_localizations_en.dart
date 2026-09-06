@@ -4162,6 +4162,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get videoProcessTypeRaw => 'Original video';
 
   @override
+  String get videoProcessTypeCompressed => 'Compressed';
+
+  @override
+  String get videoProcessTypeExported => 'Exported';
+
+  @override
   String get videoProcessingComplete => 'Video processing complete';
 
   @override

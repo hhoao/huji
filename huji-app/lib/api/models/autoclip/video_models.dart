@@ -10,7 +10,9 @@ part 'video_models.g.dart';
 enum VideoProcessType {
   raw(0, '原始', Colors.grey),
   greatMatch(1, '精选', Colors.blue),
-  allMatchMerged(2, '剪辑', Colors.green);
+  allMatchMerged(2, '剪辑', Colors.green),
+  compressed(3, '压缩', Colors.deepOrange),
+  exported(4, '导出', Colors.teal);
 
   const VideoProcessType(this.value, this.title, this.color);
   final int value;
