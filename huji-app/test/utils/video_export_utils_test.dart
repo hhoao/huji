@@ -187,5 +187,34 @@ void main() {
         );
       }
     });
+
+    test('killing the process makes export fail',
+        timeout: const Timeout(Duration(minutes: 3)), () async {
+      if (!ffmpegAvailable) {
+        markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
+      }
+
+      final outputPath = p.join(tempDir.path, 'cancelled.mp4');
+      final completed = <double>[];
+
+      await expectLater(
+        runConcatVideoExport(
+          videoPath: videoPath,
+          segments: segments,
+          quality: VideoExportQualities.original,
+          outputPath: outputPath,
+          onProgress: completed.add,
+          onProcessStarted: (process) {
+            // 启动即杀：模拟用户立刻取消。
+            process.kill();
+          },
+        ),
+        throwsA(anything),
+      );
+
+      // 被取消的导出不应走完整成路径：onProgress 不应收到 1.0 的完成值。
+      expect(completed, isNot(contains(1.0)));
+    });
   });
 }
