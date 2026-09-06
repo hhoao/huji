@@ -6,21 +6,30 @@
       "cwd": "huji-app",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "debug"
+      "flutterMode": "debug",
+      "osx": {
+        "toolArgs": ["--no-enable-impeller"]
+      }
     },
     {
       "name": "huji-app (profile mode)",
       "cwd": "huji-app",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "profile"
+      "flutterMode": "profile",
+      "osx": {
+        "toolArgs": ["--no-enable-impeller"]
+      }
     },
     {
       "name": "huji-app (release mode)",
       "cwd": "huji-app",
       "request": "launch",
       "type": "dart",
-      "flutterMode": "release"
+      "flutterMode": "release",
+      "osx": {
+        "toolArgs": ["--no-enable-impeller"]
+      }
     }
   ]
 }

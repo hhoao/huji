@@ -170,6 +170,16 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
+      - name: Guard macOS Impeller off
+        run: |
+          # flutter build macos has no --no-enable-impeller; the .app reads
+          # FLTEnableImpeller from Info.plist (copied into the DMG bundle).
+          value=$(/usr/libexec/PlistBuddy -c 'Print :FLTEnableImpeller' macos/Runner/Info.plist)
+          if [ "$value" != "false" ]; then
+            echo "Expected FLTEnableImpeller=false in macos/Runner/Info.plist, got: $value" >&2
+            exit 1
+          fi
+
       - name: Package
         run: fastforge package --platform macos --targets dmg
 

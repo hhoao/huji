@@ -28,5 +28,11 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Flutter 3.47+ defaults Impeller on macOS. Hovering dense UI
+	     tears/flickers the window (embedder HostBuffer). Opt out until
+	     that engine path is fixed; `flutter run --enable-impeller`
+	     still overrides this. -->
+	<key>FLTEnableImpeller</key>
+	<false/>
 </dict>
 </plist>

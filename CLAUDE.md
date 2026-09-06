@@ -70,3 +70,11 @@ upgrade steps in the fork's `README.huji.md`.
 - Desktop pages use `media_kit` for video playback (libmpv backend)
 - Mobile pages use `video_player` plugin
 - `MultiVideoPlayerBloc` supports both backends via `PlatformCapability.isDesktop`
+
+## macOS Impeller
+
+Impeller is disabled on macOS (hover/UI tearing — embedder HostBuffer). Do not remove:
+
+- `huji-app/macos/Runner/Info.plist` sets `FLTEnableImpeller=false` (packaged + default launches)
+- `ci-verify.yml` / `release.yml` have a "Guard macOS Impeller off" step that fails if the plist entry changes
+- both `.vscode/launch.json` files pass `--no-enable-impeller` for `flutter run` (macOS only)

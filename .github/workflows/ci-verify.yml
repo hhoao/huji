@@ -81,6 +81,16 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
+      - name: Guard macOS Impeller off
+        if: matrix.platform == 'macos'
+        run: |
+          # Packaged + default macos launches read FLTEnableImpeller from Info.plist.
+          value=$(/usr/libexec/PlistBuddy -c 'Print :FLTEnableImpeller' macos/Runner/Info.plist)
+          if [ "$value" != "false" ]; then
+            echo "Expected FLTEnableImpeller=false in macos/Runner/Info.plist, got: $value" >&2
+            exit 1
+          fi
+
       - name: Analyze (errors only)
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
