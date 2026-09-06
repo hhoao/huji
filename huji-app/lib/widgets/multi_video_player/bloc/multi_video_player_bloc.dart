@@ -105,7 +105,10 @@ class MultiVideoPlayerBloc
 
         emit(
           state.copyWith(
-            isLoading: false,
+            // 保持加载态直到 _seekTo 写入新控制器：中间态是
+            // isLoading=false + controller=null，UI 会误判为
+            // "没有可播放的视频"闪现一两秒（mpv 加载期间 seek 挂起）
+            isLoading: true,
             items: event.items,
             isLooping: event.isLooping,
             currentTimeMs: 0,
@@ -114,6 +117,9 @@ class MultiVideoPlayerBloc
         );
 
         await _seekTo(emit, 0);
+
+        // 控制器就绪（或确认没有可播放项）后才结束加载态
+        emit(state.copyWith(isLoading: false));
       } catch (e, st) {
         debugPrint('[MultiVideoPlayerBloc] SetItems failed: $e\n$st');
         emit(
