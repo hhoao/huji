@@ -21,7 +21,7 @@ const List<String> kThemeColorPresetIds = [
   'forest',
 ];
 
-const String kDefaultThemeColorPreset = 'amber';
+const String kDefaultThemeColorPreset = 'graphite';
 
 String normalizeThemeColorPreset(String? raw) {
   if (raw != null && kThemeColorPresetIds.contains(raw)) return raw;
