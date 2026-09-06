@@ -1,8 +1,10 @@
 import 'dart:io';
 
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/services/video_library_registrar.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/video_export_utils.dart';
 
@@ -61,6 +63,15 @@ class VideoExportTaskManager extends AbstractTaskManager {
 
       final latestTask = _taskRunner.getTaskById(exportTask.id);
       if (latestTask?.status == TaskStatusEnum.cancelled) return;
+
+      // 注册进视频库（注册失败被 registrar 吞掉，不影响任务状态）。
+      await VideoLibraryRegistrar.instance.register(
+        VideoLibraryEntry(
+          outputPath: outputPath,
+          processType: VideoProcessType.exported,
+          sourceVideoPath: exportTask.videoPath,
+        ),
+      );
 
       await _updateExportTask(
         exportTask.id,
