@@ -91,6 +91,10 @@ jobs:
             exit 1
           fi
 
+      - name: Install ffmpeg (Windows)
+        if: matrix.platform == 'windows'
+        run: choco install ffmpeg -y
+
       - name: Analyze (errors only)
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
