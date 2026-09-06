@@ -72,6 +72,14 @@ class NotificationManager implements NotificationService<dynamic> {
           requestSoundPermission: true,
         );
 
+    // macOS settings
+    const DarwinInitializationSettings initializationSettingsMacOS =
+        DarwinInitializationSettings(
+          requestAlertPermission: true,
+          requestBadgePermission: true,
+          requestSoundPermission: true,
+        );
+
     // Linux settings
     final LinuxInitializationSettings? initializationSettingsLinux =
         Platform.isLinux
@@ -93,6 +101,7 @@ class NotificationManager implements NotificationService<dynamic> {
     final initializationSettings = InitializationSettings(
       android: initializationSettingsAndroid,
       iOS: initializationSettingsIOS,
+      macOS: initializationSettingsMacOS,
       linux: initializationSettingsLinux,
       windows: Platform.isWindows ? initializationSettingsWindows : null,
     );

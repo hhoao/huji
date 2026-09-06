@@ -73,9 +73,17 @@ class TaskNotificationService implements NotificationService<Task> {
           // iOS 通知默认是可以被用户清除的
         );
 
+    const DarwinNotificationDetails macOSPlatformChannelSpecifics =
+        DarwinNotificationDetails(
+          presentAlert: true,
+          presentBadge: true,
+          presentSound: true,
+        );
+
     return NotificationDetails(
       android: androidPlatformChannelSpecifics,
       iOS: iOSPlatformChannelSpecifics,
+      macOS: macOSPlatformChannelSpecifics,
     );
   }
 

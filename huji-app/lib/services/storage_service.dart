@@ -39,8 +39,9 @@ class StorageService {
     Directory? externalDir;
     try {
       externalDir = await path_provider.getExternalStorageDirectory();
-    } on UnimplementedError {
-      // Linux desktop does not implement getExternalStoragePath.
+    } on UnsupportedError {
+      // Linux / macOS desktop do not implement getExternalStoragePath
+      // (UnimplementedError is a subtype of UnsupportedError).
       externalDir = null;
     }
 

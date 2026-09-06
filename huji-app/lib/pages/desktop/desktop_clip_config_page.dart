@@ -526,25 +526,33 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            Icon(Icons.tune, size: 16, color: cs.onSurface),
-            SizedBox(width: 8),
-            Text(
-              context.hujiL10n.clipConfig,
-              style: styles.mdSemibold.copyWith(color: cs.onSurface),
-            ),
-          ],
+        Flexible(
+          child: Row(
+            children: [
+              Icon(Icons.tune, size: 16, color: cs.onSurface),
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  context.hujiL10n.clipConfig,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.mdSemibold.copyWith(color: cs.onSurface),
+                ),
+              ),
+            ],
+          ),
         ),
-        TpCompactSelect<String>(
-          value: _selectedPreset,
-          entries: const [
-            _presetDefault,
-            _presetTraining,
-            _presetOfficial,
-            _presetBadmintonDefault,
-          ].map((e) => (e, _presetLabel(context.hujiL10n, e))).toList(),
-          onChanged: (v) {},
+        Flexible(
+          child: TpCompactSelect<String>(
+            value: _selectedPreset,
+            entries: const [
+              _presetDefault,
+              _presetTraining,
+              _presetOfficial,
+              _presetBadmintonDefault,
+            ].map((e) => (e, _presetLabel(context.hujiL10n, e))).toList(),
+            onChanged: (v) {},
+          ),
         ),
       ],
     );
