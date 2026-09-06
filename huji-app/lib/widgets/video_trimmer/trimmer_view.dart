@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -232,82 +233,8 @@ class TrimmerEditor extends StatelessWidget {
     return Container(
       width: double.infinity,
       color: trimmerTheme.previewBackground,
-      child: Stack(
-        children: [
-          Center(
-            child: VideoViewer(
-              videoPlayerController: context
-                  .read<TrimmerBloc>()
-                  .state
-                  .videoPlayerController,
-            ),
-          ),
-          Center(
-            child: _buildPlayOverlay(context),
-          ),
-        ],
-      ),
+      child: const _AutoHidingVideoPreview(),
     );
-  }
-
-  Widget _buildPlayOverlay(BuildContext context) {
-    final trimmerTheme = context.trimmerTheme;
-    final l10n = context.hujiL10n;
-    final tooltip = PlatformCapability.isDesktop
-        ? commandTooltipLabel(
-            context,
-            label: l10n.shortcutsCommandPrecisionPlayPause,
-            commandId: CommandIds.precisionPlayPause,
-          )
-        : null;
-
-    Widget overlay = BlocBuilder<TrimmerBloc, TrimmerState>(
-      buildWhen: (previous, current) =>
-          previous.isPlaying != current.isPlaying,
-      builder: (context, state) {
-        final icon = Icon(
-          state.isPlaying ? Icons.pause : Icons.play_arrow,
-          color: trimmerTheme.onToolbar,
-          size: 40,
-        );
-        final circle = Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: trimmerTheme.playOverlayBackground,
-            shape: BoxShape.circle,
-          ),
-          child: Center(child: icon),
-        );
-        if (!PlatformCapability.isDesktop) {
-          return GestureDetector(
-            onTap: () {
-              if (context.mounted) {
-                context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
-              }
-            },
-            child: circle,
-          );
-        }
-        return TpHover(
-          shape: TpPressableShape.circle,
-          width: 80,
-          height: 80,
-          hoverColor: trimmerTheme.onToolbar.withValues(alpha: 0.12),
-          onTap: () {
-            if (context.mounted) {
-              context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
-            }
-          },
-          child: circle,
-        );
-      },
-    );
-
-    if (tooltip != null) {
-      overlay = Tooltip(message: tooltip, child: overlay);
-    }
-    return overlay;
   }
 
   Widget _buildTrimViewer(BuildContext context) {
@@ -932,6 +859,139 @@ class TrimmerEditor extends StatelessWidget {
         child: content,
       ),
     );
+  }
+}
+
+/// 视频预览区域：点击画面任意位置播放/暂停，中央播放按钮自动隐藏。
+///
+/// 暂停时按钮常驻；开始播放后短暂保留反馈，3 秒无操作淡出。
+class _AutoHidingVideoPreview extends StatefulWidget {
+  const _AutoHidingVideoPreview();
+
+  @override
+  State<_AutoHidingVideoPreview> createState() =>
+      _AutoHidingVideoPreviewState();
+}
+
+class _AutoHidingVideoPreviewState extends State<_AutoHidingVideoPreview> {
+  static const _overlayHideDelay = Duration(seconds: 3);
+
+  bool _overlayVisible = true;
+  Timer? _hideTimer;
+
+  @override
+  void dispose() {
+    _hideTimer?.cancel();
+    super.dispose();
+  }
+
+  void _togglePlayPause() {
+    context.read<TrimmerBloc>().add(TrimmerTogglePlayPause());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<TrimmerBloc, TrimmerState>(
+      listenWhen: (previous, current) =>
+          previous.isPlaying != current.isPlaying,
+      listener: (context, state) {
+        _hideTimer?.cancel();
+        if (state.isPlaying) {
+          // 播放中先显示状态反馈，随后自动隐藏
+          if (!_overlayVisible) {
+            setState(() => _overlayVisible = true);
+          }
+          _hideTimer = Timer(_overlayHideDelay, () {
+            if (mounted) {
+              setState(() => _overlayVisible = false);
+            }
+          });
+        } else {
+          // 暂停时常驻显示
+          if (!_overlayVisible) {
+            setState(() => _overlayVisible = true);
+          }
+        }
+      },
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: _togglePlayPause,
+        child: Stack(
+          children: [
+            Center(
+              child: VideoViewer(
+                videoPlayerController: context
+                    .read<TrimmerBloc>()
+                    .state
+                    .videoPlayerController,
+              ),
+            ),
+            Center(
+              child: AnimatedOpacity(
+                opacity: _overlayVisible ? 1.0 : 0.0,
+                duration: const Duration(milliseconds: 200),
+                child: IgnorePointer(
+                  ignoring: !_overlayVisible,
+                  child: _buildPlayOverlay(context),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPlayOverlay(BuildContext context) {
+    final l10n = context.hujiL10n;
+    final tooltip = PlatformCapability.isDesktop
+        ? commandTooltipLabel(
+            context,
+            label: l10n.shortcutsCommandPrecisionPlayPause,
+            commandId: CommandIds.precisionPlayPause,
+          )
+        : null;
+
+    Widget overlay = BlocBuilder<TrimmerBloc, TrimmerState>(
+      buildWhen: (previous, current) =>
+          previous.isPlaying != current.isPlaying,
+      builder: (context, state) {
+        // 白色图标 + 固定半透明黑底，浅色主题下也保持可读
+        final icon = Icon(
+          state.isPlaying ? Icons.pause : Icons.play_arrow,
+          color: Colors.white,
+          size: 40,
+        );
+        final circle = Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: Colors.black.withValues(alpha: 0.45),
+            shape: BoxShape.circle,
+          ),
+          child: Center(child: icon),
+        );
+        if (!PlatformCapability.isDesktop) {
+          return GestureDetector(
+            onTap: _togglePlayPause,
+            child: circle,
+          );
+        }
+        return TpHover(
+          shape: TpPressableShape.circle,
+          width: 80,
+          height: 80,
+          hoverColor: Colors.white.withValues(alpha: 0.12),
+          onTap: _togglePlayPause,
+          child: circle,
+        );
+      },
+    );
+
+    if (tooltip != null) {
+      overlay = Tooltip(message: tooltip, child: overlay);
+    }
+    return overlay;
   }
 }
 
