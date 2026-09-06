@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/models/task.dart';
+import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_bloc.dart';
 import 'package:huji_app/pages/task/task/task_tab/bloc/task_tab_state.dart';
 import 'package:huji_app/pages/task/task/task_tab/task_tab_list_utils.dart';
@@ -40,71 +41,63 @@ class TaskRowMobile extends StatelessWidget {
     );
   }
 
-  Widget _buildActionButtons(BuildContext context, Task currentTask) {
-    // Tapping the card already opens the result, so the explicit view action
-    // is folded away — the row keeps a single compact trailing control per
-    // action (matching the close-style affordance in the mobile design).
-    final actions = TaskTabListUtils.resolveTaskActions(currentTask)
-        .where((action) => action != TaskRowAction.view)
-        .toList();
-    if (actions.isEmpty) return const SizedBox.shrink();
+  // Mirrors restcut's `_buildTaskActionButton`: exactly one trailing control —
+  // pause/resume for pausable in-flight tasks (resume green / pause orange),
+  // cancel (red stop) for non-pausable ones, delete (grey close) once settled.
+  // Tapping the card itself opens the result / progress dialog.
+  Widget _buildActionButton(BuildContext context, Task currentTask) {
     final cs = context.cs;
+    final supportsPause = TaskStorage().supportsPause(currentTask);
+    final status = currentTask.status;
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: actions.map((action) {
-        final (icon, tooltip, onPressed) = switch (action) {
-          TaskRowAction.viewProgress => (
-            Icons.visibility,
-            context.hujiL10n.viewProgress,
-            () => callbacks.onTap(currentTask),
-          ),
-          TaskRowAction.pause => (
-            Icons.pause,
-            context.hujiL10n.pauseTask,
-            () => callbacks.onPauseResume(currentTask),
-          ),
-          TaskRowAction.resume => (
-            Icons.play_arrow,
-            context.hujiL10n.resumeTask,
-            () => callbacks.onPauseResume(currentTask),
-          ),
-          TaskRowAction.cancel => (
-            Icons.stop,
-            context.hujiL10n.cancelTask,
-            () => callbacks.onCancel(currentTask),
-          ),
-          TaskRowAction.retry => (
-            Icons.refresh,
-            context.hujiL10n.actionRetry,
-            () => callbacks.onRetry(currentTask),
-          ),
-          TaskRowAction.delete => (
-            Icons.close,
-            context.hujiL10n.deleteTask,
-            () => callbacks.onDelete(currentTask),
-          ),
-          TaskRowAction.view => (
-            Icons.visibility,
-            context.hujiL10n.actionView,
-            () => callbacks.onTap(currentTask),
-          ),
-        };
-
+    if (status == TaskStatusEnum.processing ||
+        status == TaskStatusEnum.pending ||
+        status == TaskStatusEnum.paused) {
+      if (supportsPause) {
+        final isPaused = status == TaskStatusEnum.paused;
         return TpIconButton(
-          icon: icon,
-          iconSize: 18,
-          color: cs.mutedForeground,
-          tooltip: tooltip,
+          icon: isPaused ? Icons.play_arrow : Icons.pause,
+          iconSize: 24,
+          color: isPaused ? Colors.green : Colors.orange,
+          tooltip: isPaused
+              ? context.hujiL10n.resumeTask
+              : context.hujiL10n.pauseTask,
           onTap: () {
             Throttles.throttle(
-              'task_action_${action.name}_${currentTask.id}',
+              'toggle_task_status_${currentTask.id}',
               const Duration(milliseconds: 500),
-              onPressed,
+              () => callbacks.onPauseResume(currentTask),
             );
           },
         );
-      }).toList(),
+      }
+      return TpIconButton(
+        icon: Icons.stop,
+        iconSize: 24,
+        color: Colors.red,
+        tooltip: context.hujiL10n.cancelTask,
+        onTap: () {
+          Throttles.throttle(
+            'cancel_task_${currentTask.id}',
+            const Duration(milliseconds: 500),
+            () => callbacks.onCancel(currentTask),
+          );
+        },
+      );
+    }
+
+    return TpIconButton(
+      icon: Icons.close,
+      iconSize: 24,
+      color: cs.mutedForeground,
+      tooltip: context.hujiL10n.deleteTask,
+      onTap: () {
+        Throttles.throttle(
+          'delete_task_${currentTask.id}',
+          const Duration(milliseconds: 500),
+          () => callbacks.onDelete(currentTask),
+        );
+      },
     );
   }
 
@@ -155,7 +148,7 @@ class TaskRowMobile extends StatelessWidget {
                 valueColor: AlwaysStoppedAnimation<Color>(progressColor),
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: 2),
             Row(
               children: [
                 Text(
@@ -164,7 +157,7 @@ class TaskRowMobile extends StatelessWidget {
                     taskForProgress,
                   ),
                   style: TextStyle(
-                    fontSize: 10,
+                    fontSize: 12,
                     fontWeight: FontWeight.w500,
                     color: cs.onSurface,
                   ),
@@ -172,7 +165,7 @@ class TaskRowMobile extends StatelessWidget {
                 // Completed rows show only the percent (like the reference
                 // design); other statuses keep their phase description.
                 if (taskStatus != TaskStatusEnum.completed) ...[
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 8),
                   Flexible(
                     child: Text(
                       TaskTabListUtils.buildTaskPhaseDescription(
@@ -181,14 +174,14 @@ class TaskRowMobile extends StatelessWidget {
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 10, color: progressColor),
+                      style: TextStyle(fontSize: 12, color: progressColor),
                     ),
                   ),
                 ],
                 const Spacer(),
                 Text(
                   timeStampToTimeAgo(currentTask.createdAt),
-                  style: TextStyle(fontSize: 10, color: cs.mutedForeground),
+                  style: TextStyle(fontSize: 11, color: cs.mutedForeground),
                 ),
               ],
             ),
@@ -315,15 +308,15 @@ class TaskRowMobile extends StatelessWidget {
                               color: cs.onSurface,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 2),
                           Text(
                             typeDesc,
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: 13,
                               color: cs.mutedForeground,
                             ),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 6),
                           _buildProgressSection(context, currentTask),
                         ],
                       ),
@@ -332,7 +325,7 @@ class TaskRowMobile extends StatelessWidget {
                     if (state.isBatchMode)
                       TpIconButton(
                         icon: Icons.close,
-                        iconSize: 18,
+                        iconSize: 24,
                         color: cs.mutedForeground,
                         onTap: () {
                           Throttles.throttle(
@@ -343,7 +336,7 @@ class TaskRowMobile extends StatelessWidget {
                         },
                       )
                     else
-                      _buildActionButtons(context, currentTask),
+                      _buildActionButton(context, currentTask),
                   ],
                 ),
               ),
