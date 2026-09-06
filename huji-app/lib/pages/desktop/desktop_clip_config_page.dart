@@ -113,9 +113,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
   SportType get _sportTypeEnum =>
       _isPingPong ? SportType.pingpong : SportType.badminton;
 
-  String _sportDisplayLabel(HujiLocalizations l10n) =>
-      _isPingPong ? l10n.sportPingPong : l10n.sportBadminton;
-
   String _presetLabel(HujiLocalizations l10n, String key) {
     const emojis = {
       _presetDefault: '📋',
