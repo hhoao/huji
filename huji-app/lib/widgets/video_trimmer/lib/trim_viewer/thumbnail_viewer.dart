@@ -354,16 +354,22 @@ class _ThumbnailListBuilder extends StatelessWidget {
                         longInterval: intervals.longInterval,
                         textInterval: intervals.textInterval,
                         tickColor: trimmerTheme.rulerTickColor,
+                        // 移动端 w400 对齐 restcut；桌面保留 w500（字号更大、
+                        // 笔画更粗才撑得住 12px）
                         textStyle:
                             textTheme.labelSmall?.copyWith(
                               color: trimmerTheme.rulerLabelColor,
                               fontSize: layout.rulerLabelFontSize,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: PlatformCapability.isDesktop
+                                  ? FontWeight.w500
+                                  : FontWeight.w400,
                             ) ??
                             TextStyle(
                               color: trimmerTheme.rulerLabelColor,
                               fontSize: layout.rulerLabelFontSize,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: PlatformCapability.isDesktop
+                                  ? FontWeight.w500
+                                  : FontWeight.w400,
                             ),
                       ),
                     );
@@ -592,7 +598,8 @@ class _ThumbnailListBuilder extends StatelessWidget {
                 '只播放片段',
                 style: textTheme.labelSmall?.copyWith(
                   color: trimmerTheme.onToolbar,
-                  fontSize: layout.segmentLabelFontSize,
+                  // restcut 时间轴 overlay 标签为 8px，与刻度同一档
+                  fontSize: layout.microLabelFontSize,
                   fontWeight: FontWeight.bold,
                   shadows: [
                     Shadow(
@@ -1000,6 +1007,12 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
 
   @override
   Widget build(BuildContext context) {
+    // 按物理像素解码：tile 是逻辑像素，固定 ×2 在 3x 手机上低于物理
+    // 分辨率会发糊；按 devicePixelRatio 解码则移动端清晰、桌面(1x/2x)
+    // 与原 ×2 行为一致，内存不涨
+    final cacheWidth = (widget.thumbnailHeight *
+            MediaQuery.devicePixelRatioOf(context))
+        .round();
     // 如果缩略图已生成，显示缩略图
     if (_thumbnailPath != null) {
       return Image.file(
@@ -1007,8 +1020,7 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
         fit: widget.fit,
         width: widget.thumbnailHeight,
         height: widget.thumbnailHeight,
-        // 按显示尺寸×2 解码（高 DPI 清晰）；解码原始 384px PNG 约 4 倍内存/上传开销
-        cacheWidth: (widget.thumbnailHeight * 2).round(),
+        cacheWidth: cacheWidth,
         gaplessPlayback: true,
         errorBuilder: (context, error, stackTrace) {
           // 加载失败时也使用第一帧缩略图作为后备
@@ -1023,13 +1035,15 @@ class _ThumbnailImageState extends State<_ThumbnailImage> {
 
   /// 构建占位符（使用第一帧封面图）
   Widget _buildCoverImagePlaceholder() {
+    final cacheWidth = (widget.thumbnailHeight *
+            MediaQuery.devicePixelRatioOf(context))
+        .round();
     return Image.file(
       File(widget.coverImage),
       fit: widget.fit,
       width: widget.thumbnailHeight,
       height: widget.thumbnailHeight,
-      // 同上：封面图也按显示尺寸×2 解码
-      cacheWidth: (widget.thumbnailHeight * 2).round(),
+      cacheWidth: cacheWidth,
       gaplessPlayback: true,
       errorBuilder: (context, error, stackTrace) {
         // 如果连第一帧也加载失败，显示灰色占位符

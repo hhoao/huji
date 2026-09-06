@@ -216,7 +216,8 @@ class TrimmerEditor extends StatelessWidget {
                 _buildSegmentOverview(context),
               _buildControls(context),
               SizedBox(
-                height: context.trimmerLayout.timelineContentHeight,
+                // 块高含底部 slack（restcut 160px 块的观感），桌面 slack=0 不变
+                height: context.trimmerLayout.timelineBlockHeight,
                 child: _buildTrimViewer(context),
               ),
               _buildVideoProgressControl(context),
@@ -267,7 +268,7 @@ class TrimmerEditor extends StatelessWidget {
                   formatTime(state.currentMilliseconds / 1000),
                   style: textTheme.labelSmall?.copyWith(
                     color: trimmerTheme.onToolbar,
-                    fontSize: layout.segmentLabelFontSize,
+                    fontSize: layout.toolbarLabelFontSize,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -275,7 +276,7 @@ class TrimmerEditor extends StatelessWidget {
                   formatTime(state.totalDuration / 1000),
                   style: textTheme.labelSmall?.copyWith(
                     color: trimmerTheme.onToolbarMuted,
-                    fontSize: layout.segmentLabelFontSize,
+                    fontSize: layout.toolbarLabelFontSize,
                   ),
                 ),
               ],
@@ -689,7 +690,7 @@ class TrimmerEditor extends StatelessWidget {
             color: state.isSlowMotion
                 ? trimmerTheme.active
                 : trimmerTheme.onToolbar,
-            fontSize: layout.segmentLabelFontSize,
+            fontSize: layout.toolbarLabelFontSize,
           ),
         ),
       ],
@@ -828,7 +829,7 @@ class TrimmerEditor extends StatelessWidget {
             label,
             style: textTheme.labelSmall?.copyWith(
               color: textColor,
-              fontSize: layout.segmentLabelFontSize,
+              fontSize: layout.toolbarLabelFontSize,
             ),
           ),
         ],
