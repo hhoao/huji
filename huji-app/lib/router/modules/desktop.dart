@@ -15,6 +15,7 @@ import 'package:huji_app/router/modules/tools.dart';
 import 'package:huji_app/shell/huji_desktop_shell.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
+import 'package:huji_app/store/task/clip_task_prompt_store.dart';
 import 'package:path/path.dart' as p;
 import 'package:uuid/uuid.dart';
 
@@ -261,10 +262,10 @@ class DesktopRoutes {
                 name: 'desktop-tasks',
                 pageBuilder: (context, state) {
                   final clipTaskId = state.uri.queryParameters['clipTaskId'];
-                  return _noTransitionPage(
-                    state,
-                    DesktopTasksPage(clipTaskId: clipTaskId),
-                  );
+                  // 与移动端 mainTask 路由同构:一次性提示进 store,
+                  // pageBuilder 重跑幂等。
+                  ClipTaskPromptStore.instance.register(clipTaskId);
+                  return _noTransitionPage(state, const DesktopTasksPage());
                 },
               ),
             ],

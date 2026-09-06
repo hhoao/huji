@@ -772,4 +772,12 @@ class TaskStorage extends ChangeNotifier
   Future<void> deleteTask(Task task) async {
     await deleteByTaskId(task.id);
   }
+
+  /// 仅清空内存任务列表,不落库。测试在 case 间隔离用(测试注入的任务
+  /// 不需要持久化),生产代码禁止调用。
+  @visibleForTesting
+  void resetInMemoryTasksForTest() {
+    _tasks.clear();
+    notifyListeners();
+  }
 }

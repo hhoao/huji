@@ -18,9 +18,7 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/widgets/layout/workspace_identity_pane.dart';
 
 class DesktopTasksPage extends StatefulWidget {
-  final String? clipTaskId;
-
-  const DesktopTasksPage({super.key, this.clipTaskId});
+  const DesktopTasksPage({super.key});
 
   @override
   State<DesktopTasksPage> createState() => _DesktopTasksPageState();
@@ -39,25 +37,14 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
 
   late final TaskTabBloc _bloc;
   int _pageTabIndex = 0;
-  bool _clipTaskDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     _bloc = TaskTabBloc();
     _bloc.add(const TaskTabInitializeEvent());
-
-    if (widget.clipTaskId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showClipTaskProgressWhenReady(
-          context: context,
-          bloc: _bloc,
-          clipTaskId: widget.clipTaskId!,
-          isAlreadyShown: () => _clipTaskDialogShown,
-          markShown: () => _clipTaskDialogShown = true,
-        );
-      });
-    }
+    // 剪辑进度弹窗提示由 watchClipTaskProgressPrompt(列表构建钩子)驱动,
+    // 走 ClipTaskPromptStore 的一次性消费(路由层 register)。
   }
 
   @override
@@ -158,10 +145,7 @@ class _DesktopTasksPageState extends State<DesktopTasksPage> {
         watchClipTaskProgressPrompt(
           context: context,
           state: state,
-          clipTaskId: widget.clipTaskId,
           bloc: _bloc,
-          isAlreadyShown: () => _clipTaskDialogShown,
-          markShown: () => _clipTaskDialogShown = true,
         );
       },
       itemBuilder: (context, task, state) {

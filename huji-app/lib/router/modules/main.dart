@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/main.dart';
 import 'package:huji_app/router/types.dart';
+import 'package:huji_app/store/task/clip_task_prompt_store.dart';
 
 class MainRoute implements RouteModule {
   static const String main = '/main';
@@ -25,6 +26,9 @@ class MainRoute implements RouteModule {
         name: 'mainTask',
         builder: (context, state) {
           final clipTaskId = state.uri.queryParameters['clipTaskId'];
+          // 弹窗提示在 ClipTaskPromptStore 里按 taskId 一次性消费;
+          // builder 重跑(主题切换等)是幂等的。
+          ClipTaskPromptStore.instance.register(clipTaskId);
           final edittingRecordId =
               state.uri.queryParameters['edittingRecordId'];
           final arguments = <String, dynamic>{};

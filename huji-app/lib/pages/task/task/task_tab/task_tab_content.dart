@@ -18,9 +18,7 @@ import 'package:shared_ui/shared_ui.dart';
 import '../../../../models/task.dart';
 
 class TaskTabContent extends StatefulWidget {
-  final String? clipTaskId; // 用于自动显示视频剪辑进度弹窗的任务ID
-
-  const TaskTabContent({super.key, this.clipTaskId});
+  const TaskTabContent({super.key});
 
   @override
   State<TaskTabContent> createState() => _TaskTabContentState();
@@ -28,7 +26,6 @@ class TaskTabContent extends StatefulWidget {
 
 class _TaskTabContentState extends State<TaskTabContent> {
   late final TaskTabBloc _taskTabBloc;
-  bool _clipTaskDialogShown = false;
 
   late final TaskRowCallbacks _rowCallbacks;
 
@@ -46,19 +43,9 @@ class _TaskTabContentState extends State<TaskTabContent> {
       onRetry: (task) => TaskTabActions.retryTask(context, task),
       onDelete: _showDeleteConfirmDialog,
     );
-
-    // 如果有指定的视频剪辑任务ID，延迟显示进度弹窗
-    if (widget.clipTaskId != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        showClipTaskProgressWhenReady(
-          context: context,
-          bloc: _taskTabBloc,
-          clipTaskId: widget.clipTaskId!,
-          isAlreadyShown: () => _clipTaskDialogShown,
-          markShown: () => _clipTaskDialogShown = true,
-        );
-      });
-    }
+    // 剪辑进度弹窗提示由 watchClipTaskProgressPrompt(列表构建钩子)驱动,
+    // 走 ClipTaskPromptStore 的一次性消费——这里不做 initState 提示,
+    // 否则 TabBarView 重建 State 会丢标志导致重复弹窗。
   }
 
   @override
@@ -162,10 +149,7 @@ class _TaskTabContentState extends State<TaskTabContent> {
               watchClipTaskProgressPrompt(
                 context: context,
                 state: state,
-                clipTaskId: widget.clipTaskId,
                 bloc: _taskTabBloc,
-                isAlreadyShown: () => _clipTaskDialogShown,
-                markShown: () => _clipTaskDialogShown = true,
               );
             },
             itemBuilder: (context, task, state) {

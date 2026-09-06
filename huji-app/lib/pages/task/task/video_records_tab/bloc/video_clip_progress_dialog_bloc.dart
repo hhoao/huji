@@ -37,6 +37,12 @@ class VideoClipProgressDialogBloc
   ) async {
     // 获取最新任务状态
     _updateTask(emit);
+    // 任务在打开前就已完成(竞态:手动点开进行中的任务、任务恰好在快照与
+    // 开框之间完成)→ 直接置 shouldClose,弹层 2 秒后自动关,而不是
+    // 永远停在"已完成"态。
+    if (state.task?.status == TaskStatusEnum.completed) {
+      emit(state.copyWith(shouldClose: true));
+    }
     // 生成缩略图
     add(const VideoClipProgressDialogGenerateThumbnailEvent());
   }
@@ -61,9 +67,9 @@ class VideoClipProgressDialogBloc
       final isTaskCompleted = updatedTask.status == TaskStatusEnum.completed;
       final isTaskFailed = updatedTask.status == TaskStatusEnum.failed;
 
-      // 检查任务状态是否从非完成变为完成
-      final wasCompleted = previousTask?.status == TaskStatusEnum.completed;
-      final shouldClose = (isTaskCompleted && !wasCompleted) || isTaskFailed;
+      // UI 侧的 BlocListener 只在 shouldClose false→true 的跳变时关一次,
+      // 这里恒为"完成或失败即应关闭",不依赖打开时任务尚未完成的假设。
+      final shouldClose = isTaskCompleted || isTaskFailed;
 
       emit(state.copyWith(task: updatedTask, shouldClose: shouldClose));
     }

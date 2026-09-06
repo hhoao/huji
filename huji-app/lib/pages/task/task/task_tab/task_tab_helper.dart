@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/pages/clip/round_clip_page.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'package:huji_app/store/task/clip_task_prompt_store.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/file_utils.dart';
@@ -40,46 +41,47 @@ Task? findTaskById(TaskTabState state, String taskId) {
 }
 
 /// Delays briefly, then shows the clip progress dialog once the task is loaded.
-void showClipTaskProgressWhenReady({
+///
+/// Whether to prompt at all is decided by [ClipTaskPromptStore] (taskId-scoped,
+/// one-shot, outliving every page State). An already-completed task is never
+/// auto-prompted — its progress dialog would be stuck on "completed" with
+/// nothing left to watch.
+Future<void> showClipTaskProgressWhenReady({
   required BuildContext context,
   required TaskTabBloc bloc,
   required String clipTaskId,
-  required bool Function() isAlreadyShown,
-  required VoidCallback markShown,
-}) {
-  if (isAlreadyShown()) return;
+}) async {
+  final store = ClipTaskPromptStore.instance;
+  if (!store.shouldPrompt(clipTaskId)) return;
 
-  Future.delayed(const Duration(milliseconds: 500), () {
-    if (!context.mounted || isAlreadyShown()) return;
+  await Future.delayed(const Duration(milliseconds: 500));
+  if (!context.mounted || !store.shouldPrompt(clipTaskId)) return;
 
-    final task = findTaskById(bloc.state, clipTaskId);
-    if (task != null && context.mounted && !isAlreadyShown()) {
-      markShown();
-      showVideoClipProgressDialog(context, task);
-    }
-  });
+  final task = findTaskById(bloc.state, clipTaskId);
+  if (task == null) return; // Task not loaded yet; the list-built hook retries.
+  store.consume(clipTaskId);
+  if (task.status != TaskStatusEnum.completed) {
+    showVideoClipProgressDialog(context, task);
+  }
 }
 
-/// Called from list builders when tasks finish loading.
+/// Called from list builders when tasks finish loading. The only trigger
+/// channel: the list first builds (and every rebuild) walks the pending ids.
 void watchClipTaskProgressPrompt({
   required BuildContext context,
   required TaskTabState state,
-  required String? clipTaskId,
   required TaskTabBloc bloc,
-  required bool Function() isAlreadyShown,
-  required VoidCallback markShown,
 }) {
-  if (clipTaskId == null || isAlreadyShown()) return;
+  final clipTaskId = ClipTaskPromptStore.instance.pendingIds.lastOrNull;
+  if (clipTaskId == null) return;
   if (findTaskById(state, clipTaskId) == null) return;
 
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    if (!context.mounted || isAlreadyShown()) return;
+    if (!context.mounted) return;
     showClipTaskProgressWhenReady(
       context: context,
       bloc: bloc,
       clipTaskId: clipTaskId,
-      isAlreadyShown: isAlreadyShown,
-      markShown: markShown,
     );
   });
 }

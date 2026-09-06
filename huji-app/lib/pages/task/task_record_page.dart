@@ -85,7 +85,9 @@ class _TaskRecordPageState extends State<TaskRecordPage>
       body: TabBarView(
         controller: _tabController,
         children: [
-          TaskTabContent(key: _taskPageKey, clipTaskId: widget.clipTaskId),
+          // 弹窗提示由 ClipTaskPromptStore 按 taskId 一次性消费
+          // (见 router/modules/main.dart 的 register)。
+          TaskTabContent(key: _taskPageKey),
           NeedLoginWrapperWidget(
             child: VideoRecordsTabContent(key: _videoRecordsKey),
           ),
