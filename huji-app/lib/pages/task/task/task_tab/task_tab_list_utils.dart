@@ -185,6 +185,22 @@ class TaskTabListUtils {
     };
   }
 
+  /// Whether a mobile status filter button should be highlighted: the filter's
+  /// status selection must match the button exactly, and no other (dialog)
+  /// filter condition may be active — mirrors the clip-records stat buttons,
+  /// which stay un-highlighted while the filter dialog has active conditions.
+  static bool isStatusButtonSelected(
+    TaskFilter filter,
+    Set<TaskStatusEnum> statuses,
+  ) {
+    final hasOtherFilters =
+        filter.selectedTypes.isNotEmpty ||
+        filter.dateRange != null ||
+        (filter.searchKeyword?.isNotEmpty ?? false);
+    if (hasOtherFilters) return false;
+    return statusSetEquals(filter.selectedStatuses, statuses);
+  }
+
   static String taskTypeLabel(HujiLocalizations l10n, TaskTypeEnum type) {
     return l10n.taskTypeLabel(type);
   }
