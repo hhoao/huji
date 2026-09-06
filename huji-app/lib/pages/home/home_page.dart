@@ -302,14 +302,15 @@ class _HomePageState extends State<HomePage> {
           child: Row(
             children: [
               Container(
-                decoration: BoxDecoration(
-                  color: cs.primaryContainer,
+                decoration: const BoxDecoration(
+                  // 与 restcut_app 首页"开始剪辑"图标保持一致(蓝色云上传)
+                  color: Color(0xFFE3F2FD), // Colors.blue[50]
                   shape: BoxShape.circle,
                 ),
                 padding: const EdgeInsets.all(12),
-                child: Icon(
+                child: const Icon(
                   Icons.cloud_upload,
-                  color: cs.primary,
+                  color: Colors.blue,
                   size: 24,
                 ),
               ),
