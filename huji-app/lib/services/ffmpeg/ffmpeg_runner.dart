@@ -17,6 +17,9 @@ class FFmpegResult {
   });
 
   bool get isSuccess => returnCode == 0;
+
+  /// Whether this result represents a cancelled execution (not an error).
+  bool get isCancelled => returnCode == -1;
 }
 
 /// Abstract ffmpeg runner. Concrete impl chosen by platform at startup.
@@ -41,10 +44,13 @@ abstract class FFmpegRunner {
 
   /// Execute ffmpeg with the given arguments (without the leading `ffmpeg`).
   ///
-  /// `onProgress` receives a value in [0, 1] when progress can be parsed.
+  /// `onProgress` receives the processed media time in **milliseconds**
+  /// (FFmpegKit statistics time / `-progress out_time`), NOT a 0..1 fraction.
+  /// Callers that know the total duration should convert to a fraction
+  /// themselves. May be reported sparsely depending on the platform.
   Future<FFmpegResult> execute(
     List<String> arguments, {
-    void Function(double progress)? onProgress,
+    void Function(double progressTimeMs)? onProgress,
   });
 
   /// Execute ffprobe with the given arguments.

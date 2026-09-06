@@ -24,8 +24,11 @@ class PlatformCapability {
   /// Long-running background service (workmanager + flutter_background_service).
   static bool get supportsBackgroundService => Platform.isAndroid || Platform.isIOS;
 
-  /// FFmpegKit Flutter plugin (Android/iOS only). On desktop we use Process.run.
-  static bool get supportsFFmpegKit => Platform.isAndroid || Platform.isIOS;
+  /// FFmpegKit Flutter plugin (Android/iOS/macOS). Linux/Windows desktop use
+  /// the bundled static ffmpeg binary instead (no ffmpegkit native layer on
+  /// those platforms for the pinned 4.3.2 version).
+  static bool get supportsFFmpegKit =>
+      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
 
   /// Native video trimmer plugin (Android/iOS). Desktop falls back to ffmpeg.
   static bool get supportsNativeTrimmer => Platform.isAndroid || Platform.isIOS;

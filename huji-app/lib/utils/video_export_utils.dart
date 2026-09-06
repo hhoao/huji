@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/platform_capability.dart';
 
 /// 导出画质档位 key（与导出配置页的档位一一对应）。
 abstract final class VideoExportQualities {
@@ -16,7 +18,8 @@ abstract final class VideoExportQualities {
 ///
 /// concat 清单 + 单次 x264 编码，`-progress pipe:1` 解析进度。
 /// [onProgress] 只回传 0~1 的进度值，文案由调用方生成。
-/// [onProcessStarted] 在 ffmpeg 启动后回调，调用方可持有进程以实现取消。
+/// [onProcessStarted] 在 ffmpeg 启动后回调（桌面子进程分支），调用方可
+/// 持有进程以实现取消。FFmpegKit 分支的取消走 [FFmpegRunner.cancel]。
 /// 返回输出文件路径；失败抛异常（含 ffmpeg stderr）。
 Future<String> runConcatVideoExport({
   required String videoPath,
@@ -56,15 +59,45 @@ Future<String> runConcatVideoExport({
   );
   onProgress?.call(0);
 
+  final commonArgs = [
+    '-f', 'concat', '-safe', '0', '-i', concatPath,
+    '-c:v', 'libx264', '-crf', crf, '-preset', 'medium',
+    ...vfArg,
+    '-c:a', 'aac', '-b:a', '128k',
+    '-movflags', '+faststart',
+    '-y', outputPath,
+  ];
+
   try {
+    // FFmpegKit 平台（Android/iOS/macOS）：无子进程可持有，经
+    // [FFmpegRunner] 走会话执行；取消统一走 FFmpegRunner.cancel()。
+    // 进度来自 FFmpegKit Statistics 的已编码时长（毫秒），与 Linux 分支
+    // 解析 `-progress out_time_ms` 等价。
+    if (PlatformCapability.supportsFFmpegKit) {
+      final result = await FFmpegRunner.instance.execute(
+        commonArgs,
+        onProgress: totalDurationSec > 0 && onProgress != null
+            ? (timeMs) {
+                final seconds = timeMs / 1000;
+                onProgress((seconds / totalDurationSec).clamp(0.0, 1.0));
+              }
+            : null,
+      );
+      await File(concatPath).delete();
+      if (!result.isSuccess && !result.isCancelled) {
+        throw Exception(
+          (result.output ?? '').trim().isEmpty
+              ? 'ffmpeg exited with code ${result.returnCode}'
+              : result.output,
+        );
+      }
+      onProgress?.call(1);
+      return outputPath;
+    }
+
     final process = await Process.start('ffmpeg', [
-      '-f', 'concat', '-safe', '0', '-i', concatPath,
-      '-c:v', 'libx264', '-crf', crf, '-preset', 'medium',
-      ...vfArg,
-      '-c:a', 'aac', '-b:a', '128k',
-      '-movflags', '+faststart',
+      ...commonArgs,
       '-progress', 'pipe:1', '-nostats',
-      '-y', outputPath,
     ]);
     onProcessStarted?.call(process);
 

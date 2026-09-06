@@ -123,7 +123,13 @@ class LocalDetectionService {
     ProgressCallback? onProgress,
   }) {
     final job = (_inferenceQueue ?? Future.value()).then((_) async {
-      if (PlatformCapability.isDesktop) {
+      // macOS 走 FFmpegKit（worker isolate 里插件的 EventChannel 订阅
+      // 会崩），与 Android 一样在主 isolate 跑：ffmpeg 在 native 线程执行，
+      // ONNX 推理经 flutter_onnxruntime 的后台 taskQueue 也不阻塞 UI。
+      // Linux/Windows 桌面保留 worker isolate（外部 ffmpeg 子进程 + 推理
+      // 读帧是重 CPU，需要离开主 isolate）。
+      if (PlatformCapability.isDesktop &&
+          !PlatformCapability.supportsFFmpegKit) {
         final inferenceSpec = await OnnxModelAssetResolver.resolve(
           sportType: sportTypeKey,
           matchType: matchType,

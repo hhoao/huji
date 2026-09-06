@@ -14,12 +14,31 @@ class MobileFFmpegRunner implements FFmpegRunner {
   /// 诊断：状态心跳间隔（区分“还在跑”和“挂死”）。
   static const _stateHeartbeat = Duration(seconds: 3);
 
+  /// 将参数列表拼接为 FFmpegKit 可正确解析的命令字符串。
+  ///
+  /// FFmpegKit 内部用 `FFmpegKitConfig.parseArguments` 按空白切分命令，
+  /// 含空格的参数（如 macOS 的 `Application Support` 路径）必须用单引号
+  /// 包裹，否则会被拆成多个参数。
+  static String _joinCommand(List<String> arguments) {
+    return arguments.map((arg) {
+      if (arg.contains(' ') || arg.contains('\'')) {
+        // parseArguments 对单引号内容不再处理反斜杠转义，含单引号的参数
+        // 用双引号包裹并把内部双引号转义。
+        if (arg.contains('\'') && !arg.contains('"')) {
+          return '"${arg.replaceAll('"', r'\"')}"';
+        }
+        return "'$arg'";
+      }
+      return arg;
+    }).join(' ');
+  }
+
   @override
   Future<FFmpegResult> execute(
     List<String> arguments, {
-    void Function(double progress)? onProgress,
+    void Function(double progressTimeMs)? onProgress,
   }) async {
-    final cmd = arguments.join(' ');
+    final cmd = _joinCommand(arguments);
     final startedAt = DateTime.now();
     // executeAsync 的 Dart Future 在 native 侧把会话丢进线程池后立即完成，
     // 并不代表 ffmpeg 跑完；直接取返回码会读到 null 被误判为失败。
@@ -32,9 +51,12 @@ class MobileFFmpegRunner implements FFmpegRunner {
       onProgress == null
           ? null
           : (statistics) {
+              // statistics.getTime() 是已处理时长（毫秒）。runner 不知道
+              // 总时长，无法换算 0~1，把原始值交给调用方（调用方知道总
+              // 时长，自行换算）。
               final timeMs = statistics.getTime();
               if (timeMs > 0) {
-                onProgress(0.5); // placeholder; refine in Task 5 callers
+                onProgress(timeMs.toDouble());
               }
             },
     );
@@ -92,7 +114,7 @@ class MobileFFmpegRunner implements FFmpegRunner {
 
   @override
   Future<FFmpegResult> executeProbe(List<String> arguments) async {
-    final cmd = arguments.join(' ');
+    final cmd = _joinCommand(arguments);
     final session = await FFprobeKit.execute(cmd);
     final returnCode = await session.getReturnCode();
     final output = await session.getOutput();

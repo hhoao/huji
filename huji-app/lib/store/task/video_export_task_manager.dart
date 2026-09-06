@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:huji_app/models/task.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/utils/video_export_utils.dart';
 
@@ -143,7 +145,15 @@ class VideoExportTaskManager extends AbstractTaskManager {
 
   @override
   Future<void> cancelTask(Task task) async {
-    _runningProcesses[task.id]?.kill();
+    // macOS（FFmpegKit 分支）没有子进程句柄，取消走会话取消。
+    final process = _runningProcesses[task.id];
+    if (process != null) {
+      process.kill();
+      return;
+    }
+    if (PlatformCapability.supportsFFmpegKit) {
+      await FFmpegRunner.instance.cancel();
+    }
   }
 
   @override

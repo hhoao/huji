@@ -9,6 +9,7 @@ import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:watcher/watcher.dart';
 
@@ -1367,6 +1368,11 @@ class VideoUtils {
   ///
   /// Each event is exactly [width]*[height]*3 bytes. Avoids Disk quota errors
   /// from parallel chunk extracts writing hundreds of MB under /tmp.
+  ///
+  /// FFmpegKit platforms (Android/iOS/macOS) have no stdout pipe; frames are
+  /// extracted to temp files first (same layout as
+  /// [intervalExtractRawRgbFrames]) and streamed in order. On Linux/Windows
+  /// desktop the bundled ffmpeg binary streams from stdout.
   static Stream<Uint8List> streamIntervalRawRgbFrames({
     required String videoPath,
     required int frameInterval,
@@ -1376,6 +1382,19 @@ class VideoUtils {
     int height = 640,
     int padValue = 114,
   }) async* {
+    if (PlatformCapability.supportsFFmpegKit) {
+      yield* _streamIntervalRawRgbFramesFromFiles(
+        videoPath: videoPath,
+        frameInterval: frameInterval,
+        startTime: startTime,
+        duration: duration,
+        width: width,
+        height: height,
+        padValue: padValue,
+      );
+      return;
+    }
+
     final padHex = padValue.toRadixString(16).padLeft(2, '0');
     final vf =
         'fps=$frameInterval,'
@@ -1442,6 +1461,62 @@ class VideoUtils {
     } catch (e) {
       process.kill(ProcessSignal.sigterm);
       rethrow;
+    }
+  }
+
+  /// FFmpegKit variant of [streamIntervalRawRgbFrames]: extract frames to
+  /// numbered files (reuses the ffmpeg arg layout of
+  /// [intervalExtractRawRgbFrames]), then yield each frame's bytes in order.
+  /// The temp directory is removed when the stream is fully consumed.
+  static Stream<Uint8List> _streamIntervalRawRgbFramesFromFiles({
+    required String videoPath,
+    required int frameInterval,
+    double? startTime,
+    double? duration,
+    int width = 640,
+    int height = 640,
+    int padValue = 114,
+  }) async* {
+    final tempDir = await storage.createTempInCleanupDirectory(
+      prefix: 'stream_frames_',
+    );
+
+    try {
+      await intervalExtractRawRgbFrames(
+        videoPath: videoPath,
+        frameInterval: frameInterval,
+        tempDir: tempDir.path,
+        startTime: startTime,
+        duration: duration,
+        width: width,
+        height: height,
+        padValue: padValue,
+      );
+
+      final frameSize = width * height * 3;
+      var index = 1;
+      while (true) {
+        final file = File(path.join(tempDir.path, '%06d.rgb'.replaceFirst(
+          '%06d',
+          index.toString().padLeft(6, '0'),
+        )));
+        if (!await file.exists()) break;
+        final bytes = await file.readAsBytes();
+        if (bytes.length != frameSize) {
+          throw Exception(
+            resolveHujiL10n().frameExtractionFailed(
+              'Incomplete RGB frame ${file.path} (${bytes.length} bytes, '
+              'expected $frameSize)',
+            ),
+          );
+        }
+        yield bytes;
+        index++;
+      }
+    } finally {
+      try {
+        await tempDir.delete(recursive: true);
+      } catch (_) {}
     }
   }
 

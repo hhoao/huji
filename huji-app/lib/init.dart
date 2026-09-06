@@ -6,6 +6,7 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:ffmpeg_kit_flutter_new/ffmpeg_kit_config.dart';
 import 'package:huji_app/config/environment.dart';
 import 'package:huji_app/constants/theme_manager.dart';
 import 'package:huji_app/services/app_update_checker.dart';
@@ -13,6 +14,7 @@ import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/feature_visibility.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/permission_service.dart';
+import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_manager.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/settings/settings_manager.dart';
@@ -55,6 +57,14 @@ Future<void> preInit() async {
   };
 
   AppLogger.instance.i('ErrorLogService initialized');
+
+  // FFmpegKit 平台（Android/iOS/macOS）：事件广播流必须在主 isolate 订阅。
+  // 剪辑管线在 worker isolate 里首次执行会触发懒初始化，导致
+  // BackgroundIsolateBinaryMessenger.setMessageHandler 崩溃，这里在主
+  // isolate 预初始化。
+  if (PlatformCapability.supportsFFmpegKit) {
+    await FFmpegKitConfig.init();
+  }
 
   // VideoProxy.init(logPrint: true);
   final bool inProduction = bool.fromEnvironment("dart.vm.product");
