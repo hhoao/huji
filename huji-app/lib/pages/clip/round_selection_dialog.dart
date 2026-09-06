@@ -146,174 +146,10 @@ class RoundsSelectionDialog extends StatelessWidget {
 
                 // 回合列表
                 Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: GridView.builder(
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 4,
-                            childAspectRatio: 1,
-                            crossAxisSpacing: 8,
-                            mainAxisSpacing: 12,
-                          ),
-                      itemCount: segments.length,
-                      itemBuilder: (context, index) {
-                        final segment = segments[index];
-                        final duration =
-                            segment.endSeconds - segment.startSeconds;
-                        final isCurrentSegment =
-                            state.currentPlayingSegment == segment;
-                        final isFavorite = state.isSegmentFavorite(segment);
-
-                        final cs = context.cs;
-
-                        return TpHover(
-                          onTap: () {
-                            Throttles.throttle(
-                              'round_play_segment_$index',
-                              const Duration(milliseconds: 500),
-                              () {
-                                context.read<RoundClipBloc>().add(
-                                  PlaySegmentEvent(segment),
-                                );
-                              },
-                            );
-                          },
-                          onLongPress: () {
-                            context.read<RoundClipBloc>().add(
-                              ToggleFavoriteEvent(segment),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          pressScale: 0.97,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: isCurrentSegment
-                                  ? titleColor.withValues(alpha: 0.1)
-                                  : cs.cardFill,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isCurrentSegment
-                                    ? titleColor
-                                    : titleColor.withValues(alpha: 0.3),
-                                width: isCurrentSegment ? 2 : 1,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: cs.softShadow,
-                                  blurRadius: 4,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // 顶部 - 回合编号和状态
-                                Container(
-                                  height: 18,
-                                  decoration: BoxDecoration(
-                                    color: isCurrentSegment
-                                        ? titleColor.withValues(alpha: 0.2)
-                                        : titleColor.withValues(alpha: 0.1),
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(12),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.only(left: 6),
-                                        child: Row(
-                                          children: [
-                                            if (titleIcon == Icons.star)
-                                              Icon(
-                                                Icons.star,
-                                                size: 12,
-                                                color: titleColor,
-                                              ),
-                                            if (titleIcon == Icons.star)
-                                              SizedBox(width: 4),
-                                            Text(
-                                              '${index + 1}',
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                                fontWeight: FontWeight.bold,
-                                                color: isCurrentSegment
-                                                    ? titleColor.withValues(
-                                                        alpha: 0.8,
-                                                      )
-                                                    : titleColor.withValues(
-                                                        alpha: 0.7,
-                                                      ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      Row(
-                                        children: [
-                                          if (isFavorite &&
-                                              titleIcon != Icons.star)
-                                            Icon(
-                                              Icons.star,
-                                              size: 12,
-                                              color: Colors.orange,
-                                            ),
-                                          if (isCurrentSegment &&
-                                              state.isSegmentPlaying)
-                                            Icon(
-                                              Icons.play_arrow,
-                                              size: 12,
-                                              color: titleColor,
-                                            ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-
-                                // 中间 - 时长和时间范围
-                                Expanded(
-                                  child: Center(
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '${duration.toStringAsFixed(1)}s',
-                                          style: TextStyle(
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                            color: isCurrentSegment
-                                                ? titleColor.withValues(
-                                                    alpha: 0.8,
-                                                  )
-                                                : titleColor.withValues(
-                                                    alpha: 0.7,
-                                                  ),
-                                          ),
-                                        ),
-                                        SizedBox(height: 1),
-                                        Text(
-                                          '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, segments))}',
-                                          style: TextStyle(
-                                            fontSize: 8,
-                                            color: cs.mutedForeground,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
+                  child: _RoundsSelectionGrid(
+                    segments: segments,
+                    titleColor: titleColor,
+                    titleIcon: titleIcon,
                   ),
                 ),
               ],
@@ -391,6 +227,240 @@ class RoundsSelectionDialog extends StatelessWidget {
                   child: Text(context.hujiL10n.actionDelete),
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 回合网格：打开时定位到当前播放的回合，播放推进时跟随滚动
+class _RoundsSelectionGrid extends StatefulWidget {
+  final List<SegmentInfo> segments;
+  final Color titleColor;
+  final IconData titleIcon;
+
+  const _RoundsSelectionGrid({
+    required this.segments,
+    required this.titleColor,
+    required this.titleIcon,
+  });
+
+  @override
+  State<_RoundsSelectionGrid> createState() => _RoundsSelectionGridState();
+}
+
+class _RoundsSelectionGridState extends State<_RoundsSelectionGrid> {
+  final ScrollController _scrollController = ScrollController();
+  bool _didInitialPosition = false;
+
+  // 与 GridView 的 delegate 保持一致：4 列、正方形 tile、
+  // crossAxisSpacing 8、mainAxisSpacing 12、内容水平 padding 16
+  static const _crossAxisCount = 4;
+  static const _crossAxisSpacing = 8.0;
+  static const _mainAxisSpacing = 12.0;
+  static const _gridPadding = 16.0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _didInitialPosition) return;
+      _didInitialPosition = true;
+      _scrollToCurrentSegment(animate: false);
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _scrollToCurrentSegment({required bool animate}) {
+    if (!_scrollController.hasClients) return;
+    final segment = context.read<RoundClipBloc>().state.currentPlayingSegment;
+    if (segment == null) return;
+
+    final index = widget.segments.indexWhere((s) => s == segment);
+    if (index < 0) return;
+
+    final media = MediaQuery.sizeOf(context);
+    final gridWidth = media.width * 0.9 - 2 * _gridPadding;
+    final tileWidth =
+        (gridWidth - (_crossAxisCount - 1) * _crossAxisSpacing) /
+        _crossAxisCount;
+    final rowExtent = tileWidth + _mainAxisSpacing;
+
+    final position = _scrollController.position;
+    final target = (index ~/ _crossAxisCount) * rowExtent;
+    final offset = target.clamp(0.0, position.maxScrollExtent);
+
+    if ((position.pixels - offset).abs() < 1) return;
+    if (animate) {
+      _scrollController.animateTo(
+        offset,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+      );
+    } else {
+      _scrollController.jumpTo(offset);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocListener<RoundClipBloc, RoundClipState>(
+      // 播放推进到下一回合时跟随滚动
+      listenWhen: (previous, current) =>
+          previous.currentPlayingSegment != current.currentPlayingSegment,
+      listener: (context, state) => _scrollToCurrentSegment(animate: true),
+      child: BlocBuilder<RoundClipBloc, RoundClipState>(
+        builder: (context, state) {
+          final segments = widget.segments;
+
+          return Padding(
+            padding: const EdgeInsets.all(16),
+            child: GridView.builder(
+              controller: _scrollController,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: _crossAxisCount,
+                childAspectRatio: 1,
+                crossAxisSpacing: _crossAxisSpacing,
+                mainAxisSpacing: _mainAxisSpacing,
+              ),
+              itemCount: segments.length,
+              itemBuilder: (context, index) =>
+                  _buildRoundItem(context, state, segments[index], index),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildRoundItem(
+    BuildContext context,
+    RoundClipState state,
+    SegmentInfo segment,
+    int index,
+  ) {
+    final duration = segment.endSeconds - segment.startSeconds;
+    final isCurrentSegment = state.currentPlayingSegment == segment;
+    final isFavorite = state.isSegmentFavorite(segment);
+    final titleColor = widget.titleColor;
+    final titleIcon = widget.titleIcon;
+    final cs = context.cs;
+
+    return TpHover(
+      onTap: () {
+        Throttles.throttle(
+          'round_play_segment_$index',
+          const Duration(milliseconds: 500),
+          () {
+            context.read<RoundClipBloc>().add(PlaySegmentEvent(segment));
+          },
+        );
+      },
+      onLongPress: () {
+        context.read<RoundClipBloc>().add(ToggleFavoriteEvent(segment));
+      },
+      borderRadius: BorderRadius.circular(12),
+      pressScale: 0.97,
+      child: Container(
+        decoration: BoxDecoration(
+          color: isCurrentSegment
+              ? titleColor.withValues(alpha: 0.1)
+              : cs.cardFill,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isCurrentSegment
+                ? titleColor
+                : titleColor.withValues(alpha: 0.3),
+            width: isCurrentSegment ? 2 : 1,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: cs.softShadow,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 顶部 - 回合编号和状态
+            Container(
+              height: 18,
+              decoration: BoxDecoration(
+                color: isCurrentSegment
+                    ? titleColor.withValues(alpha: 0.2)
+                    : titleColor.withValues(alpha: 0.1),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(12),
+                ),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Row(
+                      children: [
+                        if (titleIcon == Icons.star)
+                          Icon(Icons.star, size: 12, color: titleColor),
+                        if (titleIcon == Icons.star) SizedBox(width: 4),
+                        Text(
+                          '${index + 1}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isCurrentSegment
+                                ? titleColor.withValues(alpha: 0.8)
+                                : titleColor.withValues(alpha: 0.7),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      if (isFavorite && titleIcon != Icons.star)
+                        Icon(Icons.star, size: 12, color: Colors.orange),
+                      if (isCurrentSegment && state.isSegmentPlaying)
+                        Icon(Icons.play_arrow, size: 12, color: titleColor),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+
+            // 中间 - 时长和时间范围
+            Expanded(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${duration.toStringAsFixed(1)}s',
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: isCurrentSegment
+                            ? titleColor.withValues(alpha: 0.8)
+                            : titleColor.withValues(alpha: 0.7),
+                      ),
+                    ),
+                    SizedBox(height: 1),
+                    Text(
+                      '${_formatSequenceTime(_getSegmentStartTimeInSequence(segment, widget.segments))}-${_formatSequenceTime(_getSegmentEndTimeInSequence(segment, widget.segments))}',
+                      style: TextStyle(fontSize: 8, color: cs.mutedForeground),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -80,12 +81,12 @@ class _TrimmerViewState extends State<TrimmerView> {
             statusBarColor: Colors.transparent,
             statusBarIconBrightness:
                 trimmerTheme.scaffoldBackground.computeLuminance() > 0.5
-                    ? Brightness.dark
-                    : Brightness.light,
+                ? Brightness.dark
+                : Brightness.light,
             statusBarBrightness:
                 trimmerTheme.scaffoldBackground.computeLuminance() > 0.5
-                    ? Brightness.light
-                    : Brightness.dark,
+                ? Brightness.light
+                : Brightness.dark,
           ),
           child: SafeArea(
             child: Scaffold(
@@ -212,8 +213,7 @@ class TrimmerEditor extends StatelessWidget {
           return Column(
             children: [
               Expanded(child: _buildVideoPreview(context)),
-              if (!PlatformCapability.isDesktop)
-                _buildSegmentOverview(context),
+              if (!PlatformCapability.isDesktop) _buildSegmentOverview(context),
               _buildControls(context),
               SizedBox(
                 // 块高含底部 slack（restcut 160px 块的观感），桌面 slack=0 不变
@@ -345,9 +345,8 @@ class TrimmerEditor extends StatelessWidget {
                       color: trimmerTheme.onToolbar,
                       tooltip: commandTooltipLabel(
                         context,
-                        label: context
-                            .hujiL10n
-                            .shortcutsCommandPrecisionPlayPause,
+                        label:
+                            context.hujiL10n.shortcutsCommandPrecisionPlayPause,
                         commandId: CommandIds.precisionPlayPause,
                       ),
                       onTap: () {
@@ -384,167 +383,13 @@ class TrimmerEditor extends StatelessWidget {
   Widget _buildSegmentOverview(BuildContext context) {
     final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
-    final textTheme = Theme.of(context).textTheme;
     return Container(
       height: layout.segmentOverviewHeight,
       color: trimmerTheme.scaffoldBackground,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
+      child: const Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Expanded(
-            child: BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
-              // 片段内容或选中态变化时才重建；引用比较恒真，
-              // 会让拖拽外的所有状态更新都重建整条片段条
-              buildWhen: (previous, current) =>
-                  !previous.sameActiveSegments(current) ||
-                  previous.selectedSegment != current.selectedSegment,
-              builder: (context, state) => ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: state.activeSegments.length + 1,
-                itemBuilder: (context, index) {
-                  final activeSegments = state.activeSegments;
-                  if (index == activeSegments.length) {
-                    return Container(
-                      width: layout.segmentChipMinWidth,
-                      margin: const EdgeInsets.only(right: 8),
-                      decoration: BoxDecoration(
-                        border: Border.all(color: trimmerTheme.segmentBorder),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: PlatformCapability.isDesktop
-                          ? TpIconButton(
-                              icon: Icons.add,
-                              color: trimmerTheme.onToolbar,
-                              tooltip: commandTooltipLabel(
-                                context,
-                                label: context.hujiL10n.addClipSegmentLabel,
-                                commandId: CommandIds.precisionAddSegment,
-                              ),
-                              onTap: () {
-                                if (context.mounted) {
-                                  context.read<ClipSegmentBloc>().add(
-                                    ClipSegmentAddAt(
-                                      startTimeMs: context
-                                          .read<TrimmerBloc>()
-                                          .state
-                                          .currentMilliseconds,
-                                    ),
-                                  );
-                                }
-                              },
-                            )
-                          : IconButton(
-                              onPressed: () {
-                                if (context.mounted) {
-                                  context.read<ClipSegmentBloc>().add(
-                                    ClipSegmentAddAt(
-                                      startTimeMs: context
-                                          .read<TrimmerBloc>()
-                                          .state
-                                          .currentMilliseconds,
-                                    ),
-                                  );
-                                }
-                              },
-                              icon: Icon(
-                                Icons.add,
-                                color: trimmerTheme.onToolbar,
-                              ),
-                            ),
-                    );
-                  }
-
-                  final segment = activeSegments[index];
-                  return GestureDetector(
-                    onTap: () {
-                      if (context.mounted) {
-                        context.read<ClipSegmentBloc>().add(
-                          ClipSegmentSelect(
-                            segment: segment,
-                            isScrollToSegment: true,
-                          ),
-                        );
-                      }
-                    },
-                    child: BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
-                      buildWhen: (previous, current) =>
-                          previous.selectedSegment != current.selectedSegment &&
-                          (current.selectedSegment == segment ||
-                              previous.selectedSegment == segment),
-                      builder: (context, state) {
-                        final isSelected = state.selectedSegment == segment;
-                        return Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: isSelected
-                                  ? trimmerTheme.segmentSelectedBorder
-                                  : trimmerTheme.segmentBorder,
-                              width: isSelected ? 2 : 1,
-                            ),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Column(
-                            children: [
-                              Expanded(
-                                child: Container(
-                                  decoration: const BoxDecoration(
-                                    borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(7),
-                                    ),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      formatSegmentDuration(
-                                        (segment.endTime - segment.startTime) /
-                                            1000,
-                                      ),
-                                      style: textTheme.labelSmall?.copyWith(
-                                        color: trimmerTheme.onToolbar,
-                                        fontSize: layout.segmentLabelFontSize,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              Container(
-                                height: layout.segmentChipFooterHeight,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSelected
-                                      ? trimmerTheme
-                                          .segmentChipSelectedBackground
-                                      : trimmerTheme.segmentChipBackground,
-                                  borderRadius: const BorderRadius.vertical(
-                                    bottom: Radius.circular(7),
-                                  ),
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    ' ${formatSegmentDuration(segment.startTime / 1000, precision: 0)} - ${formatSegmentDuration(segment.endTime / 1000, precision: 0)}',
-                                    style: textTheme.labelSmall?.copyWith(
-                                      color: isSelected
-                                          ? trimmerTheme.onActive
-                                          : trimmerTheme.onToolbar,
-                                      fontSize: layout.segmentLabelFontSize,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
+        children: [Expanded(child: _SegmentOverviewStrip())],
       ),
     );
   }
@@ -813,10 +658,12 @@ class TrimmerEditor extends StatelessWidget {
     final trimmerTheme = context.trimmerTheme;
     final layout = context.trimmerLayout;
     final textTheme = Theme.of(context).textTheme;
-    final iconColor =
-        isEnabled ? (color ?? trimmerTheme.onToolbar) : trimmerTheme.disabled;
-    final textColor =
-        isEnabled ? trimmerTheme.onToolbar : trimmerTheme.disabled;
+    final iconColor = isEnabled
+        ? (color ?? trimmerTheme.onToolbar)
+        : trimmerTheme.disabled;
+    final textColor = isEnabled
+        ? trimmerTheme.onToolbar
+        : trimmerTheme.disabled;
 
     final content = Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
@@ -837,10 +684,7 @@ class TrimmerEditor extends StatelessWidget {
     );
 
     if (!PlatformCapability.isDesktop) {
-      return GestureDetector(
-        onTap: isEnabled ? onTap : null,
-        child: content,
-      );
+      return GestureDetector(onTap: isEnabled ? onTap : null, child: content);
     }
 
     final tooltip = commandId != null
@@ -954,8 +798,7 @@ class _AutoHidingVideoPreviewState extends State<_AutoHidingVideoPreview> {
         : null;
 
     Widget overlay = BlocBuilder<TrimmerBloc, TrimmerState>(
-      buildWhen: (previous, current) =>
-          previous.isPlaying != current.isPlaying,
+      buildWhen: (previous, current) => previous.isPlaying != current.isPlaying,
       builder: (context, state) {
         // 白色图标 + 固定半透明黑底，浅色主题下也保持可读
         final icon = Icon(
@@ -973,10 +816,7 @@ class _AutoHidingVideoPreviewState extends State<_AutoHidingVideoPreview> {
           child: Center(child: icon),
         );
         if (!PlatformCapability.isDesktop) {
-          return GestureDetector(
-            onTap: _togglePlayPause,
-            child: circle,
-          );
+          return GestureDetector(onTap: _togglePlayPause, child: circle);
         }
         return TpHover(
           shape: TpPressableShape.circle,
@@ -1022,9 +862,8 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
     final total = widget.totalDurationMs;
     final fraction = total > 0
         ? (_scrubbing
-                ? (_scrubFraction ??
-                    (widget.currentMs / total).clamp(0.0, 1.0))
-                : (widget.currentMs / total).clamp(0.0, 1.0))
+              ? (_scrubFraction ?? (widget.currentMs / total).clamp(0.0, 1.0))
+              : (widget.currentMs / total).clamp(0.0, 1.0))
         : 0.0;
 
     return SliderTheme(
@@ -1042,10 +881,11 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
         ),
         trackShape: const RoundedRectSliderTrackShape(),
         valueIndicatorColor: trimmerTheme.active,
-        valueIndicatorTextStyle: Theme.of(context).textTheme.labelSmall?.copyWith(
-          color: trimmerTheme.onActive,
-          fontWeight: FontWeight.w500,
-        ),
+        valueIndicatorTextStyle: Theme.of(context).textTheme.labelSmall
+            ?.copyWith(
+              color: trimmerTheme.onActive,
+              fontWeight: FontWeight.w500,
+            ),
         showValueIndicator: widget.isDragging || _scrubbing
             ? ShowValueIndicator.always
             : ShowValueIndicator.never,
@@ -1083,6 +923,246 @@ class _TrimmerProgressSliderState extends State<_TrimmerProgressSlider> {
             );
           }
         },
+      ),
+    );
+  }
+}
+
+/// 片段概览条（移动端）：横向 chips；选中片段变化时自动滚动到选中项。
+///
+/// chip 宽度随内容（时间范围文本）自适应，没有固定 width，
+/// 滚动偏移用 TextPainter 按相同文本/字号测量累加得出。
+class _SegmentOverviewStrip extends StatefulWidget {
+  const _SegmentOverviewStrip();
+
+  @override
+  State<_SegmentOverviewStrip> createState() => _SegmentOverviewStripState();
+}
+
+class _SegmentOverviewStripState extends State<_SegmentOverviewStrip> {
+  final ScrollController _scrollController = ScrollController();
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  double _textWidth(String text, TextStyle? style) {
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: style),
+      textDirection: TextDirection.ltr,
+    )..layout();
+    final width = painter.width;
+    painter.dispose();
+    return width;
+  }
+
+  /// chip 宽度 = max(时长文本, 时间范围文本 + footer 水平 padding 8)
+  double _chipWidth(VideoClipSegment segment, TrimmerLayoutMetrics layout) {
+    final style = Theme.of(
+      context,
+    ).textTheme.labelSmall?.copyWith(fontSize: layout.segmentLabelFontSize);
+    final footerText =
+        ' ${formatSegmentDuration(segment.startTime / 1000, precision: 0)} - '
+        '${formatSegmentDuration(segment.endTime / 1000, precision: 0)}';
+    final durationText = formatSegmentDuration(
+      (segment.endTime - segment.startTime) / 1000,
+    );
+    return math.max(
+      _textWidth(footerText, style) + 8,
+      _textWidth(durationText, style),
+    );
+  }
+
+  void _scrollToSelected(ClipSegmentState state) {
+    final selected = state.selectedSegment;
+    if (selected == null || !_scrollController.hasClients) return;
+
+    final segments = state.activeSegments;
+    final index = segments.indexWhere((s) => s.id == selected.id);
+    if (index < 0) return;
+
+    final layout = context.trimmerLayout;
+    // 选中 chip 前缘 = 之前所有 chip 宽度 + 右间距 8 之和
+    var target = 0.0;
+    for (var i = 0; i < index; i++) {
+      target += _chipWidth(segments[i], layout) + 8;
+    }
+    final selectedWidth = _chipWidth(segments[index], layout);
+
+    final position = _scrollController.position;
+    // 居中展示选中项
+    final offset = (target - (position.viewportDimension - selectedWidth) / 2)
+        .clamp(0.0, position.maxScrollExtent);
+
+    if ((position.pixels - offset).abs() < 1) return;
+    _scrollController.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final trimmerTheme = context.trimmerTheme;
+    final layout = context.trimmerLayout;
+    final textTheme = Theme.of(context).textTheme;
+
+    return BlocListener<ClipSegmentBloc, ClipSegmentState>(
+      // 选中片段变化（点 chip / 点时间轴片段）时滚动到选中项；
+      // 按 id 比较避免拖拽等导致的片段值变化误触发
+      listenWhen: (previous, current) =>
+          previous.selectedSegment?.id != current.selectedSegment?.id,
+      listener: (context, state) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) _scrollToSelected(state);
+        });
+      },
+      child: BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
+        // 片段内容或选中态变化时才重建；引用比较恒真，
+        // 会让拖拽外的所有状态更新都重建整条片段条
+        buildWhen: (previous, current) =>
+            !previous.sameActiveSegments(current) ||
+            previous.selectedSegment != current.selectedSegment,
+        builder: (context, state) => ListView.builder(
+          controller: _scrollController,
+          scrollDirection: Axis.horizontal,
+          itemCount: state.activeSegments.length + 1,
+          itemBuilder: (context, index) {
+            final activeSegments = state.activeSegments;
+            if (index == activeSegments.length) {
+              return Container(
+                width: layout.segmentChipMinWidth,
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(color: trimmerTheme.segmentBorder),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: PlatformCapability.isDesktop
+                    ? TpIconButton(
+                        icon: Icons.add,
+                        color: trimmerTheme.onToolbar,
+                        tooltip: commandTooltipLabel(
+                          context,
+                          label: context.hujiL10n.addClipSegmentLabel,
+                          commandId: CommandIds.precisionAddSegment,
+                        ),
+                        onTap: () {
+                          if (context.mounted) {
+                            context.read<ClipSegmentBloc>().add(
+                              ClipSegmentAddAt(
+                                startTimeMs: context
+                                    .read<TrimmerBloc>()
+                                    .state
+                                    .currentMilliseconds,
+                              ),
+                            );
+                          }
+                        },
+                      )
+                    : IconButton(
+                        onPressed: () {
+                          if (context.mounted) {
+                            context.read<ClipSegmentBloc>().add(
+                              ClipSegmentAddAt(
+                                startTimeMs: context
+                                    .read<TrimmerBloc>()
+                                    .state
+                                    .currentMilliseconds,
+                              ),
+                            );
+                          }
+                        },
+                        icon: Icon(Icons.add, color: trimmerTheme.onToolbar),
+                      ),
+              );
+            }
+
+            final segment = activeSegments[index];
+            return GestureDetector(
+              onTap: () {
+                if (context.mounted) {
+                  context.read<ClipSegmentBloc>().add(
+                    ClipSegmentSelect(
+                      segment: segment,
+                      isScrollToSegment: true,
+                    ),
+                  );
+                }
+              },
+              child: BlocBuilder<ClipSegmentBloc, ClipSegmentState>(
+                buildWhen: (previous, current) =>
+                    previous.selectedSegment != current.selectedSegment &&
+                    (current.selectedSegment == segment ||
+                        previous.selectedSegment == segment),
+                builder: (context, state) {
+                  final isSelected = state.selectedSegment == segment;
+                  return Container(
+                    margin: const EdgeInsets.only(right: 8),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: isSelected
+                            ? trimmerTheme.segmentSelectedBorder
+                            : trimmerTheme.segmentBorder,
+                        width: isSelected ? 2 : 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              borderRadius: BorderRadius.vertical(
+                                top: Radius.circular(7),
+                              ),
+                            ),
+                            child: Center(
+                              child: Text(
+                                formatSegmentDuration(
+                                  (segment.endTime - segment.startTime) / 1000,
+                                ),
+                                style: textTheme.labelSmall?.copyWith(
+                                  color: trimmerTheme.onToolbar,
+                                  fontSize: layout.segmentLabelFontSize,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          height: layout.segmentChipFooterHeight,
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? trimmerTheme.segmentChipSelectedBackground
+                                : trimmerTheme.segmentChipBackground,
+                            borderRadius: const BorderRadius.vertical(
+                              bottom: Radius.circular(7),
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              ' ${formatSegmentDuration(segment.startTime / 1000, precision: 0)} - ${formatSegmentDuration(segment.endTime / 1000, precision: 0)}',
+                              style: textTheme.labelSmall?.copyWith(
+                                color: isSelected
+                                    ? trimmerTheme.onActive
+                                    : trimmerTheme.onToolbar,
+                                fontSize: layout.segmentLabelFontSize,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
       ),
     );
   }

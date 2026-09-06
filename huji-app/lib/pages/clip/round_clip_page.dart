@@ -45,6 +45,12 @@ class _RoundClipPageState extends State<RoundClipPage>
   late RoundClipBloc _roundClipBloc;
   bool _blocsInitialized = false;
 
+  // 横向回合条滚动：选中回合（点选或播放推进）时滚到选中项
+  // item 总宽度 = 4 padding + 60 chip + 8 右间距 + 4 padding
+  static const _roundItemExtent = 76.0;
+  final ScrollController _allRoundsScrollController = ScrollController();
+  final ScrollController _favoriteRoundsScrollController = ScrollController();
+
   // 跟踪拖动状态
   SegmentInfo? _draggingSegment;
   int? _dragTargetIndex;
@@ -71,6 +77,8 @@ class _RoundClipPageState extends State<RoundClipPage>
 
   @override
   void dispose() {
+    _allRoundsScrollController.dispose();
+    _favoriteRoundsScrollController.dispose();
     _multiVideoPlayerBloc.close();
     _roundClipBloc.close();
     super.dispose();
@@ -85,6 +93,13 @@ class _RoundClipPageState extends State<RoundClipPage>
       ],
       child: MultiBlocListener(
         listeners: [
+          // 选中回合变化（点选/播放推进）时滚动横向回合条到选中项
+          BlocListener<RoundClipBloc, RoundClipState>(
+            listenWhen: (previous, current) =>
+                previous.currentPlayingSegment != current.currentPlayingSegment,
+            listener: (context, state) =>
+                _scrollRoundStripsToCurrent(state.currentPlayingSegment),
+          ),
           // 监听RoundClipBloc的消息
           BlocListener<RoundClipBloc, RoundClipState>(
             listenWhen: (previous, current) {
@@ -384,6 +399,9 @@ class _RoundClipPageState extends State<RoundClipPage>
         return SizedBox(
           height: 60,
           child: ListView.builder(
+            controller: isFavoriteList
+                ? _favoriteRoundsScrollController
+                : _allRoundsScrollController,
             scrollDirection: Axis.horizontal,
             itemCount: currentSegments.length,
             itemBuilder: (context, index) {
@@ -1000,6 +1018,51 @@ class _RoundClipPageState extends State<RoundClipPage>
   /// 播放指定片段
   void _playSegment(SegmentInfo segment) {
     _roundClipBloc.add(PlaySegmentEvent(segment));
+  }
+
+  /// 选中回合变化时，滚动两条横向回合条让选中项居中进入视野
+  void _scrollRoundStripsToCurrent(SegmentInfo? segment) {
+    if (segment == null) return;
+    // 列表可能因选中变化重建，等一帧让 controller 挂上
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      _scrollStripToSegment(
+        segment,
+        _roundClipBloc.state.playBallSegments,
+        _allRoundsScrollController,
+      );
+      _scrollStripToSegment(
+        segment,
+        _roundClipBloc.state.favoriteSegments,
+        _favoriteRoundsScrollController,
+      );
+    });
+  }
+
+  void _scrollStripToSegment(
+    SegmentInfo segment,
+    List<SegmentInfo> segments,
+    ScrollController controller,
+  ) {
+    if (!controller.hasClients) return;
+    final index = segments.indexWhere((s) => s == segment);
+    if (index < 0) return;
+
+    final position = controller.position;
+    final target = index * _roundItemExtent;
+    // 居中展示选中项
+    final offset =
+        (target - (position.viewportDimension - _roundItemExtent) / 2).clamp(
+          0.0,
+          position.maxScrollExtent,
+        );
+
+    if ((position.pixels - offset).abs() < 1) return;
+    controller.animateTo(
+      offset,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+    );
   }
 
   /// 获取回合在序列中的开始时间（毫秒）
