@@ -70,9 +70,17 @@ class FFmpegManager {
 
   /// 执行FFmpeg命令
   /// [command] FFmpeg命令字符串
-  /// [onProgress] 进度回调 (0.0 - 1.0)
-  static Future<FFmpegResult> executeCommand(
+  static Future<FFmpegResult> executeCommand(String command) async {
+    return executeCommandWithProgress(command);
+  }
+
+  /// 执行FFmpeg命令并回传 0~1 进度。
+  ///
+  /// [totalDurationSec] 媒体总时长（秒），用于把 runner 回传的已处理
+  /// 毫秒换算成 0~1；无法预知时长时用 [executeCommand]。
+  static Future<FFmpegResult> executeCommandWithProgress(
     String command, {
+    double? totalDurationSec,
     Function(double)? onProgress,
   }) async {
     try {
@@ -84,7 +92,14 @@ class FFmpegManager {
 
       final runnerResult = await FFmpegRunner.instance.execute(
         splitFFmpegCommand(command),
-        onProgress: onProgress != null ? (progress) => onProgress(progress) : null,
+        onProgress:
+            onProgress != null && totalDurationSec != null && totalDurationSec > 0
+            ? (timeMs) {
+                onProgress(
+                  ((timeMs / 1000) / totalDurationSec).clamp(0.0, 1.0),
+                );
+              }
+            : null,
       );
 
       if (runnerResult.isSuccess) {

@@ -992,12 +992,14 @@ class _FFmpegTestPageState extends State<FFmpegTestPage> {
 
     try {
       // 使用FFmpeg生成一个简单的测试视频
-      final result = await FFmpegManager.executeCommand(
+      // runner 回传已处理毫秒，测试视频固定 10 秒，换算成 0~1。
+      final result = await FFmpegManager.executeCommandWithProgress(
         '-f lavfi -i testsrc=duration=10:size=1280x720:rate=30 -f lavfi -i sine=frequency=1000:duration=10 -c:v libx264 -c:a aac -shortest -y test_video.mp4',
-        onProgress: (progress) {
-          AppLogger().i('FFmpeg进度更新: $progress'); // 添加调试信息
+        totalDurationSec: 10,
+        onProgress: (fraction) {
+          AppLogger().i('FFmpeg进度更新: $fraction'); // 添加调试信息
           setState(() {
-            _progress = progress;
+            _progress = fraction;
           });
         },
       );

@@ -110,8 +110,11 @@ class VideoCompressUtils {
 
       final result = await FFmpegRunner.instance.execute(
         args,
+        // onProgress 回传已处理毫秒；换算成 0~1（totalMs 已做 >0 保护）。
         onProgress: onProgress != null && originalDuration != null
-            ? (progress) => onProgress(progress)
+            ? (timeMs) => onProgress(
+                (timeMs / (originalDuration * 1000)).clamp(0.0, 1.0),
+              )
             : null,
       );
 

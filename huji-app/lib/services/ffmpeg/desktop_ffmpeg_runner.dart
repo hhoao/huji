@@ -29,7 +29,7 @@ class DesktopFFmpegRunner implements FFmpegRunner {
   @override
   Future<FFmpegResult> execute(
     List<String> arguments, {
-    void Function(double progress)? onProgress,
+    void Function(double progressTimeMs)? onProgress,
   }) async {
     final path = _resolveFFmpegPath();
     final args = ['-hide_banner', '-nostdin', '-y', ...arguments];
@@ -45,7 +45,9 @@ class DesktopFFmpegRunner implements FFmpegRunner {
       process.stderr.transform(utf8.decoder).listen((line) {
         stderrBuf.write(line);
         if (onProgress != null) {
-          onProgress(0.5); // placeholder; callers wanting precise progress can wrap
+          // stderr 逐行到达时无法从中解析已处理时长（进度在 stdout 的
+          // `-progress` 输出，本 runner 未订阅）；占位 0ms，表示"仍在跑"。
+          onProgress(0);
         }
       });
 
