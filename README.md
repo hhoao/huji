@@ -32,11 +32,14 @@
   <a href="https://qm.qq.com/q/U5U0zLyyA2"><img src="https://img.shields.io/badge/QQ%20群-112856301-0099FF?logo=tencentqq&logoColor=white" alt="Huji QQ Group"></a>
   <a href="https://discord.com/channels/1518551459053178960/1518551461242474558"><img src="https://img.shields.io/badge/Discord-加入群组-5865F2?logo=discord&logoColor=white" alt="Huji Discord"></a>
 </div>
+
 ## 概述
 
 <p align="center">
   <img src="assets/cover.png" alt="弧迹"/>
 </p>
+
+
 
 弧迹是一个智能视频剪辑 Android 应用，它用于自动检测乒乓球、羽毛球比赛中的精彩回合，去除捡球等冗余片段，输出精简的比赛集锦。。
 
@@ -44,6 +47,9 @@
 
 - **移动端（Android）**：<https://restcut.com/app/index>
 - **桌面端**：<https://github.com/hhoao/huji/releases>
+
+<p align="center">
+  <img src="./assets/image-20260906235828033.png" alt="弧迹"/>
 
 ## 主要功能
 
@@ -62,6 +68,9 @@
 
 - [x] **乒乓球比赛视频**
 - [x] **羽毛球比赛视频**
+
+<p align="center">
+  <img src="./assets/image-20260906235520446.png" alt="弧迹"/>
 
 ### 剪辑速度
 
@@ -160,7 +169,6 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 <p align="left">
   <img src="assets/qq-group-qrcode.png" alt="QQ 群二维码" width="220"/>
 </p>
-
 ## License
 
 [GNU Affero General Public License v3.0](LICENSE)

@@ -46,6 +46,9 @@ Huji is a smart video-editing Android app. It automatically detects exciting ral
 - **Mobile (Android)**: <https://restcut.com/app/index>
 - **Desktop**: <https://github.com/hhoao/huji/releases>
 
+<p align="center">
+  <img src="./assets/image-20260906235828033.png" alt="弧迹"/>
+
 ## Features
 
 - [x] **Match video clipping**: clip existing videos / clip while recording
@@ -58,6 +61,9 @@ Huji is a smart video-editing Android app. It automatically detects exciting ral
 - [x] **Tasks & history**: local clip tasks tab, video history tab, progress dialog, jump to rally editor
 - [x] **Clip progress**: per-task progress display and overlay
 - [x] **Video record detail**: single-record detail view
+
+<p align="center">
+  <img src="./assets/image-20260906235520446.png" alt="弧迹"/>
 
 ### Supported video types
 
