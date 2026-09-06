@@ -15,3 +15,8 @@
 -keep class com.arthenica.ffmpegkit.** { *; }
 -keep class com.antonkarpenko.ffmpegkit.** { *; }
 
+# onnxruntime: native 层通过 JNI 按签名反射调用 OnnxModelMetadata 等构造器,
+# R8 看不到 native 引用会将其混淆/移除, 导致 release 下 mid == null 直接 abort
+# (debug 不混淆所以不复现)
+-keep class ai.onnxruntime.** { *; }
+
