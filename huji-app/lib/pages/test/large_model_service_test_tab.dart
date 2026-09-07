@@ -7,8 +7,8 @@ import 'package:huji_app/constants/file_extensions.dart';
 
 import '../../models/autoclip_models.dart';
 import '../../services/inference/inference_model_registry.dart';
-import '../../services/inference/onnx_model_asset_resolver.dart';
-import '../../services/inference/onnx_model_predictor.dart';
+import '../../services/inference/ncnn_model_asset_resolver.dart';
+import '../../services/inference/ncnn_model_predictor.dart';
 import '../../services/large_model_service.dart';
 import '../../widgets/file_picker/file_selection_page.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -94,22 +94,23 @@ class _LargeModelServiceTestTabState extends State<LargeModelServiceTestTab> {
         _logs.add('开始初始化模型: $_selectedModelName');
       });
 
-      // 三端统一 ONNX 推理：按模型名解析 sport/matchType，
-      // 把资产落盘后直接构造 ONNX 预测器
+      // 三端统一 ncnn 推理：按模型名解析 sport/matchType，
+      // 把资产落盘后直接构造 ncnn 预测器
       final sportTypeKey = InferenceModelRegistry.sportTypeForModel(
         _selectedModelName!,
       );
       final matchType = InferenceModelRegistry.defaultMatchTypeForModel(
         _selectedModelName!,
       );
-      final spec = await OnnxModelAssetResolver.resolve(
+      final spec = await NcnnModelAssetResolver.resolve(
         sportType: sportTypeKey,
         matchType: matchType,
       );
-      _logs.add('使用模型文件: ${spec.modelFilePath}');
+      _logs.add('使用模型文件: ${spec.paramFilePath}');
 
-      _currentPredictor = OnnxModelPredictor(
-        modelFilePath: spec.modelFilePath,
+      _currentPredictor = NcnnModelPredictor(
+        paramFilePath: spec.paramFilePath,
+        binFilePath: spec.binFilePath,
         fallbackClassNames: spec.classNames,
       );
 

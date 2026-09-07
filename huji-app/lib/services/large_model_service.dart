@@ -3,7 +3,7 @@ import 'dart:typed_data';
 import 'package:logger/logger.dart';
 import 'package:huji_app/models/large_model.dart';
 import 'package:huji_app/services/inference/inference_spec.dart';
-import 'package:huji_app/services/inference/onnx_model_predictor.dart';
+import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
 
 import '../models/autoclip_models.dart';
 
@@ -52,16 +52,16 @@ class LargeModelService {
   static LargeModelService get instance => _instance ??= LargeModelService._();
   factory LargeModelService() => instance;
 
-  /// Active ONNX spec for the current inference scope.
+  /// Active ncnn spec for the current inference scope.
   InferenceSpec? _inferenceSpec;
 
   LargeModelService._();
 
-  /// Run [action] with a resolved ONNX model on disk.
+  /// Run [action] with a resolved ncnn model on disk.
   ///
-  /// 三端统一入口：调用方先通过 [OnnxModelAssetResolver.resolve] 把模型
+  /// 三端统一入口：调用方先通过 [NcnnModelAssetResolver.resolve] 把模型
   /// 落盘，再在此作用域内构造检测器；检测器构造时经 [getPredictor] 取到
-  /// 基于该模型的 ONNX 预测器。
+  /// 基于该模型的 ncnn 预测器。
   Future<T> runWithInferenceSpec<T>({
     required InferenceSpec spec,
     required Future<T> Function() action,
@@ -74,9 +74,9 @@ class LargeModelService {
     }
   }
 
-  /// 三端统一 ONNX 后唯一实现即 [OnnxModelPredictor]（移动端主 isolate、
+  /// 三端统一 ncnn 后唯一实现即 [NcnnModelPredictor]（移动端主 isolate、
   /// 桌面 worker isolate / 批处理 pool 都基于它）。
-  OnnxModelPredictor getPredictor(String modelName) {
+  NcnnModelPredictor getPredictor(String modelName) {
     final spec = _inferenceSpec;
     if (spec == null) {
       throw StateError(
@@ -85,8 +85,9 @@ class LargeModelService {
     }
 
     // Not cached: batch pipeline disposes the predictor after each video.
-    return OnnxModelPredictor(
-      modelFilePath: spec.modelFilePath,
+    return NcnnModelPredictor(
+      paramFilePath: spec.paramFilePath,
+      binFilePath: spec.binFilePath,
       fallbackClassNames: spec.classNames,
     );
   }

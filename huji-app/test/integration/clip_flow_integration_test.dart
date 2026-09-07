@@ -1,27 +1,30 @@
 @Tags(['integration'])
 library;
 
-import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
-import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_ncnn/huji_ncnn.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/clip_flow_test_helper.dart';
 
-Future<bool> _onnxPluginAvailable(String sportType, String matchType) async {
+Future<bool> _ncnnPluginAvailable(String sportType, String matchType) async {
   try {
-    final spec = await OnnxModelAssetResolver.resolve(
+    final spec = await NcnnModelAssetResolver.resolve(
       sportType: sportType,
       matchType: matchType,
     );
-    final ort = OnnxRuntime();
-    final session = await ort.createSession(spec.modelFilePath);
-    await session.close();
+    final net = await NcnnNet.load(
+      paramPath: spec.paramFilePath,
+      binPath: spec.binFilePath,
+    );
+    net.dispose();
     return true;
   } catch (_) {
     return false;
@@ -30,9 +33,12 @@ Future<bool> _onnxPluginAvailable(String sportType, String matchType) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  // The app reads auth tokens via shared_preferences; provide an empty
+  // mock so the channel is present in the test VM.
+  SharedPreferences.setMockInitialValues(<String, Object>{});
 
   group('clip flow integration — demo video to completed task', () {
-    late bool onnxAvailable;
+    late bool ncnnAvailable;
 
     setUpAll(() async {
       await ClipFlowTestHelper.setUp();
@@ -41,7 +47,7 @@ void main() {
     setUp(() async {
       await ClipFlowTestHelper.setUp();
       final demo = demoVideos.first;
-      onnxAvailable = await _onnxPluginAvailable(
+      ncnnAvailable = await _ncnnPluginAvailable(
         demo.sportTypeKey,
         demo.matchType,
       );
@@ -51,8 +57,8 @@ void main() {
       if (!PlatformCapability.isDesktop) {
         return;
       }
-      if (!onnxAvailable) {
-        markTestSkipped('flutter_onnxruntime native plugin not available');
+      if (!ncnnAvailable) {
+        markTestSkipped('huji_ncnn native plugin not available');
         return;
       }
 

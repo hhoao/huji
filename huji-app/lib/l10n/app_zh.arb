@@ -493,7 +493,7 @@
   "localDetectionTaskName": "本地检测：{fileName}",
   "localDetectionTasksSubmitted": "已提交 {count} 个本地检测任务，可离开页面查看任务列表",
   "localModelNotFoundFallback": "未找到本地模型，已回退为云端检测",
-  "localOnnxDetectionHint": "使用本地 ONNX 模型进行离线检测",
+  "localOnnxDetectionHint": "使用本地模型进行离线检测",
   "localTasks": "本地任务",
   "localVideoClip": "本地视频剪辑",
   "localVideoStatusPending": "待检测",

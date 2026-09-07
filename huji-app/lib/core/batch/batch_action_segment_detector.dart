@@ -9,10 +9,10 @@ import 'package:path/path.dart' as path;
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
-import 'package:huji_app/services/inference/onnx_ep_selector.dart';
-import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
-import 'package:huji_app/services/inference/onnx_model_predictor.dart';
-import 'package:huji_app/services/inference/onnx_predictor_pool.dart';
+import 'package:huji_app/services/inference/gpu_device_selector.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
+import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
+import 'package:huji_app/services/inference/ncnn_predictor_pool.dart';
 
 import '../../models/autoclip_models.dart';
 import '../../services/progress_handler.dart';
@@ -122,12 +122,12 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
   Future<List<PredictedFrameInfo>> extractFramesV2({
     required VideoSegmentInfo videoSegmentInfo,
     required int perSecondFrames,
-    required OnnxModelPredictor modelPredictor,
+    required NcnnModelPredictor modelPredictor,
     required Map<String, ActionType> classMappings,
     ProgressHandler? progressHandler,
     int? maxWidth,
   }) async {
-    final size = maxWidth ?? OnnxImagePreprocessor.inputSize;
+    final size = maxWidth ?? ImagePreprocessor.inputSize;
     return predictRgbFrameStream(
       frameStream: VideoUtils.streamIntervalRawRgbFrames(
         videoPath: videoSegmentInfo.videoPath,
@@ -136,7 +136,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         duration: videoSegmentInfo.endTime - videoSegmentInfo.startTime,
         width: size,
         height: size,
-        padValue: OnnxImagePreprocessor.padValue,
+        padValue: ImagePreprocessor.padValue,
       ),
       perSecondFrames: perSecondFrames,
       videoSegmentInfo: videoSegmentInfo,
@@ -153,7 +153,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     required Stream<Uint8List> frameStream,
     required int perSecondFrames,
     required VideoSegmentInfo videoSegmentInfo,
-    required OnnxModelPredictor modelPredictor,
+    required NcnnModelPredictor modelPredictor,
     required Map<String, ActionType> classMappings,
     required int width,
     required int height,
@@ -161,7 +161,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
   }) async {
     final results = <PredictedFrameInfo>[];
     double currentSecond = videoSegmentInfo.startTime;
-    final expectedLen = OnnxImagePreprocessor.rgb24ByteLength(width, height);
+    final expectedLen = ImagePreprocessor.rgb24ByteLength(width, height);
 
     await for (final bytes in frameStream) {
       if (bytes.length < expectedLen) {
@@ -183,15 +183,16 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     return results;
   }
 
-  static int _onnxWorkerCount(int segmentCount, {required bool useAccelerator}) {
-    // Multiple CUDA sessions burn VRAM and rarely help classify latency; keep
-    // one GPU worker and rely on ORT/CUDA throughput. CPU still parallelizes.
+  static int _ncnnWorkerCount(int segmentCount, {required bool useAccelerator}) {
+    // Multiple Vulkan nets burn VRAM and rarely help classify latency; keep
+    // one GPU worker and rely on ncnn/Vulkan throughput. CPU still
+    // parallelizes.
     if (useAccelerator) {
       return 1;
     }
     final cpuWorkers = math.max(1, Platform.numberOfProcessors ~/ 2);
-    // 每个 session 单线程（pool 传 cpuThreadCount=1），worker 数即并行核数；
-    // 封顶避免大核机器开出过多重复 ORT session。
+    // 每个 net 固定线程数由 shim 决定；worker 数即并行核数，封顶避免
+    // 大核机器开出过多重复 ncnn net。
     return math.max(1, math.min(math.min(cpuWorkers, segmentCount), 8));
   }
 
@@ -206,7 +207,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     ProgressHandler? progressHandler,
   }) async {
     final seedPredictor = largeModelService.getPredictor(modelName);
-    OnnxPredictorPool? pool;
+    NcnnPredictorPool? pool;
 
     try {
       final videoInfo = await VideoUtils.getVideoInfo(videoPath);
@@ -227,19 +228,20 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         currentTime += segmentDuration;
       }
 
-      final useAccelerator = await OnnxEpSelector.hasAccelerator();
-      final workerCount = _onnxWorkerCount(
+      final useAccelerator = GpuDeviceSelector.hasAccelerator;
+      final workerCount = _ncnnWorkerCount(
         segments.length,
         useAccelerator: useAccelerator,
       );
-      pool = OnnxPredictorPool.create(
-        modelFilePath: seedPredictor.modelFilePath,
+      pool = NcnnPredictorPool.create(
+        paramFilePath: seedPredictor.paramFilePath,
+        binFilePath: seedPredictor.binFilePath,
         fallbackClassNames: seedPredictor.fallbackClassNames,
         size: workerCount,
       );
       await seedPredictor.dispose();
       _logger.i(
-        'ONNX pool: $workerCount workers for ${segments.length} segments '
+        'ncnn pool: $workerCount workers for ${segments.length} segments '
         '(accelerator=$useAccelerator)',
       );
 

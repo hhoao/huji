@@ -1647,7 +1647,7 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get localModelNotFoundFallback => '未找到本地模型，已回退为云端检测';
 
   @override
-  String get localOnnxDetectionHint => '使用本地 ONNX 模型进行离线检测';
+  String get localOnnxDetectionHint => '使用本地模型进行离线检测';
 
   @override
   String get localTasks => '本地任务';

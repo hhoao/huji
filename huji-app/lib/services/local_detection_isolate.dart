@@ -10,7 +10,7 @@ import 'package:huji_app/services/local_detection_service.dart';
 
 /// Runs batch autoclip off the UI isolate so inference does not freeze the app.
 ///
-/// ONNX assets are resolved on the UI isolate before spawning; the worker only
+/// ncnn assets are resolved on the UI isolate before spawning; the worker only
 /// loads models from on-disk paths and never touches [rootBundle].
 class LocalDetectionIsolateRunner {
   LocalDetectionIsolateRunner._();

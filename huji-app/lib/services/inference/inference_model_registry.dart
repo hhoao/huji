@@ -1,11 +1,11 @@
 import 'package:huji_app/constants/autoclip_constants.dart';
 
-/// Resolves ONNX model assets for desktop inference.
+/// Resolves ncnn model assets for local inference.
 class InferenceModelRegistry {
   InferenceModelRegistry._();
 
-  /// Known class-name order per bundled model (fallback when ONNX metadata is
-  /// unavailable — flutter_onnxruntime on Linux returns empty customMetadataMap).
+  /// Known class-name order per bundled model (fallback when
+  /// metadata.yaml is unavailable).
   static const Map<String, List<String>> _classNamesBySportMatch = {
     'ping_pong/normal': ['fire_ball', 'pick_ball', 'play_ball'],
     'ping_pong/profession': ['fireball', 'pickball', 'playball', 'transition'],
@@ -36,14 +36,15 @@ class InferenceModelRegistry {
     }
   }
 
-  static String onnxAssetFor(
-    String sportType,
-    String matchType, {
-    bool preferFp16 = false,
-  }) {
+  /// Asset keys for the ncnn model files of a sport/match combo.
+  ///
+  /// key = cache file name, value = asset bundle path.
+  static Map<String, String> ncnnAssetKeysFor(String sportType, String matchType) {
     final base = 'assets/models/$sportType/$matchType';
-    if (preferFp16) return '$base/best_fp16.onnx';
-    return '$base/best.onnx';
+    return {
+      'model.ncnn.param': '$base/model.ncnn.param',
+      'model.ncnn.bin': '$base/model.ncnn.bin',
+    };
   }
 
   static List<String> classNamesFor(String sportType, String matchType) {

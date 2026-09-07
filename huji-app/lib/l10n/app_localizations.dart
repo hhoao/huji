@@ -3059,7 +3059,7 @@ abstract class HujiLocalizations {
   /// No description provided for @localOnnxDetectionHint.
   ///
   /// In en, this message translates to:
-  /// **'Uses local ONNX models for offline detection'**
+  /// **'Uses local models for offline detection'**
   String get localOnnxDetectionHint;
 
   /// No description provided for @localTasks.

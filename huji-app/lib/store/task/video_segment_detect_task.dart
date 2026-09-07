@@ -12,11 +12,9 @@ import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/services/memory_stream_service.dart';
-import 'package:huji_app/services/inference/isolate_onnx_predictor.dart';
-import 'package:huji_app/services/inference/onnx_model_predictor.dart';
-import 'package:huji_app/services/platform_capability.dart';
-import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
-import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
@@ -78,7 +76,7 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
     double currentTime = 0;
     // 直接抽 letterbox 到模型输入尺寸的 RGB24 裸帧：缩放/填充由 FFmpeg 完成，
     // 预测侧免掉 Dart PNG 解码（纯 Dart image 包解码每帧要数百毫秒）。
-    final frameSize = OnnxImagePreprocessor.inputSize;
+    final frameSize = ImagePreprocessor.inputSize;
     final thumbnailsStream =
         (await VideoUtils.generateThumbnails(
           videoPath,
@@ -267,8 +265,8 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
 
   // 初始化实时检测器
   Future<void> _initializeRealtimeDetector(VideoSegmentDetectTask task) async {
-    // 三端统一走 ONNX：先把模型资产落盘，再用常驻 worker isolate 跑推理
-    //（读帧 → toTensor → session.run 全在 worker，不阻塞 UI）。
+    // 三端统一走 ncnn：先把模型资产落盘，再构造预测器。FFI 推理在 native
+    // 线程池执行，不阻塞 isolate；无 worker-messenger 需求。
     final sportTypeKey = task.sportType == SportType.badminton
         ? 'badminton'
         : 'ping_pong';
@@ -276,23 +274,15 @@ class VideoSegmentDetectTaskManager extends AbstractTaskManager {
     final matchTypeKey = task.sportType == SportType.badminton
         ? 'singles'
         : 'profession';
-    final inferenceSpec = await OnnxModelAssetResolver.resolve(
+    final inferenceSpec = await NcnnModelAssetResolver.resolve(
       sportType: sportTypeKey,
       matchType: matchTypeKey,
     );
-    // 移动端不套 worker isolate：flutter_onnxruntime 的 Android 实现本身就把
-    // 推理放到后台 TaskQueue（上游 1.7.0+），主 isolate 不会被 session.run
-    // 阻塞；且实测 worker 的回复消息在 Android 上不达（worker 已回复、主
-    // isolate 收不到，流水线死锁在首帧）。桌面保留 worker：读帧 + toTensor
-    // 是重 CPU 操作，需要离开主 isolate。
-    if (PlatformCapability.supportsFFmpegKit) {
-      _inferencePredictor = OnnxModelPredictor(
-        modelFilePath: inferenceSpec.modelFilePath,
-        fallbackClassNames: inferenceSpec.classNames,
-      );
-    } else {
-      _inferencePredictor = await IsolateOnnxPredictor.create(inferenceSpec);
-    }
+    _inferencePredictor = NcnnModelPredictor(
+      paramFilePath: inferenceSpec.paramFilePath,
+      binFilePath: inferenceSpec.binFilePath,
+      fallbackClassNames: inferenceSpec.classNames,
+    );
     final predictor = _inferencePredictor!;
 
     // 根据运动类型创建相应的实时检测器

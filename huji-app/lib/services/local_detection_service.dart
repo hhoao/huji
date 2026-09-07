@@ -6,7 +6,7 @@ import 'package:huji_app/core/batch/batch_action_segment_detector.dart';
 import 'package:huji_app/core/batch/pingpong_batch_action_segment_detector.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/services/inference/inference_spec.dart';
-import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/services/local_detection_isolate.dart';
 import 'package:huji_app/services/platform_capability.dart';
@@ -25,7 +25,7 @@ class LocalDetectionResult {
   });
 }
 
-/// Desktop local detection — reuses the mobile batch autoclip pipeline with ONNX.
+/// Desktop local detection — reuses the mobile batch autoclip pipeline with ncnn.
 class LocalDetectionService {
   static Future<void>? _inferenceQueue;
 
@@ -78,7 +78,7 @@ class LocalDetectionService {
 
     final spec =
         desktopInferenceSpec ??
-        await OnnxModelAssetResolver.resolve(
+        await NcnnModelAssetResolver.resolve(
           sportType: sportTypeKey!,
           matchType: matchType!,
         );
@@ -114,7 +114,7 @@ class LocalDetectionService {
     throw ArgumentError('Unsupported clip config: ${clipConfig.runtimeType}');
   }
 
-  /// Serialize concurrent local detection jobs (one ONNX session at a time).
+  /// Serialize concurrent local detection jobs (one ncnn net at a time).
   static Future<LocalDetectionResult> runInferenceAsync({
     required String videoPath,
     required VideoClipConfigReqVo clipConfig,
@@ -125,12 +125,12 @@ class LocalDetectionService {
     final job = (_inferenceQueue ?? Future.value()).then((_) async {
       // macOS 走 FFmpegKit（worker isolate 里插件的 EventChannel 订阅
       // 会崩），与 Android 一样在主 isolate 跑：ffmpeg 在 native 线程执行，
-      // ONNX 推理经 flutter_onnxruntime 的后台 taskQueue 也不阻塞 UI。
+      // ncnn 推理经 FFI 在 native 线程池执行也不阻塞 UI。
       // Linux/Windows 桌面保留 worker isolate（外部 ffmpeg 子进程 + 推理
       // 读帧是重 CPU，需要离开主 isolate）。
       if (PlatformCapability.isDesktop &&
           !PlatformCapability.supportsFFmpegKit) {
-        final inferenceSpec = await OnnxModelAssetResolver.resolve(
+        final inferenceSpec = await NcnnModelAssetResolver.resolve(
           sportType: sportTypeKey,
           matchType: matchType,
         );

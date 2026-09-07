@@ -1,24 +1,26 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:flutter_onnxruntime/flutter_onnxruntime.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
-import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
+import 'package:huji_ncnn/huji_ncnn.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import '../helpers/autoclip_fixtures.dart';
 import '../helpers/fake_path_provider.dart';
 
-Future<bool> _onnxPluginAvailable(String sportType, String matchType) async {
+Future<bool> _ncnnPluginAvailable(String sportType, String matchType) async {
   try {
-    final spec = await OnnxModelAssetResolver.resolve(
+    final spec = await NcnnModelAssetResolver.resolve(
       sportType: sportType,
       matchType: matchType,
     );
-    final ort = OnnxRuntime();
-    final session = await ort.createSession(spec.modelFilePath);
-    await session.close();
+    final net = await NcnnNet.load(
+      paramPath: spec.paramFilePath,
+      binPath: spec.binFilePath,
+    );
+    net.dispose();
     return true;
   } catch (_) {
     return false;
@@ -65,10 +67,10 @@ void main() {
 
   for (final testCase in _cases) {
     group('LocalDetectionService golden — ${testCase.name}', () {
-      late bool onnxAvailable;
+      late bool ncnnAvailable;
 
       setUp(() async {
-        onnxAvailable = await _onnxPluginAvailable(
+        ncnnAvailable = await _ncnnPluginAvailable(
           testCase.sportTypeKey,
           testCase.matchType,
         );
@@ -90,8 +92,8 @@ void main() {
         if (!PlatformCapability.isDesktop) {
           return;
         }
-        if (!onnxAvailable) {
-          markTestSkipped('flutter_onnxruntime native plugin not available in test VM');
+        if (!ncnnAvailable) {
+          markTestSkipped('huji_ncnn native plugin not available in test VM');
           return;
         }
 
@@ -123,8 +125,8 @@ void main() {
         if (!PlatformCapability.isDesktop) {
           return;
         }
-        if (!onnxAvailable) {
-          markTestSkipped('flutter_onnxruntime native plugin not available in test VM');
+        if (!ncnnAvailable) {
+          markTestSkipped('huji_ncnn native plugin not available in test VM');
           return;
         }
 
@@ -169,8 +171,8 @@ void main() {
         if (!PlatformCapability.isDesktop) {
           return;
         }
-        if (!onnxAvailable) {
-          markTestSkipped('flutter_onnxruntime native plugin not available in test VM');
+        if (!ncnnAvailable) {
+          markTestSkipped('huji_ncnn native plugin not available in test VM');
           return;
         }
 
@@ -206,8 +208,8 @@ void main() {
         if (!PlatformCapability.isDesktop) {
           return;
         }
-        if (!onnxAvailable) {
-          markTestSkipped('flutter_onnxruntime native plugin not available in test VM');
+        if (!ncnnAvailable) {
+          markTestSkipped('huji_ncnn native plugin not available in test VM');
           return;
         }
 

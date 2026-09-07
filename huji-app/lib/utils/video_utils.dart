@@ -8,7 +8,7 @@ import 'package:path/path.dart' as path;
 import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
-import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart' show storage;
 import 'package:watcher/watcher.dart';
@@ -1530,7 +1530,7 @@ class VideoUtils {
     int? quality,
     String format = 'png',
     int? letterboxSize,
-    int padValue = OnnxImagePreprocessor.padValue,
+    int padValue = ImagePreprocessor.padValue,
     Future<void> Function()? completeCallback,
   }) async {
     if (!await File(videoPath).exists()) {

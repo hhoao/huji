@@ -1689,7 +1689,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get localOnnxDetectionHint =>
-      'Uses local ONNX models for offline detection';
+      'Uses local models for offline detection';
 
   @override
   String get localTasks => 'Local tasks';

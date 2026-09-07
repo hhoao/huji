@@ -9,57 +9,44 @@ sudo apt-get install -y libasound2-dev libmpv-dev mpv
 - `libasound2-dev` — required by `volume_controller` → `media_kit`
 - `libmpv-dev mpv` — required by `media_kit` for video playback
 
-## Local Inference
+## Local Inference (ncnn / Vulkan)
 
-Python ONNX inference uses the venv at `huji-algorithm/.venv/` (create via `huji-algorithm/setup.sh`).
-Models live at `huji-algorithm/src/resources/models/`.
+Inference runs on **ncnn** with the **Vulkan** GPU backend — any GPU vendor
+(NVIDIA / AMD / Intel / Apple via MoltenVK), automatic CPU fallback. The
+former ONNX Runtime + CUDA/cuDNN stack was removed entirely (it was ~1.8 GB
+of the AppImage).
 
-The `huji-app/scripts/local_inference.py` script expects:
-- ffmpeg on PATH
-- onnxruntime installed in the venv
-- YOLO ONNX models under `models/<sport>/<match_type>/best.onnx`
+- Runtime plugin: `huji-app/packages/huji_ncnn` (in-repo FFI plugin, thin C
+  shim over `ncnn::Net`; links the official prebuilt ncnn releases).
+- App inference layer: `huji-app/lib/services/inference/` (`NcnnModelPredictor`
+  implements `ModelPredictor`; `GpuDeviceSelector` picks the Vulkan device).
+- Models: `assets/models/<sport>/<match_type>/model.ncnn.{param,bin}`.
+- Conversion + parity scripts: `huji-algorithm/scripts/export_ncnn.py` and
+  `verify_ncnn_parity.py` (ncnn vs onnxruntime — all 4 models bit-identical).
 
-### Desktop GPU (CUDA) ONNX
+Re-export models after retraining:
 
-Linux desktop prefers CUDA when the linked ORT build exposes it, otherwise CPU.
+```bash
+cd huji-algorithm
+.venv/Scripts/python.exe scripts/export_ncnn.py --out src/resources/ncnn_models
+# then copy model.ncnn.{param,bin} into huji-app/assets/models/<sport>/<match_type>/
+```
 
-**AppImage (default):** `build_appimage.sh` bundles the Microsoft **GPU** ORT package
-plus CUDA 12 / cuDNN 9 redistributable libraries from PyPI wheels. Users only need a
-working NVIDIA driver (`libcuda.so`). Machines without NVIDIA fall back to CPU.
+### AppImage / local runs
+
+`build_appimage.sh` needs no GPU setup — `libncnn.so` ships inside the
+Flutter bundle and binds the host's Vulkan driver at runtime. CPU-only
+hosts work unchanged.
 
 ```bash
 cd huji-app
 ./scripts/build_appimage.sh
-# Smaller CPU-oriented image (no CUDA redist / keep plugin ORT):
-#   SKIP_GPU_ORT=1 ./scripts/build_appimage.sh
-#   HUJI_BUNDLE_CUDA_REDIST=0 ./scripts/build_appimage.sh
+flutter run -d linux   # no env vars needed
 ```
 
-**Local `flutter run`:**
-
-```bash
-cd huji-app
-./scripts/setup_onnxruntime_gpu.sh
-./scripts/setup_cuda_redist.sh   # optional but recommended
-source scripts/onnxruntime_gpu_env.sh
-# Also put CUDA redist on the loader path when present:
-export LD_LIBRARY_PATH="$PWD/.cuda-redist/lib:${LD_LIBRARY_PATH:-}"
-flutter clean && flutter run -d linux
-# Or after a release build, inject into the bundle:
-#   ./scripts/bundle_onnx_gpu_into.sh build/linux/x64/release/bundle/lib
-```
-
-AMD / Intel GPUs are not covered by this path (CUDA-only).
-
-## flutter_onnxruntime Fork
-
-`flutter_onnxruntime` resolves to the hhoao fork
-(https://github.com/hhoao/flutter_onnxruntime, pinned via
-`dependency_overrides` in `huji-app/pubspec.yaml`). The Linux implementation
-is patched so `runInference` executes on a background thread — upstream runs
-`Ort::Session::Run` on the platform (GTK main) thread, which froze the whole
-UI during local detection. Never resolve that override away; details and
-upgrade steps in the fork's `README.huji.md`.
+Linux native builds download the official ncnn ubuntu release into the
+build dir (override with `-DNCNN_ROOT_DIR=` for offline CI; same pattern on
+Windows/Android).
 
 
 ## Architecture

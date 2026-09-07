@@ -11,7 +11,7 @@ class PlatformCapability {
   /// Recording / continuous shooting (uses camera + camerawesome).
   static bool get supportsRecording => Platform.isAndroid || Platform.isIOS;
 
-  /// On-device inference (ONNX via flutter_onnxruntime).
+  /// On-device inference (ncnn via huji_ncnn).
   static bool get supportsLocalDetection =>
       Platform.isAndroid || Platform.isIOS || isDesktop;
 

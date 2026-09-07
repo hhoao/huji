@@ -493,7 +493,7 @@
   "localDetectionTaskName": "Local detection: {fileName}",
   "localDetectionTasksSubmitted": "Submitted {count} local detection task(s). You can leave this page and check the task list.",
   "localModelNotFoundFallback": "Local models not found; falling back to cloud detection",
-  "localOnnxDetectionHint": "Uses local ONNX models for offline detection",
+  "localOnnxDetectionHint": "Uses local models for offline detection",
   "localTasks": "Local tasks",
   "localVideoClip": "Local video clip",
   "localVideoStatusPending": "Pending detection",

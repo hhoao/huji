@@ -5,7 +5,7 @@ import 'dart:developer';
 import 'package:logger/logger.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/action_segment_detector.dart';
-import 'package:huji_app/services/inference/onnx_image_preprocessor.dart';
+import 'package:huji_app/services/inference/image_preprocessor.dart';
 import 'package:huji_app/utils/time_utils.dart' as time_utils;
 import 'package:synchronized/synchronized.dart';
 
@@ -137,7 +137,7 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
   Future<void> addRgb24Prediction(
     String rgbPath,
     double timestamp, {
-    int size = OnnxImagePreprocessor.inputSize,
+    int size = ImagePreprocessor.inputSize,
   }) async {
     if (!_isRunning) {
       _logger.w('实时检测器未运行，无法添加预测');
@@ -154,7 +154,7 @@ abstract class RealtimeActionSegmentDetector<C extends VideoClipConfigReqVo>
     _processPendingPredictionQueue();
   }
 
-  int _frameSize = OnnxImagePreprocessor.inputSize;
+  int _frameSize = ImagePreprocessor.inputSize;
 
   /// 诊断计数：已处理帧数与上次心跳日志时间（区分“帧源停了”和“推理太慢”）
   int _processedFrames = 0;

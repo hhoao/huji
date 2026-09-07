@@ -7,8 +7,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:huji_app/constants/autoclip_constants.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/services/inference/inference_model_registry.dart';
-import 'package:huji_app/services/inference/onnx_model_asset_resolver.dart';
-import 'package:huji_app/services/inference/onnx_model_predictor.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/utils/file_utils.dart';
 import 'package:huji_app/utils/image_utils.dart';
@@ -44,10 +44,10 @@ class _RecordClipWidgetTestTabState extends State<RecordClipWidgetTestTab> {
     _addLog('RecordClipWidget 测试页面已初始化');
   }
 
-  /// 三端统一 ONNX 推理：按乒乓默认模型解析资产并构造预测器
+  /// 三端统一 ncnn 推理：按乒乓默认模型解析资产并构造预测器
   Future<void> _initPredictor() async {
     try {
-      final spec = await OnnxModelAssetResolver.resolve(
+      final spec = await NcnnModelAssetResolver.resolve(
         sportType: InferenceModelRegistry.sportTypeForModel(
           AutoclipConstants.pingPongModelName,
         ),
@@ -55,8 +55,9 @@ class _RecordClipWidgetTestTabState extends State<RecordClipWidgetTestTab> {
           AutoclipConstants.pingPongModelName,
         ),
       );
-      _predictor = OnnxModelPredictor(
-        modelFilePath: spec.modelFilePath,
+      _predictor = NcnnModelPredictor(
+        paramFilePath: spec.paramFilePath,
+        binFilePath: spec.binFilePath,
         fallbackClassNames: spec.classNames,
       );
     } catch (e) {
