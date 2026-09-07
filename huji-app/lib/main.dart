@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:media_kit/media_kit.dart' as media_kit;
 import 'package:huji_app/appearance/appearance_cubit.dart';
+import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/appearance/appearance_preferences.dart';
 import 'package:huji_app/appearance/appearance_theme_bundle.dart';
 import 'package:huji_app/init.dart';
@@ -19,6 +21,11 @@ import 'package:huji_app/pages/video/video_list_page.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
+import 'dart:typed_data';
+import 'package:huji_app/services/inference/gpu_device_selector.dart';
+import 'package:huji_app/services/inference/ncnn_inference_engine.dart';
+import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
+import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
 import 'package:huji_app/services/app/boot_splash.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
@@ -37,6 +44,13 @@ void main(List<String> args) async {
   try {
     // 必须先初始化 Flutter 绑定，才能使用平台通道（如 path_provider）
     WidgetsFlutterBinding.ensureInitialized();
+    // Hidden self-test: run the full ncnn inference sequence in the real app
+    // process and exit — used by CI/scripts to validate the native stack
+    // without driving the UI (`huji.exe --ncnn-selftest`).
+    if (args.contains('--ncnn-selftest')) {
+      await _runNcnnSelfTest();
+      exit(0);
+    }
     if (PlatformCapability.isDesktop) {
       media_kit.MediaKit.ensureInitialized();
       GoogleFonts.config.allowRuntimeFetching = false;
@@ -265,4 +279,73 @@ class _MainNavigationState extends State<MainNavigation> {
       ),
     );
   }
+}
+
+/// Hidden ncnn self-test (`huji.exe --ncnn-selftest`): resolves the bundled
+/// model, runs GPU probe + one CPU and one GPU prediction in the real app
+/// process, prints results, and exits 0/1. CI/validation runs this instead
+/// of driving the UI.
+Future<void> _runNcnnSelfTest() async {
+  const sport = 'ping_pong';
+  const match = 'profession';
+  stdout.writeln('[selftest] resolving model assets…');
+  final spec = await NcnnModelAssetResolver.resolve(
+    sportType: sport,
+    matchType: match,
+  );
+  stdout.writeln('[selftest] param=${spec.paramFilePath}');
+
+  // 1. GPU enumeration (the probe that precedes the crash users see).
+  final devices = GpuDeviceSelector.devices;
+  stdout.writeln(
+    '[selftest] vulkan devices: '
+    '${devices.map((d) => '${d.index}:${d.name}').join(', ')}',
+  );
+
+  // 2. Full predictor on CPU.
+  final cpuPredictor = NcnnModelPredictor(
+    paramFilePath: spec.paramFilePath,
+    binFilePath: spec.binFilePath,
+    fallbackClassNames: spec.classNames,
+  );
+  final frame = List<int>.generate(640 * 640 * 3, (i) => (i * 7) & 0xFF);
+  const classMappings = <String, ActionType>{
+    'fireball': ActionType.fireBall,
+    'fire_ball': ActionType.fireBall,
+    'pickball': ActionType.pickBall,
+    'pick_ball': ActionType.pickBall,
+    'playball': ActionType.playBall,
+    'play_ball': ActionType.playBall,
+    'transition': ActionType.transition,
+  };
+  final cpuResult = await cpuPredictor.predictRgb24(
+    Uint8List.fromList(frame),
+    640,
+    640,
+    classMappings,
+  );
+  stdout.writeln('[selftest] CPU predict ok: $cpuResult');
+  await cpuPredictor.dispose();
+
+  // 3. GPU (Vulkan) predictor — the exact path a detection task takes.
+  if (devices.isNotEmpty) {
+    final gpuEngine = NcnnInferenceEngine();
+    await gpuEngine.loadModel(
+      paramPath: spec.paramFilePath,
+      binPath: spec.binFilePath,
+      fallbackClassNames: spec.classNames,
+    );
+    stdout.writeln('[selftest] GPU net loaded, usingGpu=${gpuEngine.usingGpu}');
+    final logits = gpuEngine.predict(
+      Uint8List.fromList(frame),
+      640,
+      640,
+    );
+    stdout.writeln('[selftest] GPU predict ok: ${logits.length} classes');
+    await gpuEngine.dispose();
+  } else {
+    stdout.writeln('[selftest] no Vulkan devices — skipping GPU stage');
+  }
+
+  stdout.writeln('[selftest] ALL OK');
 }

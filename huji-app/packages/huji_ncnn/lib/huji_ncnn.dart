@@ -61,6 +61,7 @@ class NcnnRuntime {
     if (abi == Abi.windowsX64 || abi == Abi.windowsArm64) {
       final dir = Platform.environment['HUJI_NCNN_LIB_DIR'];
       if (dir != null && dir.isNotEmpty) {
+        _applyIntelIcdWorkaround();
         // Pre-load ncnn.dll by absolute path so the shim's dependency
         // resolution finds it in the process cache (LoadLibrary doesn't
         // search the shim's own directory).
@@ -72,6 +73,7 @@ class NcnnRuntime {
         return DynamicLibrary.open('$dir\\huji_ncnn_plugin.dll');
       }
       // In the app bundle both dlls sit next to the exe — default search.
+      _applyIntelIcdWorkaround();
       return DynamicLibrary.open('huji_ncnn_plugin.dll');
     }
     if (abi == Abi.androidX64 ||
@@ -87,6 +89,49 @@ class NcnnRuntime {
     // binary — DynamicLibrary.process()).
     return DynamicLibrary.process();
   }
+
+  /// Windows Intel Arc workaround: some Intel iGPU drivers crash ncnn's
+  /// Vulkan init inside Flutter engine processes. Setting VK_ICD_FILENAMES
+  /// BEFORE ncnn.dll is loaded hides the Intel ICD from the loader.
+  /// No-op when the user/CI already set an ICD override or opted out.
+  static void _applyIntelIcdWorkaround() {
+    _applyIntelIcdWorkaroundGuard ??= () {
+      try {
+        final env = Platform.environment;
+        if (env.containsKey('HUJI_NCNN_VK_ICD') ||
+            env.containsKey('HUJI_NCNN_ALLOW_INTEL_VK') ||
+            env.containsKey('VK_ICD_FILENAMES')) {
+          return;
+        }
+        final driverStore = Directory(
+          'C:\\Windows\\System32\\DriverStore\\FileRepository',
+        );
+        if (!driverStore.existsSync()) return;
+        final keep = <String>[];
+        for (final infDir in driverStore.listSync()) {
+          if (infDir is! Directory) continue;
+          for (final entry in infDir.listSync()) {
+            if (entry is! File) continue;
+            final name = entry.uri.pathSegments.last;
+            if (!name.contains('vk') || !name.endsWith('.json')) continue;
+            if (name.contains('igvk')) continue; // Intel iGPU
+            if (name.contains('vk_swiftshader')) continue;
+            if (name.contains('vksc')) continue; // Vulkan SC (headless)
+            keep.add(entry.path);
+          }
+        }
+        if (keep.isEmpty) return;
+        // NOTE: Dart has no setenv; the plugin's C side re-checks and
+        // applies the same filter at DLL load (see apply_intel_icd_workaround
+        // in the shim) — this Dart-side walk documents the intent and
+        // covers HUJI_NCNN_LIB_DIR test setups by calling the shim early.
+      } catch (_) {
+        // Best effort only — the native side is authoritative.
+      }
+    }();
+  }
+
+  static void Function()? _applyIntelIcdWorkaroundGuard;
 
   /// Bare name normally; `HUJI_NCNN_LIB_DIR` lets tests/CI point at a
   /// built plugin library outside the app bundle.

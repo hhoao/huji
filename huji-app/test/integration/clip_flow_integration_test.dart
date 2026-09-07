@@ -33,9 +33,13 @@ Future<bool> _ncnnPluginAvailable(String sportType, String matchType) async {
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
-  // The app reads auth tokens via shared_preferences; provide an empty
-  // mock so the channel is present in the test VM.
-  SharedPreferences.setMockInitialValues(<String, Object>{});
+  // The app reads auth tokens via shared_preferences and SettingsManager
+  // loads its flags from it; provide a mock with notifications off so the
+  // task-notification path (flutter_local_notifications, no test impl)
+  // never runs.
+  SharedPreferences.setMockInitialValues(<String, Object>{
+    'notifications': false,
+  });
 
   group('clip flow integration — demo video to completed task', () {
     late bool ncnnAvailable;

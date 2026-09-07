@@ -14,6 +14,8 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:path/path.dart' as p;
+import 'package:get/get.dart';
+import 'package:huji_app/settings/settings_manager.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -34,6 +36,12 @@ class ClipFlowTestHelper {
     if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+    }
+
+    // Task notifications resolve SettingsManager via GetX — register it so
+    // task status updates don't throw in the test VM.
+    if (!Get.isRegistered<SettingsManager>()) {
+      Get.put(SettingsManager(), permanent: true);
     }
 
     if (!StorageService.isInitialized) {

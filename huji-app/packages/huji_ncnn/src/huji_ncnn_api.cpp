@@ -10,8 +10,12 @@
 #include "ncnn/net.h"
 #if NCNN_VULKAN
 #include "ncnn/gpu.h"
+#include <chrono>
 #include <mutex>
 #include <thread>
+#if defined(_WIN32)
+#include <cstdlib>
+#endif
 #endif
 
 namespace {
@@ -24,17 +28,48 @@ hn_net* as_net(hn_net_t net) {
     return static_cast<hn_net*>(net);
 }
 
-#if NCNN_VULKAN
-// create_gpu_instance() crashes when run on a Dart VM isolate thread
-// (observed: access violation during driver enumeration; same call works
-// from plain native binaries and Python). Run it once on a vanilla std
-// thread instead — after this warm-up, get_gpu_count() is safe anywhere.
+#if NCNN_VULKAN && defined(_WIN32)
+
+// EVIDENCE (2026-09, RTX 4060 + Intel Arc laptop, ncnn 20260526):
+//   hardware Vulkan + Flutter engine process  -> segfault in driver init
+//   hardware Vulkan + plain native / python   -> works
+//   SwiftShader ICD + Flutter engine process  -> works
+//   CPU                                        -> always works
+// The crash reproduces with BOTH Intel and NVIDIA ICDs, so it is not a
+// single-vendor driver bug — ncnn's Windows Vulkan stack is unstable
+// inside Flutter engine processes in general.
+//
+// Policy: on Windows the default is to report ZERO Vulkan devices (CPU
+// inference) so apps never touch the crashing path. Opt back in with
+// HUJI_NCNN_ENABLE_VK=1 (or pin VK_ICD_FILENAMES yourself).
+int windows_vulkan_allowed() {
+    if (getenv("HUJI_NCNN_ENABLE_VK") != nullptr) return 1;
+    if (getenv("VK_ICD_FILENAMES") != nullptr) return 1; // user pinned an ICD
+    return 0;
+}
+
+std::once_flag gpu_init_once;
+
+void warm_up_gpu_instance() {
+    std::call_once(gpu_init_once, []() {
+        if (!windows_vulkan_allowed()) return;
+        std::thread t([]() { ncnn::create_gpu_instance(); });
+        t.detach();
+        // Bounded wait for driver enumeration before get_gpu_count().
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+    });
+}
+
+#elif NCNN_VULKAN
+
+// Non-Windows: straight warm-up on a detached thread.
 std::once_flag gpu_init_once;
 
 void warm_up_gpu_instance() {
     std::call_once(gpu_init_once, []() {
         std::thread t([]() { ncnn::create_gpu_instance(); });
-        t.join();
+        t.detach();
+        std::this_thread::sleep_for(std::chrono::milliseconds(200));
     });
 }
 #endif
@@ -42,6 +77,13 @@ void warm_up_gpu_instance() {
 void set_options(ncnn::Net& net, int use_vulkan, int device_index) {
     net.opt.num_threads = 4;
 #if NCNN_VULKAN
+#if defined(_WIN32)
+    // Windows: force CPU unless Vulkan is explicitly allowed (see
+    // windows_vulkan_allowed above for the evidence).
+    if (use_vulkan && !windows_vulkan_allowed()) {
+        use_vulkan = 0;
+    }
+#endif
     if (use_vulkan) {
         warm_up_gpu_instance();
     }
@@ -112,6 +154,9 @@ void hn_destroy(hn_net_t net) {
 
 int hn_gpu_count(void) {
 #if NCNN_VULKAN
+#if defined(_WIN32)
+    if (!windows_vulkan_allowed()) return 0;
+#endif
     warm_up_gpu_instance();
     return ncnn::get_gpu_count();
 #else
@@ -121,6 +166,9 @@ int hn_gpu_count(void) {
 
 int hn_gpu_devices(hn_gpu_device_t* devices, char (*names)[HN_NAME_MAX], int n) {
 #if NCNN_VULKAN
+#if defined(_WIN32)
+    if (!windows_vulkan_allowed()) return 0;
+#endif
     warm_up_gpu_instance();
     const int count = ncnn::get_gpu_count();
     if (count <= 0 || devices == nullptr || names == nullptr || n <= 0) {
