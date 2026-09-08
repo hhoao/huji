@@ -50,6 +50,31 @@ class NcnnRuntime {
 
   static NcnnRuntime? _instance;
 
+  static String? _overriddenLibDir;
+
+  /// Test/CI bootstrap: pin the directory holding the plugin library
+  /// (huji_ncnn_plugin.dll / libhuji_ncnn_plugin.so) before any
+  /// [NcnnRuntime] use.
+  ///
+  /// Resolution priority on Windows/Linux: this override >
+  /// HUJI_NCNN_LIB_DIR env > bare name (app bundle rpath).
+  ///
+  /// Repeated calls with the same dir are no-ops. A different dir after
+  /// the native library has been opened throws [StateError] (the process
+  /// already holds the old library). Pinning a different directory before
+  /// first use simply replaces the pin.
+  static void overrideLibraryDirectory(String dir) {
+    final current = _overriddenLibDir;
+    if (current == dir) return;
+    if (_instance != null) {
+      throw StateError(
+        'ncnn native library already opened from "$current"; '
+        'cannot override to "$dir"',
+      );
+    }
+    _overriddenLibDir = dir;
+  }
+
   /// Shared singleton.
   static NcnnRuntime get instance => _instance ??= NcnnRuntime._();
 
@@ -59,7 +84,7 @@ class NcnnRuntime {
   static DynamicLibrary _openLibrary() {
     final abi = Abi.current();
     if (abi == Abi.windowsX64 || abi == Abi.windowsArm64) {
-      final dir = Platform.environment['HUJI_NCNN_LIB_DIR'];
+      final dir = _overriddenLibDir ?? Platform.environment['HUJI_NCNN_LIB_DIR'];
       if (dir != null && dir.isNotEmpty) {
         _applyIntelIcdWorkaround();
         // Pre-load ncnn.dll by absolute path so the shim's dependency
@@ -133,10 +158,9 @@ class NcnnRuntime {
 
   static void Function()? _applyIntelIcdWorkaroundGuard;
 
-  /// Bare name normally; `HUJI_NCNN_LIB_DIR` lets tests/CI point at a
-  /// built plugin library outside the app bundle.
+  /// Override pin > HUJI_NCNN_LIB_DIR env > bare name.
   static String _pluginPath(String name) {
-    final dir = Platform.environment['HUJI_NCNN_LIB_DIR'];
+    final dir = _overriddenLibDir ?? Platform.environment['HUJI_NCNN_LIB_DIR'];
     if (dir == null || dir.isEmpty) return name;
     return '$dir${Platform.pathSeparator}$name';
   }
