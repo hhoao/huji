@@ -281,20 +281,23 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platforms;android-33"
-          # huji_ncnn (externalNativeBuild) needs the NDK that Flutter's
-          # gradle plugin requests (flutter.ndkVersion). AGP's auto-install
-          # races with flaky dl.google.com and failed the configure phase
-          # ("NDK not configured"), so pre-install it explicitly. Derive
-          # the version from the Flutter checkout in use so it can't drift.
+          # huji_ncnn (externalNativeBuild) pins its own NDK — see
+          # packages/huji_ncnn/android/build.gradle — and flutter.ndkVersion
+          # covers the app module. AGP's auto-install races with flaky
+          # dl.google.com and failed the configure phase ("NDK not
+          # configured"), so pre-install both explicitly. The app-side
+          # version is derived from the Flutter checkout in use so it
+          # can't drift.
           FLUTTER_DIR="$(dirname "$(readlink -f "$(which flutter)")")/.."
           NDK_VERSION="$(grep -rhoE 'ndkVersion: String = "[0-9.]+"' \
             "${FLUTTER_DIR}/packages/flutter_tools/gradle/" | head -1 | grep -oE '[0-9.]+')"
           if [ -z "$NDK_VERSION" ]; then
-            echo "Could not derive ndkVersion from Flutter; falling back" >&2
-            NDK_VERSION="27.0.12077973"
+            echo "Could not derive ndkVersion from Flutter; skipping app-side NDK" >&2
+            "$SDKMANAGER" "ndk;27.0.12077973"
+          else
+            echo "Installing NDK 27.0.12077973 (huji_ncnn pin) + ${NDK_VERSION} (flutter.ndkVersion)"
+            "$SDKMANAGER" "ndk;27.0.12077973" "ndk;${NDK_VERSION}"
           fi
-          echo "Installing NDK ${NDK_VERSION}"
-          "$SDKMANAGER" "ndk;${NDK_VERSION}"
 
       - name: Resolve Flutter packages
         run: flutter pub get

@@ -17,6 +17,13 @@ android {
     namespace "com.hhuoao.huji_ncnn"
     compileSdk 34
 
+    // Pin explicitly: library modules don't inherit the app's
+    // flutter.ndkVersion — AGP silently falls back to its own default NDK,
+    // which may not be installed (CI failed configuring this project with
+    // "NDK not configured. Preferred NDK version is '27.0.12077973'").
+    // Keep in sync with the sdkmanager install in release.yml.
+    ndkVersion "27.0.12077973"
+
     defaultConfig {
         minSdk 24
         externalNativeBuild {
