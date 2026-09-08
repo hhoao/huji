@@ -38,10 +38,11 @@ typedef HnDestroyNative = Void Function(Pointer<Void>);
 typedef HnDestroyDart = void Function(Pointer<Void>);
 typedef HnGpuCountNative = Int32 Function();
 typedef HnGpuCountDart = int Function();
+// names is char (*)[hnNameMax] — inline fixed-size rows, not pointers.
 typedef HnGpuDevicesNative = Int32 Function(
-    Pointer<HnGpuDevice>, Pointer<Pointer<Char>>, Int32);
+    Pointer<HnGpuDevice>, Pointer<Uint8>, Int32);
 typedef HnGpuDevicesDart = int Function(
-    Pointer<HnGpuDevice>, Pointer<Pointer<Char>>, int);
+    Pointer<HnGpuDevice>, Pointer<Uint8>, int);
 
 /// Looked-up C entry points of the huji_ncnn shim.
 class HujiNcnnNative {

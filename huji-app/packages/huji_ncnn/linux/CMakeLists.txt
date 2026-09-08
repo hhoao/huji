@@ -104,7 +104,13 @@ endif()
 # Exactly ONE PARENT_SCOPE set — a second set() would clobber this value
 # (PARENT_SCOPE writes never accumulate) and silently drop libs from the
 # bundle (see the Windows variant's note for the same bug).
+# Resolve the real file behind the libncnn.so -> libncnn.so.1 ->
+# libncnn.so.1.0.<ver> symlink chain — install(FILES) on a symlink copies
+# the LINK, leaving a dangling bundle entry (libncnn.so.1 in bundle/lib
+# pointed at a name that was never installed; the plugin's RUNPATH masked
+# it by loading from the build dir instead).
+file(REAL_PATH "${NCNN_ROOT_DIR}/lib/libncnn.so.1" NCNN_REAL_LIB)
 set(huji_ncnn_bundled_libraries
   $<TARGET_FILE:${PLUGIN_NAME}>
-  "${NCNN_ROOT_DIR}/lib/libncnn.so.1"
+  "${NCNN_REAL_LIB}"
   PARENT_SCOPE)

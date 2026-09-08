@@ -14,7 +14,7 @@ import 'package:ffi/ffi.dart';
 
 import 'src/bindings.g.dart' as native;
 
-export 'src/bindings.g.dart' show HnGpuDevice, hnMaxGpu;
+export 'src/bindings.g.dart' show HnGpuDevice, hnMaxGpu, hnNameMax;
 
 /// A Vulkan device reported by [NcnnRuntime.gpuDevices].
 class NcnnGpuDevice {
@@ -263,7 +263,12 @@ class NcnnRuntime {
       final n = count.clamp(0, maxGpu);
       final Pointer<native.HnGpuDevice> devices =
           calloc<native.HnGpuDevice>(maxGpu);
-      final Pointer<Pointer<Char>> names = calloc<Pointer<Char>>(maxGpu);
+      // C ABI: char (*names)[hnNameMax] — inline fixed-size rows, NOT a
+      // pointer array. Allocate a flat buffer of maxGpu rows and index
+      // with row stride; a Pointer<Pointer<Char>> here made the shim
+      // overflow this allocation (writing 128 bytes per device) and made
+      // Dart dereference the first 8 name bytes as a pointer → SIGSEGV.
+      final names = calloc<Uint8>(maxGpu * native.hnNameMax);
       try {
         final written = rt.hnGpuDevices(devices, names.cast(), n);
         final result = <NcnnGpuDevice>[];
@@ -274,16 +279,13 @@ class NcnnRuntime {
             type: d.type,
             score: d.score,
             vendorId: d.vendorId,
-            name: names[i].cast<Utf8>().toDartString(),
+            name: (names + i * native.hnNameMax).cast<Utf8>().toDartString(),
           ));
         }
         _gpuDevices = List.unmodifiable(result);
         return _gpuDevices!;
       } finally {
         calloc.free(devices);
-        for (var i = 0; i < n; i++) {
-          calloc.free(names[i]);
-        }
         calloc.free(names);
       }
     } catch (_) {
