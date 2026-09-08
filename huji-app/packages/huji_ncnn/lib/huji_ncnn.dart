@@ -63,7 +63,10 @@ class NcnnRuntime {
   /// it survives isolate boundaries: Dart statics are isolate-local, and
   /// spawned workers (e.g. the detection isolate) start with the override
   /// unset. [_pluginPath] re-reads the marker on every call, so a pin
-  /// written by the main isolate is picked up by workers.
+  /// written by the main isolate is picked up by workers. The marker is
+  /// test-VM-only — [_readLibDirMarker] refuses to consult it outside
+  /// `flutter test`, so production always resolves via the env var or the
+  /// app bundle's bare name/rpath.
   ///
   /// Repeated calls with the same dir are no-ops. A different dir after
   /// the native library has been opened throws [StateError] (the process
@@ -99,12 +102,20 @@ class NcnnRuntime {
   /// Read fresh on every call — a worker isolate's marker may have been
   /// written by the main isolate after this isolate started.
   ///
+  /// TEST VM ONLY: the marker is consulted exclusively when the process
+  /// runs under `flutter test` (FLUTTER_TEST=true, process-wide env —
+  /// worker isolates see it too). Packaged/production apps never read
+  /// it, so a leftover or maliciously planted temp file cannot redirect
+  /// library resolution. Same convention as GpuDeviceSelector
+  /// (gpu_device_selector.dart).
+  ///
   /// The pinned dir is validated before use: it must still contain the
   /// plugin library. A stale marker (e.g. left behind by a build dir that
   /// `flutter clean` removed) is ignored so the bare-name fallback keeps
   /// working. It is deliberately NOT deleted — another concurrent test VM
   /// may own a valid pin in the same file.
   static String? _readLibDirMarker() {
+    if (Platform.environment['FLUTTER_TEST'] != 'true') return null;
     try {
       final dir = _libDirMarker.readAsStringSync().trim();
       if (dir.isEmpty) return null;
@@ -221,7 +232,9 @@ class NcnnRuntime {
   ///
   /// The marker file is only consulted when the in-isolate override and
   /// env var are both unset — i.e. in worker isolates spawned after the
-  /// main isolate pinned the dir.
+  /// main isolate pinned the dir — and only inside the test VM
+  /// (FLUTTER_TEST=true). Production resolution stops at the env var or
+  /// falls through to the bare name.
   static String? _resolveLibDir() => _overriddenLibDir ??
       Platform.environment['HUJI_NCNN_LIB_DIR'] ??
       _readLibDirMarker();
