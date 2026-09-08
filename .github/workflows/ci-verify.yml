@@ -100,3 +100,15 @@ jobs:
 
       - name: Unit and widget tests
         run: flutter test --exclude-tags integration
+
+      - name: Install ffmpeg (Linux integration tests)
+        if: matrix.platform == 'linux'
+        run: sudo apt-get install -y ffmpeg
+
+      - name: Build linux debug (ncnn plugin for integration tests)
+        if: matrix.platform == 'linux'
+        run: flutter build linux --debug
+
+      - name: Integration tests (CPU fallback — no GPU on runners)
+        if: matrix.platform == 'linux'
+        run: flutter test --tags integration
