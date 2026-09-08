@@ -14,9 +14,6 @@ const _pluginFileNames = <String>[
 
 bool _bootstrapped = false;
 
-/// True after [bootstrapNcnnLibrary] succeeded.
-bool get ncnnLibraryBootstrapped => _bootstrapped;
-
 /// Locates the built huji_ncnn plugin under
 /// build/linux/x64/{debug,release}/plugins/huji_ncnn/ and pins the
 /// directory via NcnnRuntime.overrideLibraryDirectory.
@@ -39,8 +36,7 @@ Future<void> bootstrapNcnnLibrary() async {
   ];
 
   for (final dir in candidates) {
-    final plugin = _findPluginIn(dir);
-    if (plugin != null) {
+    if (_pluginExistsIn(dir)) {
       NcnnRuntime.overrideLibraryDirectory(dir);
       _bootstrapped = true;
       return;
@@ -55,10 +51,7 @@ Future<void> bootstrapNcnnLibrary() async {
   );
 }
 
-String? _findPluginIn(String dir) {
-  for (final name in _pluginFileNames) {
-    final file = File(p.join(dir, name));
-    if (file.existsSync()) return file.path;
-  }
-  return null;
+bool _pluginExistsIn(String dir) {
+  return _pluginFileNames.any((name) =>
+      File(p.join(dir, name)).existsSync());
 }

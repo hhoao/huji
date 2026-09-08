@@ -15,9 +15,6 @@ class NcnnPredictorPool {
 
   NcnnPredictorPool._(this._all) : _idle = List<NcnnModelPredictor>.from(_all);
 
-  /// True when every predictor's model is loaded and ready.
-  bool get allLoaded => _all.every((p) => p.isLoaded);
-
   /// Create [size] predictors that all load the same on-disk model.
   ///
   /// All models load CONCURRENTLY; the returned future completes only

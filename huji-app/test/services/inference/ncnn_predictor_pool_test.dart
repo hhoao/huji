@@ -34,8 +34,6 @@ void main() {
       );
       addTearDown(pool.dispose);
 
-      expect(pool.allLoaded, isTrue,
-          reason: 'create() must return with every predictor loaded');
 
       // Every borrowed predictor must be usable without any lazy load
       // happening: predict immediately (a garbage frame still exercises

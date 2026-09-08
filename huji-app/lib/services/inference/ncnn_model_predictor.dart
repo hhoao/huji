@@ -25,10 +25,7 @@ class NcnnModelPredictor implements ModelPredictor {
     required this.fallbackClassNames,
   });
 
-  /// True after the model finished loading (eager or lazy).
-  bool get isLoaded => _engine != null;
-
-  /// Eagerly load the model (pool warm-up). Safe to call repeatedly.
+  /// Eagerly load the model (pool warm-up).
   Future<void> warmUp() async {
     await _ensureLoaded();
   }
