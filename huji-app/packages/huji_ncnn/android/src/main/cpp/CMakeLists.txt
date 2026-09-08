@@ -38,6 +38,30 @@ target_include_directories(huji_ncnn_plugin PRIVATE
   ${NCNN_INC_DIR})
 
 # ncnn static core + its static deps (glslang stack) + OpenMP.
+#
+# libncnn.a references omp_* symbols (OpenMP runtime). Linking -fopenmp
+# pulls libomp.so, which AGP does NOT package into the APK — dlopen then
+# fails with `library "libomp.so" not found` (the mobile clip crash).
+# The static libomp.a from the NDK's clang resource dir is bundled into
+# the plugin instead; same approach as ncnn's own Android samples.
+if(ANDROID_ABI STREQUAL "arm64-v8a")
+  set(CLANG_ABI_DIR aarch64)
+elseif(ANDROID_ABI STREQUAL "armeabi-v7a")
+  set(CLANG_ABI_DIR arm)
+elseif(ANDROID_ABI STREQUAL "x86_64")
+  set(CLANG_ABI_DIR x86_64)
+elseif(ANDROID_ABI STREQUAL "x86")
+  set(CLANG_ABI_DIR i386)
+else()
+  message(FATAL_ERROR "unsupported ANDROID_ABI for static libomp: ${ANDROID_ABI}")
+endif()
+file(GLOB _clang_ver_dir LIST_DIRECTORIES true
+     "${ANDROID_NDK}/toolchains/llvm/prebuilt/*/lib/clang/*/lib")
+set(OMP_STATIC_LIB "${_clang_ver_dir}/linux/${CLANG_ABI_DIR}/libomp.a")
+if(NOT EXISTS "${OMP_STATIC_LIB}")
+  message(FATAL_ERROR "static libomp not found: ${OMP_STATIC_LIB}")
+endif()
+
 target_link_libraries(huji_ncnn_plugin PRIVATE
   ${NCNN_LIB_DIR}/libncnn.a
   ${NCNN_LIB_DIR}/libglslang.a
@@ -46,7 +70,7 @@ target_link_libraries(huji_ncnn_plugin PRIVATE
   ${NCNN_LIB_DIR}/libGenericCodeGen.a
   ${NCNN_LIB_DIR}/libOSDependent.a
   ${NCNN_LIB_DIR}/libSPIRV.a
-  -fopenmp
+  ${OMP_STATIC_LIB}
   android
   jnigraphics
   log)
