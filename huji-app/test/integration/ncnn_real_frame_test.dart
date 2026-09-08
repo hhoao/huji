@@ -8,11 +8,17 @@ import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
 import 'package:huji_app/models/autoclip_models.dart';
 
+import '../helpers/ncnn_test_bootstrap.dart';
+
 /// Classify real ffmpeg-extracted frames from the golden test video inside
 /// the flutter test VM — mirrors the exact production predict path
 /// (NcnnModelPredictor.predictRgb24).
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  setUpAll(() async {
+    await bootstrapNcnnLibrary();
+  });
 
   test('real frames from test.mp4 classify correctly', () async {
     final spec = await NcnnModelAssetResolver.resolve(

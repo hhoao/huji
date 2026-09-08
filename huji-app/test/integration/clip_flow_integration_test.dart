@@ -13,6 +13,7 @@ import 'package:huji_ncnn/huji_ncnn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/clip_flow_test_helper.dart';
+import '../helpers/ncnn_test_bootstrap.dart';
 
 Future<bool> _ncnnPluginAvailable(String sportType, String matchType) async {
   try {
@@ -50,6 +51,7 @@ void main() {
 
     setUp(() async {
       await ClipFlowTestHelper.setUp();
+      await bootstrapNcnnLibrary();
       final demo = demoVideos.first;
       ncnnAvailable = await _ncnnPluginAvailable(
         demo.sportTypeKey,

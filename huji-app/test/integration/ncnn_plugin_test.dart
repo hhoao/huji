@@ -9,6 +9,8 @@ import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_ncnn/huji_ncnn.dart';
 
+import '../helpers/ncnn_test_bootstrap.dart';
+
 /// Loads the huji_ncnn FFI plugin inside a test VM, runs a real model, and
 /// checks outputs against parity-verified reference logits (ncnn vs
 /// onnxruntime bit-identical on this input, see
@@ -44,6 +46,7 @@ void main() {
     late InferenceSpec spec;
 
     setUpAll(() async {
+      await bootstrapNcnnLibrary();
       spec = await NcnnModelAssetResolver.resolve(
         sportType: 'ping_pong',
         matchType: 'profession',
