@@ -35,7 +35,7 @@ Pod::Spec.new do |s|
 
   s.pod_target_xcconfig = { "DEFINES_MODULE" => "YES" }
   s.compiler_flags = "-std=c++17 -fexceptions -frtti"
-  s.source_files = "src/*.{h,cpp}"
+  s.source_files = "src/huji_ncnn_api.{h,cpp}"
   s.public_header_files = "src/huji_ncnn_api.h"
   s.requires_arc = false
 end

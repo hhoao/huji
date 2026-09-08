@@ -3,6 +3,14 @@
 # the plugin to fail to compile for some customers of the plugin.
 cmake_minimum_required(VERSION 3.10)
 
+# ncnn.dll is a prebuilt RELEASE-CRT binary (/MD); our targets must match
+# its heap or allocations cross CRT boundaries (the Debug helper crashed
+# on GPU init exactly this way). CMP0091 NEW makes the MSVC_RUNTIME_LIBRARY
+# property below actually override the per-config /MDd default.
+if(POLICY CMP0091)
+  cmake_policy(SET CMP0091 NEW)
+endif()
+
 set(PROJECT_NAME "huji_ncnn")
 project(${PROJECT_NAME} LANGUAGES CXX)
 
@@ -40,6 +48,24 @@ endif()
 set(NCNN_IMPLIB "${NCNN_ROOT_DIR}/lib/ncnn.lib")
 set(NCNN_DLL "${NCNN_ROOT_DIR}/bin/ncnn.dll")
 
+# Force the release CRT (/MD) in every configuration — see the CMP0091 note
+# at the top of this file. The flag rewrite below is what actually takes
+# effect when the policy route is bypassed (cmake_minimum_required(3.10)
+# keeps CMP0091 OLD for this directory).
+if(MSVC)
+  foreach(flag_var
+      CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
+      CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
+    if(${flag_var} MATCHES "/MDd")
+      string(REGEX REPLACE "/MDd" "/MD" ${flag_var} "${${flag_var}}")
+    endif()
+    if(${flag_var} MATCHES "/RTC1")
+      # /RTC1 requires the debug CRT — remove alongside /MDd.
+      string(REGEX REPLACE "/RTC1" "" ${flag_var} "${${flag_var}}")
+    endif()
+  endforeach()
+endif()
+
 list(APPEND PLUGIN_SOURCES "../src/huji_ncnn_api.cpp")
 
 add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
@@ -67,11 +93,6 @@ add_custom_command(
           "${NCNN_DLL}" $<TARGET_FILE_DIR:${PLUGIN_NAME}>
   COMMENT "Copying ncnn.dll")
 
-set(huji_ncnn_bundled_libraries
-  $<TARGET_FILE:${PLUGIN_NAME}>
-  "${NCNN_DLL}"
-  PARENT_SCOPE)
-
 # === Standalone inference helper (huji_ncnn_helper.exe) ===
 # Windows: ncnn Vulkan init crashes inside Flutter engine processes, so GPU
 # inference runs in this child process instead (see huji_ncnn_helper_main.cpp).
@@ -91,7 +112,12 @@ target_include_directories(huji_ncnn_helper PRIVATE
   "${NCNN_ROOT_DIR}/include")
 target_link_libraries(huji_ncnn_helper PRIVATE "${NCNN_IMPLIB}")
 
+# NOTE: exactly ONE PARENT_SCOPE set — a second set() here would clobber the
+# parent's value (PARENT_SCOPE writes never accumulate; the local variable
+# stays empty), which silently dropped the plugin dll and ncnn.dll from the
+# bundle and made fresh builds crash with "module not found".
 set(huji_ncnn_bundled_libraries
-  ${huji_ncnn_bundled_libraries}
+  $<TARGET_FILE:${PLUGIN_NAME}>
+  "${NCNN_DLL}"
   $<TARGET_FILE:huji_ncnn_helper>
   PARENT_SCOPE)

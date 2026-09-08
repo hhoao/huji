@@ -42,9 +42,7 @@ Pod::Spec.new do |s|
     "EXCLUDED_ARCHS[sdk=iphonesimulator*]" => "",
   }
 
-  s.user_target_xcconfig = { "OTHER_LDFLAGS" => "-force_load $(PODS_ROOT)/huji_ncnn/#{ncnn_dir}/ncnn.xcframework/macos-arm64_x86_64/ncnn.framework/ncnn" }
-
-  s.source_files = "src/*.{h,cpp}"
+  s.source_files = "src/huji_ncnn_api.{h,cpp}"
   s.public_header_files = "src/huji_ncnn_api.h"
   s.compiler_flags = "-std=c++17 -fexceptions -frtti"
   s.requires_arc = false

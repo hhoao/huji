@@ -35,6 +35,7 @@ jobs:
             libjson-glib-dev \
             file fuse libfuse2 \
             libasound2-dev libmpv-dev mpv \
+            libvulkan-dev \
             dpkg fakeroot
 
       - name: Install appimagetool
@@ -99,6 +100,7 @@ jobs:
             libjsoncpp-dev libjson-glib-dev \
             file fuse libfuse2 \
             libasound2-dev libmpv-dev mpv \
+            libvulkan-dev \
             git wget curl xz-utils ca-certificates
 
       - name: Install appimagetool

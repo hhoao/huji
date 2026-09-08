@@ -1,15 +1,8 @@
 group = "com.hhuoao.huji_ncnn"
 version = "1.0"
 
-buildscript {
-    repositories {
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:8.3.0"
-    }
-}
+// No buildscript block: Flutter plugins inherit the app's Android Gradle
+// Plugin — declaring our own classpath here conflicts with the host project.
 
 rootProject.allprojects {
     repositories {
@@ -28,15 +21,14 @@ android {
         minSdk 24
         externalNativeBuild {
             cmake {
-                cppFlags "-std=c++17 -fexceptions -frtti -fopenmp"
+                cppFlags "-std=c++17 -fexceptions -frtti"
                 arguments "-DANDROID_STL=c++_shared"
             }
         }
-        ndk {
-            // ncnn android-vulkan prebuilts cover these ABIs.
-            abiFilters "armeabi-v7a", "arm64-v8a", "x86_64"
-        }
     }
+
+    // ABI filters come from the app's build (--target-platform). The ncnn
+    // android-vulkan prebuilts cover armeabi-v7a / arm64-v8a / x86 / x86_64.
 
     externalNativeBuild {
         cmake {
