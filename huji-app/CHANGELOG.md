@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [2.8.0] - (2026.9.9)
+
+### 新增
+
+- 推理引擎整体迁移到 ncnn + Vulkan，支持 NVIDIA / AMD / Intel / Apple (MoltenVK) 全显卡厂商，无 GPU 时自动回退 CPU
+- Windows GPU 推理通过独立辅助进程运行，规避 Flutter 进程内 Vulkan 崩溃
+- 模型池并发预加载，多模型任务切换更流畅
+
+### 优化
+
+- 移除 ONNX Runtime + CUDA 运行时，AppImage 体积减小约 1.8 GB
+- Linux CI 新增 ncnn 集成测试（检测 → 剪辑 → 导出 → 入库端到端，CPU 回退路径）
+
+### 修复
+
+- 修复 Android 剪辑失败：APK 缺少 libomp.so
+- 修复 GPU 设备枚举时 FFI ABI 不匹配导致的启动崩溃
+- 修复 Windows 开始检测时进程内 Vulkan 初始化崩溃
+- 修复 debug 构建 GPU 推理崩溃
+- 修复移动端导出进度跳到巨大数值（毫秒被误当作 0..1 比例）
+
 ## [2.7.0] - (2026.9.7)
 
 ### 新增
