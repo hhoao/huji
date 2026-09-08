@@ -233,7 +233,7 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         segments.length,
         useAccelerator: useAccelerator,
       );
-      pool = NcnnPredictorPool.create(
+      pool = await NcnnPredictorPool.create(
         paramFilePath: seedPredictor.paramFilePath,
         binFilePath: seedPredictor.binFilePath,
         fallbackClassNames: seedPredictor.fallbackClassNames,

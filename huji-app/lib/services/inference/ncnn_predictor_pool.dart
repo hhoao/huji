@@ -15,13 +15,19 @@ class NcnnPredictorPool {
 
   NcnnPredictorPool._(this._all) : _idle = List<NcnnModelPredictor>.from(_all);
 
+  /// True when every predictor's model is loaded and ready.
+  bool get allLoaded => _all.every((p) => p.isLoaded);
+
   /// Create [size] predictors that all load the same on-disk model.
-  factory NcnnPredictorPool.create({
+  ///
+  /// All models load CONCURRENTLY; the returned future completes only
+  /// after every predictor is ready — borrowers never hit a lazy load.
+  static Future<NcnnPredictorPool> create({
     required String paramFilePath,
     required String binFilePath,
     required List<String> fallbackClassNames,
     required int size,
-  }) {
+  }) async {
     if (size < 1) {
       throw ArgumentError.value(size, 'size', 'must be >= 1');
     }
@@ -33,6 +39,8 @@ class NcnnPredictorPool {
         fallbackClassNames: fallbackClassNames,
       ),
     );
+    // Parallel load — each predictor owns its own engine/net.
+    await Future.wait(predictors.map((p) => p.warmUp()));
     return NcnnPredictorPool._(predictors);
   }
 
