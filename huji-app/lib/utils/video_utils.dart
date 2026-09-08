@@ -73,6 +73,23 @@ typedef VideoProgressCallback =
 /// 参数: 当前生成数量，总数量
 typedef ThumbnailProgressCallback = void Function(int current, int total);
 
+/// 把 [FFmpegRunner.execute] 的进度回调（已处理媒体时长，毫秒）适配为
+/// [VideoProgressCallback] 契约（0~1 进度、当前秒、总秒）。
+/// runner 回传的不是 0~1 小数，直接透传会把进度放大上千倍。
+void Function(double) _msToProgressCallback(
+  VideoProgressCallback onProgress,
+  double totalDurationSec,
+) {
+  return (ms) {
+    final seconds = ms / 1000;
+    onProgress(
+      totalDurationSec > 0 ? (seconds / totalDurationSec).clamp(0.0, 1.0) : 0,
+      seconds,
+      totalDurationSec,
+    );
+  };
+}
+
 // ==================== 视频工具类 ====================
 
 /// 视频工具类
@@ -284,11 +301,11 @@ class VideoUtils {
         }
       }
 
-      // 执行FFmpeg命令
+      // 执行FFmpeg命令（runner 回传已处理毫秒，见 _msToProgressCallback）
       final result = await FFmpegRunner.instance.execute(
         args,
         onProgress: onProgress != null && totalDuration > 0
-            ? (p) => onProgress(p, p * totalDuration, totalDuration)
+            ? _msToProgressCallback(onProgress, totalDuration)
             : null,
       );
 
@@ -801,7 +818,7 @@ class VideoUtils {
     final result = await FFmpegRunner.instance.execute(
       args,
       onProgress: onProgress != null
-          ? (p) => onProgress(p, p * duration, duration)
+          ? _msToProgressCallback(onProgress, duration)
           : null,
     );
 
@@ -887,7 +904,7 @@ class VideoUtils {
       baseCodec: codec,
       accCodec: accCodec,
       onProgress: onProgress != null
-          ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
+          ? _msToProgressCallback(onProgress, videoInfo.duration)
           : null,
     );
 
@@ -943,7 +960,7 @@ class VideoUtils {
       baseCodec: videoInfo.codecName,
       accCodec: accCodec,
       onProgress: onProgress != null
-          ? (p) => onProgress(p, p * videoInfo.duration, videoInfo.duration)
+          ? _msToProgressCallback(onProgress, videoInfo.duration)
           : null,
     );
 
