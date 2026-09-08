@@ -57,7 +57,13 @@ class NcnnRuntime {
   /// [NcnnRuntime] use.
   ///
   /// Resolution priority on Windows/Linux: this override >
-  /// HUJI_NCNN_LIB_DIR env > bare name (app bundle rpath).
+  /// HUJI_NCNN_LIB_DIR env > marker file > bare name (app bundle rpath).
+  ///
+  /// The pin is also persisted to a marker file in the system temp dir so
+  /// it survives isolate boundaries: Dart statics are isolate-local, and
+  /// spawned workers (e.g. the detection isolate) start with the override
+  /// unset. [_pluginPath] re-reads the marker on every call, so a pin
+  /// written by the main isolate is picked up by workers.
   ///
   /// Repeated calls with the same dir are no-ops. A different dir after
   /// the native library has been opened throws [StateError] (the process
@@ -73,6 +79,33 @@ class NcnnRuntime {
       );
     }
     _overriddenLibDir = dir;
+    _writeLibDirMarker(dir);
+  }
+
+  /// Marker file under the system temp dir that carries the pinned lib
+  /// dir across isolate boundaries (statics are isolate-local).
+  static File get _libDirMarker =>
+      File('${Directory.systemTemp.path}${Platform.pathSeparator}'
+          'huji_ncnn_lib_dir.txt');
+
+  static void _writeLibDirMarker(String dir) {
+    try {
+      _libDirMarker.writeAsStringSync(dir);
+    } catch (_) {
+      // Marker is best-effort: env var and in-isolate override still work.
+    }
+  }
+
+  /// Read fresh on every call — a worker isolate's marker may have been
+  /// written by the main isolate after this isolate started.
+  static String? _readLibDirMarker() {
+    try {
+      final dir = _libDirMarker.readAsStringSync().trim();
+      if (dir.isEmpty) return null;
+      return dir;
+    } catch (_) {
+      return null;
+    }
   }
 
   /// Shared singleton.
@@ -84,7 +117,7 @@ class NcnnRuntime {
   static DynamicLibrary _openLibrary() {
     final abi = Abi.current();
     if (abi == Abi.windowsX64 || abi == Abi.windowsArm64) {
-      final dir = _overriddenLibDir ?? Platform.environment['HUJI_NCNN_LIB_DIR'];
+      final dir = _resolveLibDir();
       if (dir != null && dir.isNotEmpty) {
         _applyIntelIcdWorkaround();
         // Pre-load ncnn.dll by absolute path so the shim's dependency
@@ -158,9 +191,17 @@ class NcnnRuntime {
 
   static void Function()? _applyIntelIcdWorkaroundGuard;
 
-  /// Override pin > HUJI_NCNN_LIB_DIR env > bare name.
+  /// Override pin > HUJI_NCNN_LIB_DIR env > marker file > bare name.
+  ///
+  /// The marker file (see [overrideLibraryDirectory]) is only consulted
+  /// when the in-isolate override and env var are both unset — i.e. in
+  /// worker isolates spawned after the main isolate pinned the dir.
+  static String? _resolveLibDir() => _overriddenLibDir ??
+      Platform.environment['HUJI_NCNN_LIB_DIR'] ??
+      _readLibDirMarker();
+
   static String _pluginPath(String name) {
-    final dir = _overriddenLibDir ?? Platform.environment['HUJI_NCNN_LIB_DIR'];
+    final dir = _resolveLibDir();
     if (dir == null || dir.isEmpty) return name;
     return '$dir${Platform.pathSeparator}$name';
   }
