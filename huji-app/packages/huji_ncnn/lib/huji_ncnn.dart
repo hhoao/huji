@@ -98,14 +98,39 @@ class NcnnRuntime {
 
   /// Read fresh on every call — a worker isolate's marker may have been
   /// written by the main isolate after this isolate started.
+  ///
+  /// The pinned dir is validated before use: it must still contain the
+  /// plugin library. A stale marker (e.g. left behind by a build dir that
+  /// `flutter clean` removed) is ignored so the bare-name fallback keeps
+  /// working. It is deliberately NOT deleted — another concurrent test VM
+  /// may own a valid pin in the same file.
   static String? _readLibDirMarker() {
     try {
       final dir = _libDirMarker.readAsStringSync().trim();
       if (dir.isEmpty) return null;
+      final pluginFile = _pluginLibraryName;
+      if (pluginFile == null) return null;
+      if (!File('$dir${Platform.pathSeparator}$pluginFile').existsSync()) {
+        return null;
+      }
       return dir;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Plugin library file name for the current ABI, or null where the
+  /// library is not resolved from a directory (Android: bundled in the
+  /// APK with a bare name; iOS/macOS: statically linked into the app).
+  static String? get _pluginLibraryName {
+    final abi = Abi.current();
+    if (abi == Abi.windowsX64 || abi == Abi.windowsArm64) {
+      return 'huji_ncnn_plugin.dll';
+    }
+    if (abi == Abi.linuxX64 || abi == Abi.linuxArm64) {
+      return 'libhuji_ncnn_plugin.so';
+    }
+    return null;
   }
 
   /// Shared singleton.
@@ -191,11 +216,12 @@ class NcnnRuntime {
 
   static void Function()? _applyIntelIcdWorkaroundGuard;
 
-  /// Override pin > HUJI_NCNN_LIB_DIR env > marker file > bare name.
+  /// Override pin > HUJI_NCNN_LIB_DIR env > marker file (validated —
+  /// see [_readLibDirMarker]) > bare name.
   ///
-  /// The marker file (see [overrideLibraryDirectory]) is only consulted
-  /// when the in-isolate override and env var are both unset — i.e. in
-  /// worker isolates spawned after the main isolate pinned the dir.
+  /// The marker file is only consulted when the in-isolate override and
+  /// env var are both unset — i.e. in worker isolates spawned after the
+  /// main isolate pinned the dir.
   static String? _resolveLibDir() => _overriddenLibDir ??
       Platform.environment['HUJI_NCNN_LIB_DIR'] ??
       _readLibDirMarker();
