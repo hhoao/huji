@@ -31,13 +31,15 @@ hn_net* as_net(hn_net_t net) {
 #if NCNN_VULKAN && defined(_WIN32)
 
 // EVIDENCE (2026-09, RTX 4060 + Intel Arc laptop, ncnn 20260526):
-//   hardware Vulkan + Flutter engine process  -> segfault in driver init
+//   hardware Vulkan + Flutter engine process  -> crash AFTER full device
+//     enumeration (all device dumps print, incl. NVIDIA), inside the tail
+//     of create_gpu_instance / early device use
 //   hardware Vulkan + plain native / python   -> works
 //   SwiftShader ICD + Flutter engine process  -> works
 //   CPU                                        -> always works
-// The crash reproduces with BOTH Intel and NVIDIA ICDs, so it is not a
-// single-vendor driver bug — ncnn's Windows Vulkan stack is unstable
-// inside Flutter engine processes in general.
+// Reproduces in a stripped app dir (no bundled vulkan-1.dll / avcodec),
+// so it is NOT a DLL-name collision — it is ncnn-vs-Flutter-engine-process
+// specific.
 //
 // Policy: on Windows the default is to report ZERO Vulkan devices (CPU
 // inference) so apps never touch the crashing path. Opt back in with
@@ -53,10 +55,9 @@ std::once_flag gpu_init_once;
 void warm_up_gpu_instance() {
     std::call_once(gpu_init_once, []() {
         if (!windows_vulkan_allowed()) return;
-        std::thread t([]() { ncnn::create_gpu_instance(); });
-        t.detach();
-        // Bounded wait for driver enumeration before get_gpu_count().
-        std::this_thread::sleep_for(std::chrono::milliseconds(200));
+        // Synchronous init: a detached thread races with the caller's
+        // get_gpu_count and can tear down mid-read (observed crash).
+        ncnn::create_gpu_instance();
     });
 }
 

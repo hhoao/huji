@@ -1,14 +1,26 @@
+import 'dart:async';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:huji_ncnn/huji_ncnn.dart';
 import 'package:huji_app/services/inference/gpu_device_selector.dart';
+import 'package:huji_app/services/inference/ncnn_helper_process.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
 /// ncnn network wrapper for YOLO classification models.
+///
+/// Backend selection:
+/// - Windows: the standalone `huji_ncnn_helper` child process. ncnn's
+///   Vulkan device init crashes inside Flutter engine processes
+///   (dump-verified: nvoglv64 access violation), but runs flawlessly in a
+///   plain process — so GPU inference goes through the helper over
+///   stdin/stdout. This gives Windows full GPU acceleration.
+/// - Other platforms: in-process FFI ([NcnnNet]) with Vulkan.
 class NcnnInferenceEngine {
   final AppLogger _logger = AppLogger();
 
-  NcnnNet? _net;
+  NcnnNet? _net; // non-Windows in-process FFI
+  NcnnHelperProcess? _helper; // Windows child process
   bool _loaded = false;
   List<String>? _classNames;
   bool _usingGpu = false;
@@ -35,6 +47,15 @@ class NcnnInferenceEngine {
     required String binPath,
     List<String>? fallbackClassNames,
   }) async {
+    if (Platform.isWindows) {
+      await _loadViaHelper(
+        paramPath: paramPath,
+        binPath: binPath,
+        fallbackClassNames: fallbackClassNames,
+      );
+      return;
+    }
+
     var device = GpuDeviceSelector.bestDevice;
     _usingGpu = device != null;
     if (device != null) {
@@ -71,17 +92,79 @@ class NcnnInferenceEngine {
     );
   }
 
+  Future<void> _loadViaHelper({
+    required String paramPath,
+    required String binPath,
+    List<String>? fallbackClassNames,
+  }) async {
+    try {
+      final helper = await NcnnHelperProcess.start();
+      _helper = helper;
+      final devices = await helper.gpuDevices();
+      var gpuIndex = -1;
+      if (devices.isNotEmpty) {
+        // Helper-side enumeration already restricts to usable devices;
+        // pick the best (discrete first, then score).
+        final sorted = [...devices]..sort((a, b) {
+            final aDiscrete = a.type == 0 ? 1 : 0;
+            final bDiscrete = b.type == 0 ? 1 : 0;
+            final cmp = bDiscrete.compareTo(aDiscrete);
+            if (cmp != 0) return cmp;
+            return b.score.compareTo(a.score);
+          });
+        final best = sorted.first;
+        gpuIndex = best.index;
+        _usingGpu = true;
+        _logger.i(
+          'ncnn (helper) using Vulkan device ${best.index}: ${best.name} '
+          '(score=${best.score})',
+        );
+      } else {
+        _logger.i('ncnn (helper) using CPU (no Vulkan device)');
+      }
+      await helper.load(paramPath: paramPath, binPath: binPath, gpuIndex: gpuIndex);
+    } catch (e) {
+      _logger.w('ncnn helper path failed, falling back to in-process CPU: $e');
+      _helper?.dispose();
+      _helper = null;
+      _usingGpu = false;
+      _net = await NcnnNet.load(
+        paramPath: paramPath,
+        binPath: binPath,
+        deviceIndex: -1,
+      );
+    }
+
+    _loaded = true;
+    _classNames = fallbackClassNames;
+    _logger.i(
+      'ncnn session ready (${_classNames?.length ?? 0} classes, '
+      'gpu=$_usingGpu)',
+    );
+  }
+
   /// Run inference on a pre-letterboxed RGB24 frame.
   /// Returns raw class scores (length = model class count).
-  Float32List predict(Uint8List rgb, int width, int height) {
-    final net = _net;
-    if (!_loaded || net == null) {
+  Future<Float32List> predict(Uint8List rgb, int width, int height) async {
+    if (!_loaded) {
       throw StateError('Model not loaded. Call loadModel() first.');
+    }
+
+    final helper = _helper;
+    if (helper != null) {
+      return helper.predict(rgb, width, height);
+    }
+
+    final net = _net;
+    if (net == null) {
+      throw StateError('No active inference backend');
     }
     return net.predict(rgb, width, height);
   }
 
   Future<void> dispose() async {
+    _helper?.dispose();
+    _helper = null;
     _net?.dispose();
     _net = null;
     _loaded = false;

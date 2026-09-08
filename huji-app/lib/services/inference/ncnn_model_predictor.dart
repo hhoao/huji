@@ -131,7 +131,7 @@ class NcnnModelPredictor implements ModelPredictor {
     final engine = await _ensureLoaded();
     final classNames = engine.classNames;
 
-    final logits = engine.predict(rgb, width, height);
+    final logits = await engine.predict(rgb, width, height);
 
     final (topIdx, topConfidence) = _topPrediction(logits, classNames.length);
     final topClass = classNames[topIdx];

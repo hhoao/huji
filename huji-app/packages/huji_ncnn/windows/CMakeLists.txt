@@ -71,3 +71,27 @@ set(huji_ncnn_bundled_libraries
   $<TARGET_FILE:${PLUGIN_NAME}>
   "${NCNN_DLL}"
   PARENT_SCOPE)
+
+# === Standalone inference helper (huji_ncnn_helper.exe) ===
+# Windows: ncnn Vulkan init crashes inside Flutter engine processes, so GPU
+# inference runs in this child process instead (see huji_ncnn_helper_main.cpp).
+add_executable(huji_ncnn_helper
+  ../src/huji_ncnn_helper_main.cpp
+  ../src/huji_ncnn_api.cpp)
+
+if(MSVC)
+  target_compile_options(huji_ncnn_helper PRIVATE /W3 /wd4251 /wd4275 /wd4996 /utf-8 /EHsc)
+else()
+  target_compile_options(huji_ncnn_helper PRIVATE -fexceptions -frtti)
+endif()
+
+target_compile_features(huji_ncnn_helper PRIVATE cxx_std_17)
+target_include_directories(huji_ncnn_helper PRIVATE
+  "${CMAKE_CURRENT_SOURCE_DIR}/../src"
+  "${NCNN_ROOT_DIR}/include")
+target_link_libraries(huji_ncnn_helper PRIVATE "${NCNN_IMPLIB}")
+
+set(huji_ncnn_bundled_libraries
+  ${huji_ncnn_bundled_libraries}
+  $<TARGET_FILE:huji_ncnn_helper>
+  PARENT_SCOPE)

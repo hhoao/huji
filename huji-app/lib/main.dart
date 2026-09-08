@@ -288,16 +288,16 @@ class _MainNavigationState extends State<MainNavigation> {
 Future<void> _runNcnnSelfTest() async {
   const sport = 'ping_pong';
   const match = 'profession';
-  stdout.writeln('[selftest] resolving model assets…');
+  stderr.writeln('[selftest] resolving model assets...');
   final spec = await NcnnModelAssetResolver.resolve(
     sportType: sport,
     matchType: match,
   );
-  stdout.writeln('[selftest] param=${spec.paramFilePath}');
+  stderr.writeln('[selftest] param=${spec.paramFilePath}');
 
   // 1. GPU enumeration (the probe that precedes the crash users see).
   final devices = GpuDeviceSelector.devices;
-  stdout.writeln(
+  stderr.writeln(
     '[selftest] vulkan devices: '
     '${devices.map((d) => '${d.index}:${d.name}').join(', ')}',
   );
@@ -324,28 +324,25 @@ Future<void> _runNcnnSelfTest() async {
     640,
     classMappings,
   );
-  stdout.writeln('[selftest] CPU predict ok: $cpuResult');
+  stderr.writeln('[selftest] CPU predict ok: $cpuResult');
   await cpuPredictor.dispose();
 
-  // 3. GPU (Vulkan) predictor — the exact path a detection task takes.
-  if (devices.isNotEmpty) {
-    final gpuEngine = NcnnInferenceEngine();
-    await gpuEngine.loadModel(
-      paramPath: spec.paramFilePath,
-      binPath: spec.binFilePath,
-      fallbackClassNames: spec.classNames,
-    );
-    stdout.writeln('[selftest] GPU net loaded, usingGpu=${gpuEngine.usingGpu}');
-    final logits = gpuEngine.predict(
-      Uint8List.fromList(frame),
-      640,
-      640,
-    );
-    stdout.writeln('[selftest] GPU predict ok: ${logits.length} classes');
-    await gpuEngine.dispose();
-  } else {
-    stdout.writeln('[selftest] no Vulkan devices — skipping GPU stage');
-  }
+  // 3. Full engine path — on Windows this routes through the helper child
+  // process (GPU), other platforms use in-process FFI.
+  final engine = NcnnInferenceEngine();
+  await engine.loadModel(
+    paramPath: spec.paramFilePath,
+    binPath: spec.binFilePath,
+    fallbackClassNames: spec.classNames,
+  );
+  stderr.writeln('[selftest] engine ready, usingGpu=${engine.usingGpu}');
+  final logits = await engine.predict(
+    Uint8List.fromList(frame),
+    640,
+    640,
+  );
+  stderr.writeln('[selftest] engine predict ok: ${logits.length} classes');
+  await engine.dispose();
 
-  stdout.writeln('[selftest] ALL OK');
+  stderr.writeln('[selftest] ALL OK');
 }
