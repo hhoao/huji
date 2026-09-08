@@ -79,6 +79,14 @@ endif()
 
 set(NCNN_LIB "${NCNN_ROOT_DIR}/lib/libncnn.so")
 
+# aarch64: the NCNN_ROOT_DIR copy only appears at ncnn_ext's POST_BUILD, so
+# linking it dead-ends ninja's dependency graph at generate time ("no known
+# rule to make it"). Link the ExternalProject's BUILD_BYPRODUCTS-declared
+# output instead — ninja knows ncnn_ext produces that file.
+if(TARGET ncnn_ext)
+  set(NCNN_LIB "${NCNN_INSTALL_DIR}/lib/libncnn.so")
+endif()
+
 list(APPEND PLUGIN_SOURCES "../src/huji_ncnn_api.cpp")
 
 add_library(${PLUGIN_NAME} SHARED ${PLUGIN_SOURCES})
