@@ -97,8 +97,14 @@ if(TARGET ncnn_ext)
   add_dependencies(${PLUGIN_NAME} ncnn_ext)
 endif()
 
-# Bundle libncnn.so next to the plugin so the app ships it; the Vulkan
-# loader itself stays a host system library.
+# Bundle the plugin and libncnn.so.1 (the real file, not the dev-time
+# libncnn.so symlink — install(FILES) follows the symlink and then the
+# link "libncnn.so -> libncnn.so.1" lands dangling in the bundle) so the
+# app ships both; the Vulkan loader itself stays a host system library.
+# Exactly ONE PARENT_SCOPE set — a second set() would clobber this value
+# (PARENT_SCOPE writes never accumulate) and silently drop libs from the
+# bundle (see the Windows variant's note for the same bug).
 set(huji_ncnn_bundled_libraries
-  "${NCNN_LIB}"
+  $<TARGET_FILE:${PLUGIN_NAME}>
+  "${NCNN_ROOT_DIR}/lib/libncnn.so.1"
   PARENT_SCOPE)
