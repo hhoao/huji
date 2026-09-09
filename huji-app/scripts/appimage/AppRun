@@ -15,8 +15,12 @@ export LD_LIBRARY_PATH="$APPDIR/usr/bin/lib:$APPDIR/usr/lib:$APPDIR/usr/lib/x86_
 # Make bundled ffmpeg findable
 export PATH="$APPDIR/usr/bin:$PATH"
 
-# Optional: GDK / GTK environment for some distros
-export GDK_BACKEND="${GDK_BACKEND:-x11}"
+# linuxdeploy-plugin-gtk's AppRun hook forces GDK_BACKEND=x11 (a blanket
+# workaround for bundled-GTK Wayland crashes). On hybrid-GPU Wayland hosts
+# that breaks Flutter's EGL context, dropping media_kit to software video
+# rendering. Prefer native Wayland with an X11 fallback instead — Flutter
+# GTK apps run fine on Wayland (same as flutter run / dev builds).
+export GDK_BACKEND="wayland,x11"
 
 # Launch the Flutter app
 exec "$APPDIR/usr/bin/huji" "$@"

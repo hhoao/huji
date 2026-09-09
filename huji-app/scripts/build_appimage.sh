@@ -203,7 +203,6 @@ fi
 # instead of BUILD_DIR. Pin both to BUILD_DIR.
 OWD="$BUILD_DIR" OLDPWD="$BUILD_DIR" \
 LDPLUGIN_GTK="$TOOLS_DIR/linuxdeploy-plugin-gtk.sh" \
-LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppImage.zsync" \
 "$TOOLS_DIR/linuxdeploy.AppImage" --appimage-extract-and-run \
   --appdir "$APPDIR" \
   --plugin gtk \
@@ -214,6 +213,29 @@ LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppI
   --output appimage \
   --custom-apprun "$APPIMAGE_RES/AppRun" \
   2>&1 | tail -40
+
+# media_kit loads libmpv through two lookups: the plugin's DT_NEEDED
+# (libmpv.so.2) and a Dart FFI DynamicLibrary.open('libmpv.so'). linuxdeploy
+# deploys only the versioned name, so inside the AppImage the FFI lookup
+# falls through to the HOST libmpv — loading two independent libmpv DSOs
+# with separate static state, which makes mpv abort on first playback with
+# a m_config_core.c option-cache assertion. Ship an unversioned symlink so
+# both lookups resolve to the bundled copy, then re-pack: linuxdeploy's
+# --output appimage has already squashed its AppImage by this point.
+if [[ -f "$APPDIR/usr/lib/libmpv.so.2" ]]; then
+  ln -sf libmpv.so.2 "$APPDIR/usr/lib/libmpv.so"
+  echo "Added usr/lib/libmpv.so -> libmpv.so.2 symlink (single libmpv instance)"
+  # Discard linuxdeploy's AppImage (missing the symlink) and re-pack from
+  # the corrected AppDir. -u re-embeds the same update channel.
+  rm -f "$BUILD_DIR"/*.AppImage "$BUILD_DIR"/*.zsync
+  OWD="$BUILD_DIR" OLDPWD="$BUILD_DIR" \
+  "$TOOLS_DIR/appimagetool.AppImage" --appimage-extract-and-run \
+    -u "gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppImage.zsync" \
+    "$APPDIR" "$BUILD_DIR/huji-${VERSION}-${ARCH}.AppImage" \
+    2>&1 | tail -20
+else
+  echo -e "${YELLOW}WARNING: libmpv.so.2 not found in AppDir — skipping libmpv symlink (playback may crash on hosts with libmpv installed)${NC}"
+fi
 
 # linuxdeploy with --output appimage produces the .AppImage in BUILD_DIR.
 # Rename it (and any associated .zsync) to the canonical huji-VERSION-ARCH name.
