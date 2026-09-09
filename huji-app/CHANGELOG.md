@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [2.9.0] - (2026.9.9)
+
+### 新增
+
+- 全平台应用图标统一：从矢量 logo 一键生成各平台启动图标与 README 头图
+- macOS / Windows 原生启动闪屏与无边框启动
+- macOS 本地检测推理链路打通（ncnn FFI 修复），并首次纳入 CI 集成测试
+
+### 优化
+
+- ffmpeg 运行库升级至 FFmpeg 8.1.2，修复 CVE-2026-8461（MagicYUV 解码器堆越界写入）
+
+### 修复
+
+- 修复 macOS 安装包在未安装 Homebrew 的电脑上启动崩溃（内嵌 ffmpeg 8.0.0 框架 arm64 切片引用 /opt/homebrew 依赖）
+- 修复 AppImage 视频预览崩溃（重复 libmpv 实例 + EGL 后端）
+- 修复 AppImage 启动器图标为文字占位符的问题
+- 修复大字号下视频库卡片底部溢出
+- 修复 ncnn 误选软件 Vulkan 设备（llvmpipe）
+- Linux 桌面条目与 GTK application-id 对齐
+
 ## [2.8.0] - (2026.9.9)
 
 ### 新增
