@@ -92,10 +92,13 @@ cp -r "$FLUTTER_OUT/"* "$APPDIR/usr/bin/"
 # Copy AppImage resources
 cp "$APPIMAGE_RES/AppRun" "$APPDIR/AppRun"
 chmod +x "$APPDIR/AppRun"
-cp "$APPIMAGE_RES/huji.desktop" "$APPDIR/huji.desktop"
-cp "$APPIMAGE_RES/huji.desktop" "$APPDIR/usr/share/applications/huji.desktop"
-cp "$APPIMAGE_RES/huji.png" "$APPDIR/huji.png"
-cp "$APPIMAGE_RES/huji.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/huji.png"
+# Desktop entry and hicolor icon are named after the GTK application-id
+# (linux/CMakeLists APPLICATION_ID = com.hhoa.huji) so desktop environments
+# can match the running window (WM class / Wayland app-id) to this entry.
+cp "$APPIMAGE_RES/com.hhoa.huji.desktop" "$APPDIR/com.hhoa.huji.desktop"
+cp "$APPIMAGE_RES/com.hhoa.huji.desktop" "$APPDIR/usr/share/applications/com.hhoa.huji.desktop"
+cp "$APPIMAGE_RES/huji.png" "$APPDIR/com.hhoa.huji.png"
+cp "$APPIMAGE_RES/huji.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/com.hhoa.huji.png"
 
 # === 4. Bundle ffmpeg + ffprobe static binaries ===
 download_ffmpeg_static() {
@@ -194,6 +197,11 @@ if [[ -d "$APPDIR/usr/bin/lib" ]]; then
   done < <(find "$APPDIR/usr/bin/lib" -name "*.so" -print0)
 fi
 
+# OWD/OLDPWD: appimagetool (run via --appimage-extract-and-run) resolves its
+# output path against the caller's original working directory, so a build
+# launched from elsewhere (CI, agents) would deposit the AppImage there
+# instead of BUILD_DIR. Pin both to BUILD_DIR.
+OWD="$BUILD_DIR" OLDPWD="$BUILD_DIR" \
 LDPLUGIN_GTK="$TOOLS_DIR/linuxdeploy-plugin-gtk.sh" \
 LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppImage.zsync" \
 "$TOOLS_DIR/linuxdeploy.AppImage" --appimage-extract-and-run \
@@ -201,8 +209,8 @@ LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppI
   --plugin gtk \
   --executable "$APPDIR/usr/bin/huji" \
   "${PLUGIN_LIB_FLAGS[@]}" \
-  --desktop-file "$APPDIR/huji.desktop" \
-  --icon-file "$APPIMAGE_RES/huji.png" \
+  --desktop-file "$APPDIR/com.hhoa.huji.desktop" \
+  --icon-file "$APPDIR/usr/share/icons/hicolor/256x256/apps/com.hhoa.huji.png" \
   --output appimage \
   --custom-apprun "$APPIMAGE_RES/AppRun" \
   2>&1 | tail -40

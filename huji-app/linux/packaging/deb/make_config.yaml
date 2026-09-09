@@ -9,6 +9,8 @@ section: utility
 priority: optional
 homepage: https://github.com/hhoao/huji
 icon: assets/icons/logo_bg_1024.png
+# Matches GTK application-id / g_set_prgname in linux/runner (com.hhoa.huji).
+startup_wm_class: com.hhoa.huji
 dependencies:
   - libgtk-3-0
   - libglib2.0-0
