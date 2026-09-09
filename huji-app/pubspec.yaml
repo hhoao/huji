@@ -136,25 +136,21 @@ flutter:
 flutter_launcher_icons:
   android: "launcher_icon_dark"
   ios: true
-  image_path: "assets/icons/logo_bg.png"
+  image_path: "assets/icons/logo_bg_1024.png"
   min_sdk_android: 21
   remove_alpha_ios: true
   web:
     generate: true
-    image_path: "assets/icons/logo_bg.png"
+    image_path: "assets/icons/logo_bg_1024.png"
     background_color: "#000000"
     theme_color: "#000000"
   windows:
     generate: true
-    image_path: "assets/icons/logo_bg.png"
-    icon_size: 48
+    image_path: "assets/icons/logo_bg_1024.png"
+    icon_size: 256
   macos:
     generate: true
-    image_path: "assets/icons/logo_bg.png"
-  linux:
-    generate: true
-    image_path: "assets/icons/logo_bg.png"
-    icon_size: 128
+    image_path: "assets/icons/logo_bg_1024.png"
 
 flutter_native_splash:
   color: "#ffffff"
