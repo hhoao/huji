@@ -61,7 +61,8 @@ jobs:
             clang cmake ninja-build pkg-config \
             libgtk-3-dev liblzma-dev libsecret-1-dev \
             libjsoncpp-dev libstdc++-12-dev \
-            libasound2-dev libmpv-dev mpv
+            libasound2-dev libmpv-dev mpv \
+            libjson-glib-dev
 
       - uses: actions/setup-java@v4
         if: matrix.platform == 'android'
