@@ -48,6 +48,21 @@ Linux native builds download the official ncnn ubuntu release into the
 build dir (override with `-DNCNN_ROOT_DIR=` for offline CI; same pattern on
 Windows/Android).
 
+## App Icons
+
+All launcher icons (Android/iOS/Web/Windows/macOS + Linux bundle + AppImage)
+are generated from `assets/svg/logo_no_font.svg` via a single command:
+
+```bash
+cd huji-app
+dart run tool/sync_app_icons.dart
+```
+
+Outputs are committed (1024px master `assets/icons/logo_bg_1024.png`,
+`scripts/appimage/huji.png`, `linux/runner/resources/app_icon.png`, and the
+platform icon sets). Re-run it after changing the vector logo, then commit
+the regenerated files. Composition lives in
+`test/tools/generate_app_icon_test.dart` (`_logoScale`).
 
 ## Architecture
 
