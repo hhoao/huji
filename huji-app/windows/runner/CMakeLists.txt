@@ -6,6 +6,8 @@ project(runner LANGUAGES CXX)
 # work.
 #
 # Any new source files that you add to the application should be added here.
+include("${CMAKE_CURRENT_SOURCE_DIR}/native_splash_screen.cmake")
+
 add_executable(${BINARY_NAME} WIN32
   "flutter_window.cpp"
   "main.cpp"

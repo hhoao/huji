@@ -1,0 +1,7 @@
+{
+  "images" : [
+    { "filename" : "splash_screen_profile.png", "idiom" : "mac", "scale" : "1x" },
+    { "filename" : "splash_screen_profile@2x.png", "idiom" : "mac", "scale" : "2x" }
+  ],
+  "info" : { "author" : "native_splash_screen_cli", "version" : 1 }
+}

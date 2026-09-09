@@ -9,6 +9,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   gal
   media_kit_libs_windows_video
   media_kit_video
+  native_splash_screen_windows
   permission_handler_windows
   screen_retriever_windows
   sqlite3_flutter_libs

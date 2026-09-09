@@ -2,17 +2,31 @@
 # (after `dart run native_splash_screen_cli setup` created the cmake wiring)
 #
 # window_width/height keep in sync with kDefaultDesktopWindowSize in
-# lib/main_desktop.dart and gtk_window_set_default_size in
-# linux/runner/my_application.cc.
+# lib/main_desktop.dart, gtk_window_set_default_size in
+# linux/runner/my_application.cc and Win32Window::Size in
+# windows/runner/main.cpp.
 #
-# The bitmap is baked full-window (background_color + background_width/height
-# == window size, image resized onto it) so the GTK draw never leaves
-# transparent gutters. window_color is the dark amber page surface
-# (workspacePage on the dark theme) that the first Flutter frame also paints.
+# Linux/Windows bake the bitmap full-window (background_color +
+# background_width/height == window size, image resized onto it) so the
+# runner draw never leaves transparent gutters. window_color is the dark
+# amber page surface (workspacePage on the dark theme) that the first
+# Flutter frame also paints.
+#
+# macOS composes background_color + image into a single imageset whose
+# canvas == image dimensions (see templates/macos.dart), so image_* there
+# must equal the window size and the logo is baked at its natural size —
+# hence the pre-scaled 256px copy (logo_no_bg_256.png) to match the
+# Linux/Windows 256px logo.
 version: v1
 
 platforms:
   linux:
+    enabled: true
+    fallback: true
+  windows:
+    enabled: true
+    fallback: true
+  macos:
     enabled: true
     fallback: true
 
@@ -30,6 +44,38 @@ release:
     image_width: 256
     image_height: 256
     image_scaling: true
+    image_border_radius: 0.0
+    blur_radius: 0.0
+    with_animation: false
+
+  windows:
+    window_width: 1280
+    window_height: 800
+    window_title: 弧迹
+    background_color: "#1C1814"
+    background_width: 1280
+    background_height: 800
+    background_border_radius: 0.0
+    image_path: assets/icons/logo_no_bg.png
+    image_width: 256
+    image_height: 256
+    image_scaling: true
+    image_border_radius: 0.0
+    blur_radius: 0.0
+    with_animation: false
+
+  macos:
+    window_width: 1280
+    window_height: 800
+    window_title: 弧迹
+    background_color: "#1C1814"
+    background_width: 1280
+    background_height: 800
+    background_border_radius: 0.0
+    image_path: assets/icons/logo_no_bg_256.png
+    image_width: 1280
+    image_height: 800
+    image_scaling: false
     image_border_radius: 0.0
     blur_radius: 0.0
     with_animation: false

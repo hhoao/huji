@@ -25,6 +25,8 @@ PODS:
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
+  - native_splash_screen_macos (3.0.0):
+    - FlutterMacOS
   - open_file_mac (1.0.3):
     - FlutterMacOS
   - package_info_plus (0.0.1):
@@ -88,6 +90,7 @@ DEPENDENCIES:
   - huji_ncnn (from `Flutter/ephemeral/.symlinks/plugins/huji_ncnn/macos`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
+  - native_splash_screen_macos (from `Flutter/ephemeral/.symlinks/plugins/native_splash_screen_macos/macos`)
   - open_file_mac (from `Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
   - photo_manager (from `Flutter/ephemeral/.symlinks/plugins/photo_manager/darwin`)
@@ -129,6 +132,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos
   media_kit_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
+  native_splash_screen_macos:
+    :path: Flutter/ephemeral/.symlinks/plugins/native_splash_screen_macos/macos
   open_file_mac:
     :path: Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos
   package_info_plus:
@@ -165,6 +170,7 @@ SPEC CHECKSUMS:
   huji_ncnn: c18e138c4f33130f81cf2c6a0f8de76c63dc5911
   media_kit_libs_macos_video: b3e2bbec2eef97c285f2b1baa7963c67c753fb82
   media_kit_video: c75b07f14d59706c775778e4dd47dd027de8d1e5
+  native_splash_screen_macos: 532f059ff414b9d3aaae339c315276786e8a6737
   open_file_mac: 4de820e1d27310e4d947a59f6d7f9b876af405fb
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   photo_manager: 3d7c9d321e7bfeb8630ddcbf02cd3f0ff82deaaf

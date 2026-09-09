@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import native_splash_screen_macos
 
 @main
 class AppDelegate: FlutterAppDelegate {
@@ -9,6 +10,14 @@ class AppDelegate: FlutterAppDelegate {
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
     return true
+  }
+
+  override func applicationWillFinishLaunching(_ notification: Notification) {
+    // Show the native splash before any window appears, so the user never
+    // sees the empty xib window while the Flutter engine boots. Dart fades
+    // the splash away in completeBootSplashTransition() (boot_splash.dart).
+    NativeSplashScreen.configurationProvider = NativeSplashScreenConfiguration()
+    NativeSplashScreen.show()
   }
 
   override func applicationDidFinishLaunching(_ notification: Notification) {

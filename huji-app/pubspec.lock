@@ -1185,10 +1185,24 @@ packages:
       relative: true
     source: path
     version: "3.0.0"
+  native_splash_screen_macos:
+    dependency: transitive
+    description:
+      path: "packages/native_splash_screen/native_splash_screen_macos"
+      relative: true
+    source: path
+    version: "3.0.0"
   native_splash_screen_platform_interface:
     dependency: transitive
     description:
       path: "packages/native_splash_screen/native_splash_screen_platform_interface"
+      relative: true
+    source: path
+    version: "3.0.0"
+  native_splash_screen_windows:
+    dependency: transitive
+    description:
+      path: "packages/native_splash_screen/native_splash_screen_windows"
       relative: true
     source: path
     version: "3.0.0"

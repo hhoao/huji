@@ -3,7 +3,7 @@ description: >
   A fully configurable native splash screen plugin for Flutter apps,
   supporting static linking, runtime animations, and CLI-based asset generation.
   Vendored from teampilot (upstream: anicine/native_splash_screen) —
-  Windows / macOS default packages stripped, Linux overlay-mode only.
+  Linux / Windows / macOS overlay+window modes.
 repository: https://github.com/anicine/native_splash_screen
 version: 3.0.0
 
@@ -14,6 +14,8 @@ topics:
 
 platforms:
   linux:
+  windows:
+  macos:
 
 environment:
   sdk: ^3.4.0
@@ -24,6 +26,10 @@ flutter:
     platforms:
       linux:
         default_package: native_splash_screen_linux
+      windows:
+        default_package: native_splash_screen_windows
+      macos:
+        default_package: native_splash_screen_macos
 
 dependencies:
   flutter:
@@ -33,6 +39,10 @@ dependencies:
     path: ../native_splash_screen_platform_interface
   native_splash_screen_linux:
     path: ../native_splash_screen_linux
+  native_splash_screen_windows:
+    path: ../native_splash_screen_windows
+  native_splash_screen_macos:
+    path: ../native_splash_screen_macos
 
 dev_dependencies:
   flutter_lints:

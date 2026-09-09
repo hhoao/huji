@@ -2,6 +2,8 @@
 
 #include <optional>
 
+#include <native_splash_screen_windows/native_splash_screen_windows_plugin_c_api.h>
+
 #include "flutter/generated_plugin_registrant.h"
 
 FlutterWindow::FlutterWindow(const flutter::DartProject& project)
@@ -27,13 +29,26 @@ bool FlutterWindow::OnCreate() {
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
 
-  flutter_controller_->engine()->SetNextFrameCallback([&]() {
-    this->Show();
-  });
+  // Overlay-mode boot splash: stack the splash over the Flutter view in THIS
+  // window (instead of a separate top-level splash window). Dart fades it out
+  // via close() once the app has painted. Matches the Linux runner.
+  AttachSplashOverlay(GetHandle());
 
-  // Flutter can complete the first frame before the "show window" callback is
-  // registered. The following call ensures a frame is pending to ensure the
-  // window is shown. It is a no-op if the first frame hasn't completed yet.
+  // Drop the native caption so the first Show paints full-client surface+logo
+  // (Linux starts undecorated). Dart/window_manager then owns the chrome.
+  HWND hwnd = GetHandle();
+  DWORD style = GetWindowLong(hwnd, GWL_STYLE);
+  SetWindowLong(hwnd, GWL_STYLE, style & ~WS_CAPTION);
+  SetWindowPos(hwnd, nullptr, 0, 0, 0, 0,
+               SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+  ResizeSplashOverlay(hwnd);
+
+  // Show immediately so the overlay is visible during Dart bootstrap - do not
+  // wait for the first Flutter frame (that would flash a blank window).
+  Show();
+
+  // Flutter can complete the first frame before plugins finish wiring. Keep a
+  // pending frame so the engine stays warm under the splash.
   flutter_controller_->ForceRedraw();
 
   return true;
@@ -56,6 +71,11 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     std::optional<LRESULT> result =
         flutter_controller_->HandleTopLevelWindowProc(hwnd, message, wparam,
                                                       lparam);
+    if (message == WM_SIZE) {
+      // Keep the splash overlay covering the client when chrome/DPI changes,
+      // even if Flutter/window_manager already handled the size message.
+      ResizeSplashOverlay(hwnd);
+    }
     if (result) {
       return *result;
     }
@@ -65,6 +85,12 @@ FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
     case WM_FONTCHANGE:
       flutter_controller_->engine()->ReloadSystemFonts();
       break;
+    case WM_SIZE: {
+      const LRESULT result =
+          Win32Window::MessageHandler(hwnd, message, wparam, lparam);
+      ResizeSplashOverlay(hwnd);
+      return result;
+    }
   }
 
   return Win32Window::MessageHandler(hwnd, message, wparam, lparam);

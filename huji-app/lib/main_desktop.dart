@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,7 +48,7 @@ class DesktopApp extends StatefulWidget {
 
 class _DesktopAppState extends State<DesktopApp> {
   late final GoRouter _router;
-  late final WindowListener _windowListener;
+  WindowListener? _windowListener;
   late final CommandBus _commandBus = CommandBus();
   void Function()? _disposeCommands;
 
@@ -116,7 +117,12 @@ class _DesktopAppState extends State<DesktopApp> {
   }
 
   Future<void> _initWindowManager() async {
-    await windowManager.setTitleBarStyle(TitleBarStyle.hidden);
+    // windowButtonVisibility false — the app draws its own window controls
+    // (WindowChromeControls); native buttons would double them up.
+    await windowManager.setTitleBarStyle(
+      TitleBarStyle.hidden,
+      windowButtonVisibility: false,
+    );
 
     final systemView = WidgetsBinding.instance.platformDispatcher.implicitView;
     final systemMq = systemView == null
@@ -134,10 +140,31 @@ class _DesktopAppState extends State<DesktopApp> {
     final savedW = prefs.getDouble('window_w');
     final savedH = prefs.getDouble('window_h');
 
+    // Sanitize the restored geometry. The move/resize listener used to fire
+    // during boot (title-bar style churn emits intermediate frames), which
+    // once persisted a degenerate "window taller than the screen" frame that
+    // AppKit then re-fitted to a tiny standard frame on activation. Reject
+    // anything outside sane bounds instead of replaying it.
+    const kMinWindowSize = Size(900, 600);
+    const kMaxWindowSize = Size(5120, 2880);
+    final savedSizeIsSane =
+        savedW != null &&
+        savedH != null &&
+        savedW >= kMinWindowSize.width &&
+        savedH >= kMinWindowSize.height &&
+        savedW <= kMaxWindowSize.width &&
+        savedH <= kMaxWindowSize.height;
+    final savedPosIsSane =
+        savedX != null &&
+        savedY != null &&
+        savedX.abs() <= 8192 &&
+        savedY.abs() <= 8192;
+
     final WindowOptions options;
-    if (savedX != null && savedY != null && savedW != null && savedH != null) {
+    if (savedSizeIsSane && savedPosIsSane) {
       options = WindowOptions(
         size: Size(savedW, savedH),
+        minimumSize: kMinWindowSize,
         center: false,
         title: windowTitle,
         backgroundColor: _windowBackgroundColor(bundle),
@@ -146,25 +173,42 @@ class _DesktopAppState extends State<DesktopApp> {
     } else {
       options = WindowOptions(
         size: const Size(1280, 800),
-        minimumSize: const Size(900, 600),
+        minimumSize: kMinWindowSize,
         title: windowTitle,
         backgroundColor: _windowBackgroundColor(bundle),
       );
     }
 
-    _windowListener = _WindowListener();
-    windowManager.addListener(_windowListener);
-
     await windowManager.waitUntilReadyToShow(options, () async {
-      await windowManager.show();
-      await windowManager.focus();
+      if (Platform.isMacOS) {
+        // Stay invisible behind the floating native splash window until the
+        // app has painted; completeBootSplashTransition() hides the native
+        // title bar, reveals the window and fades the splash away. (The xib
+        // window maps fully transparent already — see MainFlutterWindow's
+        // awakeFromNib — so nothing but the splash is ever on screen.)
+        await windowManager.setOpacity(0);
+        await ensureBootSplashOnTop();
+      } else {
+        // Linux/Windows paint the splash as an in-window overlay, so the main
+        // window itself is shown immediately (the runner already stripped the
+        // native caption on Windows).
+        await windowManager.show();
+        await windowManager.focus();
+      }
     });
 
-    // The window is mapped and the app has painted under the splash overlay;
-    // cross-fade the overlay away. See boot_splash.dart — the GTK runner
-    // stacks it over the Flutter view at startup.
+    // The window is mapped and the app has painted under the splash; fade the
+    // splash away. See boot_splash.dart — Linux/Windows stack it over the
+    // Flutter view in-window, macOS keeps a separate floating splash window
+    // while the main window stays transparent.
     await _revealAfterFirstFrame();
     await completeBootSplashTransition();
+
+    // Only persist user-driven geometry changes — attach the save listener
+    // after the boot transition so style/opacity churn during startup can
+    // never write intermediate frames into prefs.
+    _windowListener = _WindowListener();
+    windowManager.addListener(_windowListener!);
   }
 
   @override
@@ -235,8 +279,9 @@ class _DesktopAppState extends State<DesktopApp> {
   @override
   void dispose() {
     _disposeCommands?.call();
-    if (PlatformCapability.isDesktop) {
-      windowManager.removeListener(_windowListener);
+    final listener = _windowListener;
+    if (PlatformCapability.isDesktop && listener != null) {
+      windowManager.removeListener(listener);
     }
     widget.appearanceCubit.close();
     widget.shortcutsCubit.close();
