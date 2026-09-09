@@ -45,9 +45,18 @@ class GpuDeviceSelector {
     return devices;
   }
 
+  /// Devices that actually accelerate inference. type 3 (cpu, e.g.
+  /// llvmpipe) is a software Vulkan implementation — slower than ncnn's
+  /// plain CPU path, and its rough_score is wildly optimistic
+  /// (llvmpipe outscored a real Intel Arc), so it must never win.
+  static List<NcnnGpuDevice> get _hardwareDevices =>
+      devices.where((d) => d.type != 3).toList();
+
   /// Best device for inference — discrete GPUs first, then by score.
+  /// Returns null when only software devices exist: callers then use
+  /// ncnn's CPU path, which beats Vulkan-over-llvmpipe.
   static NcnnGpuDevice? get bestDevice {
-    final list = devices;
+    final list = _hardwareDevices;
     if (list.isEmpty) return null;
     final sorted = [...list]..sort((a, b) {
         // Discrete (type 0) beats everything else; then rough_score.
@@ -60,6 +69,6 @@ class GpuDeviceSelector {
     return sorted.first;
   }
 
-  /// True when a Vulkan device is available (accelerated inference).
-  static bool get hasAccelerator => devices.isNotEmpty;
+  /// True when a hardware GPU is available (accelerated inference).
+  static bool get hasAccelerator => _hardwareDevices.isNotEmpty;
 }
