@@ -146,11 +146,11 @@ flutter_launcher_icons:
     theme_color: "#000000"
   windows:
     generate: true
-    image_path: "assets/icons/logo_bg_1024.png"
+    image_path: "assets/icons/icon_bg_1024.png"
     icon_size: 256
   macos:
     generate: true
-    image_path: "assets/icons/logo_bg_1024.png"
+    image_path: "assets/icons/icon_bg_1024.png"
 
 flutter_native_splash:
   color: "#ffffff"

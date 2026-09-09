@@ -1,21 +1,25 @@
 // ignore_for_file: avoid_print
 //
-// Regenerates all launcher icons from the vector logo. Run from `huji-app/`:
+// Regenerates all launcher icons. Run from `huji-app/`:
 //
 //   dart run tool/sync_app_icons.dart
 //
 // 1. flutter test test/tools/generate_app_icon_test.dart
-//    → assets/icons/logo_bg_1024.png + scripts/appimage/huji.png
+//    → assets/icons/logo_bg_1024.png (mobile / web master from SVG)
 // 2. dart run flutter_launcher_icons
-//    → Android / iOS / Web / Windows / macOS icons
-// 3. Copy the master icon to linux/runner/resources/app_icon.png
-//    (flutter_launcher_icons has no Linux support — same workaround as
-//    teampilot's client/tool/sync_app_icons.dart)
+//    → Android / iOS / Web from logo_bg_1024.png
+//    → Windows / macOS from icon_bg_1024.png (desktop black-plate icon)
+// 3. Copy desktop icons for Linux packaging:
+//    icon_bg_1024.png → linux/runner/resources/app_icon.png
+//    icon_bg.png      → scripts/appimage/huji.png
 
 import 'dart:io';
 
-const _masterIcon = 'assets/icons/logo_bg_1024.png';
+const _mobileMasterIcon = 'assets/icons/logo_bg_1024.png';
+const _desktopMasterIcon = 'assets/icons/icon_bg_1024.png';
+const _desktopAppImageIcon = 'assets/icons/icon_bg.png';
 const _linuxBundleIcon = 'linux/runner/resources/app_icon.png';
+const _appImageIcon = 'scripts/appimage/huji.png';
 const _generatorTest = 'test/tools/generate_app_icon_test.dart';
 
 Future<void> main() async {
@@ -25,8 +29,14 @@ Future<void> main() async {
   }
   if (!File('assets/svg/logo_no_font.svg').existsSync()) {
     stderr.writeln(
-        'Missing assets/svg/logo_no_font.svg — the vector logo is the icon source.');
+        'Missing assets/svg/logo_no_font.svg — the vector logo is the mobile icon source.');
     exit(1);
+  }
+  for (final path in [_desktopMasterIcon, _desktopAppImageIcon]) {
+    if (!File(path).existsSync()) {
+      stderr.writeln('Missing $path — desktop black-plate icons are required.');
+      exit(1);
+    }
   }
 
   // On Windows the SDK launcher is flutter.bat — dart:io's Process.run does
@@ -34,7 +44,7 @@ Future<void> main() async {
   // executable and needs no special-casing.
   final flutter = Platform.isWindows ? 'flutter.bat' : 'flutter';
 
-  print('Rendering master icon from SVG…');
+  print('Rendering mobile master icon from SVG…');
   await _run(flutter, ['test', _generatorTest]);
 
   print('Running flutter_launcher_icons…');
@@ -42,8 +52,15 @@ Future<void> main() async {
 
   final linuxDest = File(_linuxBundleIcon);
   await linuxDest.parent.create(recursive: true);
-  await File(_masterIcon).copy(linuxDest.path);
-  print('Synced $_masterIcon → $_linuxBundleIcon');
+  await File(_desktopMasterIcon).copy(linuxDest.path);
+  print('Synced $_desktopMasterIcon → $_linuxBundleIcon');
+
+  final appImageDest = File(_appImageIcon);
+  await appImageDest.parent.create(recursive: true);
+  await File(_desktopAppImageIcon).copy(appImageDest.path);
+  print('Synced $_desktopAppImageIcon → $_appImageIcon');
+
+  print('Mobile master: $_mobileMasterIcon');
   print('Done.');
 }
 

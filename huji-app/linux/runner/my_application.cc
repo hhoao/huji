@@ -14,7 +14,7 @@
 #include "flutter/generated_plugin_registrant.h"
 
 // Resolve the absolute path of the bundled application icon by walking up from
-// the running executable to <bundle>/data/flutter_assets/assets/icons/logo_bg.png.
+// the running executable to <bundle>/data/flutter_assets/assets/icons/icon_bg.png.
 static gchar* resolve_app_icon_path() {
   char exe_path[PATH_MAX] = {0};
   ssize_t len = readlink("/proc/self/exe", exe_path, sizeof(exe_path) - 1);
@@ -24,7 +24,7 @@ static gchar* resolve_app_icon_path() {
   exe_path[len] = '\0';
   gchar* exe_dir = g_path_get_dirname(exe_path);
   gchar* icon_path = g_build_filename(
-      exe_dir, "data", "flutter_assets", "assets", "icons", "logo_bg.png",
+      exe_dir, "data", "flutter_assets", "assets", "icons", "icon_bg.png",
       nullptr);
   g_free(exe_dir);
   return icon_path;

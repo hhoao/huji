@@ -1,7 +1,7 @@
 # 弧迹 (Huji)
 
 <p align="center">
-  <img src="assets/logo_splash.png" alt="弧迹" width="300"/>
+  <img src="huji-app/assets/svg/logo_pure.svg" alt="弧迹" width="300"/>
 </p>
 
 
@@ -174,7 +174,7 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 
 如果弧迹对你有帮助，欢迎请作者喝杯咖啡 ☕️
 
-- **Ko-fi**：<https://ko-fi.com/xianxing>
+- **Ko-fi**：<https://ko-fi.com/hhoao>
 - **微信赞赏码**：
 
 <p align="left">
