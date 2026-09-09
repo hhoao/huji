@@ -130,6 +130,14 @@ jobs:
       - name: Resolve Flutter packages
         run: flutter pub get
 
+      # ffmpeg_kit_flutter_new 4.6.x fatals CMake configure on non-x86_64
+      # hosts before its FFMPEGKIT_LOCAL_DIR escape hatch is consulted.
+      # linux/CMakeLists.txt points that variable at an empty stub on
+      # non-x86_64 hosts (the app never calls FFmpegKit on Linux), but the
+      # fatal gate must be downgraded to a warning first.
+      - name: Patch ffmpeg_kit Linux arch gate
+        run: ./scripts/patch_ffmpeg_kit_linux.sh
+
       - name: Build AppImage
         env:
           ARCH: aarch64

@@ -75,15 +75,18 @@ set_target_properties(${BINARY_NAME}
 #
 # ffmpeg_kit_flutter_new 4.6.x registers a Linux native layer that is
 # x86_64-only (upstream ships no aarch64 bundle; its CMakeLists fatals on
-# non-x86_64 hosts). The app never calls FFmpegKit on Linux — desktop runs
-# the bundled static ffmpeg binary (FFmpegRunner / PlatformCapability) and
-# the plugin's method channel would simply return errors if poked. On
-# aarch64 we need the plugin's sources to still compile (the generated
-# registrant references them) but skip its fatal x86_64-only bundle
-# download: point FFMPEGKIT_LOCAL_DIR at a stub directory so CMake copies a
-# placeholder lib/ instead of failing, while dlopen in the plugin fails
-# gracefully at runtime (g_warning, channel errors) — identical to the
-# pre-4.6 behavior where the channel didn't exist on Linux at all.
+# non-x86_64 hosts — downgraded to a warning by
+# scripts/patch_ffmpeg_kit_linux.sh, which the aarch64 release job runs
+# after `flutter pub get`). The app never calls FFmpegKit on Linux — desktop
+# runs the bundled static ffmpeg binary (FFmpegRunner /
+# PlatformCapability) and the plugin's method channel would simply return
+# errors if poked. On aarch64 we need the plugin's sources to still compile
+# (the generated registrant references them) but skip its x86_64-only
+# bundle download: point FFMPEGKIT_LOCAL_DIR at a stub directory so CMake
+# copies a placeholder lib/ instead of downloading, while dlopen in the
+# plugin fails gracefully at runtime (g_warning, channel errors) —
+# identical to the pre-4.6 behavior where the channel didn't exist on
+# Linux at all.
 if(NOT DEFINED ENV{FFMPEGKIT_LOCAL_DIR} AND NOT CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
   set(ENV{FFMPEGKIT_LOCAL_DIR} "${CMAKE_BINARY_DIR}/ffmpegkit-aarch64-stub")
   if(NOT EXISTS "${CMAKE_BINARY_DIR}/ffmpegkit-aarch64-stub/lib/libffmpegkit.so")
