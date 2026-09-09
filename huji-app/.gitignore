@@ -52,7 +52,7 @@ coverage/
 .keychain
 
 # AppImage build artifacts
-tools/
+/tools/
 *.AppImage
 
 # Local CUDA ONNX Runtime download (scripts/setup_onnxruntime_gpu.sh)

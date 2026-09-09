@@ -8,7 +8,7 @@ maintainer:
 section: utility
 priority: optional
 homepage: https://github.com/hhoao/huji
-icon: assets/icons/logo_bg.png
+icon: assets/icons/logo_bg_1024.png
 dependencies:
   - libgtk-3-0
   - libglib2.0-0

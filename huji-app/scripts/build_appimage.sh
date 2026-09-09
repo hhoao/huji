@@ -94,8 +94,8 @@ cp "$APPIMAGE_RES/AppRun" "$APPDIR/AppRun"
 chmod +x "$APPDIR/AppRun"
 cp "$APPIMAGE_RES/huji.desktop" "$APPDIR/huji.desktop"
 cp "$APPIMAGE_RES/huji.desktop" "$APPDIR/usr/share/applications/huji.desktop"
-cp "$APPIMAGE_RES/huji.svg" "$APPDIR/huji.svg"
-cp "$APPIMAGE_RES/huji.svg" "$APPDIR/usr/share/icons/hicolor/256x256/apps/huji.svg"
+cp "$APPIMAGE_RES/huji.png" "$APPDIR/huji.png"
+cp "$APPIMAGE_RES/huji.png" "$APPDIR/usr/share/icons/hicolor/256x256/apps/huji.png"
 
 # === 4. Bundle ffmpeg + ffprobe static binaries ===
 download_ffmpeg_static() {
@@ -202,7 +202,7 @@ LDAI_UPDATE_INFORMATION="gh-releases-zsync|hhoao|huji|latest|huji-*-${ARCH}.AppI
   --executable "$APPDIR/usr/bin/huji" \
   "${PLUGIN_LIB_FLAGS[@]}" \
   --desktop-file "$APPDIR/huji.desktop" \
-  --icon-file "$APPIMAGE_RES/huji.svg" \
+  --icon-file "$APPIMAGE_RES/huji.png" \
   --output appimage \
   --custom-apprun "$APPIMAGE_RES/AppRun" \
   2>&1 | tail -40
