@@ -54,7 +54,9 @@ class NcnnRuntime {
 
   /// Test/CI bootstrap: pin the directory holding the plugin library
   /// (huji_ncnn_plugin.dll / libhuji_ncnn_plugin.so) before any
-  /// [NcnnRuntime] use.
+  /// [NcnnRuntime] use. On macOS, where the plugin is statically linked
+  /// into the app, pin the built app bundle's `Contents/MacOS` dir — the
+  /// app's `<product>.debug.dylib` is opened from there.
   ///
   /// Resolution priority on Windows/Linux: this override >
   /// HUJI_NCNN_LIB_DIR env > marker file > bare name (app bundle rpath).
@@ -119,15 +121,39 @@ class NcnnRuntime {
     try {
       final dir = _libDirMarker.readAsStringSync().trim();
       if (dir.isEmpty) return null;
-      final pluginFile = _pluginLibraryName;
-      if (pluginFile == null) return null;
-      if (!File('$dir${Platform.pathSeparator}$pluginFile').existsSync()) {
-        return null;
-      }
+      if (_findPluginLibraryIn(dir) == null) return null;
       return dir;
     } catch (_) {
       return null;
     }
+  }
+
+  /// Absolute path of the plugin library inside [dir], or null when [dir]
+  /// does not hold one.
+  ///
+  /// Windows/Linux use fixed file names. On macOS the hn_* symbols are
+  /// statically linked into the app, so the test VM opens the app's debug
+  /// dylib (`<product>.debug.dylib`) instead — its name varies with the
+  /// product name, hence the directory scan.
+  static String? _findPluginLibraryIn(String dir) {
+    final name = _pluginLibraryName;
+    if (name != null) {
+      final file = File('$dir${Platform.pathSeparator}$name');
+      return file.existsSync() ? file.path : null;
+    }
+    final abi = Abi.current();
+    if (abi == Abi.macosX64 || abi == Abi.macosArm64) {
+      try {
+        for (final entry in Directory(dir).listSync()) {
+          if (entry is File && entry.path.endsWith('.debug.dylib')) {
+            return entry.path;
+          }
+        }
+      } catch (_) {
+        // Unreadable dir — treated as "no plugin here".
+      }
+    }
+    return null;
   }
 
   /// Plugin library file name for the current ABI, or null where the
@@ -179,9 +205,49 @@ class NcnnRuntime {
     if (abi == Abi.linuxX64 || abi == Abi.linuxArm64) {
       return DynamicLibrary.open(_pluginPath('libhuji_ncnn_plugin.so'));
     }
-    // iOS/macOS: statically registered via podspec (symbols in the app
+    if (abi == Abi.macosX64 || abi == Abi.macosArm64) {
+      // Test VM: the hn_* symbols are not in this process — they are
+      // statically linked into the built app. Pin the app bundle's
+      // Contents/MacOS dir via the usual override/env/marker chain and
+      // open the debug dylib by absolute path.
+      final dir = _resolveLibDir();
+      if (dir != null && dir.isNotEmpty) {
+        final lib = _findPluginLibraryIn(dir);
+        if (lib != null) {
+          _ensureMacosFrameworksRpath(dir);
+          return DynamicLibrary.open(lib);
+        }
+      }
+      // Production: statically registered via podspec (symbols in the app
+      // binary — DynamicLibrary.process()).
+      return DynamicLibrary.process();
+    }
+    // iOS: statically registered via podspec (symbols in the app
     // binary — DynamicLibrary.process()).
     return DynamicLibrary.process();
+  }
+
+  /// The app's debug dylib resolves its @rpath dependencies through
+  /// `@loader_path/Frameworks`, but Xcode places frameworks one level up
+  /// (`Contents/Frameworks`); the app's own launcher reaches them via
+  /// `@executable_path/../Frameworks` instead. When the dylib is opened
+  /// from outside the app (test VM), that rpath misses — create the
+  /// missing `<MacosDir>/Frameworks -> ../Frameworks` symlink so dyld
+  /// finds them. Best-effort; an existing entry is never touched.
+  static void _ensureMacosFrameworksRpath(String macosDir) {
+    try {
+      final link = Link('$macosDir${Platform.pathSeparator}Frameworks');
+      if (link.existsSync()) return;
+      final frameworks = Directory(
+        '$macosDir${Platform.pathSeparator}..'
+        '${Platform.pathSeparator}Frameworks',
+      );
+      if (!frameworks.existsSync()) return;
+      link.createSync('../Frameworks');
+    } catch (_) {
+      // Best effort — failure surfaces as a dlopen error with dyld's full
+      // candidate list, which is more actionable than this context.
+    }
   }
 
   /// Windows Intel Arc workaround: some Intel iGPU drivers crash ncnn's

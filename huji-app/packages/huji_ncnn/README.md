@@ -15,7 +15,23 @@ Apple via MoltenVK discovery / Android), with automatic CPU fallback.
   bundles `libncnn`/`ncnn.dll`
 - `android/` — Gradle + CMake; links static ncnn android-vulkan per ABI
 - `ios|macos/` — CocoaPods; vendors ncnn apple/ios vulkan frameworks via
-  `prepare_command`
+  `prepare_command`. Apple-platform details:
+  - `macos/src/` and `ios/src/` are real directories containing **symlinks**
+    to the shared sources in `src/` — CocoaPods file patterns cannot escape
+    the podspec directory, and its `**` glob does not descend into
+    symlinked directories, so individual files are linked instead.
+  - ncnn's apple/ios-vulkan builds are **static** frameworks that reference
+    the Vulkan loader symbol `vkGetInstanceProcAddr`. Xcode no longer
+    bundles MoltenVK, so the podspecs also vendor the dynamic
+    `MoltenVK.xcframework` (auto-embedded into the app bundle by CocoaPods).
+  - `src/huji_ncnn_link_anchor.m` is an ObjC `+load` anchor that references
+    every `hn_*` entry point. This is a pure-FFI pod — nothing references
+    them from native code — so without the anchor the linker would never
+    pull the shim out of the static archive (and dead-code-stripping would
+    drop it even if it did). `-force_load` is not usable because
+    CocoaPods' global `-ObjC` flag would double-load the generated dummy
+    ObjC member; `-Wl,-exported_symbol` breaks the Xcode 16 debug-dylib
+    stub launcher.
 
 ## Regenerating bindings
 

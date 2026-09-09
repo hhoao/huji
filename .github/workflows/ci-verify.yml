@@ -105,10 +105,18 @@ jobs:
         if: matrix.platform == 'linux'
         run: sudo apt-get install -y ffmpeg
 
+      - name: Install ffmpeg (macOS integration tests)
+        if: matrix.platform == 'macos'
+        run: brew install ffmpeg
+
       - name: Build linux debug (ncnn plugin for integration tests)
         if: matrix.platform == 'linux'
         run: flutter build linux --debug
 
+      - name: Build macos debug (ncnn plugin for integration tests)
+        if: matrix.platform == 'macos'
+        run: flutter build macos --debug
+
       - name: Integration tests (CPU fallback — no GPU on runners)
-        if: matrix.platform == 'linux'
+        if: matrix.platform == 'linux' || matrix.platform == 'macos'
         run: flutter test --tags integration

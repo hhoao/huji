@@ -16,22 +16,15 @@ PODS:
     - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
-  - flutter_onnxruntime (0.0.1):
-    - FlutterMacOS
-    - onnxruntime-objc (= 1.23.0)
   - FlutterMacOS (1.0.0)
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
+  - huji_ncnn (1.0.0)
   - media_kit_libs_macos_video (1.0.4):
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
-  - onnxruntime-c (1.23.0)
-  - onnxruntime-objc (1.23.0):
-    - onnxruntime-objc/Core (= 1.23.0)
-  - onnxruntime-objc/Core (1.23.0):
-    - onnxruntime-c (= 1.23.0)
   - open_file_mac (1.0.3):
     - FlutterMacOS
   - package_info_plus (0.0.1):
@@ -90,9 +83,9 @@ DEPENDENCIES:
   - file_selector_macos (from `Flutter/ephemeral/.symlinks/plugins/file_selector_macos/macos`)
   - flutter_image_compress_macos (from `Flutter/ephemeral/.symlinks/plugins/flutter_image_compress_macos/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
-  - flutter_onnxruntime (from `Flutter/ephemeral/.symlinks/plugins/flutter_onnxruntime/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
+  - huji_ncnn (from `Flutter/ephemeral/.symlinks/plugins/huji_ncnn/macos`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
   - open_file_mac (from `Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos`)
@@ -109,8 +102,6 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
-    - onnxruntime-c
-    - onnxruntime-objc
     - sqlite3
 
 EXTERNAL SOURCES:
@@ -128,12 +119,12 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_image_compress_macos/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
-  flutter_onnxruntime:
-    :path: Flutter/ephemeral/.symlinks/plugins/flutter_onnxruntime/macos
   FlutterMacOS:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
+  huji_ncnn:
+    :path: Flutter/ephemeral/.symlinks/plugins/huji_ncnn/macos
   media_kit_libs_macos_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos
   media_kit_video:
@@ -169,13 +160,11 @@ SPEC CHECKSUMS:
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   flutter_image_compress_macos: c0dde59064e5c7f30e021637aaa02dd186d9dc12
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
-  flutter_onnxruntime: 611015dfe5ff013ec4f657c18df11f3da78c77f5
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
+  huji_ncnn: c18e138c4f33130f81cf2c6a0f8de76c63dc5911
   media_kit_libs_macos_video: b3e2bbec2eef97c285f2b1baa7963c67c753fb82
   media_kit_video: c75b07f14d59706c775778e4dd47dd027de8d1e5
-  onnxruntime-c: 3174c63a963d9abbc2bf9627e3d622819c0ed5f7
-  onnxruntime-objc: 1254d12f8160e562e7693ff17f5aa3dd17dc409e
   open_file_mac: 4de820e1d27310e4d947a59f6d7f9b876af405fb
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b
   photo_manager: 3d7c9d321e7bfeb8630ddcbf02cd3f0ff82deaaf

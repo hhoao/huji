@@ -27,8 +27,14 @@ class PlatformCapability {
   /// FFmpegKit Flutter plugin (Android/iOS/macOS). Linux/Windows desktop use
   /// the bundled static ffmpeg binary instead (no ffmpegkit native layer on
   /// those platforms for the pinned 4.3.2 version).
+  ///
+  /// Test VM (`flutter test`): macOS reports false as well — the test VM
+  /// has no FFmpegKit platform channel, so the PATH-ffmpeg fallback keeps
+  /// desktop integration tests working with a plain `ffmpeg` binary (same
+  /// convention as GpuDeviceSelector's FLUTTER_TEST probe guard).
   static bool get supportsFFmpegKit =>
-      Platform.isAndroid || Platform.isIOS || Platform.isMacOS;
+      (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) &&
+      Platform.environment['FLUTTER_TEST'] != 'true';
 
   /// Native video trimmer plugin (Android/iOS). Desktop falls back to ffmpeg.
   static bool get supportsNativeTrimmer => Platform.isAndroid || Platform.isIOS;
