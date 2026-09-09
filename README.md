@@ -169,6 +169,18 @@ python main.py --video-path videos\demo.mp4 --sport ping_pong
 <p align="left">
   <img src="assets/qq-group-qrcode.png" alt="QQ 群二维码" width="220"/>
 </p>
+
+## 赞赏
+
+如果弧迹对你有帮助，欢迎请作者喝杯咖啡 ☕️
+
+- **Ko-fi**：<https://ko-fi.com/xianxing>
+- **微信赞赏码**：
+
+<p align="left">
+  <img src="assets/wechat-donation-qrcode.png" alt="微信赞赏码" width="220"/>
+</p>
+
 ## License
 
 [GNU Affero General Public License v3.0](LICENSE)

@@ -168,6 +168,17 @@ More details: [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
   <img src="assets/qq-group-qrcode.png" alt="QQ Group QR code" width="220"/>
 </p>
 
+## Donate
+
+If Huji helps you, consider buying the author a coffee ☕️
+
+- **Ko-fi**: <https://ko-fi.com/xianxing>
+- **WeChat**: scan the QR code below
+
+<p align="left">
+  <img src="assets/wechat-donation-qrcode.png" alt="WeChat donation QR code" width="220"/>
+</p>
+
 ## License
 
 [GNU Affero General Public License v3.0](LICENSE)
