@@ -29,8 +29,13 @@ Future<void> main() async {
     exit(1);
   }
 
+  // On Windows the SDK launcher is flutter.bat — dart:io's Process.run does
+  // not resolve .bat shims (CreateProcess behavior). dart.exe is a real
+  // executable and needs no special-casing.
+  final flutter = Platform.isWindows ? 'flutter.bat' : 'flutter';
+
   print('Rendering master icon from SVG…');
-  await _run('flutter', ['test', _generatorTest]);
+  await _run(flutter, ['test', _generatorTest]);
 
   print('Running flutter_launcher_icons…');
   await _run('dart', ['run', 'flutter_launcher_icons']);
@@ -43,7 +48,15 @@ Future<void> main() async {
 }
 
 Future<void> _run(String executable, List<String> args) async {
-  final result = await Process.run(executable, args);
+  final ProcessResult result;
+  try {
+    result = await Process.run(executable, args);
+  } on ProcessException catch (e) {
+    stderr.writeln(
+        "'$executable' not found on PATH — install Flutter and ensure "
+        'flutter/dart are on PATH. ($e)');
+    exit(1);
+  }
   stdout.write(result.stdout);
   stderr.write(result.stderr);
   if (result.exitCode != 0) {

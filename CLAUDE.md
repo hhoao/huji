@@ -50,8 +50,9 @@ Windows/Android).
 
 ## App Icons
 
-All launcher icons (Android/iOS/Web/Windows/macOS + Linux bundle + AppImage)
-are generated from `assets/svg/logo_no_font.svg` via a single command:
+All launcher icons (Android/iOS/Web/Windows/macOS + AppImage, plus a
+staged Linux bundle icon) are generated from
+`assets/svg/logo_no_font.svg` via a single command:
 
 ```bash
 cd huji-app
@@ -59,10 +60,12 @@ dart run tool/sync_app_icons.dart
 ```
 
 Outputs are committed (1024px master `assets/icons/logo_bg_1024.png`,
-`scripts/appimage/huji.png`, `linux/runner/resources/app_icon.png`, and the
-platform icon sets). Re-run it after changing the vector logo, then commit
-the regenerated files. Composition lives in
-`test/tools/generate_app_icon_test.dart` (`_logoScale`).
+`scripts/appimage/huji.png`, and the platform icon sets). Note:
+`linux/runner/resources/app_icon.png` is staged for future Linux bundle
+packaging — no build consumes it yet (the deb uses make_config.yaml and
+the AppImage uses scripts/appimage/huji.png). Re-run the tool after
+changing the vector logo, then commit the regenerated files. Composition
+lives in `test/tools/generate_app_icon_test.dart` (`_logoScale`).
 
 ## Architecture
 

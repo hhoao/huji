@@ -13,6 +13,7 @@
 // platform icons.
 
 import 'dart:io';
+import 'dart:typed_data';
 import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
@@ -47,6 +48,11 @@ Future<ui.Image> _renderIcon(
   // `tester.runAsync` — inside the test's fake-async zone those futures
   // never complete and the test hangs at teardown.
   final svg = await tester.runAsync(() => rootBundle.loadString(_sourceSvg));
+  expect(
+    svg,
+    isNotNull,
+    reason: '$_sourceSvg missing from the asset bundle',
+  );
 
   final key = GlobalKey();
   await tester.pumpWidget(
@@ -91,12 +97,21 @@ Future<void> _writePng(WidgetTester tester, ui.Image image, String path) async {
   final data = await tester.runAsync(
     () => image.toByteData(format: ui.ImageByteFormat.png),
   );
+  expect(
+    data,
+    isNotNull,
+    reason: 'PNG encode of the rendered icon failed',
+  );
   await tester.runAsync(() async {
     final file = File(path);
     await file.parent.create(recursive: true);
     await file.writeAsBytes(data!.buffer.asUint8List());
   });
 }
+
+/// Alpha channel of the (x, y) pixel of a rawRgba byte buffer.
+int _alphaAt(Uint8List rgba, int width, int x, int y) =>
+    rgba[(y * width + x) * 4 + 3];
 
 void main() {
   testWidgets('generate 1024px master icon', (tester) async {
@@ -120,6 +135,23 @@ void main() {
     );
     expect(image.width, 256);
     expect(image.height, 256);
+
+    // Self-guard the rounded-corner geometry: corners transparent, center
+    // and edge midpoints opaque (guards against ClipRRect regressions).
+    // (2, 2) is outside the 48px corner arc; (128, 2) / (128, 128) sit in
+    // the opaque body.
+    final rgba = await tester.runAsync(
+      () => image.toByteData(format: ui.ImageByteFormat.rawRgba),
+    );
+    expect(rgba, isNotNull, reason: 'rawRgba decode of the icon failed');
+    final pixels = rgba!.buffer.asUint8List();
+    expect(_alphaAt(pixels, image.width, 2, 2), 0,
+        reason: 'corner pixel must be transparent (ClipRRect)');
+    expect(_alphaAt(pixels, image.width, 128, 2), 255,
+        reason: 'top edge midpoint must be opaque');
+    expect(_alphaAt(pixels, image.width, 128, 128), 255,
+        reason: 'center pixel must be opaque');
+
     await _writePng(tester, image, _appimageIcon);
   });
 }
