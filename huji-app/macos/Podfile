@@ -39,4 +39,25 @@ post_install do |installer|
   installer.pods_project.targets.each do |target|
     flutter_additional_macos_build_settings(target)
   end
+
+  # ffmpeg_kit_flutter_new vendors prebuilt ffmpeg frameworks (the
+  # ffmpeg-kit-macos-full-gpl-8.0.0 zip its prepare_command downloads). Their
+  # arm64 slices were linked on a machine with homebrew zlib and load
+  # /opt/homebrew/opt/zlib/lib/libz.1.dylib — a path that only exists where
+  # `brew install zlib` ran. CI runners and end-user Macs don't have it, so
+  # dyld fails to load the app binary (and any FFI dlopen of it) at runtime.
+  # Rewrite the reference to the system libz every macOS install ships.
+  pub_cache = ENV['PUB_CACHE'] || File.expand_path('~/.pub-cache')
+  ffmpeg_kit_framework_dirs = Dir.glob(
+    File.join(pub_cache, 'hosted', '*', 'ffmpeg_kit_flutter_new-*', 'macos', 'Frameworks')
+  )
+  ffmpeg_kit_framework_dirs.each do |dir|
+    Dir.glob(File.join(dir, '*.framework', 'Versions', 'A', '*')).each do |binary|
+      next unless File.file?(binary)
+      ok = system('install_name_tool', '-change',
+                  '/opt/homebrew/opt/zlib/lib/libz.1.dylib',
+                  '/usr/lib/libz.1.dylib', binary)
+      UI.warn "huji: libz rewrite failed for #{binary}" unless ok
+    end
+  end
 end
