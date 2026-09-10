@@ -144,10 +144,12 @@ class _AuthApi implements AuthApi {
   }
 
   @override
-  Future<String> socialAuthRedirect(SocialAuthRedirectParams params) async {
+  Future<String> socialAuthRedirect(int type, String redirectUri) async {
     final _extra = <String, dynamic>{};
-    final queryParameters = <String, dynamic>{};
-    queryParameters.addAll(params.toJson());
+    final queryParameters = <String, dynamic>{
+      r'type': type,
+      r'redirectUri': redirectUri,
+    };
     final _headers = <String, dynamic>{};
     const Map<String, dynamic>? _data = null;
     final _options = _setStreamType<String>(

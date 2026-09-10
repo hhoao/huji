@@ -7,6 +7,7 @@ import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
+import 'package:huji_app/services/auth/oauth_callback.dart';
 
 class UserService {
   static final Dio _dio = Dio();
@@ -91,10 +92,10 @@ class UserService {
     final authToken = await ApiManager.instance.authApi.login(
       loginPasswordParams,
     );
-    return _afterLogin(authToken);
+    return completeLogin(authToken);
   }
 
-  static Future<LoginResult> _afterLogin(AppAuthLoginRespVO authToken) async {
+  static Future<LoginResult> completeLogin(AppAuthLoginRespVO authToken) async {
     await UserStore.saveTokenToStorage(authToken);
 
     // 获取用户信息
@@ -120,7 +121,22 @@ class UserService {
       loginAuthCodeParams,
     );
 
-    return _afterLogin(authToken);
+    return completeLogin(authToken);
+  }
+
+  // GitHub 社交登录（code 为 GitHub 授权码，state 为授权 URL 携带的状态）
+  static Future<LoginResult> loginWithGithub({
+    required String code,
+    required String state,
+  }) async {
+    final authToken = await ApiManager.instance.authApi.socialLogin(
+      SocialLoginParams(
+        socialType: GithubOAuthConfig.socialType,
+        code: code,
+        state: state,
+      ),
+    );
+    return completeLogin(authToken);
   }
 
   // 发送验证码

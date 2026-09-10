@@ -141,19 +141,6 @@ class LogoutParams {
   Map<String, dynamic> toJson() => _$LogoutParamsToJson(this);
 }
 
-// 社交授权跳转参数
-@JsonSerializable()
-class SocialAuthRedirectParams {
-  final int socialType;
-  final String? redirectUri;
-
-  SocialAuthRedirectParams({required this.socialType, this.redirectUri});
-
-  factory SocialAuthRedirectParams.fromJson(Map<String, dynamic> json) =>
-      _$SocialAuthRedirectParamsFromJson(json);
-  Map<String, dynamic> toJson() => _$SocialAuthRedirectParamsToJson(this);
-}
-
 // 社交登录参数
 @JsonSerializable()
 class SocialLoginParams {

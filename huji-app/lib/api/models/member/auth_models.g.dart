@@ -124,20 +124,6 @@ LogoutParams _$LogoutParamsFromJson(Map<String, dynamic> json) =>
 Map<String, dynamic> _$LogoutParamsToJson(LogoutParams instance) =>
     <String, dynamic>{'refreshToken': instance.refreshToken};
 
-SocialAuthRedirectParams _$SocialAuthRedirectParamsFromJson(
-  Map<String, dynamic> json,
-) => SocialAuthRedirectParams(
-  socialType: (json['socialType'] as num).toInt(),
-  redirectUri: json['redirectUri'] as String?,
-);
-
-Map<String, dynamic> _$SocialAuthRedirectParamsToJson(
-  SocialAuthRedirectParams instance,
-) => <String, dynamic>{
-  'socialType': instance.socialType,
-  'redirectUri': instance.redirectUri,
-};
-
 SocialLoginParams _$SocialLoginParamsFromJson(Map<String, dynamic> json) =>
     SocialLoginParams(
       socialType: (json['socialType'] as num).toInt(),

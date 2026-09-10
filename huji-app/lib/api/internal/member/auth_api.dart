@@ -34,7 +34,10 @@ abstract class AuthApi {
 
   // 社交授权跳转
   @GET('/member/auth/social-auth-redirect')
-  Future<String> socialAuthRedirect(@Queries() SocialAuthRedirectParams params);
+  Future<String> socialAuthRedirect(
+    @Query('type') int type,
+    @Query('redirectUri') String redirectUri,
+  );
 
   // 社交登录
   @POST('/member/auth/social-login')
