@@ -52,23 +52,6 @@ class GpuDeviceSelector {
   static List<NcnnGpuDevice> get _hardwareDevices =>
       devices.where((d) => d.type != 3).toList();
 
-  /// Best device for inference — discrete GPUs first, then by score.
-  /// Returns null when only software devices exist: callers then use
-  /// ncnn's CPU path, which beats Vulkan-over-llvmpipe.
-  static NcnnGpuDevice? get bestDevice {
-    final list = _hardwareDevices;
-    if (list.isEmpty) return null;
-    final sorted = [...list]..sort((a, b) {
-        // Discrete (type 0) beats everything else; then rough_score.
-        final aDiscrete = a.isDiscrete ? 1 : 0;
-        final bDiscrete = b.isDiscrete ? 1 : 0;
-        final cmp = bDiscrete.compareTo(aDiscrete);
-        if (cmp != 0) return cmp;
-        return b.score.compareTo(a.score);
-      });
-    return sorted.first;
-  }
-
   /// True when a hardware GPU is available (accelerated inference).
   static bool get hasAccelerator => _hardwareDevices.isNotEmpty;
 }
