@@ -1,5 +1,12 @@
 # Huji Development Notes
 
+## GitHub OAuth 登录
+
+社交登录 socialType=40（GitHub）。服务端凭据经环境变量
+`GITHUB_OAUTH_CLIENT_ID`/`GITHUB_OAUTH_CLIENT_SECRET` 注入；回调中转页为
+web-front `/oauth/github/callback`；app 端 deep link scheme 为 `huji`，
+桌面端走 loopback（`huji-app/lib/services/auth/oauth_callback.dart`）。
+
 ## Desktop Linux Build Dependencies
 
 ```bash
