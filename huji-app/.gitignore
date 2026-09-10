@@ -64,3 +64,4 @@ scripts/onnxruntime_gpu_env.sh
 
 # fastforge package output (DMG/MSIX/deb…)
 /dist/
+Microsoft/

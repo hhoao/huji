@@ -1,5 +1,7 @@
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
+
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
@@ -33,8 +35,10 @@ class VideoExportTaskManager extends AbstractTaskManager {
   @override
   Future<void> processTask(Task task) async {
     final exportTask = task as VideoExportTask;
+    // p.join uses the platform separator — a hardcoded '/' here stores
+    // mixed-separator paths on Windows and breaks library lookups.
     final outputPath =
-        '${exportTask.savePath}/${exportTask.fileName}.mp4';
+        p.join(exportTask.savePath, '${exportTask.fileName}.mp4');
     try {
       await runConcatVideoExport(
         videoPath: exportTask.videoPath,

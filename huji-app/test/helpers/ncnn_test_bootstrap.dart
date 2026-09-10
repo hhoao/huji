@@ -32,13 +32,18 @@ Future<void> bootstrapNcnnLibrary() async {
   if (_bootstrapped) return;
 
   final appRoot = findAppRoot();
+  // Layout differs by platform:
+  //   Linux:   build/linux/x64/<config>/plugins/huji_ncnn/ (config in path)
+  //   Windows: build/windows/x64/plugins/huji_ncnn/<Config>/ (config last)
   final candidates = <String>[
     p.join(appRoot.path, 'build', 'linux', 'x64', 'debug',
         'plugins', 'huji_ncnn'),
     p.join(appRoot.path, 'build', 'linux', 'x64', 'release',
         'plugins', 'huji_ncnn'),
-    p.join(appRoot.path, 'build', 'windows', 'x64', 'Debug',
-        'plugins', 'huji_ncnn'),
+    p.join(appRoot.path, 'build', 'windows', 'x64', 'plugins',
+        'huji_ncnn', 'Debug'),
+    p.join(appRoot.path, 'build', 'windows', 'x64', 'plugins',
+        'huji_ncnn', 'Release'),
     ..._macosCandidates(appRoot.path),
   ];
 

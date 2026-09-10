@@ -480,8 +480,8 @@ void CloseSplashWindowSlideDownFade() {
 // Overlay mode
 // ---------------------------------------------------------------------------
 // Paints the splash bitmap into the app's own window (over the Flutter view)
-// instead of a separate top-level window. The baked image is the full splash
-// (background + centered logo) and opaque, so it covers the client area.
+// instead of a separate top-level window. Stretch to the client: the baked
+// image is logical 1280x800, the HWND client is physical pixels.
 
 static LRESULT CALLBACK OverlayWndProc(HWND hwnd,
                                        UINT uMsg,
@@ -493,22 +493,14 @@ static LRESULT CALLBACK OverlayWndProc(HWND hwnd,
       HDC hdc = BeginPaint(hwnd, &ps);
       RECT rc;
       GetClientRect(hwnd, &rc);
-      // Opaque white cover so the Flutter view never peeks through gutters
-      // when the baked image is smaller than the (DPI-scaled) client area.
-      HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
-      FillRect(hdc, &rc, brush);
-      DeleteObject(brush);
       if (g_overlay_bitmap) {
         HDC hdcMem = CreateCompatibleDC(hdc);
         HBITMAP old = (HBITMAP)SelectObject(hdcMem, g_overlay_bitmap);
-        int x = (rc.right - rc.left - native_splash_screen_image_width) / 2;
-        int y = (rc.bottom - rc.top - native_splash_screen_image_height) / 2;
-        if (x < 0)
-          x = 0;
-        if (y < 0)
-          y = 0;
-        BitBlt(hdc, x, y, native_splash_screen_image_width,
-               native_splash_screen_image_height, hdcMem, 0, 0, SRCCOPY);
+        SetStretchBltMode(hdc, HALFTONE);
+        SetBrushOrgEx(hdc, 0, 0, nullptr);
+        StretchBlt(hdc, 0, 0, rc.right - rc.left, rc.bottom - rc.top, hdcMem, 0,
+                   0, native_splash_screen_image_width,
+                   native_splash_screen_image_height, SRCCOPY);
         SelectObject(hdcMem, old);
         DeleteDC(hdcMem);
       }

@@ -11,11 +11,19 @@ class DesktopFFmpegRunner implements FFmpegRunner {
   ///
   /// Order:
   /// 1. `HUJI_FFMPEG_PATH` env (for tests/dev)
-  /// 2. AppDir-relative path (when running from AppImage, $APPDIR/usr/bin/ffmpeg)
-  /// 3. Fall back to `ffmpeg` on PATH (development on dev machine)
+  /// 2. Next to the app exe (bundled static ffmpeg — release packages)
+  /// 3. AppDir-relative path (when running from AppImage, $APPDIR/usr/bin/ffmpeg)
+  /// 4. Fall back to `ffmpeg` on PATH (development on dev machine)
   String _resolveFFmpegPath() {
     final fromEnv = Platform.environment['HUJI_FFMPEG_PATH'];
     if (fromEnv != null && fromEnv.isNotEmpty) return fromEnv;
+
+    // Release packages bundle a static ffmpeg.exe next to the app binary.
+    if (Platform.isWindows) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      final local = '$exeDir\\ffmpeg.exe';
+      if (File(local).existsSync()) return local;
+    }
 
     final appDir = Platform.environment['APPDIR'];
     if (appDir != null && appDir.isNotEmpty) {
@@ -66,6 +74,13 @@ class DesktopFFmpegRunner implements FFmpegRunner {
   String _resolveFFprobePath() {
     final fromEnv = Platform.environment['HUJI_FFPROBE_PATH'];
     if (fromEnv != null && fromEnv.isNotEmpty) return fromEnv;
+
+    // Bundled static ffprobe next to the app exe (release packages).
+    if (Platform.isWindows) {
+      final exeDir = File(Platform.resolvedExecutable).parent.path;
+      final local = '$exeDir\\ffprobe.exe';
+      if (File(local).existsSync()) return local;
+    }
 
     final appDir = Platform.environment['APPDIR'];
     if (appDir != null && appDir.isNotEmpty) {
