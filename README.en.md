@@ -1,7 +1,7 @@
 # Huji (弧迹)
 
 <p align="center">
-  <img src="huji-app/assets/svg/logo_pure.svg" alt="Huji" width="200"/>
+  <img src="huji-app/assets/svg/logo_pure.svg" alt="Huji" width="150"/>
 </p>
 
 <p align="center">
@@ -172,12 +172,8 @@ More details: [huji-algorithm/README.en.md](huji-algorithm/README.en.md).
 
 If Huji helps you, consider buying the author a coffee ☕️
 
-- **Ko-fi**: <https://ko-fi.com/hhoao>
-- **WeChat**: scan the QR code below
-
-<p align="left">
-  <img src="assets/wechat-donation-qrcode.png" alt="WeChat donation QR code" width="220"/>
-</p>
+<img src="assets/wechat-donation-qrcode.png" alt="微信赞赏码" width="220"/>
+<a href="https://ko-fi.com/hhoao"><img height="64" alt="Support HuJi on Ko-fi" src="https://storage.ko-fi.com/cdn/kofi3.png?v=6"></a>
 
 ## License
 
