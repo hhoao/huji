@@ -618,34 +618,50 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.roundCountLabel,
-                style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+              Flexible(
+                child: Text(
+                  l10n.roundCountLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+                ),
               ),
-              Text(
-                l10n.roundCountDurationSummary(segCount, durationStr),
-                style: styles.sm.copyWith(
-                  color: cs.primary,
-                  fontWeight: FontWeight.w600,
+              SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  l10n.roundCountDurationSummary(segCount, durationStr),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.sm.copyWith(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
           ),
           SizedBox(height: 4),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                l10n.outputQualityLabel,
-                style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+              Flexible(
+                child: Text(
+                  l10n.outputQualityLabel,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.sm.copyWith(color: cs.onSurfaceVariant),
+                ),
               ),
-              Text(
-                _qualityLabel(l10n),
-                style: styles.sm.copyWith(
-                  color: cs.primary,
-                  fontWeight: FontWeight.w600,
+              SizedBox(width: 12),
+              Flexible(
+                child: Text(
+                  _qualityLabel(l10n),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.sm.copyWith(
+                    color: cs.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -855,8 +871,11 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                                   Positioned(
                                     top: 4,
                                     left: 4,
+                                    right: 4,
                                     child: Text(
                                       l10n.playingNow,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
                                       style: styles.xs.copyWith(
                                         color: cs.onSurface,
                                       ),
@@ -871,18 +890,27 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
                             vertical: 5,
                           ),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                startStr,
-                                style: styles.xs.copyWith(
-                                  color: cs.onSurfaceVariant,
+                              Flexible(
+                                child: Text(
+                                  startStr,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: styles.xs.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
-                              Text(
-                                durStr,
-                                style: styles.xs.copyWith(
-                                  color: cs.onSurfaceVariant,
+                              SizedBox(width: 8),
+                              Flexible(
+                                child: Text(
+                                  durStr,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.right,
+                                  style: styles.xs.copyWith(
+                                    color: cs.onSurfaceVariant,
+                                  ),
                                 ),
                               ),
                             ],
@@ -905,11 +933,9 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     final l10n = context.hujiL10n;
     final segCount = _segments.length;
     final durationStr = _formatSeconds(_totalDuration);
-    return Row(children: [
+    return Wrap(spacing: 24, runSpacing: 8, children: [
       _SummaryStat(num: '$segCount', label: l10n.roundCountUnit),
-      SizedBox(width: 24),
       _SummaryStat(num: durationStr, label: l10n.totalDurationLabel),
-      SizedBox(width: 24),
       _SummaryStat(num: _qualityLabel(l10n), label: l10n.outputQualityLabel),
     ]);
   }
@@ -1014,10 +1040,25 @@ class _RadioOption extends StatelessWidget {
                   : null,
             ),
             SizedBox(width: 10),
-            Text(label, style: styles.md.copyWith(color: cs.onSurface)),
-            const Spacer(),
-            if (meta != null)
-              Text(meta!, style: styles.xs.copyWith(color: cs.outline)),
+            Expanded(
+              child: Text(
+                label,
+                style: styles.md.copyWith(color: cs.onSurface),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            if (meta != null) ...[
+              SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  meta!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: styles.xs.copyWith(color: cs.outline),
+                ),
+              ),
+            ],
           ],
         ),
       ),
