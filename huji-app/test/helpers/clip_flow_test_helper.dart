@@ -67,10 +67,17 @@ class ClipFlowTestHelper {
   }
 
   /// Mirrors [DesktopClipConfigPage._startLocalDetection] without UI dependencies.
-  static Future<String> startLocalClipFromDemo(DemoVideo demo) async {
+  ///
+  /// [clipConfig] overrides the demo's default config — used to force
+  /// pipeline outcomes (e.g. an impossible minimum segment duration to
+  /// trigger the "no valid segments" failure path).
+  static Future<String> startLocalClipFromDemo(
+    DemoVideo demo, {
+    VideoClipConfigReqVo? clipConfig,
+  }) async {
     final file = await DemoVideoService.materialize(demo);
     final sportType = _sportTypeForDemo(demo);
-    final clipConfig = _clipConfigForDemo(demo);
+    final effectiveClipConfig = clipConfig ?? _clipConfigForDemo(demo);
     final taskStorage = TaskStorage();
     final now = DateTime.now().millisecondsSinceEpoch;
     final fileName = p.basename(file.path);
@@ -82,7 +89,7 @@ class ClipFlowTestHelper {
       outputPath: '',
       autoDownload: false,
       sportType: sportType,
-      clipConfig: clipConfig,
+      clipConfig: effectiveClipConfig,
       createdAt: now,
       status: TaskStatusEnum.pending,
     );
@@ -95,7 +102,7 @@ class ClipFlowTestHelper {
       sportType: sportType,
       filePath: file.path,
       clipMode: ClipMode.existingVideo,
-      videoClipConfigReqVo: clipConfig,
+      videoClipConfigReqVo: effectiveClipConfig,
       taskId: task.id,
     ));
 
@@ -114,7 +121,7 @@ class ClipFlowTestHelper {
     unawaited(
       LocalDetectionService.runInferenceAsync(
         videoPath: file.path,
-        clipConfig: clipConfig,
+        clipConfig: effectiveClipConfig,
         sportTypeKey: demo.sportTypeKey,
         matchType: demo.matchType,
         onProgress: (progress, message) {

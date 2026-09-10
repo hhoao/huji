@@ -27,7 +27,15 @@ class LocalDetectionIsolateRunner {
     }
 
     final receivePort = ReceivePort();
+    final errorPort = ReceivePort();
+    final exitPort = ReceivePort();
     final completer = Completer<LocalDetectionResult>();
+
+    void settlePorts() {
+      receivePort.close();
+      errorPort.close();
+      exitPort.close();
+    }
 
     await Isolate.spawn(
       _isolateEntry,
@@ -38,6 +46,11 @@ class LocalDetectionIsolateRunner {
         clipConfigJson: clipConfig.toJson(),
         inferenceSpecMessage: inferenceSpec.toIsolateMessage(),
       ),
+      // A dead worker must always settle the returned future, or the task
+      // stays "detecting" forever. Uncaught isolate errors arrive on
+      // [errorPort]; a hard exit without any reply arrives on [exitPort].
+      onError: errorPort.sendPort,
+      onExit: exitPort.sendPort,
     );
 
     var lastSentPercent = -1;
@@ -55,7 +68,7 @@ class LocalDetectionIsolateRunner {
             message['message'] as String? ?? '',
           );
         case 'done':
-          receivePort.close();
+          settlePorts();
           if (!completer.isCompleted) {
             completer.complete(
               LocalDetectionResult(
@@ -67,12 +80,33 @@ class LocalDetectionIsolateRunner {
             );
           }
         case 'error':
-          receivePort.close();
+          settlePorts();
           if (!completer.isCompleted) {
             completer.completeError(
               Exception(message['message'] as String? ?? 'Local detection failed'),
+              message['stackTrace'] is String
+                  ? StackTrace.fromString(message['stackTrace'] as String)
+                  : null,
             );
           }
+      }
+    });
+    errorPort.listen((message) {
+      settlePorts();
+      if (!completer.isCompleted) {
+        // [error, stackTrace] pair sent by the VM for uncaught isolate errors.
+        final parts = message is List && message.isNotEmpty ? message : null;
+        completer.completeError(
+          Exception('${parts?[0] ?? 'Local detection worker failed'}'),
+        );
+      }
+    });
+    exitPort.listen((_) {
+      settlePorts();
+      if (!completer.isCompleted) {
+        completer.completeError(
+          Exception('Local detection worker exited unexpectedly'),
+        );
       }
     });
 
@@ -135,7 +169,11 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
   } catch (e, stackTrace) {
     args.replyPort.send({
       'type': 'error',
-      'message': '$e\n$stackTrace',
+      // Keep the message free of the stack trace: it ends up rendered as
+      // the task status text in the UI. The trace rides along separately
+      // for the caller's logs.
+      'message': '$e',
+      'stackTrace': '$stackTrace',
     });
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/batch/badminton_batch_action_segment_detector.dart';
 import 'package:huji_app/core/batch/batch_action_segment_detector.dart';
@@ -48,10 +49,13 @@ class LocalDetectionService {
     String? matchType,
     ProgressHandler? progressHandler,
     ProgressCallback? onProgress,
+    @visibleForTesting
+    BatchActionSegmentDetector<VideoClipConfigReqVo>? detectorOverride,
   }) async {
     final stopwatch = Stopwatch()..start();
     final largeModelService = LargeModelService.instance;
-    final detector = _createDetector(clipConfig, largeModelService);
+    final detector =
+        detectorOverride ?? _createDetector(clipConfig, largeModelService);
     final completer = Completer<VideoClipOutputInfo>();
 
     final handler = progressHandler ??
@@ -82,17 +86,58 @@ class LocalDetectionService {
           sportType: sportTypeKey!,
           matchType: matchType!,
         );
-    await largeModelService.runWithInferenceSpec(
-      spec: spec,
-      action: runPipeline,
+
+    // Attach the result listener BEFORE the pipeline runs. The pipeline
+    // rethrows every failure after the detector already routed it through
+    // ProgressHandler.reportError into [completer]; if nothing listens on
+    // completer.future at propagation time, that error surfaces as an
+    // unhandled async error — which kills the worker isolate before its
+    // 'error' reply reaches the UI, leaving the task stuck at "detecting"
+    // forever.
+    final resultFuture = completer.future.then<LocalDetectionResult>((output) {
+      stopwatch.stop();
+      return LocalDetectionResult(
+        clipOutput: output,
+        processingTime: stopwatch.elapsed,
+      );
+    });
+
+    // The pipeline rethrows every failure after the detector already routed
+    // it through ProgressHandler.reportError into [completer]. Supervise it
+    // without gating [resultFuture] on it: every outcome must funnel into
+    // the completer, and the listener chain completer.future → resultFuture
+    // → the caller's await has to be fully attached before the pipeline
+    // starts — an error propagating across a gap (e.g. while this function
+    // is still awaiting the pipeline) surfaces as an unhandled async error,
+    // which kills the worker isolate before its 'error' reply reaches the
+    // UI and leaves the task stuck at "detecting" forever.
+    unawaited(
+      largeModelService
+          .runWithInferenceSpec(spec: spec, action: runPipeline)
+          .then<void>(
+            (_) {
+              // Finished without any handler report (e.g. an externally
+              // supplied progressHandler) — fail instead of hanging.
+              if (!completer.isCompleted) {
+                completer.completeError(
+                  StateError('Local detection finished without reporting a result'),
+                );
+              }
+            },
+            onError: (Object e, StackTrace st) {
+              // Only forward errors the handler never reported (e.g.
+              // VideoUtils.getVideoInfo failing before handleVideo runs).
+              if (!completer.isCompleted) {
+                completer.completeError(
+                  e is Exception ? e : Exception(e.toString()),
+                  st,
+                );
+              }
+            },
+          ),
     );
 
-    stopwatch.stop();
-    final output = await completer.future;
-    return LocalDetectionResult(
-      clipOutput: output,
-      processingTime: stopwatch.elapsed,
-    );
+    return resultFuture;
   }
 
   BatchActionSegmentDetector<VideoClipConfigReqVo> _createDetector(
