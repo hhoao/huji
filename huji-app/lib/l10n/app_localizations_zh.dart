@@ -1780,6 +1780,15 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get loginSocialLoginUnavailable => '该登录方式暂未开放';
 
   @override
+  String get loginGithubTimeout => '授权超时，请重试';
+
+  @override
+  String get loginGithubOpenFailed => '无法打开浏览器，请检查系统默认浏览器设置';
+
+  @override
+  String get loginGithubCancelled => 'GitHub 授权已取消';
+
+  @override
   String get loginRememberedPassword => '想起密码了？ ';
 
   @override

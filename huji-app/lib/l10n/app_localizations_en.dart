@@ -1826,6 +1826,16 @@ class HujiLocalizationsEn extends HujiLocalizations {
       'This sign-in method is not available yet';
 
   @override
+  String get loginGithubTimeout => 'Authorization timed out, please try again';
+
+  @override
+  String get loginGithubOpenFailed =>
+      'Could not open the browser, check your default browser settings';
+
+  @override
+  String get loginGithubCancelled => 'GitHub authorization was cancelled';
+
+  @override
   String get loginRememberedPassword => 'Remember your password? ';
 
   @override

@@ -3314,6 +3314,24 @@ abstract class HujiLocalizations {
   /// **'This sign-in method is not available yet'**
   String get loginSocialLoginUnavailable;
 
+  /// No description provided for @loginGithubTimeout.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorization timed out, please try again'**
+  String get loginGithubTimeout;
+
+  /// No description provided for @loginGithubOpenFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Could not open the browser, check your default browser settings'**
+  String get loginGithubOpenFailed;
+
+  /// No description provided for @loginGithubCancelled.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub authorization was cancelled'**
+  String get loginGithubCancelled;
+
   /// No description provided for @loginRememberedPassword.
   ///
   /// In en, this message translates to:
