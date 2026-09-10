@@ -163,6 +163,8 @@ class _LoginFormState extends State<LoginForm> {
         state: callback.state,
       );
 
+      // 授权流程可长达 5 分钟，期间用户可能已关闭登录框。
+      if (!mounted) return;
       if (context.mounted) {
         TpToast.show(
           context,
@@ -189,6 +191,14 @@ class _LoginFormState extends State<LoginForm> {
           context,
           message: context.hujiL10n.loginGithubTimeout,
           variant: TpToastVariant.warning,
+        );
+      }
+    } on GithubOAuthStateException {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginGithubStateMismatch,
+          variant: TpToastVariant.error,
         );
       }
     } on GithubOAuthException {

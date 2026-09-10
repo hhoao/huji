@@ -3305,7 +3305,7 @@ abstract class HujiLocalizations {
   /// No description provided for @loginSocialLoginDivider.
   ///
   /// In en, this message translates to:
-  /// **'Or sign in with (coming soon)'**
+  /// **'Or sign in with'**
   String get loginSocialLoginDivider;
 
   /// No description provided for @loginSocialLoginUnavailable.
@@ -3325,6 +3325,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Could not open the browser, check your default browser settings'**
   String get loginGithubOpenFailed;
+
+  /// No description provided for @loginGithubStateMismatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorization verification failed, please try again'**
+  String get loginGithubStateMismatch;
 
   /// No description provided for @loginGithubCancelled.
   ///

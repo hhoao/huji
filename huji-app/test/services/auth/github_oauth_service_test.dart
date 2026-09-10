@@ -5,12 +5,15 @@ import 'package:huji_app/services/auth/github_oauth_service.dart';
 import 'package:huji_app/services/auth/oauth_callback.dart';
 
 class _FakeGateway implements GithubOAuthGateway {
+  _FakeGateway({this.authorizeUrl = 'https://github.com/login/oauth/authorize?client_id=x'});
+
+  final String authorizeUrl;
   String? requestedRedirectUri;
 
   @override
   Future<String> getAuthorizeUrl(String redirectUri) async {
     requestedRedirectUri = redirectUri;
-    return 'https://github.com/login/oauth/authorize?client_id=x';
+    return authorizeUrl;
   }
 }
 
@@ -89,6 +92,47 @@ void main() {
     );
 
     await expectLater(service.authorize(), throwsA(isA<TimeoutException>()));
+    expect(capture.stopped, isTrue);
+  });
+
+  test('授权 URL 带 state 且回调 state 一致时正常返回', () async {
+    final capture = _FakeCapture();
+    final service = GithubOAuthService(
+      gateway: _FakeGateway(
+        authorizeUrl:
+            'https://github.com/login/oauth/authorize?client_id=x&state=expected-state',
+      ),
+      capture: capture,
+      timeout: const Duration(seconds: 5),
+      launch: (uri) async => true,
+    );
+
+    final future = service.authorize();
+    capture.deliver('the-code', 'expected-state');
+    final result = await future;
+
+    expect(result.code, 'the-code');
+    expect(result.state, 'expected-state');
+    expect(capture.stopped, isTrue);
+  });
+
+  test('回调 state 与授权 URL 不一致时抛异常并停止捕获层（登录 CSRF 防护）', () async {
+    final capture = _FakeCapture();
+    final service = GithubOAuthService(
+      gateway: _FakeGateway(
+        authorizeUrl:
+            'https://github.com/login/oauth/authorize?client_id=x&state=expected-state',
+      ),
+      capture: capture,
+      timeout: const Duration(seconds: 5),
+      launch: (uri) async => true,
+    );
+
+    final future = service.authorize();
+    // 攻击者注入的回调：code+state 在服务端合法，但 state 不是本次授权的
+    capture.deliver('attacker-code', 'attacker-state');
+
+    await expectLater(future, throwsA(isA<GithubOAuthStateException>()));
     expect(capture.stopped, isTrue);
   });
 }

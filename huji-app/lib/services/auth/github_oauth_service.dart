@@ -29,6 +29,11 @@ class GithubOAuthException implements Exception {
   String toString() => message;
 }
 
+/// 回调 state 与授权 URL 中的 state 不一致（疑似回调注入 / 登录 CSRF）。
+class GithubOAuthStateException extends GithubOAuthException {
+  const GithubOAuthStateException(super.message);
+}
+
 /// GitHub OAuth 授权流程：捕获回调并返回授权码。
 ///
 /// 登录/绑定的 API 调用由调用方（`UserService` / 绑定 UI）完成，
@@ -73,12 +78,28 @@ class GithubOAuthService {
       if (!launched) {
         throw const GithubOAuthException('无法打开浏览器');
       }
-      return await capture.callback.timeout(_timeout);
+      final callback = await capture.callback.timeout(_timeout);
+      _verifyState(callback, authorizeUrl);
+      return callback;
     } finally {
       await capture.stop();
       if (identical(_activeCapture, capture)) {
         _activeCapture = null;
       }
+    }
+  }
+
+  /// 客户端 state 绑定校验（登录 CSRF 防护）。
+  ///
+  /// `social-auth-redirect` 是 PermitAll：攻击者可为自己账号换取一份
+  /// 服务端合法的 code+state，再通过 `huji://` deep link 或扫描本机
+  /// loopback 端口注入回调。服务端 Redis 校验会通过（code+state 真实
+  /// 存在），因此这里额外要求回调 state 与授权 URL 中的一致。
+  /// 授权 URL 不带 state 时跳过（与 JustAuth 行为一致，兼容测试桩）。
+  void _verifyState(OAuthCallback callback, String authorizeUrl) {
+    final expectedState = Uri.parse(authorizeUrl).queryParameters['state'];
+    if (expectedState != null && callback.state != expectedState) {
+      throw const GithubOAuthStateException('授权校验失败，请重试');
     }
   }
 

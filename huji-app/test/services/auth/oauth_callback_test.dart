@@ -47,6 +47,38 @@ void main() {
         isNull,
       );
     });
+
+    test('非 huji scheme 且非 loopback host 的伪造回调返回 null', () {
+      // 任意网页都能打开的外部地址，不得当作回调接受
+      expect(
+        parseGithubCallback(
+          Uri.parse('https://evil.com/oauth/github?code=a&state=b'),
+        ),
+        isNull,
+      );
+      expect(
+        parseGithubCallback(
+          Uri.parse('http://evil.com:8080/oauth/github?code=a&state=b'),
+        ),
+        isNull,
+      );
+      // huji 形态的 deep link 但 scheme 不是 huji
+      expect(
+        parseGithubCallback(
+          Uri.parse('otherscheme://oauth/github?code=a&state=b'),
+        ),
+        isNull,
+      );
+    });
+
+    test('localhost loopback 回调被接受', () {
+      expect(
+        parseGithubCallback(
+          Uri.parse('http://localhost:54321/oauth/github?code=a&state=b'),
+        ),
+        isNotNull,
+      );
+    });
   });
 
   group('LoopbackCallbackCapture', () {

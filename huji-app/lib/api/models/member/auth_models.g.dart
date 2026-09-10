@@ -126,14 +126,14 @@ Map<String, dynamic> _$LogoutParamsToJson(LogoutParams instance) =>
 
 SocialLoginParams _$SocialLoginParamsFromJson(Map<String, dynamic> json) =>
     SocialLoginParams(
-      socialType: (json['socialType'] as num).toInt(),
+      socialType: (json['type'] as num).toInt(),
       code: json['code'] as String,
       state: json['state'] as String?,
     );
 
 Map<String, dynamic> _$SocialLoginParamsToJson(SocialLoginParams instance) =>
     <String, dynamic>{
-      'socialType': instance.socialType,
+      'type': instance.socialType,
       'code': instance.code,
       'state': instance.state,
     };

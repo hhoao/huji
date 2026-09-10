@@ -34,6 +34,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   bool _isObscure = true;
   SocialUserInfo? _githubBinding;
   bool _githubBusy = false;
+  GithubOAuthService? _githubOAuth;
   @override
   void initState() {
     super.initState();
@@ -50,6 +51,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     _confirmPasswordController.dispose();
     _codeController.dispose();
     _identifierController.dispose();
+    _githubOAuth?.abort();
     super.dispose();
   }
 
@@ -187,8 +189,10 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   Future<void> _handleGithubBind() async {
     if (_githubBusy) return;
     setState(() => _githubBusy = true);
+    final oauth = GithubOAuthService();
+    _githubOAuth = oauth;
     try {
-      final callback = await GithubOAuthService().authorize();
+      final callback = await oauth.authorize();
       await UserService.bindGithub(code: callback.code, state: callback.state);
       final info = await UserService.getGithubBinding();
       if (mounted) {
@@ -216,6 +220,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
         );
       }
     } finally {
+      _githubOAuth = null;
       if (mounted) {
         setState(() => _githubBusy = false);
       }

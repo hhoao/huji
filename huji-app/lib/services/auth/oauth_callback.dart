@@ -24,15 +24,24 @@ class GithubOAuthConfig {
 /// 识别 OAuth 回调 URI（deep link 或 loopback 请求均可）。
 ///
 /// 匹配 `huji://oauth/github?code=..&state=..` 与
-/// `http://127.0.0.1:<port>/oauth/github?code=..&state=..`。
+/// `http(s)://127.0.0.1:<port>/oauth/github?code=..&state=..`。
 ///
 /// 注意：`huji` 是非特殊 scheme，`Uri.parse('huji://oauth/github')` 会把
-/// `oauth` 解析为 host、`github` 为首段 path，因此两种形态都要兼容。
+/// `oauth` 解析为 host、`github` 为首段 path，因此两种形态分别校验。
+/// 只接受 `huji` scheme 与 loopback host，避免任意网页通过
+/// `https://evil.com/oauth/github?code=..&state=..` 注入伪造回调。
 OAuthCallback? parseGithubCallback(Uri uri) {
   final path = uri.pathSegments;
-  final isGithubPath =
-      (path.length >= 2 && path[0] == 'oauth' && path[1] == 'github') ||
-          (uri.host == 'oauth' && path.isNotEmpty && path.first == 'github');
+  final bool isGithubPath;
+  if (uri.scheme == 'huji') {
+    isGithubPath =
+        uri.host == 'oauth' && path.isNotEmpty && path.first == 'github';
+  } else if ((uri.host == '127.0.0.1' || uri.host == 'localhost') &&
+      (uri.scheme == 'http' || uri.scheme == 'https')) {
+    isGithubPath = path.length >= 2 && path[0] == 'oauth' && path[1] == 'github';
+  } else {
+    isGithubPath = false;
+  }
   if (!isGithubPath) {
     return null;
   }

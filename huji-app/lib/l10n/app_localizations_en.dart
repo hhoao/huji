@@ -1819,7 +1819,7 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get loginRememberPassword => 'Remember password';
 
   @override
-  String get loginSocialLoginDivider => 'Or sign in with (coming soon)';
+  String get loginSocialLoginDivider => 'Or sign in with';
 
   @override
   String get loginSocialLoginUnavailable =>
@@ -1831,6 +1831,10 @@ class HujiLocalizationsEn extends HujiLocalizations {
   @override
   String get loginGithubOpenFailed =>
       'Could not open the browser, check your default browser settings';
+
+  @override
+  String get loginGithubStateMismatch =>
+      'Authorization verification failed, please try again';
 
   @override
   String get loginGithubCancelled => 'GitHub authorization was cancelled';
