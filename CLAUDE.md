@@ -21,15 +21,20 @@ of the AppImage).
 - App inference layer: `huji-app/lib/services/inference/` (`NcnnModelPredictor`
   implements `ModelPredictor`; `GpuDeviceSelector` picks the Vulkan device).
 - Models: `assets/models/<sport>/<match_type>/model.ncnn.{param,bin}`.
-- Conversion + parity scripts: `huji-algorithm/scripts/export_ncnn.py` and
-  `verify_ncnn_parity.py` (ncnn vs onnxruntime — all 4 models bit-identical).
+- Conversion + parity scripts and training code live in the separate repo
+  [huji-train](https://github.com/hhoao/huji-train) (`scripts/export_ncnn.py`,
+  `verify_ncnn_parity.py`).
 
 Re-export models after retraining:
 
 ```bash
-cd huji-algorithm
-.venv/Scripts/python.exe scripts/export_ncnn.py --out src/resources/ncnn_models
-# then copy model.ncnn.{param,bin} into huji-app/assets/models/<sport>/<match_type>/
+git clone https://github.com/hhoao/huji-train && cd huji-train
+./setup.sh && source .venv/bin/activate
+python main.py --train          # 训练
+python main.py --export-ncnn    # 导出 ncnn
+# 然后把 model.ncnn.{param,bin} + metadata.yaml 拷贝到:
+#   huji-algorithm/src/resources/ncnn_models/<sport>/<match_type>/
+#   huji-app/assets/models/<sport>/<match_type>/
 ```
 
 ### AppImage / local runs
@@ -75,7 +80,7 @@ regenerated files. Mobile composition lives in
 ## Architecture
 
 - `huji-app/` — Flutter app (mobile + desktop), package name `huji_app`
-- `huji-algorithm/` — Python ML pipeline (Git submodule; training + inference)
+- `huji-algorithm/` — Python ML pipeline (Git submodule; 剪辑 + ncnn 推理;训练在 [huji-train](https://github.com/hhoao/huji-train))
 - `huji-app/packages/shared_ui` — git submodule (`hhoao/shared_ui`): **Tp\*** design system only (`TpTheme`, `TpTextStyles`, `TpToast`, …). Import via `package:shared_ui/shared_ui.dart`. Appearance / desktop chrome / workspace surfaces live under `huji-app/lib/` (not in the package). Pin: `d2a349302a82d75f9d2663248f926c0273e2931c`.
 - Desktop pages use `media_kit` for video playback (libmpv backend)
 - Mobile pages use `video_player` plugin
