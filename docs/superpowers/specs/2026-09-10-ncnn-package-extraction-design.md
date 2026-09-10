@@ -112,7 +112,10 @@ norm 参数按通道读取 3 个元素——传 1 个元素的数组会越界并
 lib/
 ├── ncnn.dart                    # 导出全部公开 API
 └── src/
-    ├── bindings.g.dart          # ffigen 重生成（不再手维护；ffigen.yaml 随迁）
+    ├── bindings.g.dart          # 手维护（与自定义 DynamicLibrary 解析链
+    │                            #   深度耦合，ffigen 生成形态无法接入）；
+    │                            #   符号覆盖由集成测试保证（打开库并
+    │                            #   lookup 全部 hn_* 入口）；ffigen.yaml 移除
     ├── runtime.dart             # NcnnRuntime：库解析链（override/env/marker/
     │                            #   bare name）、GPU 枚举缓存——原逻辑平移改名
     ├── net.dart                 # NcnnNet：load() 后经 hn_output_shape 查询
@@ -188,7 +191,8 @@ lib/
 - symlink 打包风险：`ios/src`、`macos/src` 的文件 symlink 先经
   `dart pub publish --dry-run` 验证 tarball 行为；若 pub 不保真则改为
   构建期复制脚本（submodule 消费路径两种方案都工作，pub 路径必须保真）
-- ffigen 绑定 CI 校验：`dart run ffigen` diff 为空，防止头文件与绑定漂移
+- 绑定符号覆盖 CI 校验：集成测试打开原生库并 lookup 全部 `hn_*` 入口，
+  防止头文件与绑定漂移（ffigen 因上述解析链耦合不可用，见 §3）
 
 ## 7. CI 与发布流（新仓）
 
@@ -197,7 +201,7 @@ lib/
 - `ci.yml`（push/PR）：
   - `flutter analyze` + `dart format --set-exit-if-changed`
   - Dart 单测（解码工具、metadata 解析——纯 Dart 不依赖原生库）
-  - ffigen 漂移检查
+  - 绑定符号覆盖集成测试（打开原生库 lookup 全部 `hn_*` 入口）
   - Linux example `flutter build linux`（顺带验证 CMake 下载链）
 - `publish.yml`（tag `v*` 手动触发）：`dart pub publish`（pub token secret）
 
