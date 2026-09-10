@@ -51,5 +51,16 @@
 		<false/>
 		<key>NSUserNotificationUsageDescription</key>
 		<string>此应用需要通知权限来显示任务处理进度和完成状态</string>
+		<key>CFBundleURLTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleURLName</key>
+				<string>com.hhoa.huji.oauth</string>
+				<key>CFBundleURLSchemes</key>
+				<array>
+					<string>huji</string>
+				</array>
+			</dict>
+		</array>
 	</dict>
 </plist>

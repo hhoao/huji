@@ -64,6 +64,7 @@ dependencies:
   flutter_cache_manager: ^3.4.1
   image_picker: ^1.0.7
   url_launcher: ^6.2.5
+  app_links: ^6.4.0
   flutter_local_notifications: ^19.3.0
   permission_handler: ^12.0.1
   # 4.6.2 pulls the FFmpeg 8.1.2 macOS frameworks: the 8.0.0 bundle that
