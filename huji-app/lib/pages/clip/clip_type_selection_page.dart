@@ -11,6 +11,7 @@ import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/video_utils.dart';
+import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/themed_mobile.dart';
@@ -282,15 +283,18 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
   }
 
   Widget _buildDemoCard(DemoVideo demo) {
-    return TpHover(
-      onTap: _demoLoading ? null : () => _startDemoClip(demo),
-      borderRadius: BorderRadius.circular(12),
-      pressScale: 0.97,
-      child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: _DemoThumbnail(demo: demo),
+    return Semantics(
+      label: demoVideoTitle(context.hujiL10n, demo),
+      child: TpHover(
+        onTap: _demoLoading ? null : () => _startDemoClip(demo),
+        borderRadius: BorderRadius.circular(12),
+        pressScale: 0.97,
+        child: AspectRatio(
+          aspectRatio: 16 / 9,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: _DemoThumbnail(demo: demo),
+          ),
         ),
       ),
     );

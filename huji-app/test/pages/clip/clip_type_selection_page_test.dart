@@ -8,10 +8,7 @@ import 'package:shared_ui/shared_ui.dart';
 
 void main() {
   Future<void> pumpPage(WidgetTester tester) async {
-    final theme = buildDarkTheme(
-      null,
-      AppTypographyScale(multiplier: 1.0),
-    );
+    final theme = buildDarkTheme(null, AppTypographyScale(multiplier: 1.0));
     await tester.pumpWidget(
       MaterialApp(
         theme: theme,
@@ -28,19 +25,39 @@ void main() {
   }
 
   testWidgets('两个快速体验案例只渲染可点击缩略图', (tester) async {
-    await pumpPage(tester);
+    final semantics = tester.ensureSemantics();
+    try {
+      await pumpPage(tester);
 
-    expect(find.byType(AspectRatio), findsNWidgets(2));
-    expect(
-      find.ancestor(
+      final aspectRatios = tester
+          .widgetList<AspectRatio>(find.byType(AspectRatio))
+          .toList();
+      expect(aspectRatios, hasLength(2));
+      expect(
+        aspectRatios.map((widget) => widget.aspectRatio),
+        everyElement(16 / 9),
+      );
+
+      final demoSurfaces = find.ancestor(
         of: find.byType(AspectRatio),
         matching: find.byWidgetPredicate(
           (widget) => widget is TpHover && widget.pressScale == 0.97,
         ),
-      ),
-      findsNWidgets(2),
-    );
-    expect(find.text('乒乓球演示'), findsNothing);
-    expect(find.text('羽毛球演示'), findsNothing);
+      );
+      expect(demoSurfaces, findsNWidgets(2));
+      expect(
+        tester.widgetList<TpHover>(demoSurfaces).map((widget) => widget.onTap),
+        everyElement(isNotNull),
+      );
+
+      expect(find.text('乒乓球演示'), findsNothing);
+      expect(find.text('羽毛球演示'), findsNothing);
+      expect(find.text('约 23 秒'), findsNothing);
+      expect(find.text('约 51 秒'), findsNothing);
+      expect(find.bySemanticsLabel('乒乓球演示'), findsOneWidget);
+      expect(find.bySemanticsLabel('羽毛球演示'), findsOneWidget);
+    } finally {
+      semantics.dispose();
+    }
   });
 }
