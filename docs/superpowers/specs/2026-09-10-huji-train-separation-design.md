@@ -75,6 +75,8 @@ huji-train/
 
 `ncnn_models/` 在 huji-train 里 gitignore:它是导出构建产物,最终归宿是 huji-app assets(产出后手工拷贝,与现有流程一致)。
 
+`verify_ncnn_parity.py` 的 `ort` 模式需要 `best.onnx`:onnx 同样不进仓库,按需用 ultralytics 从 `.pt` 导出(`yolo.export(format="onnx")`,可由 export 脚本顺带提供 `--onnx` 选项)后再跑 parity。
+
 ### 入口(main.py,三种模式)
 
 ```
