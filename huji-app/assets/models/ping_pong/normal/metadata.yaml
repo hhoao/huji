@@ -1,0 +1,21 @@
+description: Ultralytics YOLO11n-cls model trained on /home/hhoa/ping_pong
+author: Ultralytics
+date: '2026-09-07T11:41:54.561848'
+version: 8.4.68
+license: AGPL-3.0 License (https://ultralytics.com/license)
+docs: https://docs.ultralytics.com
+stride: 1
+task: classify
+batch: 1
+imgsz:
+- 640
+- 640
+names:
+  0: fire_ball
+  1: pick_ball
+  2: play_ball
+args:
+  batch: 1
+  half: false
+channels: 3
+end2end: false

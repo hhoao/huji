@@ -289,8 +289,8 @@ jobs:
           SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
           yes | "$SDKMANAGER" --licenses >/dev/null || true
           "$SDKMANAGER" "platforms;android-33"
-          # huji_ncnn (externalNativeBuild) pins its own NDK — see
-          # packages/huji_ncnn/android/build.gradle — and flutter.ndkVersion
+          # ncnn (externalNativeBuild) pins its own NDK — see
+          # packages/ncnn/android/build.gradle — and flutter.ndkVersion
           # covers the app module. AGP's auto-install races with flaky
           # dl.google.com and failed the configure phase ("NDK not
           # configured"), so pre-install both explicitly. The app-side
@@ -303,7 +303,7 @@ jobs:
             echo "Could not derive ndkVersion from Flutter; skipping app-side NDK" >&2
             "$SDKMANAGER" "ndk;27.0.12077973"
           else
-            echo "Installing NDK 27.0.12077973 (huji_ncnn pin) + ${NDK_VERSION} (flutter.ndkVersion)"
+            echo "Installing NDK 27.0.12077973 (ncnn pin) + ${NDK_VERSION} (flutter.ndkVersion)"
             "$SDKMANAGER" "ndk;27.0.12077973" "ndk;${NDK_VERSION}"
           fi
 

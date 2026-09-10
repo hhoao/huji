@@ -20,11 +20,11 @@ PODS:
   - gal (1.0.0):
     - Flutter
     - FlutterMacOS
-  - huji_ncnn (1.0.0)
   - media_kit_libs_macos_video (1.0.4):
     - FlutterMacOS
   - media_kit_video (0.0.1):
     - FlutterMacOS
+  - ncnn (1.0.0)
   - native_splash_screen_macos (3.0.0):
     - FlutterMacOS
   - open_file_mac (1.0.3):
@@ -87,9 +87,9 @@ DEPENDENCIES:
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - FlutterMacOS (from `Flutter/ephemeral`)
   - gal (from `Flutter/ephemeral/.symlinks/plugins/gal/darwin`)
-  - huji_ncnn (from `Flutter/ephemeral/.symlinks/plugins/huji_ncnn/macos`)
   - media_kit_libs_macos_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos`)
   - media_kit_video (from `Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos`)
+  - ncnn (from `Flutter/ephemeral/.symlinks/plugins/ncnn/macos`)
   - native_splash_screen_macos (from `Flutter/ephemeral/.symlinks/plugins/native_splash_screen_macos/macos`)
   - open_file_mac (from `Flutter/ephemeral/.symlinks/plugins/open_file_mac/macos`)
   - package_info_plus (from `Flutter/ephemeral/.symlinks/plugins/package_info_plus/macos`)
@@ -126,12 +126,12 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral
   gal:
     :path: Flutter/ephemeral/.symlinks/plugins/gal/darwin
-  huji_ncnn:
-    :path: Flutter/ephemeral/.symlinks/plugins/huji_ncnn/macos
   media_kit_libs_macos_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_libs_macos_video/macos
   media_kit_video:
     :path: Flutter/ephemeral/.symlinks/plugins/media_kit_video/macos
+  ncnn:
+    :path: Flutter/ephemeral/.symlinks/plugins/ncnn/macos
   native_splash_screen_macos:
     :path: Flutter/ephemeral/.symlinks/plugins/native_splash_screen_macos/macos
   open_file_mac:
@@ -167,9 +167,9 @@ SPEC CHECKSUMS:
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   FlutterMacOS: c232990155153907050900a2e175c7773903ba4e
   gal: 6a522c75909f1244732d4596d11d6a2f86ff37a5
-  huji_ncnn: c18e138c4f33130f81cf2c6a0f8de76c63dc5911
   media_kit_libs_macos_video: b3e2bbec2eef97c285f2b1baa7963c67c753fb82
   media_kit_video: c75b07f14d59706c775778e4dd47dd027de8d1e5
+  ncnn: c8630dab9fb889cea669b69d8821163f18a80ef7
   native_splash_screen_macos: 532f059ff414b9d3aaae339c315276786e8a6737
   open_file_mac: 4de820e1d27310e4d947a59f6d7f9b876af405fb
   package_info_plus: 12f1c5c2cfe8727ca46cbd0b26677728972d9a5b

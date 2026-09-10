@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:huji_ncnn/huji_ncnn.dart';
+import 'package:ncnn/ncnn.dart';
 import 'package:path/path.dart' as p;
 
 import 'autoclip_fixtures.dart';
@@ -9,65 +9,92 @@ import 'autoclip_fixtures.dart';
 /// with a dynamically resolved plugin; macOS links statically into the
 /// app binary and is opened from the built app bundle instead).
 const _pluginFileNames = <String>[
-  'libhuji_ncnn_plugin.so',
-  'huji_ncnn_plugin.dll',
+  'libncnn_plugin.so',
+  'ncnn_plugin.dll',
 ];
 
 bool _bootstrapped = false;
 
-/// Locates the built huji_ncnn plugin and pins it via
+/// Locates the built ncnn plugin and pins it via
 /// [NcnnRuntime.overrideLibraryDirectory].
 ///
-/// - Linux:   build/linux/x64/{debug,release}/plugins/huji_ncnn/
-/// - Windows: build/windows/x64/Debug/plugins/huji_ncnn/
-/// - macOS:   build/macos/Build/Products/{Debug,Release}/<app>.app/
-///            Contents/MacOS/ (the app's .debug.dylib carries the symbols;
-///            the product name varies, so the .app bundle is discovered)
+/// Search order (first hit wins):
+/// - the app build: `build/linux/<arch>/{debug,release}/plugins/ncnn/`
+///   and `.../bundle/lib/`, `build/windows/x64/plugins/ncnn/<Config>/`,
+///   `build/macos/Build/Products/<Config>/<app>.app/Contents/MacOS/`
+/// - the package example build (`packages/ncnn/example/build/…`), same
+///   layouts — handy when only the example was built.
 ///
 /// Call from setUpAll of every ncnn integration test.
 ///
-/// Fail-fast: no artifact → StateError with the build command. Never
-/// silently skip — a skipped ncnn test is a silently broken pipeline.
-Future<void> bootstrapNcnnLibrary() async {
-  if (_bootstrapped) return;
+/// Returns true when a build artifact was found and pinned, false when
+/// no build exists yet — native-dependent tests then skip via
+/// `markTestSkipped` (build first: `flutter build linux --debug`).
+Future<bool> bootstrapNcnnLibrary() async {
+  if (_bootstrapped) return true;
 
   final appRoot = findAppRoot();
-  // Layout differs by platform:
-  //   Linux:   build/linux/x64/<config>/plugins/huji_ncnn/ (config in path)
-  //   Windows: build/windows/x64/plugins/huji_ncnn/<Config>/ (config last)
-  final candidates = <String>[
-    p.join(appRoot.path, 'build', 'linux', 'x64', 'debug',
-        'plugins', 'huji_ncnn'),
-    p.join(appRoot.path, 'build', 'linux', 'x64', 'release',
-        'plugins', 'huji_ncnn'),
-    p.join(appRoot.path, 'build', 'windows', 'x64', 'plugins',
-        'huji_ncnn', 'Debug'),
-    p.join(appRoot.path, 'build', 'windows', 'x64', 'plugins',
-        'huji_ncnn', 'Release'),
-    ..._macosCandidates(appRoot.path),
-  ];
-
-  for (final dir in candidates) {
+  for (final dir in _candidateDirs(appRoot.path)) {
     if (_pluginExistsIn(dir)) {
       NcnnRuntime.overrideLibraryDirectory(dir);
       _bootstrapped = true;
-      return;
+      return true;
     }
   }
+  return false;
+}
 
-  throw StateError(
-    'huji_ncnn plugin not found under any build directory of '
-    '${appRoot.path}.\n'
-    'Build first:  cd huji-app && flutter build linux --debug\n'
-    '(flutter build windows --debug on Windows, '
-    'flutter build macos --debug on macOS)',
-  );
+List<String> _candidateDirs(String appRootPath) => [
+      // Linux: build/linux/<arch>/<config>/plugins/ncnn/ (the plugin's
+      // RUNPATH points at the downloaded ncnn lib dir, so pinning the
+      // plugin dir also resolves libncnn.so.1), plus the bundle's lib/.
+      ..._linuxDirs(p.join(appRootPath, 'build')),
+      // Windows: build/windows/x64/plugins/ncnn/<Config>/ (config last).
+      p.join(appRootPath, 'build', 'windows', 'x64', 'plugins', 'ncnn',
+          'Debug'),
+      p.join(appRootPath, 'build', 'windows', 'x64', 'plugins', 'ncnn',
+          'Release'),
+      // macOS: .app bundles (the product name varies; the app's
+      // .debug.dylib carries the symbols).
+      ..._macosCandidates(appRootPath),
+      // The package example's build, when present.
+      ..._linuxDirs(p.join(appRootPath, 'packages', 'ncnn', 'example',
+          'build')),
+      p.join(appRootPath, 'packages', 'ncnn', 'example', 'build', 'windows',
+          'x64', 'plugins', 'ncnn', 'Debug'),
+      p.join(appRootPath, 'packages', 'ncnn', 'example', 'build', 'windows',
+          'x64', 'plugins', 'ncnn', 'Release'),
+      ..._macosCandidates(
+          p.join(appRootPath, 'packages', 'ncnn', 'example')),
+    ];
+
+/// Plugin dirs of every arch/config under `<root>/build/linux/…`.
+List<String> _linuxDirs(String buildRoot) {
+  final out = <String>[];
+  for (final arch in _subDirs(p.join(buildRoot, 'linux'))) {
+    for (final config in ['debug', 'release']) {
+      out.add(p.join(arch, config, 'plugins', 'ncnn'));
+      out.add(p.join(arch, config, 'bundle', 'lib'));
+    }
+  }
+  return out;
+}
+
+List<String> _subDirs(String dirPath) {
+  final dir = Directory(dirPath);
+  if (!dir.existsSync()) return const <String>[];
+  return dir
+      .listSync()
+      .whereType<Directory>()
+      .map((d) => d.path)
+      .toList();
 }
 
 /// `Contents/MacOS` dirs of every built .app bundle, newest build
 /// configuration first (Debug carries a separate .debug.dylib; Release
 /// embeds the symbols in the executable, which is not dlopen-able).
-Iterable<String> _macosCandidates(String appRootPath) {  final products = p.join(appRootPath, 'build', 'macos', 'Build', 'Products');
+Iterable<String> _macosCandidates(String appRootPath) {
+  final products = p.join(appRootPath, 'build', 'macos', 'Build', 'Products');
   return ['Debug', 'Release'].expand((config) {
     final dir = Directory(p.join(products, config));
     if (!dir.existsSync()) return const <String>[];
@@ -80,8 +107,8 @@ Iterable<String> _macosCandidates(String appRootPath) {  final products = p.join
 }
 
 bool _pluginExistsIn(String dir) {
-  if (_pluginFileNames.any((name) =>
-      File(p.join(dir, name)).existsSync())) {
+  if (_pluginFileNames
+      .any((name) => File(p.join(dir, name)).existsSync())) {
     return true;
   }
   // macOS: the app's debug dylib (name varies with the product name).

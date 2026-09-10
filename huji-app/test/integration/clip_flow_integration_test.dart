@@ -10,7 +10,7 @@ import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_ncnn/huji_ncnn.dart';
+import 'package:ncnn/ncnn.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../helpers/clip_flow_test_helper.dart';
@@ -65,7 +65,7 @@ void main() {
         return;
       }
       if (!ncnnAvailable) {
-        markTestSkipped('huji_ncnn native plugin not available');
+        markTestSkipped('ncnn native plugin not available');
         return;
       }
 
@@ -98,7 +98,7 @@ void main() {
         return;
       }
       if (!ncnnAvailable) {
-        markTestSkipped('huji_ncnn native plugin not available');
+        markTestSkipped('ncnn native plugin not available');
         return;
       }
 

@@ -853,13 +853,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.2"
-  huji_ncnn:
-    dependency: "direct main"
-    description:
-      path: "packages/huji_ncnn"
-      relative: true
-    source: path
-    version: "1.0.0"
   husky:
     dependency: "direct dev"
     description:
@@ -1214,6 +1207,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.19.2"
+  ncnn:
+    dependency: "direct main"
+    description:
+      path: "packages/ncnn"
+      relative: true
+    source: path
+    version: "0.1.0"
   nested:
     dependency: transitive
     description:

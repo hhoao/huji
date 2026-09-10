@@ -23,9 +23,9 @@ import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'dart:typed_data';
 import 'package:huji_app/services/inference/gpu_device_selector.dart';
-import 'package:huji_app/services/inference/ncnn_inference_engine.dart';
 import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
+import 'package:ncnn/ncnn.dart';
 import 'package:huji_app/services/app/boot_splash.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shortcuts/shortcuts_cubit.dart';
@@ -329,7 +329,9 @@ Future<void> _runNcnnSelfTest() async {
 
   // 3. Full engine path — on Windows this routes through the helper child
   // process (GPU), other platforms use in-process FFI.
-  final engine = NcnnInferenceEngine();
+  final engine = NcnnInferenceEngine(
+    onLog: (m) => stderr.writeln('[selftest] $m'),
+  );
   await engine.loadModel(
     paramPath: spec.paramFilePath,
     binPath: spec.binFilePath,

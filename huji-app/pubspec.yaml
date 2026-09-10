@@ -93,8 +93,8 @@ dependencies:
   go_router: ^16.3.0
   camerawesome: ^2.5.0
   image: ^4.3.0
-  huji_ncnn:
-    path: packages/huji_ncnn
+  ncnn:
+    path: packages/ncnn
   panes: ^1.3.0
   flutter_svg: ^2.0.0
   

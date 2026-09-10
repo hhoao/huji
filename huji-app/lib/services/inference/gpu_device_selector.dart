@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:huji_ncnn/huji_ncnn.dart';
+import 'package:ncnn/ncnn.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 
 /// Picks the ncnn Vulkan device to run on: best score wins, discrete over
@@ -21,9 +21,9 @@ class GpuDeviceSelector {
 
   /// True when GPU probing is disabled (flutter_test VM: ncnn's Vulkan
   /// init crashes inside flutter_tester — works fine in real processes).
-  /// Set HUJI_NCNN_ENABLE_GPU_IN_TESTS=1 to force probing anyway.
+  /// Set NCNN_ENABLE_GPU_IN_TESTS=1 to force probing anyway.
   static bool get _gpuProbeDisabled =>
-      Platform.environment['HUJI_NCNN_ENABLE_GPU_IN_TESTS'] != '1' &&
+      Platform.environment['NCNN_ENABLE_GPU_IN_TESTS'] != '1' &&
       Platform.environment['FLUTTER_TEST'] == 'true';
 
   /// All Vulkan devices (empty when Vulkan is unavailable or probing is
