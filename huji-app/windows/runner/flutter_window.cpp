@@ -43,6 +43,11 @@ bool FlutterWindow::OnCreate() {
                SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
   ResizeSplashOverlay(hwnd);
 
+  // Shown before window_manager.setTitleBarStyle(hidden). Mark the HWND now so
+  // Shell never treats the caption-less window as rude fullscreen (auto-hide
+  // taskbar still pops when maximized). Same as TeamPilot.
+  SetProp(hwnd, L"NonRudeHWND", reinterpret_cast<HANDLE>(TRUE));
+
   // Show immediately so the overlay is visible during Dart bootstrap - do not
   // wait for the first Flutter frame (that would flash a blank window).
   Show();
