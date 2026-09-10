@@ -3332,6 +3332,48 @@ abstract class HujiLocalizations {
   /// **'GitHub authorization was cancelled'**
   String get loginGithubCancelled;
 
+  /// No description provided for @settingsGithubBinding.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub account'**
+  String get settingsGithubBinding;
+
+  /// No description provided for @settingsGithubUnbound.
+  ///
+  /// In en, this message translates to:
+  /// **'Not bound'**
+  String get settingsGithubUnbound;
+
+  /// No description provided for @settingsGithubBind.
+  ///
+  /// In en, this message translates to:
+  /// **'Bind'**
+  String get settingsGithubBind;
+
+  /// No description provided for @settingsGithubUnbind.
+  ///
+  /// In en, this message translates to:
+  /// **'Unbind'**
+  String get settingsGithubUnbind;
+
+  /// No description provided for @settingsGithubBindSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub account bound'**
+  String get settingsGithubBindSuccess;
+
+  /// No description provided for @settingsGithubUnbindSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub account unbound'**
+  String get settingsGithubUnbindSuccess;
+
+  /// No description provided for @settingsGithubBindFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'GitHub binding failed, please try again'**
+  String get settingsGithubBindFailed;
+
   /// No description provided for @loginRememberedPassword.
   ///
   /// In en, this message translates to:

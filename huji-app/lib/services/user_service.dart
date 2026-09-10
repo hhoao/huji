@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/social_user_models.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
@@ -137,6 +138,36 @@ class UserService {
       ),
     );
     return completeLogin(authToken);
+  }
+
+  // 绑定 GitHub（当前已登录用户）
+  static Future<String> bindGithub({
+    required String code,
+    required String state,
+  }) async {
+    return ApiManager.instance.socialUserApi.bind(
+      SocialUserBindParams(
+        type: GithubOAuthConfig.socialType,
+        code: code,
+        state: state,
+      ),
+    );
+  }
+
+  // 解绑 GitHub
+  static Future<bool> unbindGithub({required String openid}) async {
+    return ApiManager.instance.socialUserApi.unbind(
+      SocialUserUnbindParams(
+        type: GithubOAuthConfig.socialType,
+        openid: openid,
+      ),
+    );
+  }
+
+  // 查询 GitHub 绑定状态（null = 未绑定）
+  static Future<SocialUserInfo?> getGithubBinding() async {
+    return ApiManager.instance.socialUserApi
+        .getSocialUser(GithubOAuthConfig.socialType);
   }
 
   // 发送验证码

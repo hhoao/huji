@@ -1836,6 +1836,28 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get loginGithubCancelled => 'GitHub authorization was cancelled';
 
   @override
+  String get settingsGithubBinding => 'GitHub account';
+
+  @override
+  String get settingsGithubUnbound => 'Not bound';
+
+  @override
+  String get settingsGithubBind => 'Bind';
+
+  @override
+  String get settingsGithubUnbind => 'Unbind';
+
+  @override
+  String get settingsGithubBindSuccess => 'GitHub account bound';
+
+  @override
+  String get settingsGithubUnbindSuccess => 'GitHub account unbound';
+
+  @override
+  String get settingsGithubBindFailed =>
+      'GitHub binding failed, please try again';
+
+  @override
   String get loginRememberedPassword => 'Remember your password? ';
 
   @override

@@ -1789,6 +1789,27 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get loginGithubCancelled => 'GitHub 授权已取消';
 
   @override
+  String get settingsGithubBinding => 'GitHub 账号';
+
+  @override
+  String get settingsGithubUnbound => '未绑定';
+
+  @override
+  String get settingsGithubBind => '绑定';
+
+  @override
+  String get settingsGithubUnbind => '解绑';
+
+  @override
+  String get settingsGithubBindSuccess => 'GitHub 绑定成功';
+
+  @override
+  String get settingsGithubUnbindSuccess => 'GitHub 已解绑';
+
+  @override
+  String get settingsGithubBindFailed => 'GitHub 绑定操作失败，请重试';
+
+  @override
   String get loginRememberedPassword => '想起密码了？ ';
 
   @override
