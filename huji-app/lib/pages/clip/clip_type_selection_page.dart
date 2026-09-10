@@ -11,7 +11,6 @@ import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 import 'package:huji_app/utils/video_utils.dart';
-import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:huji_app/widgets/file_picker/file_selection_page.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/theme/themed_mobile.dart';
@@ -282,69 +281,17 @@ class _ClipTypeSelectionPageState extends State<ClipTypeSelectionPage> {
     );
   }
 
-  /// 快速体验卡片：缩略图铺满 + 左下/右下角标，
-  /// 样式对齐主页视频栏(HomeVideoListWidget)的视频卡片。
   Widget _buildDemoCard(DemoVideo demo) {
-    final cs = context.cs;
-    final styles = TpTextStyles.of(context);
-
     return TpHover(
       onTap: _demoLoading ? null : () => _startDemoClip(demo),
       borderRadius: BorderRadius.circular(12),
       pressScale: 0.97,
       child: AspectRatio(
         aspectRatio: 16 / 9,
-        child: Container(
-          decoration: BoxDecoration(
-            color: cs.subtleFill,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Stack(
-            children: [
-              // 缩略图区域
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: _DemoThumbnail(demo: demo),
-              ),
-              // 左下角标题
-              Positioned(
-                bottom: 4,
-                left: 4,
-                child: _demoBadge(
-                  styles,
-                  demoVideoTitle(context.hujiL10n, demo),
-                ),
-              ),
-              // 右下角时长(取描述中"·"前的时长段)
-              Positioned(
-                bottom: 4,
-                right: 4,
-                child: _demoBadge(
-                  styles,
-                  demoVideoSubtitle(context.hujiL10n, demo)
-                      .split('·')
-                      .first
-                      .trim(),
-                ),
-              ),
-            ],
-          ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: _DemoThumbnail(demo: demo),
         ),
-      ),
-    );
-  }
-
-  Widget _demoBadge(TpTextStyles styles, String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: Colors.black.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(4),
-      ),
-      child: Text(
-        text,
-        textScaler: kLegacyCaptionTextScaler,
-        style: styles.xsMediumColored(Colors.white),
       ),
     );
   }
