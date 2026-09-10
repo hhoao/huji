@@ -32,8 +32,11 @@ void main() {
 
     expect(find.byType(AspectRatio), findsNWidgets(2));
     expect(
-      find.byWidgetPredicate(
-        (widget) => widget is TpHover && widget.pressScale == 0.97,
+      find.ancestor(
+        of: find.byType(AspectRatio),
+        matching: find.byWidgetPredicate(
+          (widget) => widget is TpHover && widget.pressScale == 0.97,
+        ),
       ),
       findsNWidgets(2),
     );
