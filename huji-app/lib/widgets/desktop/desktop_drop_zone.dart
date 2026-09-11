@@ -29,7 +29,6 @@ class DesktopDropZone extends StatefulWidget {
   final VoidCallback onClearFile;
   final DemoVideoTap? onDemoVideoSelected;
   final bool demoLoading;
-  final String? demoSportTypeKey;
 
   const DesktopDropZone({
     super.key,
@@ -39,7 +38,6 @@ class DesktopDropZone extends StatefulWidget {
     required this.onClearFile,
     this.onDemoVideoSelected,
     this.demoLoading = false,
-    this.demoSportTypeKey,
   });
 
   @override
@@ -310,7 +308,6 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
             DemoVideoPicker(
               dense: true,
               loading: widget.demoLoading,
-              filterSportTypeKey: widget.demoSportTypeKey,
               onDemoSelected: widget.onDemoVideoSelected!,
             ),
           ],

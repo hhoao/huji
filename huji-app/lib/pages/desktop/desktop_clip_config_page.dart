@@ -747,7 +747,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       tabId: widget.tabId,
       file: _selectedFile,
       demoLoading: _demoLoading,
-      demoSportTypeKey: _sportType,
       onDemoVideoSelected: _useDemoVideo,
       onFileSelected: (file) => setState(() => _selectedFile = file),
       onClearFile: () => setState(() => _selectedFile = null),

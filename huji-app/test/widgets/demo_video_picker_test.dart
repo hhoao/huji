@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
-import 'package:huji_app/pages/clip/clip_type_selection_page.dart';
 import 'package:huji_app/theme/app_theme.dart';
 import 'package:huji_app/theme/app_typography_scale.dart';
+import 'package:huji_app/widgets/demo_video_picker.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 void main() {
-  Future<void> pumpPage(WidgetTester tester) async {
+  Future<void> pumpPicker(WidgetTester tester) async {
     final theme = buildDarkTheme(null, AppTypographyScale(multiplier: 1.0));
     await tester.pumpWidget(
       MaterialApp(
@@ -17,24 +17,26 @@ void main() {
         supportedLocales: HujiLocalizationsSetup.supportedLocales,
         home: TpTheme(
           data: TpThemeData.fromColorScheme(theme.colorScheme, scale: 1.0),
-          child: const ClipTypeSelectionPage(),
+          child: const Scaffold(
+            body: DemoVideoPicker(dense: true, onDemoSelected: _noop),
+          ),
         ),
       ),
     );
     await tester.pump();
   }
 
-  testWidgets('两个快速体验案例只渲染可点击缩略图', (tester) async {
+  testWidgets('桌面端快速体验展示两个可点击缩略图', (tester) async {
     final semantics = tester.ensureSemantics();
     try {
-      await pumpPage(tester);
+      await pumpPicker(tester);
 
-      final aspectRatios = tester
+      final thumbnails = tester
           .widgetList<AspectRatio>(find.byType(AspectRatio))
           .toList();
-      expect(aspectRatios, hasLength(2));
+      expect(thumbnails, hasLength(2));
       expect(
-        aspectRatios.map((widget) => widget.aspectRatio),
+        thumbnails.map((thumbnail) => thumbnail.aspectRatio),
         everyElement(16 / 9),
       );
 
@@ -61,3 +63,5 @@ void main() {
     }
   });
 }
+
+Future<void> _noop(_) async {}
