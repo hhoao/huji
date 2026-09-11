@@ -274,44 +274,48 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
     final styles = TpTextStyles.of(context);
 
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            _isDragging ? Icons.file_open : Icons.upload_file,
-            size: 48,
-            color: _isDragging ? cs.primary : cs.onSurfaceVariant,
-          ),
-          const SizedBox(height: 14),
-          Text(
-            context.hujiL10n.dragVideoHere,
-            style: styles.mdSemibold.copyWith(color: cs.onSurfaceVariant),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.hujiL10n.orLabel,
-            style: styles.mutedSm.copyWith(color: cs.outline),
-          ),
-          const SizedBox(height: 8),
-          TpButton(
-            variant: TpButtonVariant.primary,
-            onPressed: _pickVideoFile,
-            child: Text(context.hujiL10n.selectFiles),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.hujiL10n.supportedVideoFormats,
-            style: styles.sm.copyWith(color: cs.outline),
-          ),
-          if (widget.onDemoVideoSelected != null) ...[
-            const SizedBox(height: 20),
-            DemoVideoPicker(
-              dense: true,
-              loading: widget.demoLoading,
-              onDemoSelected: widget.onDemoVideoSelected!,
+      // 演示视频缩略图加入后空状态内容高度可能超过拖放区剩余高度
+      // （矮窗口下），用滚动兜底避免 RenderFlex overflow。
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              _isDragging ? Icons.file_open : Icons.upload_file,
+              size: 48,
+              color: _isDragging ? cs.primary : cs.onSurfaceVariant,
             ),
+            const SizedBox(height: 14),
+            Text(
+              context.hujiL10n.dragVideoHere,
+              style: styles.mdSemibold.copyWith(color: cs.onSurfaceVariant),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.hujiL10n.orLabel,
+              style: styles.mutedSm.copyWith(color: cs.outline),
+            ),
+            const SizedBox(height: 8),
+            TpButton(
+              variant: TpButtonVariant.primary,
+              onPressed: _pickVideoFile,
+              child: Text(context.hujiL10n.selectFiles),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.hujiL10n.supportedVideoFormats,
+              style: styles.sm.copyWith(color: cs.outline),
+            ),
+            if (widget.onDemoVideoSelected != null) ...[
+              const SizedBox(height: 20),
+              DemoVideoPicker(
+                dense: true,
+                loading: widget.demoLoading,
+                onDemoSelected: widget.onDemoVideoSelected!,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
