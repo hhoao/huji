@@ -4,3 +4,6 @@
 [submodule "huji-app/packages/shared_ui"]
 	path = huji-app/packages/shared_ui
 	url = https://github.com/hhoao/shared_ui.git
+[submodule "huji-app/packages/ncnn"]
+	path = huji-app/packages/ncnn
+	url = https://github.com/hhoao/ncnn.git

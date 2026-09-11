@@ -10,11 +10,12 @@ import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/storage_service.dart';
-import 'package:huji_ncnn/huji_ncnn.dart';
+import 'package:ncnn/ncnn.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 
 import '../helpers/autoclip_fixtures.dart';
 import '../helpers/fake_path_provider.dart';
+import '../helpers/ncnn_test_bootstrap.dart';
 
 Future<bool> _ncnnPluginAvailable(String sportType, String matchType) async {
   try {
@@ -70,11 +71,11 @@ void main() {
   // app-vs-golden segment merge differences"). These were previously
   // invisible: the suite is untagged AND skipped in the test VM (no plugin
   // loaded), so no CI leg ever executed it for real. It now runs with the
-  // macOS plugin support — set HUJI_NCNN_STRICT_GOLDENS=1 (locally or on a
+  // macOS plugin support — set NCNN_STRICT_GOLDENS=1 (locally or on a
   // dedicated job) to hold the strict assertions while the merge logic is
   // being aligned; CI keeps the lenient mode below.
   final strictGoldens =
-      Platform.environment['HUJI_NCNN_STRICT_GOLDENS'] == '1';
+      Platform.environment['NCNN_STRICT_GOLDENS'] == '1';
 
   // Lenient-mode segment-count band. The app's segment merge diverges from
   // the algorithm goldens (see the strictGoldens comment), and the magnitude
@@ -91,6 +92,9 @@ void main() {
     if (!StorageService.isInitialized) {
       await StorageService.init();
     }
+    // Pin the built plugin dir when a build exists — the per-test
+    // availability probes then decide run vs skip.
+    await bootstrapNcnnLibrary();
   });
 
   for (final testCase in _cases) {
@@ -121,7 +125,7 @@ void main() {
           return;
         }
         if (!ncnnAvailable) {
-          markTestSkipped('huji_ncnn native plugin not available in test VM');
+          markTestSkipped('ncnn native plugin not available in test VM');
           return;
         }
 
@@ -165,7 +169,7 @@ void main() {
           return;
         }
         if (!ncnnAvailable) {
-          markTestSkipped('huji_ncnn native plugin not available in test VM');
+          markTestSkipped('ncnn native plugin not available in test VM');
           return;
         }
 
@@ -245,7 +249,7 @@ void main() {
           return;
         }
         if (!ncnnAvailable) {
-          markTestSkipped('huji_ncnn native plugin not available in test VM');
+          markTestSkipped('ncnn native plugin not available in test VM');
           return;
         }
 
@@ -297,7 +301,7 @@ void main() {
           return;
         }
         if (!ncnnAvailable) {
-          markTestSkipped('huji_ncnn native plugin not available in test VM');
+          markTestSkipped('ncnn native plugin not available in test VM');
           return;
         }
 

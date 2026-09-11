@@ -40,7 +40,10 @@ void main() {
     if (!PlatformCapability.isDesktop) {
       return;
     }
-    await bootstrapNcnnLibrary();
+    if (!await bootstrapNcnnLibrary()) {
+      markTestSkipped('ncnn native plugin not available in test VM');
+      return;
+    }
     if (!await _ffmpegAvailable()) {
       // Same convention as video_export_library_registration_test.
       markTestSkipped('ffmpeg/ffprobe not on PATH');

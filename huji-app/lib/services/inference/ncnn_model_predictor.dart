@@ -3,9 +3,11 @@ import 'dart:typed_data';
 
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/large_model.dart';
+import 'package:huji_app/services/inference/gpu_device_selector.dart';
 import 'package:huji_app/services/inference/image_preprocessor.dart';
-import 'package:huji_app/services/inference/ncnn_inference_engine.dart';
 import 'package:huji_app/services/large_model_service.dart';
+import 'package:huji_app/utils/logger_utils.dart';
+import 'package:ncnn/ncnn.dart';
 
 /// ncnn implementation of [ModelPredictor].
 ///
@@ -32,14 +34,46 @@ class NcnnModelPredictor implements ModelPredictor {
 
   Future<NcnnInferenceEngine> _ensureLoaded() async {
     if (_engine != null) return _engine!;
-    final engine = NcnnInferenceEngine();
+    // The engine's default probe calls NcnnRuntime.gpuDevices directly,
+    // with no test-VM guard. In the flutter_test VM ncnn's Vulkan init
+    // (MoltenVK on macOS) segfaults flutter_tester at teardown — the
+    // pre-migration engine wired this through GpuDeviceSelector, whose
+    // FLUTTER_TEST probe guard is exactly what keeps the test VM on CPU.
+    // Route the probe the same way here.
+    final engine = NcnnInferenceEngine(
+      gpuDeviceProbe: () async => GpuDeviceSelector.devices,
+      onLog: (m) => AppLogger().i(m),
+    );
     await engine.loadModel(
       paramPath: paramFilePath,
       binPath: binFilePath,
+      options: _optionsFromMetadata(),
       fallbackClassNames: fallbackClassNames,
     );
     _engine = engine;
     return engine;
+  }
+
+  /// Warm-up shape hints from the ultralytics `metadata.yaml` exported
+  /// next to the model files (its `imgsz`), when the app bundles one.
+  ///
+  /// Falls back to the package's default YOLO options — the engine's
+  /// capacity retry keeps size-locked models working without explicit
+  /// shape hints.
+  NcnnOptions _optionsFromMetadata() {
+    try {
+      final yaml = File(
+        '${File(paramFilePath).parent.path}/metadata.yaml',
+      ).readAsStringSync();
+      final imgsz = NcnnMetadata.tryParseImgSize(yaml);
+      if (imgsz != null) {
+        AppLogger().i('ncnn warmup ${imgsz}x$imgsz (metadata.yaml imgsz)');
+        return NcnnOptions.yolo(warmupWidth: imgsz, warmupHeight: imgsz);
+      }
+    } catch (_) {
+      // No (or unreadable) metadata.yaml — defaults below.
+    }
+    return const NcnnOptions.yolo();
   }
 
   Future<T> _enqueue<T>(Future<T> Function() operation) {

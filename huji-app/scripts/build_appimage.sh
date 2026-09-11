@@ -81,7 +81,7 @@ fi
 
 cp -r "$FLUTTER_OUT/"* "$APPDIR/usr/bin/"
 
-# libncnn.so ships inside the Flutter bundle (huji_ncnn plugin's bundled
+# libncnn.so ships inside the Flutter bundle (ncnn plugin's bundled
 # libraries); it resolves the host Vulkan ICD at runtime. CPU-only hosts
 # run fine — ncnn falls back to its CPU kernels automatically.
 

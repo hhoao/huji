@@ -38,12 +38,15 @@ class InferenceModelRegistry {
 
   /// Asset keys for the ncnn model files of a sport/match combo.
   ///
-  /// key = cache file name, value = asset bundle path.
+  /// key = cache file name, value = asset bundle path. metadata.yaml
+  /// (ultralytics export) carries the imgsz used as warm-up shape
+  /// hints; class names still come from [classNamesFor] (fallback).
   static Map<String, String> ncnnAssetKeysFor(String sportType, String matchType) {
     final base = 'assets/models/$sportType/$matchType';
     return {
       'model.ncnn.param': '$base/model.ncnn.param',
       'model.ncnn.bin': '$base/model.ncnn.bin',
+      'metadata.yaml': '$base/metadata.yaml',
     };
   }
 

@@ -16,9 +16,11 @@ void main() {
 
   group('NcnnPredictorPool warm-up', () {
     late InferenceSpec spec;
+    late bool ncnnAvailable;
 
     setUpAll(() async {
-      await bootstrapNcnnLibrary();
+      ncnnAvailable = await bootstrapNcnnLibrary();
+      if (!ncnnAvailable) return;
       spec = await NcnnModelAssetResolver.resolve(
         sportType: 'ping_pong',
         matchType: 'profession',
@@ -26,6 +28,10 @@ void main() {
     });
 
     test('create() returns with every predictor loaded', () async {
+      if (!ncnnAvailable) {
+        markTestSkipped('ncnn native plugin not available in test VM');
+        return;
+      }
       final pool = await NcnnPredictorPool.create(
         paramFilePath: spec.paramFilePath,
         binFilePath: spec.binFilePath,

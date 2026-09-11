@@ -14,7 +14,7 @@ class NcnnModelAssetResolver {
   NcnnModelAssetResolver._();
 
   static Directory get _cacheDir => Directory(
-        path.join(Directory.systemTemp.path, 'huji_ncnn_models'),
+        path.join(Directory.systemTemp.path, 'ncnn_models'),
       );
 
   /// Resolve sport/match to cached ncnn files plus fallback class names.

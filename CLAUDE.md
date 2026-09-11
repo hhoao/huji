@@ -23,8 +23,9 @@ Inference runs on **ncnn** with the **Vulkan** GPU backend — any GPU vendor
 former ONNX Runtime + CUDA/cuDNN stack was removed entirely (it was ~1.8 GB
 of the AppImage).
 
-- Runtime plugin: `huji-app/packages/huji_ncnn` (in-repo FFI plugin, thin C
-  shim over `ncnn::Net`; links the official prebuilt ncnn releases).
+- Runtime plugin: `huji-app/packages/ncnn` (git submodule of
+  github.com/hhoao/ncnn — published as `package:ncnn`; thin C shim over
+  `ncnn::Net`, links the official prebuilt ncnn releases).
 - App inference layer: `huji-app/lib/services/inference/` (`NcnnModelPredictor`
   implements `ModelPredictor`; `GpuDeviceSelector` picks the Vulkan device).
 - Models: `assets/models/<sport>/<match_type>/model.ncnn.{param,bin}`.
