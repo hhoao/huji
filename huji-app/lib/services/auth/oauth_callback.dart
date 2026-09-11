@@ -96,7 +96,9 @@ class LoopbackCallbackCapture implements OAuthCallbackCapture {
         await request.response.close();
       }
     });
-    return '${GithubOAuthConfig.webCallbackUrl}?port=${server.port}';
+    // GitHub 只接受注册回调 URL 的子目录路径（不认额外 query 参数），
+    // 桌面端口编码进路径，由中转页 /port/<端口> 分支转回本机 loopback。
+    return '${GithubOAuthConfig.webCallbackUrl}/port/${server.port}';
   }
 
   @override

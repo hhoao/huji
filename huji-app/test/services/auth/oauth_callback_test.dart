@@ -87,13 +87,11 @@ void main() {
       addTearDown(capture.stop);
 
       final redirectUri = await capture.start();
-      // redirectUri 指向中转页并携带随机端口
+      // redirectUri 指向中转页，端口编码在路径（GitHub 只接受注册回调的子目录）
       expect(redirectUri, startsWith(GithubOAuthConfig.webCallbackUrl));
-      expect(redirectUri, contains('port='));
+      expect(redirectUri, contains('/port/'));
 
-      final port = int.parse(
-        Uri.parse(redirectUri).queryParameters['port']!,
-      );
+      final port = int.parse(redirectUri.split('/port/').last);
       // 模拟浏览器访问 loopback（中转页会重定向到 127.0.0.1:port）
       final client = HttpClient();
       final request = await client.getUrl(
