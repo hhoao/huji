@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/large_model.dart';
+import 'package:huji_app/services/inference/gpu_device_selector.dart';
 import 'package:huji_app/services/inference/image_preprocessor.dart';
 import 'package:huji_app/services/large_model_service.dart';
 import 'package:huji_app/utils/logger_utils.dart';
@@ -33,7 +34,16 @@ class NcnnModelPredictor implements ModelPredictor {
 
   Future<NcnnInferenceEngine> _ensureLoaded() async {
     if (_engine != null) return _engine!;
-    final engine = NcnnInferenceEngine(onLog: (m) => AppLogger().i(m));
+    // The engine's default probe calls NcnnRuntime.gpuDevices directly,
+    // with no test-VM guard. In the flutter_test VM ncnn's Vulkan init
+    // (MoltenVK on macOS) segfaults flutter_tester at teardown — the
+    // pre-migration engine wired this through GpuDeviceSelector, whose
+    // FLUTTER_TEST probe guard is exactly what keeps the test VM on CPU.
+    // Route the probe the same way here.
+    final engine = NcnnInferenceEngine(
+      gpuDeviceProbe: () async => GpuDeviceSelector.devices,
+      onLog: (m) => AppLogger().i(m),
+    );
     await engine.loadModel(
       paramPath: paramFilePath,
       binPath: binFilePath,
