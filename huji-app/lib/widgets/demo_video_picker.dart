@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/services/demo_video_service.dart';
+import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 typedef DemoVideoTap = Future<void> Function(DemoVideo demo);
@@ -19,7 +23,7 @@ String demoVideoSubtitle(HujiLocalizations l10n, DemoVideo demo) =>
       _ => demo.subtitle,
     };
 
-/// Compact list of bundled demo videos.
+/// Bundled demo videos rendered as clickable thumbnail-only cards.
 class DemoVideoPicker extends StatelessWidget {
   const DemoVideoPicker({
     super.key,
@@ -75,7 +79,7 @@ class DemoVideoPicker extends StatelessWidget {
             runSpacing: 8,
             children: [
               for (final demo in items)
-                _DemoChip(
+                _DemoThumbnailCard(
                   demo: demo,
                   dense: dense,
                   onTap: loading ? null : () => onDemoSelected(demo),
@@ -87,8 +91,8 @@ class DemoVideoPicker extends StatelessWidget {
   }
 }
 
-class _DemoChip extends StatelessWidget {
-  const _DemoChip({
+class _DemoThumbnailCard extends StatelessWidget {
+  const _DemoThumbnailCard({
     required this.demo,
     required this.dense,
     required this.onTap,
@@ -100,34 +104,89 @@ class _DemoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final styles = TpTextStyles.of(context);
-    final muted = Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6);
-    final emoji = demo.sportTypeKey == 'ping_pong' ? '🏓' : '🏸';
-    return TpButton(
-      variant: TpButtonVariant.outline,
-      size: dense ? TpControlSize.small : TpControlSize.medium,
-      fitContentHeight: true,
-      onPressed: onTap,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(emoji, style: dense ? styles.sm : styles.md),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                demoVideoTitle(context.hujiL10n, demo),
-                style: styles.sm,
-              ),
-              Text(
-                demoVideoSubtitle(context.hujiL10n, demo),
-                style: styles.sm.copyWith(color: muted),
-              ),
-            ],
+    final width = dense ? 168.0 : 220.0;
+    return Semantics(
+      label: demoVideoTitle(context.hujiL10n, demo),
+      button: true,
+      enabled: onTap != null,
+      child: TpHover(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        pressScale: 0.97,
+        child: SizedBox(
+          width: width,
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
+              child: DemoVideoThumbnail(demo: demo),
+            ),
           ),
-        ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Generates and caches a thumbnail for a bundled demo video.
+class DemoVideoThumbnail extends StatefulWidget {
+  const DemoVideoThumbnail({super.key, required this.demo});
+
+  final DemoVideo demo;
+
+  @override
+  State<DemoVideoThumbnail> createState() => _DemoVideoThumbnailState();
+}
+
+class _DemoVideoThumbnailState extends State<DemoVideoThumbnail> {
+  String? _thumbPath;
+  Object? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final file = await DemoVideoService.materialize(widget.demo);
+      final thumbPath = await VideoUtils.generateVideoThumbnail(
+        file.path,
+        fileName: 'demo_${widget.demo.id}_thumb.png',
+        reuseExisting: true,
+      );
+      if (mounted) setState(() => _thumbPath = thumbPath);
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final thumbPath = _thumbPath;
+    if (thumbPath != null) {
+      return Image.file(
+        File(thumbPath),
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _placeholder(cs),
+      );
+    }
+    return _placeholder(cs, loading: _error == null);
+  }
+
+  Widget _placeholder(ColorScheme cs, {bool loading = false}) {
+    return ColoredBox(
+      color: cs.onSurface.withValues(alpha: 0.06),
+      child: Center(
+        child: loading
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(Icons.videocam, color: cs.onSurfaceVariant, size: 28),
       ),
     );
   }
