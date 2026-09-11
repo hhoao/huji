@@ -34,5 +34,16 @@
 	     still overrides this. -->
 	<key>FLTEnableImpeller</key>
 	<false/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.hhoa.huji.oauth</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>huji</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

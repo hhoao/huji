@@ -17,6 +17,7 @@ abstract final class LoginDialogIcons {
   static const wechat = 'assets/icons/login/wechat.svg';
   static const qqchat = 'assets/icons/login/qqchat.svg';
   static const alipay = 'assets/icons/login/alipay.svg';
+  static const github = 'assets/icons/login/github.svg';
 }
 
 /// Renders a login-dialog SVG icon with web-like muted coloring.

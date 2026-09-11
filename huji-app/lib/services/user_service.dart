@@ -3,10 +3,12 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:huji_app/api/api_manager.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/social_user_models.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/store/user.dart';
 import 'package:huji_app/store/user/user_bloc_instance.dart';
 import 'package:huji_app/store/user/user_event.dart';
+import 'package:huji_app/services/auth/oauth_callback.dart';
 
 class UserService {
   static final Dio _dio = Dio();
@@ -91,10 +93,10 @@ class UserService {
     final authToken = await ApiManager.instance.authApi.login(
       loginPasswordParams,
     );
-    return _afterLogin(authToken);
+    return completeLogin(authToken);
   }
 
-  static Future<LoginResult> _afterLogin(AppAuthLoginRespVO authToken) async {
+  static Future<LoginResult> completeLogin(AppAuthLoginRespVO authToken) async {
     await UserStore.saveTokenToStorage(authToken);
 
     // 获取用户信息
@@ -120,7 +122,52 @@ class UserService {
       loginAuthCodeParams,
     );
 
-    return _afterLogin(authToken);
+    return completeLogin(authToken);
+  }
+
+  // GitHub 社交登录（code 为 GitHub 授权码，state 为授权 URL 携带的状态）
+  static Future<LoginResult> loginWithGithub({
+    required String code,
+    required String state,
+  }) async {
+    final authToken = await ApiManager.instance.authApi.socialLogin(
+      SocialLoginParams(
+        socialType: GithubOAuthConfig.socialType,
+        code: code,
+        state: state,
+      ),
+    );
+    return completeLogin(authToken);
+  }
+
+  // 绑定 GitHub（当前已登录用户）
+  static Future<String> bindGithub({
+    required String code,
+    required String state,
+  }) async {
+    return ApiManager.instance.socialUserApi.bind(
+      SocialUserBindParams(
+        type: GithubOAuthConfig.socialType,
+        code: code,
+        state: state,
+      ),
+    );
+  }
+
+  // 解绑 GitHub
+  static Future<bool> unbindGithub({required String openid}) async {
+    return ApiManager.instance.socialUserApi.unbind(
+      SocialUserUnbindParams(
+        type: GithubOAuthConfig.socialType,
+        openid: openid,
+      ),
+    );
+  }
+
+  // 查询 GitHub 绑定状态（null = 未绑定）
+  static Future<SocialUserInfo?> getGithubBinding() async {
+    return ApiManager.instance.socialUserApi
+        .getSocialUser(GithubOAuthConfig.socialType);
   }
 
   // 发送验证码

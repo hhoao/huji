@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/api/models/member/auth_models.dart';
+import 'package:huji_app/api/models/member/social_user_models.dart';
 import 'package:huji_app/api/models/member/user_models.dart';
 import 'package:huji_app/pages/login/common.dart';
+import 'package:huji_app/services/auth/github_oauth_service.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/router/app_router.dart';
 import 'package:huji_app/router/modules/login.dart';
@@ -28,9 +32,17 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
   bool _isSendingCode = false;
   int _countdown = 0;
   bool _isObscure = true;
+  SocialUserInfo? _githubBinding;
+  bool _githubBusy = false;
+  GithubOAuthService? _githubOAuth;
   @override
   void initState() {
     super.initState();
+    UserService.getGithubBinding().then((info) {
+      if (mounted) {
+        setState(() => _githubBinding = info);
+      }
+    }).catchError((_) {});
   }
 
   @override
@@ -39,6 +51,7 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     _confirmPasswordController.dispose();
     _codeController.dispose();
     _identifierController.dispose();
+    _githubOAuth?.abort();
     super.dispose();
   }
 
@@ -173,6 +186,75 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
     _identifierController.clear();
   }
 
+  Future<void> _handleGithubBind() async {
+    if (_githubBusy) return;
+    setState(() => _githubBusy = true);
+    final oauth = GithubOAuthService();
+    _githubOAuth = oauth;
+    try {
+      final callback = await oauth.authorize();
+      await UserService.bindGithub(code: callback.code, state: callback.state);
+      final info = await UserService.getGithubBinding();
+      if (mounted) {
+        setState(() => _githubBinding = info);
+        TpToast.show(
+          context,
+          message: context.hujiL10n.settingsGithubBindSuccess,
+          variant: TpToastVariant.success,
+        );
+      }
+    } on TimeoutException {
+      if (mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginGithubTimeout,
+          variant: TpToastVariant.warning,
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.settingsGithubBindFailed,
+          variant: TpToastVariant.error,
+        );
+      }
+    } finally {
+      _githubOAuth = null;
+      if (mounted) {
+        setState(() => _githubBusy = false);
+      }
+    }
+  }
+
+  Future<void> _handleGithubUnbind() async {
+    if (_githubBinding == null || _githubBusy) return;
+    setState(() => _githubBusy = true);
+    try {
+      await UserService.unbindGithub(openid: _githubBinding!.openid);
+      if (mounted) {
+        setState(() => _githubBinding = null);
+        TpToast.show(
+          context,
+          message: context.hujiL10n.settingsGithubUnbindSuccess,
+          variant: TpToastVariant.success,
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.settingsGithubBindFailed,
+          variant: TpToastVariant.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _githubBusy = false);
+      }
+    }
+  }
+
   Future<void> _logout() async {
     final confirmed = await showTpDialog<bool>(
       context: context,
@@ -293,6 +375,56 @@ class _SecuritySettingsPageState extends State<SecuritySettingsPage> {
                         ),
                       ],
                     ),
+                  ),
+                ],
+              ),
+            ),
+            SizedBox(height: 16),
+            // GitHub 绑定卡片
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+              decoration: BoxDecoration(
+                color: cs.cardFill,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    color: cs.softShadow,
+                    blurRadius: 4,
+                    offset: Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                children: [
+                  _buildEditRow(
+                    context.hujiL10n.settingsGithubBinding,
+                    '',
+                    // 昵称走 child（Expanded）防长昵称溢出；样式与 value 分支一致
+                    child: Text(
+                      _githubBinding?.nickname ??
+                          context.hujiL10n.settingsGithubUnbound,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurface,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    suffixIcon: _githubBusy
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : TpButton(
+                            variant: TpButtonVariant.ghost,
+                            onPressed: _githubBinding == null
+                                ? _handleGithubBind
+                                : _handleGithubUnbind,
+                            child: Text(
+                              _githubBinding == null
+                                  ? context.hujiL10n.settingsGithubBind
+                                  : context.hujiL10n.settingsGithubUnbind,
+                            ),
+                          ),
                   ),
                 ],
               ),

@@ -6,6 +6,7 @@ import 'package:huji_app/exceptions/notify_exception.dart';
 import 'package:huji_app/pages/login/common.dart';
 import 'package:huji_app/pages/login/login_dialog_style.dart';
 import 'package:huji_app/pages/login/login_dialog_icons.dart';
+import 'package:huji_app/services/auth/github_oauth_service.dart';
 import 'package:huji_app/services/user_service.dart';
 import 'package:huji_app/utils/debounce/throttles.dart';
 
@@ -43,6 +44,7 @@ class _LoginFormState extends State<LoginForm> {
   bool _obscurePassword = true;
   int _countdown = 0;
   Timer? _timer;
+  GithubOAuthService? _githubOAuth;
 
   @override
   void dispose() {
@@ -50,6 +52,7 @@ class _LoginFormState extends State<LoginForm> {
     _passwordController.dispose();
     _codeController.dispose();
     _timer?.cancel();
+    _githubOAuth?.abort();
     super.dispose();
   }
 
@@ -145,6 +148,73 @@ class _LoginFormState extends State<LoginForm> {
       _passwordController.clear();
       _codeController.clear();
     });
+  }
+
+  Future<void> _handleGithubLogin(BuildContext context) async {
+    if (_isLoading) return;
+    setState(() => _isLoading = true);
+
+    final oauth = GithubOAuthService();
+    _githubOAuth = oauth;
+    try {
+      final callback = await oauth.authorize();
+      await UserService.loginWithGithub(
+        code: callback.code,
+        state: callback.state,
+      );
+
+      // 授权流程可长达 5 分钟，期间用户可能已关闭登录框。
+      if (!mounted) return;
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginSuccess,
+          variant: TpToastVariant.success,
+        );
+      }
+      if (widget.onLoginSuccess != null) {
+        widget.onLoginSuccess!();
+      } else {
+        widget.onClose();
+      }
+    } on AppException catch (e) {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: e.message,
+          variant: TpToastVariant.error,
+        );
+      }
+    } on TimeoutException {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginGithubTimeout,
+          variant: TpToastVariant.warning,
+        );
+      }
+    } on GithubOAuthStateException {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginGithubStateMismatch,
+          variant: TpToastVariant.error,
+        );
+      }
+    } on GithubOAuthException {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.loginGithubOpenFailed,
+          variant: TpToastVariant.error,
+        );
+      }
+    } finally {
+      _githubOAuth = null;
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
@@ -346,18 +416,9 @@ class _LoginFormState extends State<LoginForm> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _SocialLoginButton(
-                iconAsset: LoginDialogIcons.wechat,
-                onTap: () => _showSocialUnavailable(context),
-              ),
-              SizedBox(width: LoginDialogLayout.socialButtonGap),
-              _SocialLoginButton(
-                iconAsset: LoginDialogIcons.qqchat,
-                onTap: () => _showSocialUnavailable(context),
-              ),
-              SizedBox(width: LoginDialogLayout.socialButtonGap),
-              _SocialLoginButton(
-                iconAsset: LoginDialogIcons.alipay,
-                onTap: () => _showSocialUnavailable(context),
+                key: const ValueKey('githubLoginButton'),
+                iconAsset: LoginDialogIcons.github,
+                onTap: () => _handleGithubLogin(context),
               ),
             ],
           ),
@@ -381,14 +442,6 @@ class _LoginFormState extends State<LoginForm> {
           ),
         ],
       ),
-    );
-  }
-
-  void _showSocialUnavailable(BuildContext context) {
-    TpToast.show(
-      context,
-      message: context.hujiL10n.loginSocialLoginUnavailable,
-      variant: TpToastVariant.warning,
     );
   }
 
@@ -467,7 +520,11 @@ class _LoginTypeTabs extends StatelessWidget {
 }
 
 class _SocialLoginButton extends StatelessWidget {
-  const _SocialLoginButton({required this.iconAsset, required this.onTap});
+  const _SocialLoginButton({
+    super.key,
+    required this.iconAsset,
+    required this.onTap,
+  });
 
   final String iconAsset;
   final VoidCallback onTap;

@@ -1774,10 +1774,43 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get loginRememberPassword => '记住密码';
 
   @override
-  String get loginSocialLoginDivider => '或使用其他方式登录(暂未开放)';
+  String get loginSocialLoginDivider => '或使用以下方式登录';
 
   @override
   String get loginSocialLoginUnavailable => '该登录方式暂未开放';
+
+  @override
+  String get loginGithubTimeout => '授权超时，请重试';
+
+  @override
+  String get loginGithubOpenFailed => '无法打开浏览器，请检查系统默认浏览器设置';
+
+  @override
+  String get loginGithubStateMismatch => '授权校验失败，请重试';
+
+  @override
+  String get loginGithubCancelled => 'GitHub 授权已取消';
+
+  @override
+  String get settingsGithubBinding => 'GitHub 账号';
+
+  @override
+  String get settingsGithubUnbound => '未绑定';
+
+  @override
+  String get settingsGithubBind => '绑定';
+
+  @override
+  String get settingsGithubUnbind => '解绑';
+
+  @override
+  String get settingsGithubBindSuccess => 'GitHub 绑定成功';
+
+  @override
+  String get settingsGithubUnbindSuccess => 'GitHub 已解绑';
+
+  @override
+  String get settingsGithubBindFailed => 'GitHub 绑定操作失败，请重试';
 
   @override
   String get loginRememberedPassword => '想起密码了？ ';

@@ -141,22 +141,15 @@ class LogoutParams {
   Map<String, dynamic> toJson() => _$LogoutParamsToJson(this);
 }
 
-// 社交授权跳转参数
-@JsonSerializable()
-class SocialAuthRedirectParams {
-  final int socialType;
-  final String? redirectUri;
-
-  SocialAuthRedirectParams({required this.socialType, this.redirectUri});
-
-  factory SocialAuthRedirectParams.fromJson(Map<String, dynamic> json) =>
-      _$SocialAuthRedirectParamsFromJson(json);
-  Map<String, dynamic> toJson() => _$SocialAuthRedirectParamsToJson(this);
-}
-
 // 社交登录参数
+//
+// 服务端 `AppAuthSocialLoginReqVO`（/member/auth/social-login）的字段是
+// `type`，Dart 侧保留 `socialType` 命名、通过 JsonKey 对齐序列化键名。
+// 注意与 `LoginPasswordParams`/`LoginAuthCodeParams` 不同：那两个对应的
+// 服务端 VO 继承 `AppAuthSocialLoginReqVo`，字段名就是 `socialType`。
 @JsonSerializable()
 class SocialLoginParams {
+  @JsonKey(name: 'type')
   final int socialType;
   final String code;
   final String? state;

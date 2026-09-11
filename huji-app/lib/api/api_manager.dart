@@ -4,6 +4,7 @@ import 'package:huji_app/api/net_interceptor.dart';
 import 'package:huji_app/services/multipart_upload_service.dart';
 
 import 'internal/member/auth_api.dart';
+import 'internal/member/social_user_api.dart';
 import 'internal/member/user_api.dart';
 import 'internal/member/notify_api.dart';
 import 'internal/member/error_log_api.dart';
@@ -30,6 +31,9 @@ class ApiManager {
 
   // 用户API
   late final UserApi userApi = UserApi(dio);
+
+  // 社交用户API
+  late final SocialUserApi socialUserApi = SocialUserApi(dio);
 
   // 消息通知API
   late final NotifyApi notifyApi = NotifyApi(dio);

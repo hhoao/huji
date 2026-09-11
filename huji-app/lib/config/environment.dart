@@ -31,6 +31,16 @@ class EnvironmentConfig {
     }
   }
 
+  // Web 前端（OAuth 中转页等）基址
+  static String get webBaseUrl {
+    switch (_environment) {
+      case Environment.development:
+      // return 'http://localhost:5173';
+      case Environment.production:
+        return 'https://restcut.com';
+    }
+  }
+
   // 应用配置
   static String get appName {
     switch (_environment) {

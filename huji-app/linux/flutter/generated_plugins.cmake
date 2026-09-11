@@ -6,6 +6,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
   desktop_drop
   ffmpeg_kit_flutter_new
   file_selector_linux
+  gtk
   media_kit_libs_linux
   media_kit_video
   native_splash_screen_linux
