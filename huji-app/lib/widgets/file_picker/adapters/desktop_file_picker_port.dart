@@ -81,15 +81,33 @@ class DesktopFilePickerPort implements TpDesktopPickerPort {
 
     final dir = Directory(dirPath);
     if (dir.existsSync()) {
-      return dir.path;
+      return omitIfUnsafeForLinuxFilePickerInitialDirectory(dir.path);
     }
 
     final parent = Directory(dirPath).parent;
     if (parent.existsSync()) {
-      return parent.path;
+      return omitIfUnsafeForLinuxFilePickerInitialDirectory(parent.path);
     }
 
     return null;
+  }
+
+  /// Linux file_picker encodes [initialDirectory] as DBus bytes from UTF-16
+  /// code units (not UTF-8). Any code unit above 255 crashes dbus before the
+  /// portal dialog opens — skip the hint for those paths (e.g. ~/Videos/弧迹).
+  static String? omitIfUnsafeForLinuxFilePickerInitialDirectory(String? dirPath) {
+    if (dirPath == null || dirPath.isEmpty) {
+      return null;
+    }
+    if (!Platform.isLinux) {
+      return dirPath;
+    }
+    for (var i = 0; i < dirPath.length; i++) {
+      if (dirPath.codeUnitAt(i) > 255) {
+        return null;
+      }
+    }
+    return dirPath;
   }
 
   static (fp.FileType, List<String>?) _resolveFileType(

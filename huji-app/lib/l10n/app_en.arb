@@ -141,6 +141,7 @@
   "confirmDeleteCurrentPlayingRound": "Delete the currently playing round? This cannot be undone.",
   "confirmDeleteFileMessage": "Delete this file? This cannot be undone.",
   "confirmDeleteLocalVideoMessage": "Are you sure you want to delete this local video?",
+  "confirmDeleteLocalVideosMessage": "Delete {count} selected local video(s)? This cannot be undone.",
   "confirmDeleteTaskMessage": "Delete task \"{taskName}\"? This cannot be undone.",
   "confirmExportTitle": "Confirm export",
   "confirmLogoutMessage": "Are you sure you want to sign out?",
@@ -1378,6 +1379,13 @@
     }
   },
   "@confirmBatchDeleteMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@confirmDeleteLocalVideosMessage": {
     "placeholders": {
       "count": {
         "type": "int"

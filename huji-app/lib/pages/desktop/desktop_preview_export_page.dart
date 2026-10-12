@@ -9,6 +9,7 @@ import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/video_export_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
 import 'package:huji_app/models/autoclip_models.dart';
@@ -18,6 +19,7 @@ import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/user/user_bloc.dart';
 import 'package:huji_app/store/video.dart';
 import 'package:huji_app/widgets/desktop/desktop_login_dialog.dart';
+import 'package:huji_app/widgets/file_picker/adapters/desktop_file_picker_port.dart';
 import 'package:huji_app/widgets/desktop/desktop_page_shell.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_bloc.dart';
 import 'package:huji_app/widgets/multi_video_player/bloc/multi_video_player_event.dart';
@@ -65,6 +67,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   List<SegmentInfo> _segments = [];
   final Map<int, String> _segmentThumbs = {};
   String _fileName = '';
+  final TextEditingController _fileNameController = TextEditingController();
   String _savePath = '';
   String _selectedQuality = _quality1080;
   bool _isLoading = true;
@@ -117,6 +120,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   @override
   void dispose() {
+    _fileNameController.dispose();
     _commandBinding?.detach();
     _commandBinding = null;
     _roundStripScrollController.dispose();
@@ -142,6 +146,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           _fileName = baseName.isNotEmpty
               ? baseName
               : context.hujiL10n.defaultHighlightName;
+          _fileNameController.text = _fileName;
           _isLoading = false;
         });
         // 回填侧栏工作流 tab 的标题/缩略图。
@@ -263,7 +268,29 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   ///
   /// 任务注册进 TaskStorage，切页/关对话框都不中断导出，
   /// 可在 /tasks 查看进度、取消，完成后走系统通知。
+  bool _ensureExportFileNameReady(HujiLocalizations l10n) {
+    final normalized =
+        normalizeVideoExportBaseFileName(_fileNameController.text);
+    if (normalized == null) {
+      TpToast.show(
+        context,
+        message: l10n.inputFileNameHint,
+        variant: TpToastVariant.error,
+      );
+      return false;
+    }
+    if (normalized != _fileName) {
+      setState(() => _fileName = normalized);
+      _fileNameController.value = TextEditingValue(
+        text: normalized,
+        selection: TextSelection.collapsed(offset: normalized.length),
+      );
+    }
+    return true;
+  }
+
   Future<void> _startExportTask(HujiLocalizations l10n) async {
+    if (!_ensureExportFileNameReady(l10n)) return;
     if (_record == null || _record!.filePath == null || _segments.isEmpty) {
       TpToast.show(
         context,
@@ -325,6 +352,16 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
     _closeOwnTab();
   }
 
+  Future<void> _pickSaveDirectory() async {
+    final l10n = context.hujiL10n;
+    final picked = await DesktopFilePickerPort().pickDirectory(
+      dialogTitle: l10n.saveToLabel,
+      initialDirectory: _savePath.isEmpty ? null : _savePath,
+    );
+    if (!mounted || picked == null || picked.isEmpty) return;
+    setState(() => _savePath = picked.first.path);
+  }
+
   Future<void> _openPrecisionEdit(BuildContext context) async {
     if (!context.read<UserBloc>().state.isLoggedIn) {
       await LoginDialog.show(context);
@@ -364,7 +401,10 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
             variant: TpButtonVariant.primary,
             onPressed: _isLoading || _record == null
                 ? null
-                : () => _showExportModal(context),
+                : () {
+                    if (!_ensureExportFileNameReady(l10n)) return;
+                    _showExportModal(context);
+                  },
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -485,21 +525,17 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   }
 
   Widget _buildFileName() {
-    final cs = context.desktopColors;
-    final styles = TpTextStyles.of(context);
+    final l10n = context.hujiL10n;
     return _ExSection(
-      label: context.hujiL10n.fileName,
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-        decoration: BoxDecoration(
-          color: cs.surfaceContainer,
-          border: Border.all(color: context.desktopBorderMedium),
-          borderRadius: BorderRadius.circular(6),
+      label: l10n.fileName,
+      child: TpInput(
+        controller: _fileNameController,
+        decoration: InputDecoration(
+          hintText: l10n.inputFileNameHint,
+          suffixText: '.mp4',
+          isDense: true,
         ),
-        child: Text(
-          _fileName,
-          style: styles.md.copyWith(color: cs.onSurface),
-        ),
+        onChanged: (value) => setState(() => _fileName = value),
       ),
     );
   }
@@ -592,7 +628,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
           SizedBox(width: 8),
           TpIconButton(
             icon: Icons.folder_open,
-            onTap: null,
+            onTap: _pickSaveDirectory,
             size: 32,
             iconSize: 16,
             color: cs.onSurfaceVariant,

@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/models/video.dart';
-import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/utils/desktop_library_navigation.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
+import 'package:huji_app/utils/desktop_style.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
 
@@ -24,12 +24,23 @@ class DesktopVideoCard extends StatelessWidget {
     super.key,
     required this.record,
     this.onSecondaryTapDown,
+    this.actionMenu,
+    this.selectionMode = false,
+    this.selected = false,
+    this.onToggleSelect,
   });
 
   final LocalVideoRecord record;
 
   /// 右键菜单回调（压缩/删除），由宿主页面提供。
   final void Function(TapDownDetails details)? onSecondaryTapDown;
+
+  /// 标题行右侧的 ⋯ 操作菜单（删除、压缩等）。
+  final Widget? actionMenu;
+
+  final bool selectionMode;
+  final bool selected;
+  final VoidCallback? onToggleSelect;
 
   bool get _isNavigable {
     if (record is ProcessVideoRecord) {
@@ -38,19 +49,31 @@ class DesktopVideoCard extends StatelessWidget {
     return record is EdittingVideoRecord || record is SavedVideoRecord;
   }
 
+  VoidCallback? _primaryTap(BuildContext context) {
+    if (selectionMode) return onToggleSelect;
+    if (_isNavigable) {
+      return () => openDesktopLibraryRecord(context, record);
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
+    final decoration = selectionMode && selected
+        ? workspaceCardDecoration(cs, radius: 10).copyWith(
+            color: cs.primary.withAlpha(20),
+            border: Border.all(color: cs.primary.withAlpha(102)),
+          )
+        : workspaceCardDecoration(cs, radius: 10);
     return TpHover(
-      onTap: _isNavigable
-          ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
-          : null,
-      onSecondaryTapDown: onSecondaryTapDown,
+      onTap: _primaryTap(context),
+      onSecondaryTapDown: selectionMode ? null : onSecondaryTapDown,
       borderRadius: BorderRadius.circular(10),
       pressScale: 0.97,
       child: Container(
-        decoration: workspaceCardDecoration(cs, radius: 10),
+        decoration: decoration,
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -62,6 +85,12 @@ class DesktopVideoCard extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   DesktopVideoThumbnail(record: record),
+                  if (selectionMode)
+                    Positioned(
+                      top: 8,
+                      left: 8,
+                      child: DesktopLibrarySelectIndicator(selected: selected),
+                    ),
                   Positioned(
                     top: 8,
                     right: 8,
@@ -73,33 +102,68 @@ class DesktopVideoCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-              child: Column(
+              padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    record.filePath != null
-                        ? p.basename(record.filePath!)
-                        : context.hujiL10n.untitledName,
-                    style: styles.mdSemibold.copyWith(color: cs.onSurface),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  SizedBox(height: 4),
-                  Text(
-                    record.sportType.title,
-                    style: styles.xs.copyWith(
-                      color: cs.onSurfaceVariant,
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          record.filePath != null
+                              ? p.basename(record.filePath!)
+                              : context.hujiL10n.untitledName,
+                          style: styles.mdSemibold.copyWith(color: cs.onSurface),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        SizedBox(height: 4),
+                        Text(
+                          record.sportType.title,
+                          style: styles.xs.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
+                  if (!selectionMode && actionMenu != null) actionMenu!,
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// 多选模式下的圆形勾选指示（与任务列表批量选择一致）。
+class DesktopLibrarySelectIndicator extends StatelessWidget {
+  const DesktopLibrarySelectIndicator({super.key, required this.selected});
+
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    final cs = context.desktopColors;
+    return Container(
+      width: 22,
+      height: 22,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: selected ? cs.primary : Colors.black.withAlpha(89),
+        border: Border.all(
+          color: selected ? cs.primary : cs.onPrimary.withAlpha(217),
+          width: 2,
+        ),
+      ),
+      child: selected
+          ? Icon(Icons.check, size: 14, color: cs.onPrimary)
+          : null,
     );
   }
 }

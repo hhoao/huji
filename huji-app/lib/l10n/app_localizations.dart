@@ -944,6 +944,12 @@ abstract class HujiLocalizations {
   /// **'Are you sure you want to delete this local video?'**
   String get confirmDeleteLocalVideoMessage;
 
+  /// No description provided for @confirmDeleteLocalVideosMessage.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {count} selected local video(s)? This cannot be undone.'**
+  String confirmDeleteLocalVideosMessage(int count);
+
   /// No description provided for @confirmDeleteTaskMessage.
   ///
   /// In en, this message translates to:

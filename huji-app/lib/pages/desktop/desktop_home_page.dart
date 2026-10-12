@@ -9,6 +9,7 @@ import 'package:huji_app/pages/desktop/desktop_video_card.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/store/video.dart';
+import 'package:huji_app/utils/desktop_library_navigation.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
 import 'package:path/path.dart' as p;
@@ -23,6 +24,8 @@ class DesktopHomePage extends StatefulWidget {
 
 class _DesktopHomePageState extends State<DesktopHomePage> {
   var _gridView = true;
+  var _selectionMode = false;
+  final _selectedIds = <String>{};
 
   List<LocalVideoRecord> _records = [];
   bool _loading = true;
@@ -52,6 +55,7 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
           _records = records;
           _loading = false;
           _error = null;
+          _pruneSelection();
         });
       }
     } catch (e, st) {
@@ -69,6 +73,60 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
   void _onDataChanged() {
     _reloadDebounce?.cancel();
     _reloadDebounce = Timer(const Duration(milliseconds: 100), _loadRecords);
+  }
+
+  void _pruneSelection() {
+    final visibleIds = _records.map((r) => r.id).toSet();
+    _selectedIds.removeWhere((id) => !visibleIds.contains(id));
+    if (_selectionMode && _records.isEmpty) {
+      _selectionMode = false;
+      _selectedIds.clear();
+    }
+  }
+
+  void _enterSelectionMode() {
+    setState(() => _selectionMode = true);
+  }
+
+  void _exitSelectionMode() {
+    setState(() {
+      _selectionMode = false;
+      _selectedIds.clear();
+    });
+  }
+
+  void _toggleRecordSelection(String id) {
+    setState(() {
+      if (_selectedIds.contains(id)) {
+        _selectedIds.remove(id);
+      } else {
+        _selectedIds.add(id);
+      }
+    });
+  }
+
+  void _selectAllRecords() {
+    setState(() => _selectedIds.addAll(_records.map((r) => r.id)));
+  }
+
+  void _deselectAllRecords() {
+    setState(() => _selectedIds.clear());
+  }
+
+  Future<void> _batchDeleteSelected() async {
+    final selected = _records
+        .where((record) => _selectedIds.contains(record.id))
+        .toList(growable: false);
+    if (selected.isEmpty) return;
+
+    final deleted = await _confirmAndDeleteLocalVideos(context, selected);
+    if (!mounted || !deleted) return;
+    setState(() {
+      _selectedIds.clear();
+      if (_records.isEmpty) {
+        _selectionMode = false;
+      }
+    });
   }
 
   @override
@@ -109,6 +167,13 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
           onToggleView: (grid) => setState(() => _gridView = grid),
           onNewClip: () => openClipNewTab(context),
           itemCount: _records.isEmpty ? null : _records.length,
+          selectionMode: _selectionMode,
+          selectedCount: _selectedIds.length,
+          onEnterSelectionMode: _enterSelectionMode,
+          onExitSelectionMode: _exitSelectionMode,
+          onSelectAll: _selectAllRecords,
+          onDeselectAll: _deselectAllRecords,
+          onBatchDelete: _batchDeleteSelected,
         ),
         const SizedBox(height: 16),
         Expanded(
@@ -152,11 +217,19 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
         mainAxisSpacing: 20,
       ),
       itemCount: _records.length,
-      itemBuilder: (context, i) => DesktopVideoCard(
-        record: _records[i],
-        onSecondaryTapDown: (details) =>
-            _showVideoContextMenu(context, _records[i], details),
-      ),
+      itemBuilder: (context, i) {
+        final record = _records[i];
+        final selected = _selectedIds.contains(record.id);
+        return DesktopVideoCard(
+          record: record,
+          selectionMode: _selectionMode,
+          selected: selected,
+          onToggleSelect: () => _toggleRecordSelection(record.id),
+          onSecondaryTapDown: (details) =>
+              _showVideoContextMenu(context, record, details),
+          actionMenu: _desktopLibraryVideoActionMenu(context, record),
+        );
+      },
     );
   }
 
@@ -164,8 +237,63 @@ class _DesktopHomePageState extends State<DesktopHomePage> {
     return ListView.separated(
       itemCount: _records.length,
       separatorBuilder: (_, __) => SizedBox(height: 10),
-      itemBuilder: (context, i) => _VideoListTile(record: _records[i]),
+      itemBuilder: (context, i) {
+        final record = _records[i];
+        return _VideoListTile(
+          record: record,
+          selectionMode: _selectionMode,
+          selected: _selectedIds.contains(record.id),
+          onToggleSelect: () => _toggleRecordSelection(record.id),
+        );
+      },
     );
+  }
+}
+
+List<TpActionMenuSpec> _desktopLibraryVideoMenuSpecs(
+  BuildContext context,
+  LocalVideoRecord record,
+) {
+  final l10n = context.hujiL10n;
+  final hasVideoFile = record.filePath != null;
+  return [
+    TpActionMenuSpec.item(
+      value: 'compress',
+      icon: Icons.video_file_outlined,
+      label: l10n.taskTypeVideoCompress,
+      enabled: hasVideoFile,
+    ),
+    TpActionMenuSpec.item(
+      value: 'delete',
+      icon: Icons.delete_outline,
+      label: l10n.actionDelete,
+      destructive: true,
+    ),
+  ];
+}
+
+Widget _desktopLibraryVideoActionMenu(
+  BuildContext context,
+  LocalVideoRecord record,
+) {
+  return TpActionMenuButton(
+    icon: Icon(Icons.more_horiz, size: context.tpIconSizes.md),
+    specs: _desktopLibraryVideoMenuSpecs(context, record),
+    onSelected: (action) =>
+        _handleDesktopLibraryVideoAction(context, record, action),
+  );
+}
+
+Future<void> _handleDesktopLibraryVideoAction(
+  BuildContext context,
+  LocalVideoRecord record,
+  Object? action,
+) async {
+  switch (action) {
+    case 'compress':
+      await _openVideoCompress(context, record);
+    case 'delete':
+      await _deleteLocalVideo(context, record);
   }
 }
 
@@ -174,36 +302,14 @@ Future<void> _showVideoContextMenu(
   LocalVideoRecord record,
   TapDownDetails details,
 ) async {
-  final l10n = context.hujiL10n;
-  final hasVideoFile = record.filePath != null;
-
   final action = await showTpActionMenuFromSpecsAtTap<String>(
     context: context,
     tapDetails: details,
-    specs: [
-      TpActionMenuSpec.item(
-        value: 'compress',
-        icon: Icons.video_file_outlined,
-        label: l10n.taskTypeVideoCompress,
-        enabled: hasVideoFile,
-      ),
-      TpActionMenuSpec.item(
-        value: 'delete',
-        icon: Icons.delete_outline,
-        label: l10n.actionDelete,
-        destructive: true,
-      ),
-    ],
+    specs: _desktopLibraryVideoMenuSpecs(context, record),
   );
 
   if (!context.mounted || action == null) return;
-
-  switch (action) {
-    case 'compress':
-      await _openVideoCompress(context, record);
-    case 'delete':
-      await _deleteLocalVideo(context, record);
-  }
+  await _handleDesktopLibraryVideoAction(context, record, action);
 }
 
 Future<void> _openVideoCompress(
@@ -233,7 +339,20 @@ Future<void> _deleteLocalVideo(
   BuildContext context,
   LocalVideoRecord record,
 ) async {
+  await _confirmAndDeleteLocalVideos(context, [record]);
+}
+
+Future<bool> _confirmAndDeleteLocalVideos(
+  BuildContext context,
+  List<LocalVideoRecord> records,
+) async {
+  if (records.isEmpty) return false;
+
   final l10n = context.hujiL10n;
+  final message = records.length == 1
+      ? l10n.confirmDeleteLocalVideoMessage
+      : l10n.confirmDeleteLocalVideosMessage(records.length);
+
   final confirmed = await showTpDialog<bool>(
     context: context,
     builder: (ctx) => TpDialog(
@@ -243,7 +362,7 @@ Future<void> _deleteLocalVideo(
         children: [
           TpDialogHeader(title: l10n.confirmDelete),
           SizedBox(height: ctx.tpSpacing.lg),
-          Text(l10n.confirmDeleteLocalVideoMessage),
+          Text(message),
           TpDialogActions(
             children: [
               TpButton(
@@ -263,27 +382,37 @@ Future<void> _deleteLocalVideo(
     ),
   );
 
-  if (confirmed != true || !context.mounted) return;
+  if (confirmed != true || !context.mounted) return false;
 
-  final path = record.filePath;
-  if (path != null) {
-    try {
-      final file = File(path);
-      if (await file.exists()) {
-        await file.delete();
+  for (final record in records) {
+    final path = record.filePath;
+    if (path != null) {
+      try {
+        final file = File(path);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      } catch (e) {
+        AppLogger().w('Failed to delete video file: $path, $e');
       }
-    } catch (e) {
-      AppLogger().w('Failed to delete video file: $path, $e');
     }
+    await LocalVideoStorage().removeById(record.id);
   }
-
-  await LocalVideoStorage().removeById(record.id);
+  return true;
 }
 
 class _VideoListTile extends StatelessWidget {
-  const _VideoListTile({required this.record});
+  const _VideoListTile({
+    required this.record,
+    required this.selectionMode,
+    required this.selected,
+    required this.onToggleSelect,
+  });
 
   final LocalVideoRecord record;
+  final bool selectionMode;
+  final bool selected;
+  final VoidCallback onToggleSelect;
 
   bool get _isNavigable {
     if (record is ProcessVideoRecord) {
@@ -296,18 +425,33 @@ class _VideoListTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final cs = Theme.of(context).colorScheme;
     final styles = TpTextStyles.of(context);
+    final backgroundColor = selectionMode && selected
+        ? cs.primary.withAlpha(20)
+        : cs.surfaceContainer;
+    final borderColor = selectionMode && selected
+        ? cs.primary.withAlpha(102)
+        : null;
+
     return TpHover(
-      onTap: _isNavigable
-          ? () => context.go(DesktopRoutes.clipPreviewPath(record.id))
-          : null,
-      onSecondaryTapDown: (details) =>
-          _showVideoContextMenu(context, record, details),
+      onTap: selectionMode
+          ? onToggleSelect
+          : (_isNavigable
+                ? () => openDesktopLibraryRecord(context, record)
+                : null),
+      onSecondaryTapDown: selectionMode
+          ? null
+          : (details) => _showVideoContextMenu(context, record, details),
       borderRadius: BorderRadius.circular(10),
-      backgroundColor: cs.surfaceContainer,
+      backgroundColor: backgroundColor,
+      border: borderColor != null ? Border.all(color: borderColor) : null,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
             children: [
+              if (selectionMode) ...[
+                DesktopLibrarySelectIndicator(selected: selected),
+                SizedBox(width: 12),
+              ],
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: SizedBox(
@@ -339,6 +483,10 @@ class _VideoListTile extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!selectionMode) ...[
+                SizedBox(width: 4),
+                _desktopLibraryVideoActionMenu(context, record),
+              ],
               SizedBox(width: 8),
               DesktopVideoStatusBadge(status: record.processStatus),
             ],

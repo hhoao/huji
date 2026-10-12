@@ -472,6 +472,11 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get confirmDeleteLocalVideoMessage => '确定要删除这个本地视频吗？';
 
   @override
+  String confirmDeleteLocalVideosMessage(int count) {
+    return '确定要删除选中的 $count 个本地视频吗？此操作不可撤销。';
+  }
+
+  @override
   String confirmDeleteTaskMessage(String taskName) {
     return '确定要删除任务\"$taskName\"吗？此操作不可撤销。';
   }

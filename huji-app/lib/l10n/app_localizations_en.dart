@@ -483,6 +483,11 @@ class HujiLocalizationsEn extends HujiLocalizations {
       'Are you sure you want to delete this local video?';
 
   @override
+  String confirmDeleteLocalVideosMessage(int count) {
+    return 'Delete $count selected local video(s)? This cannot be undone.';
+  }
+
+  @override
   String confirmDeleteTaskMessage(String taskName) {
     return 'Delete task \"$taskName\"? This cannot be undone.';
   }

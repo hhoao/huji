@@ -34,7 +34,24 @@ class VideoExportTaskManager extends AbstractTaskManager {
 
   @override
   Future<void> processTask(Task task) async {
-    final exportTask = task as VideoExportTask;
+    var exportTask = task as VideoExportTask;
+    final resolvedBase = await resolveUniqueVideoExportBaseName(
+      directory: exportTask.savePath,
+      baseFileName: exportTask.fileName,
+    );
+    if (resolvedBase != exportTask.fileName) {
+      await _updateExportTask(
+        exportTask.id,
+        (oldTask) => (oldTask as VideoExportTask).copyWith(
+          fileName: resolvedBase,
+          name: '$resolvedBase.mp4',
+        ),
+      );
+      final latest = _taskRunner.getTaskById(exportTask.id);
+      if (latest is VideoExportTask) {
+        exportTask = latest;
+      }
+    }
     // p.join uses the platform separator — a hardcoded '/' here stores
     // mixed-separator paths on Windows and breaks library lookups.
     final outputPath =
@@ -63,6 +80,10 @@ class VideoExportTaskManager extends AbstractTaskManager {
           }
           _runningProcesses[exportTask.id] = process;
         },
+        // 无损路径是多步流水线：取消后不再启动后续步骤，也不回退重编码。
+        isCancelled: () =>
+            _taskRunner.getTaskById(exportTask.id)?.status ==
+            TaskStatusEnum.cancelled,
       );
 
       final latestTask = _taskRunner.getTaskById(exportTask.id);

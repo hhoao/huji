@@ -141,6 +141,7 @@
   "confirmDeleteCurrentPlayingRound": "确定要删除当前正在播放的回合吗？此操作不可撤销。",
   "confirmDeleteFileMessage": "确定要删除该文件吗？此操作不可恢复。",
   "confirmDeleteLocalVideoMessage": "确定要删除这个本地视频吗？",
+  "confirmDeleteLocalVideosMessage": "确定要删除选中的 {count} 个本地视频吗？此操作不可撤销。",
   "confirmDeleteTaskMessage": "确定要删除任务\"{taskName}\"吗？此操作不可撤销。",
   "confirmExportTitle": "确认导出",
   "confirmLogoutMessage": "确定要退出登录吗？",
@@ -1378,6 +1379,13 @@
     }
   },
   "@confirmBatchDeleteMessage": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@confirmDeleteLocalVideosMessage": {
     "placeholders": {
       "count": {
         "type": "int"
