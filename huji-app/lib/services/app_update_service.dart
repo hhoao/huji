@@ -42,28 +42,25 @@ class AppUpdateService {
       return AppUpdateInfo(hasUpdate: false);
     }
 
-    if (_compareVersions(latestApps.first.version, packageInfo.version)) {
-      _logger.i('当前已是最新版本: ${latestApps.first.version}');
-      return AppUpdateInfo(hasUpdate: false);
-    }
-
-    final currentApp = await getCurrentApp();
-
     // 找到当前平台的最新版本
     final latestApp = latestApps.firstWhere(
       (app) => app.platform == platform,
       orElse: () => latestApps.first,
     );
 
-    // 比较版本
-    final hasUpdate = _compareVersions(currentApp.version, latestApp.version);
-
-    if (!hasUpdate) {
-      _logger.i('当前已是最新版本: ${currentApp.version}');
+    if (!_compareVersions(packageInfo.version, latestApp.version)) {
+      _logger.i('当前已是最新版本: ${packageInfo.version}');
       return AppUpdateInfo(hasUpdate: false);
     }
 
     _logger.i('发现新版本: ${latestApp.version}');
+
+    final currentApp = await getCurrentApp() ??
+        AppApplicationRespVO(
+          name: latestApp.name,
+          version: packageInfo.version,
+          platform: platform,
+        );
 
     // 获取版本详情
     final latestVersions = await Api.app.getLatestVersionsAppInfo(
@@ -244,18 +241,41 @@ class AppUpdateService {
     }
   }
 
-  Future<AppApplicationRespVO> getCurrentApp() async {
+  Future<AppApplicationRespVO?> getCurrentApp() async {
     final currentAppInfo = await _getCurrentAppInfo();
     final platform = await _getPlatform();
-    final pageReqVO = AppPageReqVO(
+    if (currentAppInfo == null || platform == null) {
+      return null;
+    }
+
+    // PackageInfo.appName（如 Linux 上的 "huji"）常与后台展示名不一致，先按版本+平台查
+    var pageReqVO = AppPageReqVO(
       pageNo: 1,
       pageSize: 1,
-      name: currentAppInfo?.appName,
-      version: currentAppInfo?.version,
+      version: currentAppInfo.version,
       platform: platform,
     );
-    final appList = await Api.app.getAppPage(pageReqVO);
-    return appList.list.first;
+    var appList = await Api.app.getAppPage(pageReqVO);
+    if (appList.list.isNotEmpty) {
+      return appList.list.first;
+    }
+
+    pageReqVO = AppPageReqVO(
+      pageNo: 1,
+      pageSize: 1,
+      name: currentAppInfo.appName,
+      version: currentAppInfo.version,
+      platform: platform,
+    );
+    appList = await Api.app.getAppPage(pageReqVO);
+    if (appList.list.isNotEmpty) {
+      return appList.list.first;
+    }
+
+    _logger.i(
+      '后台未登记当前安装版本 ${currentAppInfo.version} (${platform.name})，更新检查仍可用本地版本号',
+    );
+    return null;
   }
 
   Future<List<String>> getUpdateInfoChangeLogs(AppUpdateInfo updateInfo) async {

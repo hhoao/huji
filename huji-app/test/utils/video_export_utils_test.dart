@@ -273,6 +273,53 @@ void main() {
     });
   });
 
+  group('isLosslessWorthwhile', () {
+    SegmentInfo seg(double start, double end) => SegmentInfo(
+          actionType: ActionType.playBall,
+          startSeconds: start,
+          endSeconds: end,
+        );
+    LosslessClip clip(double start, double end) => LosslessClip(
+          startSeconds: start,
+          endSeconds: end,
+          endsAtFileEnd: false,
+        );
+
+    test('只轻微变长时走无损', () {
+      expect(
+        isLosslessWorthwhile(
+          segments: [seg(10, 20), seg(30, 40)],
+          clips: [clip(9.5, 20.2), clip(29.5, 40.3)],
+        ),
+        isTrue,
+      );
+    });
+
+    test('短片段 + 大关键帧间隔导致总长暴涨时不走无损', () {
+      // 实测：310 个 3.5s 片段、关键帧间隔 8.5s → 18 分钟膨胀成 61 分钟。
+      final segments = [
+        for (var i = 0; i < 20; i++) seg(100.0 + i * 20, 103.5 + i * 20),
+      ];
+      final clips = [
+        for (var i = 0; i < 20; i++) clip(96.0 + i * 20, 107.0 + i * 20),
+      ];
+      expect(
+        isLosslessWorthwhile(segments: segments, clips: clips),
+        isFalse,
+      );
+    });
+
+    test('吸附后互相重叠时不走无损（会导出重复画面）', () {
+      expect(
+        isLosslessWorthwhile(
+          segments: [seg(10, 12), seg(15, 17)],
+          clips: [clip(9, 16), clip(14, 18)],
+        ),
+        isFalse,
+      );
+    });
+  });
+
   group('runConcatVideoExport', () {
     test('empty segments throws', () async {
       await expectLater(
@@ -421,14 +468,14 @@ void main() {
         return;
       }
 
-      // 造一个 6s / 30fps / GOP 1s / 带音轨的源：两段片段各自跨越关键帧，
-      // 走音频的多段 concat 滤镜分支。
+      // 造一个 30s / 30fps / GOP 1s / 带音轨的源。片段取 12s（远长于 GOP），
+      // 吸附带来的膨胀在阈值内，才会走无损分支。
       final sourcePath = p.join(tempDir.path, 'audio_source.mp4');
       final generated = await Process.run('ffmpeg', [
         '-y', '-v', 'error',
         '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=30',
         '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100',
-        '-t', '6',
+        '-t', '30',
         '-c:v', 'libx264', '-preset', 'ultrafast',
         '-g', '30', '-keyint_min', '30', '-sc_threshold', '0',
         '-c:a', 'aac', '-shortest',
@@ -439,20 +486,20 @@ void main() {
         return;
       }
 
-      // 吸附后两段相邻：[1,4] 与 [4,6]（第二段尾部到文件结尾）。
+      // 吸附后：[3,16] 与 [16,29]，共 26s（请求 24s）。
       final outputPath = p.join(tempDir.path, 'audio_lossless.mp4');
       await runConcatVideoExport(
         videoPath: sourcePath,
         segments: [
           SegmentInfo(
             actionType: ActionType.playBall,
-            startSeconds: 1.4,
-            endSeconds: 3.1,
+            startSeconds: 3.4,
+            endSeconds: 15.4,
           ),
           SegmentInfo(
             actionType: ActionType.playBall,
-            startSeconds: 4.6,
-            endSeconds: 5.4,
+            startSeconds: 16.4,
+            endSeconds: 28.4,
           ),
         ],
         quality: VideoExportQualities.original,
@@ -466,16 +513,15 @@ void main() {
 
       final videoDuration = double.parse(video['duration'] as String);
       final audioDuration = double.parse(audio['duration'] as String);
-      expect(videoDuration, closeTo(5.0, 0.05), reason: '吸附后共 5s');
+      expect(videoDuration, closeTo(26.0, 0.05), reason: '吸附后共 26s');
       expect(
         audioDuration,
         closeTo(videoDuration, 0.05),
         reason: '音视频时长应一致（否则接缝处会累积不同步）',
       );
 
-      // 音轨帧间隔应恒为 1024/44100，既无缺口也无重叠（重叠会听到杂音）。
-      final audioPts = await _videoPacketTimes(outputPath); // 视频轨
-      expect(audioPts, hasLength(150), reason: '5s × 30fps');
+      final videoPts = await _videoPacketTimes(outputPath);
+      expect(videoPts, hasLength(780), reason: '26s × 30fps');
 
       final audioPackets = await Process.run('ffprobe', [
         '-v', 'error',
@@ -499,6 +545,59 @@ void main() {
           reason: '音频第 $i 帧处接缝异常：${pts[i - 1]} → ${pts[i]}',
         );
       }
+    });
+
+    test('large-GOP source falls back instead of inflating the export',
+        timeout: const Timeout(Duration(minutes: 3)), () async {
+      if (!ffmpegAvailable) {
+        markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
+      }
+
+      // 关键帧间隔 10s 的素材 + 2s 的短片段：吸附会让 4s 变成 20s，必须回退。
+      final sourcePath = p.join(tempDir.path, 'large_gop_source.mp4');
+      final generated = await Process.run('ffmpeg', [
+        '-y', '-v', 'error',
+        '-f', 'lavfi', '-i', 'testsrc2=size=320x180:rate=30',
+        '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100',
+        '-t', '40',
+        '-c:v', 'libx264', '-preset', 'ultrafast',
+        '-g', '300', '-keyint_min', '300', '-sc_threshold', '0',
+        '-c:a', 'aac', '-shortest',
+        sourcePath,
+      ]);
+      if (generated.exitCode != 0) {
+        markTestSkipped('无法生成大 GOP 测试素材');
+        return;
+      }
+
+      final outputPath = p.join(tempDir.path, 'large_gop_out.mp4');
+      await runConcatVideoExport(
+        videoPath: sourcePath,
+        segments: [
+          SegmentInfo(
+            actionType: ActionType.playBall,
+            startSeconds: 12.5,
+            endSeconds: 14.5,
+          ),
+          SegmentInfo(
+            actionType: ActionType.playBall,
+            startSeconds: 22.5,
+            endSeconds: 24.5,
+          ),
+        ],
+        quality: VideoExportQualities.original,
+        outputPath: outputPath,
+      );
+
+      final probe = await _ffprobeJson(outputPath);
+      final duration = _formatDurationSeconds(probe);
+      // 请求 4s：吸附会变成 20s，回退重编码 + 剪掉首段前滚后应回到 4s 附近。
+      expect(
+        duration,
+        closeTo(4.0, 0.2),
+        reason: '大 GOP 素材不应因吸附而膨胀（实际 $duration）',
+      );
     });
 
     test('720p quality scales output height to 720',

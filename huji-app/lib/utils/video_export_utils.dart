@@ -347,6 +347,45 @@ double _copyWeight(double seconds) => seconds;
 const double _finalizeWeight = 0.3;
 const double _audioWeightFactor = 0.15;
 
+/// 无损路径是否值得走。
+///
+/// 片段起点必须落在关键帧上，所以吸附只能向外多带画面。**片段短、关键帧间隔大**
+/// 时这个代价会失控：实测一段 51 分钟直播录制（关键帧中位间隔 8.5s）检测出 310 个
+/// 平均 3.5s 的片段，吸附后从 18 分钟膨胀到 61 分钟，且 133 个相邻片段互相重叠
+/// （会导出重复画面）。这种素材宁可回退重编码——精确，只是不加速。
+@visibleForTesting
+bool isLosslessWorthwhile({
+  required List<SegmentInfo> segments,
+  required List<LosslessClip> clips,
+}) {
+  /// 吸附后总长最多允许超出多少（用户看到的片段长度不能被明显改掉）。
+  const maxInflationRatio = 1.15;
+  const inflationGraceSeconds = 1.0;
+  /// 段数上限：无损路径每段要一次输入（音频 concat 滤镜），段数过多不划算。
+  const maxClips = 256;
+
+  if (clips.length > maxClips) return false;
+
+  final requested = segments.fold<double>(
+    0,
+    (sum, s) => sum + (s.endSeconds - s.startSeconds),
+  );
+  final snapped = clips.fold<double>(0, (sum, c) => sum + c.durationSeconds);
+  if (snapped > requested * maxInflationRatio + inflationGraceSeconds) {
+    return false;
+  }
+
+  // 吸附后互相重叠 → 同一段画面会被导出两次。
+  for (var i = 1; i < clips.length; i++) {
+    if (clips[i].startSeconds <
+        clips[i - 1].endSeconds - _keyframeEpsilon) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 /// 判断能否走无损关键帧对齐路径，能则返回流水线计划。
 Future<_ExportPlan?> _buildLosslessPlan({
   required String videoPath,
@@ -373,6 +412,7 @@ Future<_ExportPlan?> _buildLosslessPlan({
   );
   if (snapped.any((clip) => clip == null)) return null;
   final clips = snapped.cast<LosslessClip>();
+  if (!isLosslessWorthwhile(segments: segments, clips: clips)) return null;
   final totalSeconds = clips.fold<double>(0, (sum, c) => sum + c.durationSeconds);
   if (totalSeconds <= 0) return null;
 
@@ -502,8 +542,9 @@ Future<void> _runExportSteps(
 
 /// concat 清单 + 单次 x264 编码。
 ///
-/// 注意：concat demuxer 的 `inpoint` 在**第一个**文件上无法丢弃关键帧之前的
-/// 帧，因此输出开头可能多出 ≤1 个 GOP 的画面（后续文件不受影响）。
+/// concat demuxer 的 `inpoint` 在**第一个**文件上无法丢弃关键帧之前的帧，输出
+/// 开头会多带 ≤1 个 GOP。这里查出首段起点之前最近的关键帧，用输出侧 `-ss` 把
+/// 多带的画面剪掉（关键帧间隔 8.5s 的素材上，不剪就会多出 8.5 秒）。
 Future<void> _runSinglePassExport({
   required String videoPath,
   required List<SegmentInfo> segments,
@@ -524,6 +565,7 @@ Future<void> _runSinglePassExport({
   await File(concatPath).writeAsString(buf.toString());
 
   final scale = _scaleHeight(quality);
+  final preRoll = await _firstSegmentPreRoll(videoPath, segments.first);
   final totalDurationSec = segments.fold<double>(
     0,
     (sum, s) => sum + (s.endSeconds - s.startSeconds),
@@ -532,6 +574,8 @@ Future<void> _runSinglePassExport({
   await _runFFmpegStep(
     [
       '-f', 'concat', '-safe', '0', '-i', concatPath,
+      // 输出侧 -ss：剪掉 concat demuxer 在首段多带的前滚画面。
+      if (preRoll > 0) ...['-ss', _t(preRoll)],
       '-c:v', 'libx264', '-crf', _crfFor(quality), '-preset', _x264Preset,
       if (scale != null) ...['-vf', 'scale=-2:$scale'],
       '-c:a', 'aac', '-b:a', '128k',
@@ -545,6 +589,23 @@ Future<void> _runSinglePassExport({
             ),
     onProcessStarted: onProcessStarted,
   );
+}
+
+/// 首段起点之前最近的关键帧到起点之间的时长（即 concat demuxer 会多带的画面）。
+///
+/// 探测失败或起点本身就在关键帧上时返回 0（保持原行为，不做裁剪）。
+Future<double> _firstSegmentPreRoll(String videoPath, SegmentInfo first) async {
+  final keyframes = await _probeKeyframes(videoPath, [first]);
+  if (keyframes.isEmpty) return 0;
+
+  double? beforeStart;
+  for (final k in keyframes) {
+    if (k <= first.startSeconds + _keyframeEpsilon) beforeStart = k;
+  }
+  if (beforeStart == null) return 0;
+
+  final preRoll = first.startSeconds - beforeStart;
+  return preRoll > _keyframeEpsilon ? preRoll : 0;
 }
 
 // === ffmpeg 执行 ===========================================================
