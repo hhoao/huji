@@ -1,5 +1,6 @@
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 import 'package:path/path.dart' as p;
@@ -24,4 +25,14 @@ void openDesktopLibraryRecord(BuildContext context, LocalVideoRecord record) {
   final route = desktopLibraryRecordRoute(record);
   if (route == null) return;
   context.go(route);
+}
+
+/// 导出/压缩入库条目可在系统文件管理器中打开所在目录。
+bool desktopLibraryRecordCanOpenContainingFolder(LocalVideoRecord record) {
+  final path = record.filePath;
+  if (path == null || path.isEmpty) return false;
+  if (record is! SavedVideoRecord) return false;
+  final type = record.videoProcessType;
+  return type == VideoProcessType.exported ||
+      type == VideoProcessType.compressed;
 }

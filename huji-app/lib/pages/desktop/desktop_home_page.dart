@@ -12,6 +12,7 @@ import 'package:huji_app/store/video.dart';
 import 'package:huji_app/utils/desktop_library_navigation.dart';
 import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/widgets/desktop/desktop_library_toolbar.dart';
+import 'package:open_file/open_file.dart';
 import 'package:path/path.dart' as p;
 import 'package:shared_ui/shared_ui.dart';
 
@@ -256,7 +257,15 @@ List<TpActionMenuSpec> _desktopLibraryVideoMenuSpecs(
 ) {
   final l10n = context.hujiL10n;
   final hasVideoFile = record.filePath != null;
+  final canOpenFolder =
+      desktopLibraryRecordCanOpenContainingFolder(record);
   return [
+    if (canOpenFolder)
+      TpActionMenuSpec.item(
+        value: 'openFolder',
+        icon: Icons.folder_open_outlined,
+        label: l10n.openFolder,
+      ),
     TpActionMenuSpec.item(
       value: 'compress',
       icon: Icons.video_file_outlined,
@@ -290,10 +299,43 @@ Future<void> _handleDesktopLibraryVideoAction(
   Object? action,
 ) async {
   switch (action) {
+    case 'openFolder':
+      await _openVideoContainingFolder(context, record);
     case 'compress':
       await _openVideoCompress(context, record);
     case 'delete':
       await _deleteLocalVideo(context, record);
+  }
+}
+
+Future<void> _openVideoContainingFolder(
+  BuildContext context,
+  LocalVideoRecord record,
+) async {
+  final path = record.filePath;
+  if (path == null) return;
+
+  final dir = File(path).parent;
+  try {
+    if (!await dir.exists()) {
+      if (context.mounted) {
+        TpToast.show(
+          context,
+          message: context.hujiL10n.videoCompressInputNotFound(path),
+          variant: TpToastVariant.warning,
+        );
+      }
+      return;
+    }
+    await OpenFile.open(dir.path);
+  } catch (e) {
+    if (context.mounted) {
+      TpToast.show(
+        context,
+        message: context.hujiL10n.openFolderFailed('$e'),
+        variant: TpToastVariant.warning,
+      );
+    }
   }
 }
 

@@ -56,4 +56,72 @@ void main() {
       );
     });
   });
+
+  group('desktopLibraryRecordCanOpenContainingFolder', () {
+    SavedVideoRecord saved({
+      String? filePath,
+      VideoProcessType? videoProcessType,
+    }) =>
+        SavedVideoRecord(
+          id: 'saved',
+          sportType: SportType.pingpong,
+          filePath: filePath,
+          duration: 1,
+          fileSize: 1,
+          videoProcessType: videoProcessType,
+        );
+
+    test('exported and compressed saved videos with path', () {
+      expect(
+        desktopLibraryRecordCanOpenContainingFolder(
+          saved(
+            filePath: '/out/export.mp4',
+            videoProcessType: VideoProcessType.exported,
+          ),
+        ),
+        isTrue,
+      );
+      expect(
+        desktopLibraryRecordCanOpenContainingFolder(
+          saved(
+            filePath: '/out/small.mp4',
+            videoProcessType: VideoProcessType.compressed,
+          ),
+        ),
+        isTrue,
+      );
+    });
+
+    test('other types or missing path are false', () {
+      expect(
+        desktopLibraryRecordCanOpenContainingFolder(
+          saved(
+            filePath: '/out/raw.mp4',
+            videoProcessType: VideoProcessType.raw,
+          ),
+        ),
+        isFalse,
+      );
+      expect(
+        desktopLibraryRecordCanOpenContainingFolder(
+          saved(videoProcessType: VideoProcessType.exported),
+        ),
+        isFalse,
+      );
+      expect(
+        desktopLibraryRecordCanOpenContainingFolder(
+          EdittingVideoRecord(
+            id: 'edit',
+            processStatus: LocalVideoProcessStatusEnum.completed,
+            sportType: SportType.pingpong,
+            filePath: '/clip.mp4',
+            clipMode: ClipMode.existingVideo,
+            allMatchSegments: const [],
+            favoritesMatchSegments: const [],
+          ),
+        ),
+        isFalse,
+      );
+    });
+  });
 }
