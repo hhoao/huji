@@ -532,22 +532,35 @@ class _VideoListTile extends StatelessWidget {
               SizedBox(width: 14),
               Expanded(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      record.filePath != null
-                          ? p.basename(record.filePath!)
-                          : context.hujiL10n.untitledName,
-                      style: styles.mdSemibold.copyWith(color: cs.onSurface),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            record.filePath != null
+                                ? p.basename(record.filePath!)
+                                : context.hujiL10n.untitledName,
+                            style: styles.mdSemibold.copyWith(
+                              color: cs.onSurface,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!selectionMode) ...[
+                          SizedBox(width: 4),
+                          _desktopLibraryVideoActionMenu(context, record),
+                          SizedBox(width: 8),
+                          DesktopLibraryRecordBadge(record: record),
+                        ],
+                      ],
                     ),
                     SizedBox(height: 4),
                     Row(
                       children: [
-                        Flexible(
-                          flex: 2,
-                          fit: FlexFit.loose,
+                        Expanded(
                           child: Text(
                             record.sportType.title,
                             style: styles.xs.copyWith(
@@ -557,22 +570,12 @@ class _VideoListTile extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        SizedBox(width: 6),
-                        Flexible(
-                          flex: 3,
-                          child: DesktopLibraryRecordMetaLine(record: record),
-                        ),
+                        DesktopLibraryRecordMetaLine(record: record),
                       ],
                     ),
                   ],
                 ),
               ),
-              if (!selectionMode) ...[
-                SizedBox(width: 4),
-                _desktopLibraryVideoActionMenu(context, record),
-              ],
-              SizedBox(width: 8),
-              DesktopLibraryRecordBadge(record: record),
             ],
           ),
         ),

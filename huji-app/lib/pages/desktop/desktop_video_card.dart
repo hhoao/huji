@@ -113,15 +113,15 @@ class DesktopVideoCard extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
                           record.filePath != null
                               ? p.basename(record.filePath!)
                               : context.hujiL10n.untitledName,
@@ -129,34 +129,26 @@ class DesktopVideoCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Flexible(
-                              flex: 2,
-                              fit: FlexFit.loose,
-                              child: Text(
-                                record.sportType.title,
-                                style: styles.xs.copyWith(
-                                  color: cs.onSurfaceVariant,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            SizedBox(width: 6),
-                            Flexible(
-                              flex: 3,
-                              child: DesktopLibraryRecordMetaLine(
-                                record: record,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      ),
+                      if (!selectionMode && actionMenu != null) actionMenu!,
+                    ],
                   ),
-                  if (!selectionMode && actionMenu != null) actionMenu!,
+                  SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          record.sportType.title,
+                          style: styles.xs.copyWith(
+                            color: cs.onSurfaceVariant,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      DesktopLibraryRecordMetaLine(record: record),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -285,7 +277,6 @@ class DesktopLibraryRecordMetaLine extends StatelessWidget {
       style: TpTextStyles.of(context).xs.copyWith(color: cs.onSurfaceVariant),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
-      textAlign: TextAlign.right,
     );
   }
 }
