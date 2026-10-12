@@ -950,6 +950,12 @@ abstract class HujiLocalizations {
   /// **'Delete {count} selected local video(s)? This cannot be undone.'**
   String confirmDeleteLocalVideosMessage(int count);
 
+  /// No description provided for @deleteLocalVideoAlsoDeleteFiles.
+  ///
+  /// In en, this message translates to:
+  /// **'Also delete video files on disk'**
+  String get deleteLocalVideoAlsoDeleteFiles;
+
   /// No description provided for @confirmDeleteTaskMessage.
   ///
   /// In en, this message translates to:
@@ -1261,6 +1267,66 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Video library'**
   String get desktopLibraryTitle;
+
+  /// No description provided for @desktopLibraryBadgeClipProject.
+  ///
+  /// In en, this message translates to:
+  /// **'Clip'**
+  String get desktopLibraryBadgeClipProject;
+
+  /// No description provided for @desktopLibraryBadgeDetectionComplete.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get desktopLibraryBadgeDetectionComplete;
+
+  /// No description provided for @desktopLibraryBadgeSaved.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get desktopLibraryBadgeSaved;
+
+  /// No description provided for @desktopLibraryBadgePending.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait'**
+  String get desktopLibraryBadgePending;
+
+  /// No description provided for @desktopLibraryBadgeProcessing.
+  ///
+  /// In en, this message translates to:
+  /// **'Detect'**
+  String get desktopLibraryBadgeProcessing;
+
+  /// No description provided for @desktopLibraryBadgeExported.
+  ///
+  /// In en, this message translates to:
+  /// **'Export'**
+  String get desktopLibraryBadgeExported;
+
+  /// No description provided for @desktopLibraryBadgeCompressed.
+  ///
+  /// In en, this message translates to:
+  /// **'Zip'**
+  String get desktopLibraryBadgeCompressed;
+
+  /// No description provided for @desktopLibraryBadgeAllMatchMerged.
+  ///
+  /// In en, this message translates to:
+  /// **'Merge'**
+  String get desktopLibraryBadgeAllMatchMerged;
+
+  /// No description provided for @desktopLibraryBadgeGreatMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'Best'**
+  String get desktopLibraryBadgeGreatMatch;
+
+  /// No description provided for @desktopLibraryBadgeRaw.
+  ///
+  /// In en, this message translates to:
+  /// **'Raw'**
+  String get desktopLibraryBadgeRaw;
 
   /// No description provided for @desktopNavLibrary.
   ///

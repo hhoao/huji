@@ -488,6 +488,10 @@ class HujiLocalizationsEn extends HujiLocalizations {
   }
 
   @override
+  String get deleteLocalVideoAlsoDeleteFiles =>
+      'Also delete video files on disk';
+
+  @override
   String confirmDeleteTaskMessage(String taskName) {
     return 'Delete task \"$taskName\"? This cannot be undone.';
   }
@@ -667,6 +671,36 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get desktopLibraryTitle => 'Video library';
+
+  @override
+  String get desktopLibraryBadgeClipProject => 'Clip';
+
+  @override
+  String get desktopLibraryBadgeDetectionComplete => 'Done';
+
+  @override
+  String get desktopLibraryBadgeSaved => 'Save';
+
+  @override
+  String get desktopLibraryBadgePending => 'Wait';
+
+  @override
+  String get desktopLibraryBadgeProcessing => 'Detect';
+
+  @override
+  String get desktopLibraryBadgeExported => 'Export';
+
+  @override
+  String get desktopLibraryBadgeCompressed => 'Zip';
+
+  @override
+  String get desktopLibraryBadgeAllMatchMerged => 'Merge';
+
+  @override
+  String get desktopLibraryBadgeGreatMatch => 'Best';
+
+  @override
+  String get desktopLibraryBadgeRaw => 'Raw';
 
   @override
   String get desktopNavLibrary => 'Library';

@@ -477,6 +477,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
   }
 
   @override
+  String get deleteLocalVideoAlsoDeleteFiles => '同时删除磁盘上的视频文件';
+
+  @override
   String confirmDeleteTaskMessage(String taskName) {
     return '确定要删除任务\"$taskName\"吗？此操作不可撤销。';
   }
@@ -655,6 +658,36 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get desktopLibraryTitle => '视频库';
+
+  @override
+  String get desktopLibraryBadgeClipProject => '剪辑';
+
+  @override
+  String get desktopLibraryBadgeDetectionComplete => '已检';
+
+  @override
+  String get desktopLibraryBadgeSaved => '保存';
+
+  @override
+  String get desktopLibraryBadgePending => '待检';
+
+  @override
+  String get desktopLibraryBadgeProcessing => '检测';
+
+  @override
+  String get desktopLibraryBadgeExported => '导出';
+
+  @override
+  String get desktopLibraryBadgeCompressed => '压缩';
+
+  @override
+  String get desktopLibraryBadgeAllMatchMerged => '合并';
+
+  @override
+  String get desktopLibraryBadgeGreatMatch => '精彩';
+
+  @override
+  String get desktopLibraryBadgeRaw => '原片';
 
   @override
   String get desktopNavLibrary => '视频库';

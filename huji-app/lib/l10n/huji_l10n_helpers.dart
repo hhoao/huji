@@ -71,6 +71,16 @@ extension HujiVideoRecordL10n on HujiLocalizations {
     VideoProcessType.exported => videoProcessTypeExported,
   };
 
+  /// 桌面视频库缩略图角标（两字为主，避免遮挡画面）。
+  String desktopLibraryVideoProcessTypeBadgeLabel(VideoProcessType type) =>
+      switch (type) {
+        VideoProcessType.raw => desktopLibraryBadgeRaw,
+        VideoProcessType.greatMatch => desktopLibraryBadgeGreatMatch,
+        VideoProcessType.allMatchMerged => desktopLibraryBadgeAllMatchMerged,
+        VideoProcessType.compressed => desktopLibraryBadgeCompressed,
+        VideoProcessType.exported => desktopLibraryBadgeExported,
+      };
+
   String matchTypeLabel(MatchType type) => switch (type) {
     MatchType.doublesMatch => matchTypeDoubles,
     MatchType.singlesMatch => matchTypeSingles,

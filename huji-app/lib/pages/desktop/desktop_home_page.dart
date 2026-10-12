@@ -342,6 +342,12 @@ Future<void> _deleteLocalVideo(
   await _confirmAndDeleteLocalVideos(context, [record]);
 }
 
+class _LocalVideoDeleteChoice {
+  const _LocalVideoDeleteChoice({required this.deleteLocalFiles});
+
+  final bool deleteLocalFiles;
+}
+
 Future<bool> _confirmAndDeleteLocalVideos(
   BuildContext context,
   List<LocalVideoRecord> records,
@@ -352,48 +358,111 @@ Future<bool> _confirmAndDeleteLocalVideos(
   final message = records.length == 1
       ? l10n.confirmDeleteLocalVideoMessage
       : l10n.confirmDeleteLocalVideosMessage(records.length);
+  final canDeleteFiles = records.any((r) => r.filePath != null);
 
-  final confirmed = await showTpDialog<bool>(
+  final choice = await showTpDialog<_LocalVideoDeleteChoice>(
     context: context,
-    builder: (ctx) => TpDialog(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          TpDialogHeader(title: l10n.confirmDelete),
-          SizedBox(height: ctx.tpSpacing.lg),
-          Text(message),
-          TpDialogActions(
+    builder: (ctx) {
+      var deleteLocalFiles = true;
+      final cs = Theme.of(ctx).colorScheme;
+      final styles = TpTextStyles.of(ctx);
+
+      return StatefulBuilder(
+        builder: (ctx, setState) => TpDialog(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              TpButton(
-                variant: TpButtonVariant.ghost,
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: Text(l10n.taskStatusCancelledShort),
-              ),
-              TpButton(
-                variant: TpButtonVariant.destructive,
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: Text(l10n.actionDelete),
+              TpDialogHeader(title: l10n.confirmDelete),
+              SizedBox(height: ctx.tpSpacing.lg),
+              Text(message),
+              if (canDeleteFiles) ...[
+                SizedBox(height: ctx.tpSpacing.md),
+                TpHover(
+                  onTap: () =>
+                      setState(() => deleteLocalFiles = !deleteLocalFiles),
+                  borderRadius: BorderRadius.circular(6),
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: Checkbox(
+                          value: deleteLocalFiles,
+                          onChanged: (value) {
+                            if (value == null) return;
+                            setState(() => deleteLocalFiles = value);
+                          },
+                          fillColor: WidgetStateProperty.resolveWith((s) {
+                            if (s.contains(WidgetState.selected)) {
+                              return cs.primary;
+                            }
+                            return Colors.transparent;
+                          }),
+                          side: BorderSide(
+                            color: deleteLocalFiles ? cs.primary : cs.outline,
+                            width: 1.5,
+                          ),
+                          checkColor: cs.onPrimary,
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          l10n.deleteLocalVideoAlsoDeleteFiles,
+                          style: styles.sm.copyWith(color: cs.onSurface),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              TpDialogActions(
+                children: [
+                  TpButton(
+                    variant: TpButtonVariant.ghost,
+                    onPressed: () => Navigator.of(ctx).pop(),
+                    child: Text(l10n.taskStatusCancelledShort),
+                  ),
+                  TpButton(
+                    variant: TpButtonVariant.destructive,
+                    onPressed: () => Navigator.of(ctx).pop(
+                      _LocalVideoDeleteChoice(
+                        deleteLocalFiles: deleteLocalFiles,
+                      ),
+                    ),
+                    child: Text(l10n.actionDelete),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    ),
+        ),
+      );
+    },
   );
 
-  if (confirmed != true || !context.mounted) return false;
+  if (choice == null || !context.mounted) return false;
 
   for (final record in records) {
-    final path = record.filePath;
-    if (path != null) {
-      try {
-        final file = File(path);
-        if (await file.exists()) {
-          await file.delete();
+    if (choice.deleteLocalFiles) {
+      final path = record.filePath;
+      if (path != null) {
+        try {
+          final file = File(path);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        } catch (e) {
+          AppLogger().w('Failed to delete video file: $path, $e');
         }
-      } catch (e) {
-        AppLogger().w('Failed to delete video file: $path, $e');
       }
     }
     await LocalVideoStorage().removeById(record.id);
@@ -457,7 +526,7 @@ class _VideoListTile extends StatelessWidget {
                 child: SizedBox(
                   width: 96,
                   height: 54,
-                  child: DesktopVideoThumbnail(record: record),
+                  child: DesktopVideoThumbnailFrame(record: record),
                 ),
               ),
               SizedBox(width: 14),
@@ -474,11 +543,26 @@ class _VideoListTile extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: 4),
-                    Text(
-                      record.sportType.title,
-                      style: styles.xs.copyWith(
-                        color: cs.onSurfaceVariant,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          flex: 2,
+                          fit: FlexFit.loose,
+                          child: Text(
+                            record.sportType.title,
+                            style: styles.xs.copyWith(
+                              color: cs.onSurfaceVariant,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        SizedBox(width: 6),
+                        Flexible(
+                          flex: 3,
+                          child: DesktopLibraryRecordMetaLine(record: record),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -488,7 +572,7 @@ class _VideoListTile extends StatelessWidget {
                 _desktopLibraryVideoActionMenu(context, record),
               ],
               SizedBox(width: 8),
-              DesktopVideoStatusBadge(status: record.processStatus),
+              DesktopLibraryRecordBadge(record: record),
             ],
           ),
         ),

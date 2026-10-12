@@ -1,9 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:huji_app/api/models/autoclip/video_models.dart';
+import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
+import 'package:huji_app/models/autoclip_models.dart';
 import 'package:huji_app/models/video.dart';
 import 'package:huji_app/utils/desktop_library_navigation.dart';
+import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/theme/workspace_surface_layers.dart';
 import 'package:huji_app/utils/desktop_style.dart';
 import 'package:path/path.dart' as p;
@@ -94,10 +99,16 @@ class DesktopVideoCard extends StatelessWidget {
                   Positioned(
                     top: 8,
                     right: 8,
-                    child: DesktopVideoStatusBadge(
-                      status: record.processStatus,
-                    ),
+                    child: DesktopLibraryRecordBadge(record: record),
                   ),
+                  if (localVideoRecordDurationSeconds(record) case final duration?)
+                    Positioned(
+                      bottom: 6,
+                      right: 6,
+                      child: DesktopLibraryVideoDurationLabel(
+                        durationSeconds: duration,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -119,13 +130,28 @@ class DesktopVideoCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                         SizedBox(height: 4),
-                        Text(
-                          record.sportType.title,
-                          style: styles.xs.copyWith(
-                            color: cs.onSurfaceVariant,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                        Row(
+                          children: [
+                            Flexible(
+                              flex: 2,
+                              fit: FlexFit.loose,
+                              child: Text(
+                                record.sportType.title,
+                                style: styles.xs.copyWith(
+                                  color: cs.onSurfaceVariant,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            SizedBox(width: 6),
+                            Flexible(
+                              flex: 3,
+                              child: DesktopLibraryRecordMetaLine(
+                                record: record,
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
@@ -168,6 +194,30 @@ class DesktopLibrarySelectIndicator extends StatelessWidget {
   }
 }
 
+/// 列表/网格缩略图区域：底栏时长（有数据时）。
+class DesktopVideoThumbnailFrame extends StatelessWidget {
+  const DesktopVideoThumbnailFrame({super.key, required this.record});
+
+  final LocalVideoRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final duration = localVideoRecordDurationSeconds(record);
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        DesktopVideoThumbnail(record: record),
+        if (duration != null)
+          Positioned(
+            bottom: 4,
+            right: 4,
+            child: DesktopLibraryVideoDurationLabel(durationSeconds: duration),
+          ),
+      ],
+    );
+  }
+}
+
 class DesktopVideoThumbnail extends StatelessWidget {
   const DesktopVideoThumbnail({super.key, required this.record});
 
@@ -199,39 +249,156 @@ class DesktopVideoThumbnail extends StatelessWidget {
   }
 }
 
-class DesktopVideoStatusBadge extends StatelessWidget {
-  const DesktopVideoStatusBadge({super.key, required this.status});
+@visibleForTesting
+double? localVideoRecordDurationSeconds(LocalVideoRecord record) {
+  if (record is SavedVideoRecord) {
+    return record.duration > 0 ? record.duration : null;
+  }
+  if (record is EdittingVideoRecord) {
+    final segments = record.allMatchSegments;
+    if (segments.isEmpty) return null;
+    var total = 0.0;
+    for (final SegmentInfo seg in segments) {
+      total += seg.endSeconds - seg.startSeconds;
+    }
+    return total > 0 ? total : null;
+  }
+  return null;
+}
 
-  final LocalVideoProcessStatusEnum status;
+/// 卡片信息区右下角：创建月日（如 9月28日）。
+class DesktopLibraryRecordMetaLine extends StatelessWidget {
+  const DesktopLibraryRecordMetaLine({super.key, required this.record});
+
+  final LocalVideoRecord record;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = context.hujiL10n;
     final cs = Theme.of(context).colorScheme;
-    final (label, color) = switch (status) {
-      LocalVideoProcessStatusEnum.pending => (
-        l10n.localVideoStatusPending,
-        const Color(0xFFEAB308),
-      ),
-      LocalVideoProcessStatusEnum.processing => (
-        l10n.localVideoStatusProcessing,
-        cs.primary,
-      ),
-      LocalVideoProcessStatusEnum.completed => (
-        l10n.taskStatusCompleted,
-        const Color(0xFF22C55E),
-      ),
-    };
+    final locale = Localizations.localeOf(context);
+    final text = desktopLibraryRecordCreatedDateLabel(
+      record.createdAt,
+      languageCode: locale.languageCode,
+    );
+    return Text(
+      text,
+      style: TpTextStyles.of(context).xs.copyWith(color: cs.onSurfaceVariant),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      textAlign: TextAlign.right,
+    );
+  }
+}
+
+@visibleForTesting
+String desktopLibraryRecordCreatedDateLabel(
+  int createdAtMs, {
+  String languageCode = 'zh',
+}) {
+  final date = DateTime.fromMillisecondsSinceEpoch(createdAtMs);
+  if (languageCode.startsWith('zh')) {
+    return '${date.month}月${date.day}日';
+  }
+  return DateFormat.MMMd(languageCode).format(date);
+}
+
+class DesktopLibraryVideoDurationLabel extends StatelessWidget {
+  const DesktopLibraryVideoDurationLabel({
+    super.key,
+    required this.durationSeconds,
+  });
+
+  final double durationSeconds;
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
       decoration: BoxDecoration(
-        color: color.withAlpha(217),
+        color: Colors.black.withAlpha(166),
         borderRadius: BorderRadius.circular(3),
       ),
       child: Text(
-        label,
+        VideoUtils.formatDuration(durationSeconds),
+        style: TpTextStyles.of(context).xs.copyWith(color: Colors.white),
+      ),
+    );
+  }
+}
+
+/// 缩略图角标：进行中显示检测进度，完成后显示视频类型/用途（非笼统「已完成」）。
+class DesktopLibraryRecordBadge extends StatelessWidget {
+  const DesktopLibraryRecordBadge({super.key, required this.record});
+
+  final LocalVideoRecord record;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = desktopLibraryRecordBadgeStyle(
+      record,
+      context.hujiL10n,
+      Theme.of(context).colorScheme,
+    );
+    final cs = Theme.of(context).colorScheme;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+      decoration: BoxDecoration(
+        color: style.color.withAlpha(217),
+        borderRadius: BorderRadius.circular(3),
+      ),
+      child: Text(
+        style.label,
         style: TpTextStyles.of(context).xs.copyWith(color: cs.onPrimary),
       ),
     );
   }
+}
+
+@visibleForTesting
+({String label, Color color}) desktopLibraryRecordBadgeStyle(
+  LocalVideoRecord record,
+  HujiLocalizations l10n,
+  ColorScheme cs,
+) {
+  switch (record.processStatus) {
+    case LocalVideoProcessStatusEnum.pending:
+      return (
+        label: l10n.desktopLibraryBadgePending,
+        color: const Color(0xFFEAB308),
+      );
+    case LocalVideoProcessStatusEnum.processing:
+      return (label: l10n.desktopLibraryBadgeProcessing, color: cs.primary);
+    case LocalVideoProcessStatusEnum.completed:
+      break;
+  }
+
+  if (record is SavedVideoRecord) {
+    final type = record.videoProcessType;
+    if (type != null) {
+      return (
+        label: l10n.desktopLibraryVideoProcessTypeBadgeLabel(type),
+        color: type.color,
+      );
+    }
+    return (label: l10n.desktopLibraryBadgeSaved, color: Colors.blue);
+  }
+
+  if (record is EdittingVideoRecord) {
+    return (
+      label: l10n.desktopLibraryBadgeClipProject,
+      color: const Color(0xFF7C3AED),
+    );
+  }
+
+  if (record is ProcessVideoRecord) {
+    return (
+      label: l10n.desktopLibraryBadgeDetectionComplete,
+      color: const Color(0xFF22C55E),
+    );
+  }
+
+  return (
+    label: l10n.desktopLibraryBadgeRaw,
+    color: VideoProcessType.raw.color,
+  );
 }
