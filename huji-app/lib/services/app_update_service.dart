@@ -23,7 +23,9 @@ class AppUpdateService {
   Future<AppUpdateInfo?> checkForUpdate() async {
     final PackageInfo packageInfo = await PackageInfo.fromPlatform();
     final String appName = packageInfo.appName;
-    _logger.i('开始检查应用更新: $appName');
+    // 应用元数据编码（core_application.code，与服务端约定）
+    const String appCode = 'huji';
+    _logger.i('开始检查应用更新: $appName ($appCode)');
 
     // 获取平台信息
     final platform = await _getPlatform();
@@ -33,7 +35,7 @@ class AppUpdateService {
     }
 
     // 调用API获取最新版本信息
-    final latestApps = await Api.app.getLatestAppInfo(appName, platform.value);
+    final latestApps = await Api.app.getLatestAppInfo(appCode, platform.value);
 
     if (latestApps.isEmpty) {
       _logger.i('未找到应用更新信息');
@@ -65,7 +67,7 @@ class AppUpdateService {
 
     // 获取版本详情
     final latestVersions = await Api.app.getLatestVersionsAppInfo(
-      appName,
+      appCode,
       platform.value,
     );
 

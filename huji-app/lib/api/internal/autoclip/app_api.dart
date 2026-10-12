@@ -19,7 +19,7 @@ abstract class AppApi {
   // 获取最新版本APP
   @GET('/autoclip/app/latest-version-apps')
   Future<List<AppApplicationRespVO>> getLatestAppInfo(
-    @Query('name') String name,
+    @Query('code') String code,
     @Query('platform') int? platform,
   );
 
@@ -30,7 +30,7 @@ abstract class AppApi {
   // 获取指定应用名称和平台的最新版本App信息
   @GET('/autoclip/app/latest-versions')
   Future<List<AppVersionRespVO>> getLatestVersionsAppInfo(
-    @Query('name') String name,
+    @Query('code') String code,
     @Query('platform') int? platform,
   );
 

@@ -54,12 +54,12 @@ class _AppApi implements AppApi {
 
   @override
   Future<List<AppApplicationRespVO>> getLatestAppInfo(
-    String name,
+    String code,
     int? platform,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'name': name,
+      r'code': code,
       r'platform': platform,
     };
     queryParameters.removeWhere((k, v) => v == null);
@@ -125,12 +125,12 @@ class _AppApi implements AppApi {
 
   @override
   Future<List<AppVersionRespVO>> getLatestVersionsAppInfo(
-    String name,
+    String code,
     int? platform,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{
-      r'name': name,
+      r'code': code,
       r'platform': platform,
     };
     queryParameters.removeWhere((k, v) => v == null);
