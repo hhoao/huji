@@ -513,6 +513,24 @@
   "localizedModelLabel": "本地化型号",
   "logFilesGeneratedAtRuntime": "日志文件将在应用运行时生成",
   "logLevelLabel": "日志级别:",
+  "logViewerAllCopied": "已复制全部可见日志",
+  "logViewerClearDone": "已清理旧日志",
+  "logViewerClearFailed": "清理日志失败: {error}",
+  "logViewerClearOld": "清理旧日志",
+  "logViewerCompactView": "紧凑视图",
+  "logViewerCopyAll": "复制全部",
+  "logViewerCopyPath": "复制日志路径",
+  "logViewerEmpty": "暂无日志",
+  "logViewerEmptyHint": "日志文件会在应用运行时生成。",
+  "logViewerLineCount": "{count} 行",
+  "logViewerPathCopied": "已复制 {name}",
+  "logViewerPendingBody": "文件日志尚未就绪，当前显示内存中缓存的日志。",
+  "logViewerPendingTitle": "待写入日志",
+  "logViewerRefresh": "刷新",
+  "logViewerReverseOrder": "从尾部查看",
+  "logViewerSubtitle": "查看本机保存的应用日志",
+  "logViewerWrapLines": "换行显示",
+  "settingsViewLogs": "应用日志",
   "logViewerTitle": "日志查看器",
   "loginAlreadyHaveAccount": "已有账号?",
   "loginAuthCodeHint": "请输入验证码",
@@ -1822,6 +1840,27 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "@logViewerClearFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@logViewerLineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@logViewerPathCopied": {
+    "placeholders": {
+      "name": {
+        "type": "String"
       }
     }
   },

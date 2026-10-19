@@ -3176,6 +3176,114 @@ abstract class HujiLocalizations {
   /// **'Log level:'**
   String get logLevelLabel;
 
+  /// No description provided for @logViewerAllCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied all visible logs'**
+  String get logViewerAllCopied;
+
+  /// No description provided for @logViewerClearDone.
+  ///
+  /// In en, this message translates to:
+  /// **'Old logs cleaned'**
+  String get logViewerClearDone;
+
+  /// No description provided for @logViewerClearFailed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed to clean logs: {error}'**
+  String logViewerClearFailed(String error);
+
+  /// No description provided for @logViewerClearOld.
+  ///
+  /// In en, this message translates to:
+  /// **'Clean old logs'**
+  String get logViewerClearOld;
+
+  /// No description provided for @logViewerCompactView.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact view'**
+  String get logViewerCompactView;
+
+  /// No description provided for @logViewerCopyAll.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy all'**
+  String get logViewerCopyAll;
+
+  /// No description provided for @logViewerCopyPath.
+  ///
+  /// In en, this message translates to:
+  /// **'Copy log path'**
+  String get logViewerCopyPath;
+
+  /// No description provided for @logViewerEmpty.
+  ///
+  /// In en, this message translates to:
+  /// **'No logs yet'**
+  String get logViewerEmpty;
+
+  /// No description provided for @logViewerEmptyHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Log files are created while the app runs.'**
+  String get logViewerEmptyHint;
+
+  /// No description provided for @logViewerLineCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} lines'**
+  String logViewerLineCount(int count);
+
+  /// No description provided for @logViewerPathCopied.
+  ///
+  /// In en, this message translates to:
+  /// **'Copied {name}'**
+  String logViewerPathCopied(String name);
+
+  /// No description provided for @logViewerPendingBody.
+  ///
+  /// In en, this message translates to:
+  /// **'File logging is not ready yet. Showing buffered records.'**
+  String get logViewerPendingBody;
+
+  /// No description provided for @logViewerPendingTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Pending logs'**
+  String get logViewerPendingTitle;
+
+  /// No description provided for @logViewerRefresh.
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get logViewerRefresh;
+
+  /// No description provided for @logViewerReverseOrder.
+  ///
+  /// In en, this message translates to:
+  /// **'Newest first'**
+  String get logViewerReverseOrder;
+
+  /// No description provided for @logViewerSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Inspect app logs stored on this device'**
+  String get logViewerSubtitle;
+
+  /// No description provided for @logViewerWrapLines.
+  ///
+  /// In en, this message translates to:
+  /// **'Wrap lines'**
+  String get logViewerWrapLines;
+
+  /// No description provided for @settingsViewLogs.
+  ///
+  /// In en, this message translates to:
+  /// **'App logs'**
+  String get settingsViewLogs;
+
   /// No description provided for @logViewerTitle.
   ///
   /// In en, this message translates to:

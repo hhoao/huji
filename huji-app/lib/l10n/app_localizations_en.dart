@@ -1753,6 +1753,67 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get logLevelLabel => 'Log level:';
 
   @override
+  String get logViewerAllCopied => 'Copied all visible logs';
+
+  @override
+  String get logViewerClearDone => 'Old logs cleaned';
+
+  @override
+  String logViewerClearFailed(String error) {
+    return 'Failed to clean logs: $error';
+  }
+
+  @override
+  String get logViewerClearOld => 'Clean old logs';
+
+  @override
+  String get logViewerCompactView => 'Compact view';
+
+  @override
+  String get logViewerCopyAll => 'Copy all';
+
+  @override
+  String get logViewerCopyPath => 'Copy log path';
+
+  @override
+  String get logViewerEmpty => 'No logs yet';
+
+  @override
+  String get logViewerEmptyHint => 'Log files are created while the app runs.';
+
+  @override
+  String logViewerLineCount(int count) {
+    return '$count lines';
+  }
+
+  @override
+  String logViewerPathCopied(String name) {
+    return 'Copied $name';
+  }
+
+  @override
+  String get logViewerPendingBody =>
+      'File logging is not ready yet. Showing buffered records.';
+
+  @override
+  String get logViewerPendingTitle => 'Pending logs';
+
+  @override
+  String get logViewerRefresh => 'Refresh';
+
+  @override
+  String get logViewerReverseOrder => 'Newest first';
+
+  @override
+  String get logViewerSubtitle => 'Inspect app logs stored on this device';
+
+  @override
+  String get logViewerWrapLines => 'Wrap lines';
+
+  @override
+  String get settingsViewLogs => 'App logs';
+
+  @override
   String get logViewerTitle => 'Log viewer';
 
   @override

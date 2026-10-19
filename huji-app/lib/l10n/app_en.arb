@@ -513,6 +513,24 @@
   "localizedModelLabel": "Localized model",
   "logFilesGeneratedAtRuntime": "Log files are generated while the app is running",
   "logLevelLabel": "Log level:",
+  "logViewerAllCopied": "Copied all visible logs",
+  "logViewerClearDone": "Old logs cleaned",
+  "logViewerClearFailed": "Failed to clean logs: {error}",
+  "logViewerClearOld": "Clean old logs",
+  "logViewerCompactView": "Compact view",
+  "logViewerCopyAll": "Copy all",
+  "logViewerCopyPath": "Copy log path",
+  "logViewerEmpty": "No logs yet",
+  "logViewerEmptyHint": "Log files are created while the app runs.",
+  "logViewerLineCount": "{count} lines",
+  "logViewerPathCopied": "Copied {name}",
+  "logViewerPendingBody": "File logging is not ready yet. Showing buffered records.",
+  "logViewerPendingTitle": "Pending logs",
+  "logViewerRefresh": "Refresh",
+  "logViewerReverseOrder": "Newest first",
+  "logViewerSubtitle": "Inspect app logs stored on this device",
+  "logViewerWrapLines": "Wrap lines",
+  "settingsViewLogs": "App logs",
   "logViewerTitle": "Log viewer",
   "loginAlreadyHaveAccount": "Already have an account?",
   "loginAuthCodeHint": "Enter verification code",
@@ -1822,6 +1840,27 @@
     "placeholders": {
       "count": {
         "type": "int"
+      }
+    }
+  },
+  "@logViewerClearFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "@logViewerLineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@logViewerPathCopied": {
+    "placeholders": {
+      "name": {
+        "type": "String"
       }
     }
   },

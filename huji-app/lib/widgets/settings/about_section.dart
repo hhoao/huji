@@ -8,6 +8,7 @@ import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/pages/system/settings_update_actions.dart';
 import 'package:huji_app/widgets/feature_stub_actions.dart';
 import 'package:huji_app/widgets/settings/changelog_inline_list.dart';
+import 'package:huji_app/widgets/settings/log_viewer_dialog.dart';
 import 'package:shared_ui/shared_ui.dart';
 
 /// "About" body shared by the desktop settings page (inline section) —
@@ -170,6 +171,11 @@ class _AboutSettingsSectionState extends State<AboutSettingsSection> {
             l10n.deviceInfoLabel,
             _deviceInfo ?? l10n.deviceInfoFetching,
             onTap: _showDeviceInfoDialog,
+          ),
+          _navRow(
+            title: l10n.settingsViewLogs,
+            subtitle: l10n.logViewerSubtitle,
+            onTap: () => showLogViewerDialog(context),
           ),
           _navRow(
             title: l10n.changelog,

@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kDebugMode, visibleForTesting;
 import 'package:logger/logger.dart';
 import 'package:huji_app/services/error_log_service.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/utils/app_error_utils.dart';
-import 'package:huji_app/utils/file_utils.dart';
 
 enum LogLevel {
   info,
@@ -63,6 +64,166 @@ class LogEntry {
   }
 }
 
+/// Log4j-style single-line printer used for file output:
+/// `2026-10-19 12:00:00.123 |  INFO 12345 | package:.../foo.dart:42:9 | message`
+///
+/// The console keeps the pretty multi-line printer; the file format is
+/// line-oriented so the in-app viewer can filter by level reliably.
+class _Log4jStylePrinter extends LogPrinter {
+  static const _excludePaths = [
+    'package:huji_app/utils/logger_utils.dart',
+    'package:logger/',
+  ];
+
+  static int? _cachedPid;
+
+  static int get _processId {
+    try {
+      return _cachedPid ??= pid;
+    } on Object {
+      return 0;
+    }
+  }
+
+  @override
+  List<String> log(LogEvent event) {
+    final source = _callerLocationFromStack(event.stackTrace) ?? '?:?';
+    final body = StringBuffer()
+      ..write(_formatTimestamp(event.time))
+      ..write(' | ')
+      ..write(_levelLabel(event.level))
+      ..write(' ')
+      ..write(_processId)
+      ..write(' | ')
+      ..write(source)
+      ..write(' | ')
+      ..write(_singleLine(event.message));
+
+    if (event.error != null) {
+      body.write(' | ${_singleLine('${event.error}')}');
+    }
+
+    final lines = <String>[body.toString()];
+
+    if (event.level.index >= Level.error.index &&
+        event.stackTrace != null &&
+        _stackHasDiagnosticFrames(event.stackTrace!)) {
+      lines.add(event.stackTrace.toString().trimRight());
+    }
+
+    return lines;
+  }
+
+  static String _singleLine(String text) {
+    return text.replaceAll(RegExp(r'\r?\n'), ' ⏎ ');
+  }
+
+  static String _levelLabel(Level level) {
+    final raw = switch (level) {
+      Level.debug => 'DEBUG',
+      Level.info => 'INFO',
+      Level.warning => 'WARN',
+      Level.error => 'ERROR',
+      _ => level.name.toUpperCase(),
+    };
+    return raw.padLeft(5);
+  }
+
+  static String _formatTimestamp(DateTime time) {
+    final y = time.year.toString().padLeft(4, '0');
+    final mo = time.month.toString().padLeft(2, '0');
+    final d = time.day.toString().padLeft(2, '0');
+    final h = time.hour.toString().padLeft(2, '0');
+    final mi = time.minute.toString().padLeft(2, '0');
+    final s = time.second.toString().padLeft(2, '0');
+    final ms = time.millisecond.toString().padLeft(3, '0');
+    return '$y-$mo-$d $h:$mi:$s.$ms';
+  }
+
+  static bool _stackHasDiagnosticFrames(StackTrace trace) {
+    for (final line in trace.toString().split('\n')) {
+      if (line.trim().isEmpty) continue;
+      if (_isExcludedFrame(line)) continue;
+      return true;
+    }
+    return false;
+  }
+
+  static String? _callerLocationFromStack(StackTrace? trace) {
+    if (trace == null) return null;
+    for (final line in trace.toString().split('\n')) {
+      if (line.trim().isEmpty || _isExcludedFrame(line)) continue;
+      final location = _parseFrameLocation(line);
+      if (location != null) return location;
+    }
+    return null;
+  }
+
+  static bool _isExcludedFrame(String line) {
+    for (final path in _excludePaths) {
+      if (line.contains(path)) return true;
+    }
+    return false;
+  }
+
+  static final _framePattern = RegExp(r'^#\d+\s+(.+?)\s+\((.+)\)\s*$');
+
+  static String? _parseFrameLocation(String line) {
+    final match = _framePattern.firstMatch(line.trim());
+    if (match == null) return null;
+    return _sourceLink(match.group(2)!.trim());
+  }
+
+  /// Keeps `package:…/file.dart:line:col` intact so IDEs can linkify it.
+  static String _sourceLink(String raw) {
+    final trimmed = raw.trim();
+    if (trimmed.startsWith('package:')) return trimmed;
+    if (trimmed.startsWith('file://')) {
+      try {
+        return Uri.parse(trimmed).toFilePath(windows: Platform.isWindows);
+      } on Object {
+        return trimmed;
+      }
+    }
+    return trimmed;
+  }
+}
+
+/// Append-only file output that flushes every record. Windows readers then see
+/// complete lines immediately while the log viewer is open.
+class _FlushingFileOutput extends LogOutput {
+  _FlushingFileOutput({required this.file});
+
+  final File file;
+
+  @override
+  Future<void> init() async {}
+
+  @override
+  void output(OutputEvent event) {
+    if (event.lines.isEmpty) return;
+    file.writeAsStringSync(
+      '${event.lines.join('\n')}\n',
+      mode: FileMode.append,
+      flush: true,
+    );
+  }
+
+  Future<void> flush() async {}
+
+  @override
+  Future<void> destroy() async {}
+}
+
+class _FileLogFilter extends LogFilter {
+  @override
+  bool shouldLog(LogEvent event) {
+    // Debug builds persist DEBUG for the in-app viewer. Release keeps INFO+.
+    final minLevel = kDebugMode ? Level.debug : Level.info;
+    return event.level.index >= minLevel.index;
+  }
+}
+
 class AppLogger {
   static final AppLogger _instance = AppLogger._internal();
   factory AppLogger() => _instance;
@@ -83,7 +244,9 @@ class AppLogger {
 
   // 文件日志记录器（延迟初始化）
   Logger? _fileLogger;
+  _FlushingFileOutput? _fileOutput;
   File? _logFile;
+  String? _logDirPath;
   bool _fileLoggerInitialized = false;
   bool _fileLoggerInitializing = false;
   bool _fileLoggingDisabled = false;
@@ -110,54 +273,48 @@ class AppLogger {
 
   /// 在主 isolate 且 [StorageService.init] 完成后调用，启用文件日志。
   Future<void> initializeFileLogger() async {
-    if (_fileLoggerInitialized ||
-        _fileLoggerInitializing ||
-        _fileLoggingDisabled) {
-      return;
-    }
-    if (!StorageService.isInitialized) {
-      return;
-    }
-    await _initializeFileLogger();
+    if (!StorageService.isInitialized) return;
+    await ensureFileLogging();
   }
 
-  Future<void> _initializeFileLogger() async {
+  /// 启用文件日志。可直接传入应用数据根目录（测试 / 查看器）。
+  Future<void> ensureFileLogging([String? appDataRoot]) async {
+    if (_fileLoggerInitialized || _fileLoggingDisabled) return;
+
+    if (_fileLoggerInitializing) {
+      while (_fileLoggerInitializing) {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+      }
+      return;
+    }
+
+    final root =
+        appDataRoot ??
+        (StorageService.isInitialized ? _getLogDirectory().path : null);
+    if (root == null) return;
+
+    await _initializeFileLogger(root);
+  }
+
+  Future<void> _initializeFileLogger(String appDataRoot) async {
     _fileLoggerInitializing = true;
 
     try {
-      final appDocDir = _getLogDirectory();
-      final logDir = Directory('${appDocDir.path}/logs');
-
-      // 创建日志目录
+      final logDir = Directory('$appDataRoot/logs');
       if (!await logDir.exists()) {
         await logDir.create(recursive: true);
       }
+      _logDirPath = logDir.path;
 
-      // 清理旧日志
       await _cleanOldLogs(logDir);
-
-      // 创建或获取当前日志文件
-      _logFile = await _getOrCreateLogFile(logDir);
-
-      // 创建文件日志记录器
-      _fileLogger = Logger(
-        printer: PrettyPrinter(
-          methodCount: 2,
-          errorMethodCount: 8,
-          excludePaths: _excludeLoggerPaths,
-          lineLength: 120,
-          colors: false, // 文件日志不需要颜色
-          printEmojis: false, // 文件日志不需要表情符号
-          dateTimeFormat: DateTimeFormat.onlyTime,
-        ),
-        output: FileOutput(file: _logFile!),
-        filter: ProductionFilter(),
-      );
+      _logFile = _resolveLogFile(logDir);
+      _fileOutput = _FlushingFileOutput(file: _logFile!);
+      await _fileOutput!.init();
+      _fileLogger = _buildFileLogger(_fileOutput!);
 
       _fileLoggerInitialized = true;
 
       _consoleLogger.i('File logger initialized');
-
       await _flushPendingFileLogs();
     } catch (e) {
       if (AppErrorUtils.isStorageError(e)) {
@@ -170,12 +327,30 @@ class AppLogger {
     }
   }
 
+  Logger _buildFileLogger(_FlushingFileOutput output) {
+    return Logger(
+      printer: _Log4jStylePrinter(),
+      output: output,
+      filter: _FileLogFilter(),
+    );
+  }
+
   Directory _getLogDirectory() {
     return storage.getApplicationDocumentsDirectory();
   }
 
+  String? _resolveLogDirPath(String? appDataRoot) {
+    if (_logDirPath != null) return _logDirPath;
+    if (appDataRoot != null) return '$appDataRoot/logs';
+    if (StorageService.isInitialized) {
+      return '${_getLogDirectory().path}/logs';
+    }
+    return null;
+  }
+
   bool _isFileLoggingEligible() {
-    return !_fileLoggingDisabled && StorageService.isInitialized;
+    return !_fileLoggingDisabled &&
+        (_logDirPath != null || StorageService.isInitialized);
   }
 
   void _addPendingFileLog(
@@ -199,39 +374,14 @@ class AppLogger {
 
     _pendingFileLogs.sort((a, b) => a.timestamp.compareTo(b.timestamp));
 
-    // 输出所有缓存的文件日志
     try {
       for (final logEntry in _pendingFileLogs) {
-        switch (logEntry.level) {
-          case LogLevel.info:
-            _fileLogger?.i(
-              logEntry.message,
-              error: logEntry.error,
-              stackTrace: logEntry.stackTrace,
-            );
-            break;
-          case LogLevel.debug:
-            _fileLogger?.d(
-              logEntry.message,
-              error: logEntry.error,
-              stackTrace: logEntry.stackTrace,
-            );
-            break;
-          case LogLevel.warning:
-            _fileLogger?.w(
-              logEntry.message,
-              error: logEntry.error,
-              stackTrace: logEntry.stackTrace,
-            );
-            break;
-          case LogLevel.error:
-            _fileLogger?.e(
-              logEntry.message,
-              error: logEntry.error,
-              stackTrace: logEntry.stackTrace,
-            );
-            break;
-        }
+        _writeFileRecord(
+          logEntry.level,
+          logEntry.message,
+          logEntry.error,
+          logEntry.stackTrace,
+        );
       }
     } catch (e) {
       if (AppErrorUtils.isStorageError(e)) {
@@ -248,23 +398,22 @@ class AppLogger {
     _pendingFileLogs.clear();
   }
 
-  Future<File> _getOrCreateLogFile(Directory logDir) async {
+  File _resolveLogFile(Directory logDir) {
     final today = DateTime.now().toIso8601String().split('T')[0];
     var file = File('${logDir.path}/app_$today.log');
 
-    if (await file.exists()) {
-      final size = await file.length();
-      if (size > _maxLogFileSize) {
-        // 如果文件太大，创建新文件
-        final timestamp = DateTime.now().millisecondsSinceEpoch;
-        file = File('${logDir.path}/app_${today}_$timestamp.log');
-      }
+    if (file.existsSync() && file.lengthSync() > _maxLogFileSize) {
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      file = File('${logDir.path}/app_${today}_$timestamp.log');
     }
 
     return file;
   }
 
-  Future<void> _cleanOldLogs(Directory logDir) async {
+  Future<void> _cleanOldLogs(
+    Directory logDir, {
+    int keepDays = _maxDays,
+  }) async {
     try {
       final files = await logDir
           .list()
@@ -272,28 +421,17 @@ class AppLogger {
           .map((entity) => entity as File)
           .toList();
 
-      // 按修改时间排序
       files.sort(
         (a, b) => b.lastModifiedSync().compareTo(a.lastModifiedSync()),
       );
 
       final now = DateTime.now();
-      var deletedCount = 0;
 
-      for (var file in files) {
-        final fileName = fileNameFromPath(file.path);
-        final modified = file.lastModifiedSync();
-        final age = now.difference(modified).inDays;
-
-        if (deletedCount >= _maxLogFiles || // 超过最大文件数
-            age > _maxDays || // 超过最大天数
-            (age > 0 &&
-                !fileName.startsWith(
-                  'app_${now.toIso8601String().split('T')[0]}',
-                ))) {
-          // 不是今天的日志
+      for (var i = 0; i < files.length; i++) {
+        final file = files[i];
+        final age = now.difference(file.lastModifiedSync()).inDays;
+        if (i >= _maxLogFiles || age > keepDays) {
           await file.delete();
-          deletedCount++;
         }
       }
     } catch (e) {
@@ -344,6 +482,7 @@ class AppLogger {
     _fileLoggerInitialized = false;
     _fileLoggerInitializing = false;
     _fileLogger = null;
+    _fileOutput = null;
     _logFile = null;
     _consoleLogger.w(reason);
   }
@@ -351,6 +490,9 @@ class AppLogger {
   bool getFileLoggerInitialized() {
     return _fileLoggerInitialized;
   }
+
+  /// 当前正在写入的日志文件路径（未初始化时为 null）。
+  String? get currentLogFilePath => _logFile?.path;
 
   // 文件日志方法
   void _logToFile(
@@ -369,22 +511,8 @@ class AppLogger {
     }
 
     try {
-      switch (level) {
-        case LogLevel.info:
-          _fileLogger?.i(message, error: error, stackTrace: stackTrace);
-          break;
-        case LogLevel.debug:
-          _fileLogger?.d(message, error: error, stackTrace: stackTrace);
-          break;
-        case LogLevel.warning:
-          _fileLogger?.w(message, error: error, stackTrace: stackTrace);
-          break;
-        case LogLevel.error:
-          _fileLogger?.e(message, error: error, stackTrace: stackTrace);
-          break;
-      }
-
-      _checkLogFileSize();
+      _writeFileRecord(level, message, error, stackTrace ?? StackTrace.current);
+      _rotateIfNeeded();
     } catch (e) {
       if (AppErrorUtils.isStorageError(e)) {
         _disableFileLogging('File logging disabled after write failure: $e');
@@ -395,39 +523,48 @@ class AppLogger {
     }
   }
 
-  Future<void> _checkLogFileSize() async {
-    if (_logFile == null || _fileLoggingDisabled) return;
+  void _writeFileRecord(
+    LogLevel level,
+    String message,
+    dynamic error,
+    StackTrace? stackTrace,
+  ) {
+    final logger = _fileLogger;
+    if (logger == null) return;
+
+    switch (level) {
+      case LogLevel.info:
+        logger.i(message, error: error, stackTrace: stackTrace);
+        break;
+      case LogLevel.debug:
+        logger.d(message, error: error, stackTrace: stackTrace);
+        break;
+      case LogLevel.warning:
+        logger.w(message, error: error, stackTrace: stackTrace);
+        break;
+      case LogLevel.error:
+        logger.e(message, error: error, stackTrace: stackTrace);
+        break;
+    }
+  }
+
+  void _rotateIfNeeded() {
+    final file = _logFile;
+    final dirPath = _logDirPath;
+    if (file == null || dirPath == null || _fileLoggingDisabled) return;
 
     try {
-      final size = await _logFile!.length();
-      if (size > _maxLogFileSize) {
-        // 重新初始化日志文件
-        final logDir = Directory('${_getLogDirectory().path}/logs');
-        _logFile = await _getOrCreateLogFile(logDir);
+      if (!file.existsSync() || file.lengthSync() <= _maxLogFileSize) return;
 
-        // 更新文件logger的输出
-        _fileLogger = Logger(
-          printer: PrettyPrinter(
-            methodCount: 2,
-            errorMethodCount: 8,
-            excludePaths: _excludeLoggerPaths,
-            lineLength: 120,
-            colors: false,
-            printEmojis: false,
-            dateTimeFormat: DateTimeFormat.onlyTime,
-          ),
-          output: FileOutput(file: _logFile!),
-          filter: ProductionFilter(),
-        );
-      }
+      final logDir = Directory(dirPath);
+      _logFile = _resolveLogFile(logDir);
+      _fileOutput = _FlushingFileOutput(file: _logFile!);
+      _fileLogger = _buildFileLogger(_fileOutput!);
+      unawaited(_cleanOldLogs(logDir));
     } catch (e) {
       if (AppErrorUtils.isStorageError(e)) {
-        _disableFileLogging(
-          'File logging disabled after size check failure: $e',
-        );
-        return;
+        _disableFileLogging('File logging disabled after rotation: $e');
       }
-      rethrow;
     }
   }
 
@@ -441,85 +578,124 @@ class AppLogger {
     if (_pendingFileLogs.isEmpty) {
       return '暂无待处理日志';
     }
-
-    final buffer = StringBuffer();
-    for (final logEntry in _pendingFileLogs) {
-      final timestamp = logEntry.timestamp.toIso8601String();
-      final level = logEntry.level.name;
-      final message = logEntry.message;
-      final className = 'AppLogger';
-
-      buffer.writeln('$timestamp | $level | $className | $message');
-
-      if (logEntry.error != null) {
-        buffer.writeln('Error: ${logEntry.error}');
-      }
-
-      if (logEntry.stackTrace != null) {
-        buffer.writeln('StackTrace: ${logEntry.stackTrace}');
-      }
-
-      buffer.writeln(''); // 空行分隔
-    }
-
-    return buffer.toString();
+    final printer = _Log4jStylePrinter();
+    return _pendingFileLogs
+        .map((entry) => printer.log(_toLogEvent(entry)).join('\n'))
+        .join('\n');
   }
 
   /// 将待处理的日志条目格式化为字符串列表
   Future<List<String>> getPendingLogLines() async {
-    final lines = <String>[];
-    for (final logEntry in _pendingFileLogs) {
-      final timestamp = logEntry.timestamp.toIso8601String();
-      final level = logEntry.level.name;
-      final message = logEntry.message;
-      final className = 'AppLogger';
-
-      String line = '$timestamp | $level | $className | $message';
-
-      if (logEntry.error != null) {
-        line += '\nError: ${logEntry.error}';
-      }
-
-      if (logEntry.stackTrace != null) {
-        line += '\n${logEntry.stackTrace}';
-      }
-
-      lines.add(line);
-    }
-    return lines;
+    final printer = _Log4jStylePrinter();
+    return _pendingFileLogs
+        .map((entry) => printer.log(_toLogEvent(entry)).join('\n'))
+        .toList();
   }
 
-  Future<List<String>> getLogFiles() async {
-    if (!_fileLoggerInitialized || !StorageService.isInitialized) {
-      return [];
+  LogEvent _toLogEvent(LogEntry entry) {
+    final level = switch (entry.level) {
+      LogLevel.debug => Level.debug,
+      LogLevel.info => Level.info,
+      LogLevel.warning => Level.warning,
+      LogLevel.error => Level.error,
+    };
+    return LogEvent(
+      level,
+      entry.message,
+      time: entry.timestamp,
+      error: entry.error,
+      stackTrace: entry.stackTrace,
+    );
+  }
+
+  /// 读取日志文件尾部（默认 512KB），大文件不会一次性读入内存。
+  Future<List<String>> readLogFileLines(
+    String filePath, {
+    Duration timeout = const Duration(seconds: 20),
+    int maxBytes = 512 * 1024,
+  }) {
+    Future<List<String>> read() async {
+      final file = File(filePath);
+      if (!await file.exists()) return const [];
+
+      final length = await file.length();
+      if (length == 0) return const [];
+
+      final start = length > maxBytes ? length - maxBytes : 0;
+      final raf = await file.open(mode: FileMode.read);
+      try {
+        if (start > 0) {
+          await raf.setPosition(start);
+        }
+        final bytes = await raf.read(length - start);
+        var text = utf8.decode(bytes, allowMalformed: true);
+        if (start > 0) {
+          final firstNewline = text.indexOf('\n');
+          text = firstNewline >= 0 ? text.substring(firstNewline + 1) : '';
+        }
+        final lines = text.split('\n');
+        while (lines.isNotEmpty && lines.last.isEmpty) {
+          lines.removeLast();
+        }
+        return lines;
+      } finally {
+        await raf.close();
+      }
     }
 
-    final logDir = Directory('${_getLogDirectory().path}/logs');
-    if (!await logDir.exists()) {
-      return [];
-    }
+    return read().timeout(
+      timeout,
+      onTimeout: () =>
+          throw TimeoutException('Reading log file timed out', timeout),
+    );
+  }
+
+  Future<List<String>> getLogFiles({String? appDataRoot}) async {
+    final dirPath = _resolveLogDirPath(appDataRoot);
+    if (dirPath == null) return [];
+
+    final logDir = Directory(dirPath);
+    if (!await logDir.exists()) return [];
 
     final files = await logDir
         .list()
         .where((entity) => entity is File && entity.path.endsWith('.log'))
-        .map((entity) => entity.path)
+        .map((entity) => (entity as File).path)
         .toList();
 
     files.sort((a, b) {
-      final fileA = File(a);
-      final fileB = File(b);
-      return fileB.lastModifiedSync().compareTo(fileA.lastModifiedSync());
+      return File(b).lastModifiedSync().compareTo(File(a).lastModifiedSync());
     });
 
     return files;
   }
 
-  Future<void> clearOldLogs({int keepDays = 7}) async {
-    if (!_fileLoggerInitialized || !StorageService.isInitialized) {
-      return;
-    }
+  Future<void> clearOldLogs({
+    int keepDays = _maxDays,
+    String? appDataRoot,
+  }) async {
+    final dirPath = _resolveLogDirPath(appDataRoot);
+    if (dirPath == null) return;
 
-    final logDir = Directory('${_getLogDirectory().path}/logs');
-    await _cleanOldLogs(logDir);
+    await _cleanOldLogs(Directory(dirPath), keepDays: keepDays);
+  }
+
+  /// Ensures buffered file log lines are visible on disk (tests / log viewer).
+  @visibleForTesting
+  Future<void> flushFileLogging() async {
+    await _fileOutput?.flush();
+  }
+
+  /// Clears singleton state so tests can initialize against a temp directory.
+  @visibleForTesting
+  void resetForTesting() {
+    _fileLogger = null;
+    _fileOutput = null;
+    _logFile = null;
+    _logDirPath = null;
+    _fileLoggerInitialized = false;
+    _fileLoggerInitializing = false;
+    _fileLoggingDisabled = false;
+    _pendingFileLogs.clear();
   }
 }

@@ -1709,6 +1709,66 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get logLevelLabel => '日志级别:';
 
   @override
+  String get logViewerAllCopied => '已复制全部可见日志';
+
+  @override
+  String get logViewerClearDone => '已清理旧日志';
+
+  @override
+  String logViewerClearFailed(String error) {
+    return '清理日志失败: $error';
+  }
+
+  @override
+  String get logViewerClearOld => '清理旧日志';
+
+  @override
+  String get logViewerCompactView => '紧凑视图';
+
+  @override
+  String get logViewerCopyAll => '复制全部';
+
+  @override
+  String get logViewerCopyPath => '复制日志路径';
+
+  @override
+  String get logViewerEmpty => '暂无日志';
+
+  @override
+  String get logViewerEmptyHint => '日志文件会在应用运行时生成。';
+
+  @override
+  String logViewerLineCount(int count) {
+    return '$count 行';
+  }
+
+  @override
+  String logViewerPathCopied(String name) {
+    return '已复制 $name';
+  }
+
+  @override
+  String get logViewerPendingBody => '文件日志尚未就绪，当前显示内存中缓存的日志。';
+
+  @override
+  String get logViewerPendingTitle => '待写入日志';
+
+  @override
+  String get logViewerRefresh => '刷新';
+
+  @override
+  String get logViewerReverseOrder => '从尾部查看';
+
+  @override
+  String get logViewerSubtitle => '查看本机保存的应用日志';
+
+  @override
+  String get logViewerWrapLines => '换行显示';
+
+  @override
+  String get settingsViewLogs => '应用日志';
+
+  @override
   String get logViewerTitle => '日志查看器';
 
   @override
