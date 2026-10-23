@@ -130,5 +130,38 @@ void main() {
       );
       expect(finished.extraInfo, contains('没有有效的片段'));
     }, timeout: const Timeout(Duration(minutes: 5)));
+
+    // Regression: a failed local detection task (no uploadTaskId) used to be
+    // retried through the cloud upload path, which asserts uploadTaskId !=
+    // null and crashed with "Null check operator used on a null value".
+    test('failed local detection task retries through the local pipeline', () async {
+      if (!PlatformCapability.isDesktop) {
+        return;
+      }
+      if (!ncnnAvailable) {
+        markTestSkipped('ncnn native plugin not available');
+        return;
+      }
+
+      final demo = demoVideos.first;
+      final taskId = await ClipFlowTestHelper.startLocalClipFromDemo(demo);
+      await ClipFlowTestHelper.waitForTerminalStatus(taskId);
+
+      final storage = TaskStorage();
+      // Force a failed state, then retry exactly like the UI does.
+      await storage.updateTask(
+        taskId,
+        (t) => (t as VideoClipTask).copyWith(status: TaskStatusEnum.failed),
+      );
+      await storage.retryTask(storage.getTaskById(taskId)!);
+
+      final finished = await ClipFlowTestHelper.waitForTerminalStatus(taskId);
+      expect(
+        finished.status,
+        TaskStatusEnum.completed,
+        reason: finished.extraInfo,
+      );
+      expect(finished.extraInfo, isNot(contains('Null check operator')));
+    }, timeout: const Timeout(Duration(minutes: 15)));
   });
 }

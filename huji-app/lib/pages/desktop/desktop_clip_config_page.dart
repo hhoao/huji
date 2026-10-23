@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -17,14 +18,12 @@ import 'package:huji_app/models/video.dart';
 
 import 'package:huji_app/services/demo_video_service.dart';
 import 'package:huji_app/services/feature_visibility.dart';
+import 'package:huji_app/services/local_clip_task_runner.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_app/utils/debounce/throttles.dart';
-import 'package:huji_app/utils/logger_utils.dart';
-import 'package:huji_app/utils/video_utils.dart';
 import 'package:huji_app/l10n/l10n_extensions.dart';
 import 'package:huji_app/router/modules/desktop.dart';
 
@@ -276,8 +275,6 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
 
   Future<void> _startLocalDetection(File file) async {
     final l10n = context.hujiL10n;
-    final sportTypeKey = _sportType;
-    final matchType = _isPingPong ? 'profession' : 'singles';
     final sportType = _sportTypeEnum;
     final clipConfig = _buildClipConfig(sportType);
     final taskStorage = TaskStorage();
@@ -292,131 +289,16 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
       outputPath: '',
       autoDownload: false,
       sportType: sportType,
+      clipConfig: clipConfig,
       createdAt: now,
       status: TaskStatusEnum.pending,
     );
 
     await taskStorage.addTask(task);
 
-    await LocalVideoStorage().add(
-      ProcessVideoRecord(
-        id: '${now}_$fileName',
-        processStatus: LocalVideoProcessStatusEnum.processing,
-        sportType: sportType,
-        filePath: file.path,
-        clipMode: ClipMode.existingVideo,
-        videoClipConfigReqVo: clipConfig,
-        taskId: task.id,
-      ),
-    );
-
-    await taskStorage.updateTask(task.id, (oldTask) {
-      return oldTask.copyWith(
-        status: TaskStatusEnum.processing,
-        extraInfo: l10n.localDetecting,
-      );
-    });
-
-    final videoPath = file.path;
-    final progressThrottler = Throttler(
-      tag: 'local_progress_${task.id}',
-      duration: const Duration(milliseconds: 500),
-    );
-    LocalDetectionService.runInferenceAsync(
-          videoPath: videoPath,
-          clipConfig: clipConfig,
-          sportTypeKey: sportTypeKey,
-          matchType: matchType,
-          onProgress: (progress, message) {
-            progressThrottler.call(() {
-              // 任务可能已被删除，进度更新用 tryUpdateTask 避免未捕获的
-              // StateError（fire-and-forget 回调里没有 await/异常处理）。
-              taskStorage.tryUpdateTask(task.id, (oldTask) {
-                return oldTask.copyWith(
-                  status: TaskStatusEnum.processing,
-                  progress: progress,
-                  extraInfo: message.isNotEmpty ? message : l10n.localDetecting,
-                );
-              });
-            });
-          },
-        )
-        .then((result) async {
-          try {
-            final output = result.clipOutput;
-            final allSegments = output.allMatchSegments
-                .map((segmentMap) => segmentMap.values.first)
-                .toList();
-            final greatSegments = output.greatMatchSegments
-                .map((segmentMap) => segmentMap.values.first)
-                .toList();
-            final processingTimeMs = result.processingTime.inMilliseconds;
-
-            String? thumbPath;
-            try {
-              thumbPath = await VideoUtils.generateVideoThumbnail(videoPath);
-            } catch (e) {
-              AppLogger().w('Failed to generate thumbnail: $e');
-            }
-
-            await taskStorage.tryUpdateTask(task.id, (oldTask) {
-              return oldTask.copyWith(
-                status: TaskStatusEnum.completed,
-                progress: 1.0,
-                image: thumbPath,
-                extraInfo: l10n.segmentsDetectedResult(
-                  allSegments.length,
-                  (processingTimeMs / 1000).round(),
-                ),
-              );
-            });
-
-            await LocalVideoStorage().add(
-              EdittingVideoRecord(
-                id: '${now}_$fileName',
-                processStatus: LocalVideoProcessStatusEnum.completed,
-                sportType: sportType,
-                filePath: videoPath,
-                thumbnailPath: thumbPath,
-                clipMode: ClipMode.existingVideo,
-                allMatchSegments: allSegments,
-                favoritesMatchSegments: greatSegments.isNotEmpty
-                    ? greatSegments
-                    : allSegments,
-              ),
-            );
-
-            debugPrint(
-              '[local-detection] ${task.name}: done — ${allSegments.length} segments',
-            );
-          } catch (e, st) {
-            AppLogger().e(
-              'Local detection completion handler failed: $e',
-              st,
-              e,
-            );
-            await taskStorage.tryUpdateTask(task.id, (oldTask) {
-              return oldTask.copyWith(
-                status: TaskStatusEnum.failed,
-                extraInfo: l10n.processDetectionResultFailed(e.toString()),
-              );
-            });
-          }
-        })
-        .catchError((e, st) async {
-          AppLogger().e('Local detection isolate failed: $e', st, e);
-          debugPrint('[local-detection] ${task.name}: failed — $e');
-          try {
-            await taskStorage.tryUpdateTask(task.id, (oldTask) {
-              return oldTask.copyWith(
-                status: TaskStatusEnum.failed,
-                extraInfo: l10n.localDetectionFailed(e.toString()),
-              );
-            });
-          } catch (_) {
-            // Best effort — task update itself failing must not cause another unhandled error
-          }
-        });
+    // Orchestration (progress + library records) is shared with the retry
+    // path so a failed local task can be re-run identically.
+    unawaited(LocalClipTaskRunner.run(task: task, taskStorage: taskStorage));
 
     if (!mounted) return;
 

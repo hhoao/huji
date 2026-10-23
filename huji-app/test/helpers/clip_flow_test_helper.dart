@@ -5,14 +5,11 @@ import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/api/models/autoclip/video_models.dart';
 import 'package:huji_app/constants/demo_videos.dart';
 import 'package:huji_app/models/task.dart';
-import 'package:huji_app/models/video.dart';
 import 'package:huji_app/services/demo_video_service.dart';
-import 'package:huji_app/services/local_detection_service.dart';
+import 'package:huji_app/services/local_clip_task_runner.dart';
 import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
 import 'package:huji_app/store/video.dart';
-import 'package:huji_app/utils/debounce/throttles.dart';
-import 'package:huji_app/utils/video_utils.dart';
 import 'package:path/path.dart' as p;
 import 'package:get/get.dart';
 import 'package:huji_app/settings/settings_manager.dart';
@@ -96,91 +93,8 @@ class ClipFlowTestHelper {
 
     await taskStorage.addTask(task);
 
-    await LocalVideoStorage().add(ProcessVideoRecord(
-      id: '${now}_$fileName',
-      processStatus: LocalVideoProcessStatusEnum.processing,
-      sportType: sportType,
-      filePath: file.path,
-      clipMode: ClipMode.existingVideo,
-      videoClipConfigReqVo: effectiveClipConfig,
-      taskId: task.id,
-    ));
-
-    await taskStorage.updateTask(task.id, (oldTask) {
-      return oldTask.copyWith(
-        status: TaskStatusEnum.processing,
-        extraInfo: 'local detecting',
-      );
-    });
-
-    final progressThrottler = Throttler(
-      tag: 'local_progress_${task.id}',
-      duration: const Duration(milliseconds: 500),
-    );
-
-    unawaited(
-      LocalDetectionService.runInferenceAsync(
-        videoPath: file.path,
-        clipConfig: effectiveClipConfig,
-        sportTypeKey: demo.sportTypeKey,
-        matchType: demo.matchType,
-        onProgress: (progress, message) {
-          progressThrottler.call(() {
-            taskStorage.updateTask(task.id, (oldTask) {
-              return oldTask.copyWith(
-                status: TaskStatusEnum.processing,
-                progress: progress,
-                extraInfo:
-                    message.isNotEmpty ? message : 'local detecting',
-              );
-            });
-          });
-        },
-      ).then((result) async {
-        final output = result.clipOutput;
-        final allSegments = output.allMatchSegments
-            .map((segmentMap) => segmentMap.values.first)
-            .toList();
-        final greatSegments = output.greatMatchSegments
-            .map((segmentMap) => segmentMap.values.first)
-            .toList();
-
-        String? thumbPath;
-        try {
-          thumbPath = await VideoUtils.generateVideoThumbnail(file.path);
-        } catch (_) {
-          // Thumbnail generation is optional in tests.
-        }
-
-        await taskStorage.updateTask(task.id, (oldTask) {
-          return oldTask.copyWith(
-            status: TaskStatusEnum.completed,
-            progress: 1.0,
-            image: thumbPath,
-            extraInfo: 'segments=${allSegments.length}',
-          );
-        });
-
-        await LocalVideoStorage().add(EdittingVideoRecord(
-          id: '${now}_$fileName',
-          processStatus: LocalVideoProcessStatusEnum.completed,
-          sportType: sportType,
-          filePath: file.path,
-          thumbnailPath: thumbPath,
-          clipMode: ClipMode.existingVideo,
-          allMatchSegments: allSegments,
-          favoritesMatchSegments:
-              greatSegments.isNotEmpty ? greatSegments : allSegments,
-        ));
-      }).catchError((Object e) async {
-        await taskStorage.updateTask(task.id, (oldTask) {
-          return oldTask.copyWith(
-            status: TaskStatusEnum.failed,
-            extraInfo: e.toString(),
-          );
-        });
-      }),
-    );
+    // Same orchestration the app uses (progress + library records).
+    unawaited(LocalClipTaskRunner.run(task: task, taskStorage: taskStorage));
 
     return task.id;
   }

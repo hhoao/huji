@@ -13,6 +13,7 @@ import 'package:huji_app/constants/global.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/upload.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/services/local_clip_task_runner.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/websocket_service.dart';
 import 'package:huji_app/store/task/task_manager.dart';
@@ -184,6 +185,16 @@ class VideoClipTaskManager extends AbstractTaskManager {
   @override
   Future<void> processTask(Task task) async {
     VideoClipTask currentTask = task as VideoClipTask;
+    // A null uploadTaskId marks a local (offline) detection task — it has no
+    // multipart upload and must re-run the on-device inference pipeline
+    // instead of the cloud upload path (which asserts uploadTaskId != null).
+    if (currentTask.uploadTaskId == null) {
+      await LocalClipTaskRunner.run(
+        task: currentTask,
+        taskStorage: _taskRunner,
+      );
+      return;
+    }
     await _startTask(currentTask);
   }
 
