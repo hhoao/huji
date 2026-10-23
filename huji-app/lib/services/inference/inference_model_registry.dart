@@ -4,6 +4,14 @@ import 'package:huji_app/constants/autoclip_constants.dart';
 class InferenceModelRegistry {
   InferenceModelRegistry._();
 
+  /// Revision of the bundled ncnn assets, used to scope the on-disk extraction
+  /// cache (`ncnn_models/<revision>/…`).
+  ///
+  /// Bump this whenever `assets/models/**/model.ncnn.*` changes. Otherwise a
+  /// cache written by an older install is reused as-is, and a stale/incompatible
+  /// param makes `hn_load` fail with status -2 (param parse error).
+  static const String ncnnModelRevision = '2026-10-11';
+
   /// Known class-name order per bundled model (fallback when
   /// metadata.yaml is unavailable).
   static const Map<String, List<String>> _classNamesBySportMatch = {

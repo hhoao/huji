@@ -14,7 +14,11 @@ class NcnnModelAssetResolver {
   NcnnModelAssetResolver._();
 
   static Directory get _cacheDir => Directory(
-        path.join(Directory.systemTemp.path, 'ncnn_models'),
+        path.join(
+          Directory.systemTemp.path,
+          'ncnn_models',
+          InferenceModelRegistry.ncnnModelRevision,
+        ),
       );
 
   /// Resolve sport/match to cached ncnn files plus fallback class names.
@@ -39,10 +43,15 @@ class NcnnModelAssetResolver {
       final file = File(path.join(cacheSubDir.path, entry.key));
       if (!await file.exists() || await file.length() == 0) {
         final data = await rootBundle.load(entry.value);
-        await file.writeAsBytes(
+        // 先写临时文件再原子重命名：避免写入过程中被中断/崩溃时留下一个
+        // 长度非零但内容残缺的缓存文件——它会让后续 hn_load 报 -2（param
+        // 解析失败）且永远不会被重新解压。
+        final tmp = File('${file.path}.tmp');
+        await tmp.writeAsBytes(
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
           flush: true,
         );
+        await tmp.rename(file.path);
       }
     }
 

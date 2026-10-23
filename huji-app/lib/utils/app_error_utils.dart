@@ -101,6 +101,16 @@ class AppErrorUtils {
       );
     }
 
+    // “没有有效的片段”是检测完成后的正常结果（视频里没有可剪辑的动作），
+    // 不是程序缺陷：只提示用户，不上报错误分析。
+    if (_isNoValidSegmentsError(error, l10n)) {
+      return AppErrorDecision(
+        kind: AppErrorKind.unexpected,
+        shouldReport: false,
+        userMessage: l10n.noValidSegments,
+      );
+    }
+
     if (_isVideoCapabilityError(error)) {
       return AppErrorDecision(
         kind: AppErrorKind.unexpected,
@@ -274,6 +284,16 @@ class AppErrorUtils {
     final raw = '${error.code}\n${error.message ?? ''}'.toLowerCase();
     return raw.contains('getassetpathlist') &&
         raw.contains('failed to obtain the cursor');
+  }
+
+  /// Matches the localized “no valid segments” result surfaced after detection.
+  /// The message may be wrapped in a generic [Exception], so match on content.
+  static bool _isNoValidSegmentsError(
+    Object error,
+    HujiLocalizations l10n,
+  ) {
+    final raw = error.toString();
+    return raw.contains(l10n.noValidSegments);
   }
 
   static bool _isVideoCapabilityError(Object error) {

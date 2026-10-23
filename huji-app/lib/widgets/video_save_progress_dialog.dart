@@ -106,13 +106,23 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
       }
 
       // 根据片段数量选择保存策略
-      if (widget.segments.length == 1) {
+      // 丢弃零长/反向片段：ffmpeg 对 `-t 0` 这类输入会以 0 退出却不产出
+      // 文件，最终表现为“视频文件未生成”。提前剔除并给出明确错误。
+      final validSegments = [
+        for (final s in widget.segments)
+          if (s.endSeconds - s.startSeconds > 0) s,
+      ];
+      if (validSegments.isEmpty) {
+        throw Exception(l10n.noValidSegments);
+      }
+
+      if (validSegments.length == 1) {
         // 单个片段，直接裁剪（应用质量设置）
-        await _saveSingleSegment(widget.segments.first, targetPath);
+        await _saveSingleSegment(validSegments.first, targetPath);
       } else {
         // 多个片段，先裁剪再合并（应用质量设置）
         await _saveMultipleSegments(
-          widget.segments,
+          validSegments,
           targetPath,
           crf: crf,
           bitrate: bitrate,
@@ -123,7 +133,7 @@ class _VideoSaveProgressDialogState extends State<VideoSaveProgressDialog> {
 
       // 检查文件是否生成成功
       final file = File(targetPath);
-      if (await file.exists()) {
+      if (await file.exists() && await file.length() > 0) {
         _fileSize = await file.length();
         _formattedFileSize = _formatFileSize(_fileSize);
 

@@ -199,13 +199,23 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
   Future<void> _togglePlayPause() async {
     final player = _player;
     if (player == null) return;
-    await player.playOrPause();
+    // _disposePlayer() 可能在异步间隙里销毁正在使用的 player（切换/清理
+    // 中的竞态），此时 media_kit 会抛 "[Player] has been disposed" 断言。
+    try {
+      await player.playOrPause();
+    } catch (e) {
+      debugPrint('[DesktopDropZone] playOrPause on disposed player ignored: $e');
+    }
   }
 
   void _seekBySeconds(int deltaSeconds) {
     final player = _player;
     if (player != null) {
-      seekMediaKitPlayerBySeconds(player, deltaSeconds);
+      try {
+        seekMediaKitPlayerBySeconds(player, deltaSeconds);
+      } catch (e) {
+        debugPrint('[DesktopDropZone] seek on disposed player ignored: $e');
+      }
     }
   }
 
@@ -213,7 +223,12 @@ class _DesktopDropZoneState extends State<DesktopDropZone> {
     final player = _player;
     if (player == null || _durationMs <= 0) return;
     final ms = (fraction * _durationMs).round().clamp(0, _durationMs);
-    await player.seek(Duration(milliseconds: ms));
+    try {
+      await player.seek(Duration(milliseconds: ms));
+    } catch (e) {
+      debugPrint('[DesktopDropZone] seek on disposed player ignored: $e');
+      return;
+    }
     if (!mounted) return;
     setState(() => _positionMs = ms);
   }

@@ -100,11 +100,16 @@ abstract class MultiVideoPlayerState with _$MultiVideoPlayerState {
     int total = 0;
     for (final item in enabledItems) {
       final duration = item.durationMs;
-      if (duration > 0) {
-        total += duration;
-      } else {
-        // 如果duration为-1（播放到视频结尾），使用总时长属性
-        total += item.totalDurationMs - item.startTimeMs;
+      // 只累加正贡献：视频总时长尚未探测到（0）或片段数据异常时，
+      // `totalDurationMs - startTimeMs` 会为负，绝不能让它拉低总时长——
+      // 否则 totalDuration 为负，UI 里 int.clamp(0, totalDuration) 会抛
+      // ArgumentError("Invalid argument(s): 0")。
+      final contribution = duration > 0
+          ? duration
+          // 如果duration为-1（播放到视频结尾），使用总时长属性
+          : item.totalDurationMs - item.startTimeMs;
+      if (contribution > 0) {
+        total += contribution;
       }
     }
     return total;

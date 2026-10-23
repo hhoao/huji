@@ -239,7 +239,10 @@ class _FullscreenVideoPageState extends State<FullscreenVideoPage> {
   }
 
   Widget _buildFullscreenControls(MultiVideoPlayerState state) {
-    final totalDuration = state.totalDuration?.inMilliseconds ?? 1;
+    final totalDurationMs = state.totalDuration?.inMilliseconds ?? 1;
+    // 时长未知/异常时回退到 1ms，避免 `int.clamp(0, 0)` 或上界为负时抛
+    // ArgumentError("Invalid argument(s): 0")，同时保证 Slider 的 max > min。
+    final totalDuration = totalDurationMs > 0 ? totalDurationMs : 1;
     final currentTime = state.currentTimeMs;
     final clampedCurrentTime = currentTime.clamp(0, totalDuration);
 
