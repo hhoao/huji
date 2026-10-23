@@ -1330,6 +1330,31 @@ class VideoUtils {
     return controller.stream;
   }
 
+  /// Builds an actionable detail string for a failed ffmpeg run.
+  ///
+  /// FFmpegKit (macOS/Windows/Android/iOS) puts the real error in
+  /// [FFmpegResult.failStackTrace] and may leave [FFmpegResult.output]
+  /// empty; the desktop runner is the opposite. Always include the exit
+  /// code and the exact command so the failure is diagnosable from the
+  /// reported exception alone — a bare empty `帧提取失败: ` previously hid
+  /// the real cause.
+  static String _ffmpegFailureDetail({
+    required FFmpegResult result,
+    required List<String> args,
+  }) {
+    final parts = <String>['exitCode=${result.returnCode}'];
+    final failStack = result.failStackTrace?.trim();
+    if (failStack != null && failStack.isNotEmpty) {
+      parts.add(failStack);
+    }
+    final output = result.output?.trim();
+    if (output != null && output.isNotEmpty) {
+      parts.add(output);
+    }
+    parts.add('cmd: ffmpeg ${formatFFmpegArgsForLog(args)}');
+    return parts.join('\n');
+  }
+
   /// Extract classify-cropped RGB24 frames (skips PNG encode/decode).
   ///
   /// Output files: `000001.rgb`, … each exactly [width]*[height]*3 bytes.
@@ -1378,9 +1403,9 @@ class VideoUtils {
     final result = await FFmpegRunner.instance.execute(args);
 
     if (!result.isSuccess) {
-      throw Exception(
-        resolveHujiL10n().frameExtractionFailed(result.output ?? ''),
-      );
+      final detail = _ffmpegFailureDetail(result: result, args: args);
+      _logger.e('帧提取失败 (ffmpeg): $detail');
+      throw Exception(resolveHujiL10n().frameExtractionFailed(detail));
     }
   }
 
@@ -1460,9 +1485,13 @@ class VideoUtils {
       final exitCode = await process.exitCode;
       await stderrDone;
       if (exitCode != 0) {
-        throw Exception(
-          resolveHujiL10n().frameExtractionFailed(stderrBuf.toString()),
-        );
+        final stderr = stderrBuf.toString().trim();
+        final detail =
+            'exitCode=$exitCode\n'
+            '${stderr.isEmpty ? '<no stderr at -loglevel $logLevel>' : stderr}\n'
+            'cmd: ffmpeg ${formatFFmpegArgsForLog(args)}';
+        _logger.e('帧提取失败 (ffmpeg): $detail');
+        throw Exception(resolveHujiL10n().frameExtractionFailed(detail));
       }
       if (pending.length != 0) {
         throw Exception(
