@@ -329,7 +329,9 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           matchType: matchType,
           onProgress: (progress, message) {
             progressThrottler.call(() {
-              taskStorage.updateTask(task.id, (oldTask) {
+              // 任务可能已被删除，进度更新用 tryUpdateTask 避免未捕获的
+              // StateError（fire-and-forget 回调里没有 await/异常处理）。
+              taskStorage.tryUpdateTask(task.id, (oldTask) {
                 return oldTask.copyWith(
                   status: TaskStatusEnum.processing,
                   progress: progress,
@@ -357,7 +359,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               AppLogger().w('Failed to generate thumbnail: $e');
             }
 
-            await taskStorage.updateTask(task.id, (oldTask) {
+            await taskStorage.tryUpdateTask(task.id, (oldTask) {
               return oldTask.copyWith(
                 status: TaskStatusEnum.completed,
                 progress: 1.0,
@@ -393,7 +395,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
               st,
               e,
             );
-            await taskStorage.updateTask(task.id, (oldTask) {
+            await taskStorage.tryUpdateTask(task.id, (oldTask) {
               return oldTask.copyWith(
                 status: TaskStatusEnum.failed,
                 extraInfo: l10n.processDetectionResultFailed(e.toString()),
@@ -405,7 +407,7 @@ class _DesktopClipConfigPageState extends State<DesktopClipConfigPage> {
           AppLogger().e('Local detection isolate failed: $e', st, e);
           debugPrint('[local-detection] ${task.name}: failed — $e');
           try {
-            await taskStorage.updateTask(task.id, (oldTask) {
+            await taskStorage.tryUpdateTask(task.id, (oldTask) {
               return oldTask.copyWith(
                 status: TaskStatusEnum.failed,
                 extraInfo: l10n.localDetectionFailed(e.toString()),

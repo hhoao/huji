@@ -126,9 +126,30 @@ class VideoClipTaskManager extends AbstractTaskManager {
 
   Future<FileInfo?> _tryUploadFile(VideoClipTask task) async {
     FileInfo? uploadResult;
-    // 1. 检查是否已经上传过
+
+    // 0. 确保存在可用的上传任务。uploadTaskId 可能为空，或指向一个已被清理
+    //    的上传任务（例如 App 重启后本地 upload_tasks.json 丢失），此时必须
+    //    新建，否则下一行对 task.uploadTaskId! 的空断言会崩溃。
     if (task.uploadTaskId == null ||
-        !_multipartUploader.isCompleted(task.uploadTaskId!)) {
+        _multipartUploader.getTaskById(task.uploadTaskId!) == null) {
+      final created = await _multipartUploader.createUploadTask(
+        filePath: task.videoPath,
+        fileName: fileNameFromPath(task.videoPath),
+      );
+      final updated = await _taskRunner.tryUpdateTask(
+        task.id,
+        (oldTask) =>
+            (oldTask as VideoClipTask).copyWith(uploadTaskId: created.id),
+      );
+      if (updated == null) {
+        // 任务已被删除，放弃本次上传。
+        return null;
+      }
+      task = updated as VideoClipTask;
+    }
+
+    // 1. 检查是否已经上传过
+    if (!_multipartUploader.isCompleted(task.uploadTaskId!)) {
       await _multipartUploader.startOrRetryUpload(
         task.uploadTaskId!,
         onProgress: (uploadTask) => _onProgress(task.id, uploadTask),

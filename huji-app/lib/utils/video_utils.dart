@@ -1517,12 +1517,15 @@ class VideoUtils {
         if (!await file.exists()) break;
         final bytes = await file.readAsBytes();
         if (bytes.length != frameSize) {
-          throw Exception(
-            resolveHujiL10n().frameExtractionFailed(
-              'Incomplete RGB frame ${file.path} (${bytes.length} bytes, '
-              'expected $frameSize)',
-            ),
+          // A truncated frame (e.g. the final buffer was cut short) must not
+          // abort the whole detection run — skip it and keep the remaining
+          // frames. The consumer only needs an evenly-sampled sequence.
+          _logger.w(
+            '跳过不完整的 RGB 帧 ${file.path} '
+            '(${bytes.length} 字节, 期望 $frameSize)',
           );
+          index++;
+          continue;
         }
         yield bytes;
         index++;

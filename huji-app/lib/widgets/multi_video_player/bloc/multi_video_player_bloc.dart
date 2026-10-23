@@ -363,13 +363,11 @@ class MultiVideoPlayerBloc
     final keysToRemove = <String>[];
     for (final entry in _desktopPlayers.entries) {
       if (!uniquePaths.contains(entry.key)) {
-        entry.value.dispose();
-        _desktopVideoControllers.remove(entry.key);
         keysToRemove.add(entry.key);
       }
     }
     for (final key in keysToRemove) {
-      _desktopPlayers.remove(key);
+      await _disposeDesktopPlayer(key);
     }
 
     // Create new players — VideoController must exist before open().
@@ -381,6 +379,28 @@ class MultiVideoPlayerBloc
       _desktopPlayers[path] = player;
       await player.open(media_kit.Media(path), play: false);
     }
+  }
+
+  /// Creates a media_kit player + its [media_kit_video.VideoController].
+  ///
+  /// [media_kit_video.VideoController] initializes asynchronously (one
+  /// post-frame callback later) and calls `Player.setProperty` inside
+  /// `NativeVideoController.create`. Disposing the [media_kit.Player] while
+  /// that is still in flight trips a `[Player] has been disposed` assertion,
+  /// so always tear down through [_disposeDesktopPlayer].
+  Future<void> _disposeDesktopPlayer(String path) async {
+    final player = _desktopPlayers.remove(path);
+    final controller = _desktopVideoControllers.remove(path);
+    if (controller != null) {
+      // Best-effort wait for the async VideoController.create() to settle
+      // before the underlying player disappears.
+      try {
+        await controller.platform.future.timeout(const Duration(seconds: 5));
+      } catch (_) {
+        // Creation failed / unsupported platform — nothing to await.
+      }
+    }
+    await player?.dispose();
   }
 
   Future<void> _preloadMobileControllers(List<VideoPlaybackItem> items) async {
@@ -694,11 +714,9 @@ class MultiVideoPlayerBloc
       controller.dispose();
     }
     _preloadedControllers.clear();
-    _desktopVideoControllers.clear();
-    for (final player in _desktopPlayers.values) {
-      player.dispose();
+    for (final path in _desktopPlayers.keys.toList()) {
+      await _disposeDesktopPlayer(path);
     }
-    _desktopPlayers.clear();
     _itemIdToPath.clear();
     return super.close();
   }

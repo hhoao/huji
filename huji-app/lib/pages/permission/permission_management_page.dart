@@ -231,7 +231,7 @@ class _PermissionManagementPageState extends State<PermissionManagementPage> {
                     ),
                     Text(
                       l10n.permissionDiagnosticGrantedRate(
-                        diagnosis['summary']['grantedPercentage'],
+                        '${diagnosis['summary']['grantedPercentage']}',
                       ),
                     ),
                     SizedBox(height: 16),

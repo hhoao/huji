@@ -474,6 +474,24 @@ class VideoCompressUtils {
           .toLowerCase()
           .replaceAll('.', '');
 
+      // 所有必填字段都存在时才解析，避免 ffmpeg 日志不完整时
+      // `as num` 对 null 做类型转换抛 TypeError（ffmpeg.g.dart）。
+      const requiredKeys = [
+        'duration',
+        'width',
+        'height',
+        'bitrate',
+        'fps',
+        'fileSize',
+        'videoCodec',
+        'format',
+      ];
+      final missingKeys = requiredKeys.where((key) => info[key] == null);
+      if (missingKeys.isNotEmpty) {
+        _logger.w('视频信息缺少字段 ${missingKeys.toList()}: $videoPath');
+        return null;
+      }
+
       return VideoInfo.fromJson(info);
     } catch (e, stackTrace) {
       _logger.e('获取视频信息失败: $e', stackTrace, e);

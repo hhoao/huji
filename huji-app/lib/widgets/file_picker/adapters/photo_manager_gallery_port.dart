@@ -79,7 +79,14 @@ class PhotoManagerGalleryPort implements TpGalleryPort {
       return null;
     }
 
-    return asset.thumbnailDataWithSize(ThumbnailSize(size, size));
+    try {
+      return await asset.thumbnailDataWithSize(ThumbnailSize(size, size));
+    } on PlatformException {
+      // Corrupt / unreadable assets make the native retrievers throw
+      // (e.g. "Thumbnail request error"). Fall back to no thumbnail instead
+      // of propagating an unhandled platform error.
+      return null;
+    }
   }
 
   @override
