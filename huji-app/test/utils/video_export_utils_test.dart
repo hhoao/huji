@@ -600,6 +600,36 @@ void main() {
       );
     });
 
+    test('re-encode path has no seam gaps in frame timing',
+        timeout: const Timeout(Duration(minutes: 3)), () async {
+      if (!ffmpegAvailable) {
+        markTestSkipped('ffmpeg/ffprobe not on PATH');
+        return;
+      }
+
+      final outputPath = p.join(tempDir.path, 'no_gap_720p.mp4');
+      await runConcatVideoExport(
+        videoPath: videoPath,
+        segments: segments,
+        quality: VideoExportQualities.p720,
+        outputPath: outputPath,
+      );
+
+      // 逐帧检查时间戳间隔：接缝处漏帧（间隔 2 倍）或重复帧（间隔 0）
+      // 都会让播放看起来一顿一顿 / 动作发滞。
+      final pts = await _videoPacketTimes(outputPath);
+      expect(pts, isNotEmpty);
+      final sorted = [...pts]..sort();
+      for (var i = 1; i < sorted.length; i++) {
+        final delta = sorted[i] - sorted[i - 1];
+        expect(
+          delta,
+          closeTo(_fixtureFrameSeconds, _fixtureFrameSeconds * 0.25),
+          reason: '第 $i 帧处时间戳异常：${sorted[i - 1]} → ${sorted[i]}',
+        );
+      }
+    });
+
     test('720p quality scales output height to 720',
         timeout: const Timeout(Duration(minutes: 3)), () async {
       if (!ffmpegAvailable) {

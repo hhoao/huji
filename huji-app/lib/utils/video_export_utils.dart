@@ -298,6 +298,7 @@ class _SourceInfo {
     required this.height,
     required this.hasAudio,
     required this.reorderFrames,
+    required this.frameRate,
     required this.frameDurationSeconds,
     required this.durationSeconds,
   });
@@ -308,6 +309,9 @@ class _SourceInfo {
 
   /// B 帧重排深度（`has_b_frames`）。
   final int reorderFrames;
+
+  /// 帧率原样字符串（如 `30/1`），用于 `fps=` 滤镜，避免浮点误差。
+  final String frameRate;
 
   /// 单帧时长（仅 CFR 有意义）。
   final double frameDurationSeconds;
@@ -545,6 +549,18 @@ Future<void> _runExportSteps(
 /// concat demuxer 的 `inpoint` 在**第一个**文件上无法丢弃关键帧之前的帧，输出
 /// 开头会多带 ≤1 个 GOP。这里查出首段起点之前最近的关键帧，用输出侧 `-ss` 把
 /// 多带的画面剪掉（关键帧间隔 8.5s 的素材上，不剪就会多出 8.5 秒）。
+/// 每个 ffmpeg 进程最多处理的段数。
+///
+/// 逐段输入的方式要求所有输入同时打开（每个输入一个解码器），几百个会吃光
+/// 文件句柄和内存，所以分批编码，再用清单把各批拼起来。
+const int _maxSegmentsPerProcess = 32;
+
+/// 整段重编码：逐段 `-ss/-to` 输入 + 时间戳归一化 + concat 滤镜。
+///
+/// **不要退回 concat 清单 + `inpoint/outpoint` 写法**：实测那种写法在每处接缝
+/// 会漏掉/推迟 2 帧（51 分钟直播录制导出 18 分钟时 160 处），播放时表现为
+/// 每几秒顿一下、动作发滞。逐段输入让每段从关键帧正常解码，再按源帧率归一化
+/// 时间戳，实测零空档且时长精确。
 Future<void> _runSinglePassExport({
   required String videoPath,
   required List<SegmentInfo> segments,
@@ -554,6 +570,178 @@ Future<void> _runSinglePassExport({
   void Function(double progress)? onProgress,
   void Function(Process process)? onProcessStarted,
   required bool Function() isCancelled,
+}) async {
+  if (isCancelled()) {
+    throw Exception('export cancelled');
+  }
+
+  final scale = _scaleHeight(quality);
+  final crf = _crfFor(quality);
+  final info = await _probeSource(videoPath);
+
+  // 探测不到帧率/音轨信息时退回按秒拼接的老写法（行为与历史一致）。
+  if (info == null) {
+    await _runLegacyConcatListExport(
+      videoPath: videoPath,
+      segments: segments,
+      quality: quality,
+      outputPath: outputPath,
+      workDir: workDir,
+      onProgress: onProgress,
+      onProcessStarted: onProcessStarted,
+    );
+    return;
+  }
+
+  final usable = [
+    for (final s in segments)
+      if (s.endSeconds - s.startSeconds > _keyframeEpsilon) s,
+  ];
+  if (usable.isEmpty) {
+    throw Exception('No segments to export');
+  }
+
+  final steps = <_ExportStep>[];
+  final parts = <String>[];
+  for (var start = 0; start < usable.length; start += _maxSegmentsPerProcess) {
+    final batch = usable.sublist(
+      start,
+      math.min(start + _maxSegmentsPerProcess, usable.length),
+    );
+    final partPath = p.join(workDir, 'batch_$start.mp4');
+    parts.add(partPath);
+    steps.add(_ExportStep(
+      args: _batchEncodeArgs(
+        videoPath: videoPath,
+        segments: batch,
+        frameRate: info.frameRate,
+        hasAudio: info.hasAudio,
+        crf: crf,
+        scaleHeight: scale,
+        outputPath: partPath,
+      ),
+      weight: batch.fold<double>(
+        0,
+        (sum, s) => sum + (s.endSeconds - s.startSeconds),
+      ),
+      contentSeconds: batch.fold<double>(
+        0,
+        (sum, s) => sum + (s.endSeconds - s.startSeconds),
+      ),
+    ));
+  }
+
+  // 多批时用清单把各批拼起来：分段的容器时长是精确的（重编码输出会被重新
+  // 计时），所以按容器时长推进不会错位。
+  if (parts.length > 1) {
+    final listPath = p.join(workDir, 'batches.txt');
+    final buf = StringBuffer();
+    for (var i = 0; i < parts.length; i++) {
+      final batch = usable.sublist(
+        i * _maxSegmentsPerProcess,
+        math.min((i + 1) * _maxSegmentsPerProcess, usable.length),
+      );
+      final duration = batch.fold<double>(
+        0,
+        (sum, s) => sum + (s.endSeconds - s.startSeconds),
+      );
+      buf.writeln("file '${_escapeConcatPath(parts[i])}'");
+      buf.writeln('duration ${_t(duration)}');
+    }
+    await File(listPath).writeAsString(buf.toString());
+    steps.add(_ExportStep(
+      args: ['-f', 'concat', '-safe', '0', '-i', listPath, '-c', 'copy',
+        '-movflags', '+faststart', outputPath],
+      weight: _finalizeWeight,
+    ));
+  } else {
+    // 单批：补一次 -c copy 落到输出路径并加 faststart。
+    steps.add(_ExportStep(
+      args: ['-i', parts.first, '-c', 'copy', '-movflags', '+faststart',
+        outputPath],
+      weight: _finalizeWeight,
+    ));
+  }
+
+  await _runExportSteps(
+    _ExportPlan(
+      steps: steps,
+      totalWeight: steps.fold<double>(0, (sum, step) => sum + step.weight),
+    ),
+    onProgress,
+    onProcessStarted,
+  );
+}
+
+/// 一批片段的编码参数：逐段输入 + 归一化时间戳/帧率 + concat。
+List<String> _batchEncodeArgs({
+  required String videoPath,
+  required List<SegmentInfo> segments,
+  required String frameRate,
+  required bool hasAudio,
+  required String crf,
+  required int? scaleHeight,
+  required String outputPath,
+}) {
+  final args = <String>[];
+  for (final s in segments) {
+    args.addAll([
+      '-ss', _tFloor(s.startSeconds),
+      '-to', _t(s.endSeconds),
+      '-i', videoPath,
+    ]);
+  }
+
+  final chains = <String>[];
+  // concat 滤镜的输入按“每段一组”交替排列：[v0][a0][v1][a1]…
+  final concatInputs = <String>[];
+  for (var i = 0; i < segments.length; i++) {
+    // setpts 归零 + fps 对齐源帧率：各输入的时间戳有微小舍入时，concat 滤镜
+    // 会在接缝处塞进 2 帧停顿（实测 18 分钟导出 160 处）。
+    chains.add('[$i:v:0]setpts=PTS-STARTPTS,fps=$frameRate[v$i]');
+    concatInputs.add('[v$i]');
+    if (hasAudio) {
+      chains.add('[$i:a:0]asetpts=PTS-STARTPTS[a$i]');
+      concatInputs.add('[a$i]');
+    }
+  }
+
+  final concat = hasAudio
+      ? '${concatInputs.join()}'
+          'concat=n=${segments.length}:v=1:a=1[vcat][acat]'
+      : '${concatInputs.join()}concat=n=${segments.length}:v=1:a=0[vcat]';
+  chains.add(concat);
+
+  var videoLabel = '[vcat]';
+  if (scaleHeight != null) {
+    chains.add('[vcat]scale=-2:$scaleHeight[vout]');
+    videoLabel = '[vout]';
+  }
+
+  args.addAll([
+    '-filter_complex', chains.join(';'),
+    '-map', videoLabel,
+    if (hasAudio) ...['-map', '[acat]'],
+    '-c:v', 'libx264', '-crf', crf, '-preset', _x264Preset,
+    if (hasAudio) ...['-c:a', 'aac', '-b:a', '128k'],
+    outputPath,
+  ]);
+  return args;
+}
+
+/// 老写法：concat 清单 + `inpoint/outpoint` + 单次编码（探测失败时的兜底）。
+///
+/// concat demuxer 的 `inpoint` 在**第一个**文件上无法丢弃关键帧之前的帧，
+/// 输出开头会多带 ≤1 个 GOP；这里查出首段起点之前最近的关键帧，用输出侧
+/// `-ss` 把多带的画面剪掉。
+Future<void> _runLegacyConcatListExport({
+  required String videoPath,
+  required List<SegmentInfo> segments,
+  required String quality,
+  required String outputPath,
+  required String workDir,
+  void Function(double progress)? onProgress,
+  void Function(Process process)? onProcessStarted,
 }) async {
   final concatPath = p.join(workDir, 'concat.txt');
   final buf = StringBuffer();
@@ -736,6 +924,7 @@ Future<_SourceInfo?> _probeSource(String videoPath) async {
       height: ((video['height'] as num?) ?? 0).toInt(),
       hasAudio: hasAudio,
       reorderFrames: ((video['has_b_frames'] as num?) ?? 0).toInt(),
+      frameRate: video['r_frame_rate']?.toString() ?? '',
       frameDurationSeconds: 1 / rFrameRate,
       durationSeconds: duration,
     );
