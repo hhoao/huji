@@ -25,7 +25,8 @@ enum ProcessStatus {
   preparing(0),
   processing(1),
   completed(2),
-  failed(3);
+  failed(3),
+  cancelled(4);
 
   const ProcessStatus(this.value);
   final int value;

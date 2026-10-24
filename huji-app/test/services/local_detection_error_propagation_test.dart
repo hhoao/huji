@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/core/batch/batch_action_segment_detector.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/clip_cancel_token.dart';
 import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 import 'package:huji_app/services/large_model_service.dart';
@@ -96,13 +97,15 @@ VideoInfo _videoInfo() => VideoInfo(
 );
 
 Future<LocalDetectionResult> _run(
-  Future<void> Function(ProgressHandler? progressHandler) behavior,
-) {
+  Future<void> Function(ProgressHandler? progressHandler) behavior, {
+  ClipCancelToken? cancelToken,
+}) {
   return LocalDetectionService().runAutoclip(
     videoPath: '/tmp/test.mp4',
     clipConfig: PingPongVideoClipConfigReqVo(),
     desktopInferenceSpec: _spec,
     detectorOverride: _StubDetector(behavior: behavior),
+    cancelToken: cancelToken,
   );
 }
 
@@ -172,5 +175,41 @@ void main() {
       _run((progressHandler) async {}),
       throwsA(isA<StateError>()),
     );
+  });
+
+  test('an already-cancelled token aborts before the pipeline runs', () async {
+    final token = ClipCancelToken.forJob('test-cancel-before')
+      ..cancel();
+    addTearDown(() => ClipCancelToken.release('test-cancel-before'));
+
+    var ran = false;
+    await expectLater(
+      _run((progressHandler) async {
+        ran = true;
+      }, cancelToken: token),
+      throwsA(isA<ClipCancelledException>()),
+    );
+    expect(ran, isFalse, reason: 'the pipeline must not start when cancelled');
+  });
+
+  test('cancelling a running pipeline aborts it at the next checkpoint', () async {
+    final token = ClipCancelToken.forJob('test-cancel-running');
+    addTearDown(() => ClipCancelToken.release('test-cancel-running'));
+
+    final future = _run((progressHandler) async {
+      // Mimic a long pipeline that cooperates with cancellation: the real one
+      // checks `progressHandler.isCancelled`/`throwIfCancelled()` between
+      // frames and after ffmpeg is killed.
+      for (var i = 0; i < 100000; i++) {
+        progressHandler?.throwIfCancelled();
+        await Future<void>.delayed(Duration.zero);
+      }
+    }, cancelToken: token);
+
+    // Let the pipeline get going, then cancel.
+    await Future<void>.delayed(Duration.zero);
+    token.cancel();
+
+    await expectLater(future, throwsA(isA<ClipCancelledException>()));
   });
 }

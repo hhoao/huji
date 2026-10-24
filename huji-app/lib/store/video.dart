@@ -179,6 +179,26 @@ class LocalVideoStorage extends ChangeNotifier {
     return result;
   }
 
+  // 标记任务对应的处理记录为已取消（不存在或已完成时不做任何事）。
+  // 取消剪辑后，库里的“检测中”占位记录需要落成最终状态，否则会一直显示
+  // 处理中。
+  Future<void> markProcessRecordCancelled(String taskId) async {
+    try {
+      final record = await findById(taskId);
+      if (record is ProcessVideoRecord &&
+          record.processStatus == LocalVideoProcessStatusEnum.processing) {
+        await update(
+          taskId,
+          (r) => (r as ProcessVideoRecord).copyWith(
+            processStatus: LocalVideoProcessStatusEnum.cancelled,
+          ),
+        );
+      }
+    } catch (e) {
+      AppLogger().w('Failed to mark process record cancelled: $taskId, $e');
+    }
+  }
+
   // 更新视频记录
   Future<LocalVideoRecord> update(
     String videoId,

@@ -12,7 +12,9 @@ part 'video.g.dart';
 enum LocalVideoProcessStatusEnum {
   pending(0),
   processing(1),
-  completed(2);
+  completed(2),
+  cancelled(3),
+  failed(4);
 
   const LocalVideoProcessStatusEnum(this.value);
 

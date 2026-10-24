@@ -488,6 +488,22 @@ class TaskStorage extends ChangeNotifier
         throw UpdateTaskOnPauseError(updatedTask.status);
       }
 
+      // 已取消的任务不能被后台回调“复活”：忽略把它改回 processing/completed
+      // 的尝试（进度上报、下载/上传回调等）。否则用户点了取消，界面上却会
+      // 立刻跳回“处理中”，取消看起来完全无效。
+      // 用户显式重启任务时会先把状态改回 pending（见 TaskStorage.processTask），
+      // 因此不受此限制影响。
+      if (oldTask.status == TaskStatusEnum.cancelled &&
+          (updatedTask.status == TaskStatusEnum.processing ||
+              updatedTask.status == TaskStatusEnum.completed)) {
+        AppLogger().d(
+          'Ignore status resurrection for cancelled task: ${updatedTask.id}',
+        );
+        updatedTask = _taskManagers[updatedTask.type]!.copyTask(
+          updatedTask.copyWith(status: TaskStatusEnum.cancelled),
+        );
+      }
+
       _tasks[idx] = updatedTask;
       try {
         final progressOnly = _isProgressOnlyUpdate(oldTask, updatedTask);
@@ -659,6 +675,14 @@ class TaskStorage extends ChangeNotifier
         taskById.status == TaskStatusEnum.completed) {
       AppLogger().w('Task is already processing or completed: ${task.id}');
       return;
+    }
+    // 显式重启：取消过的任务必须先离开 cancelled，否则 tryUpdateTask 会
+    // 拦下这次“复活”，任务会一直卡在 cancelled。
+    if (taskById.status == TaskStatusEnum.cancelled) {
+      await updateTask(
+        task.id,
+        (oldTask) => oldTask.copyWith(status: TaskStatusEnum.pending),
+      );
     }
     await updateTask(
       task.id,

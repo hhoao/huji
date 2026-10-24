@@ -13,6 +13,7 @@ import 'package:huji_app/constants/global.dart';
 import 'package:huji_app/models/task.dart';
 import 'package:huji_app/models/upload.dart';
 import 'package:huji_app/models/video.dart';
+import 'package:huji_app/services/clip_cancel_token.dart';
 import 'package:huji_app/services/local_clip_task_runner.dart';
 import 'package:huji_app/services/multipart_uploader.dart';
 import 'package:huji_app/services/websocket_service.dart';
@@ -326,6 +327,22 @@ class VideoClipTaskManager extends AbstractTaskManager {
           .firstOrNull;
 
       if (currentTask != null) {
+        // 已取消的任务不再接受进度/完成回调（并避免把状态改回 processing）。
+        if (currentTask.status == TaskStatusEnum.cancelled) {
+          return;
+        }
+        // 服务端取消了这次剪辑（例如在网页端操作）：同步到本地任务，
+        // 不要把它重新标成 processing。
+        if (progress.status == ProcessStatus.cancelled) {
+          await _taskRunner.updateTask(
+            currentTask.id,
+            (oldTask) => (oldTask as VideoClipTask).copyWith(
+              status: TaskStatusEnum.cancelled,
+            ),
+          );
+          await LocalVideoStorage().markProcessRecordCancelled(currentTask.id);
+          return;
+        }
         _checkTaskStatus(currentTask);
         final normalizedProgress = progress.progress > 1.0
             ? progress.progress / 100
@@ -525,9 +542,20 @@ class VideoClipTaskManager extends AbstractTaskManager {
   LocalVideoProcessStatusEnum _processStatusToLocalVideoProcessStatusEnum(
     ProcessStatus processStatus,
   ) {
-    return LocalVideoProcessStatusEnum.values.firstWhere(
-      (e) => e.value == processStatus.value,
-    );
+    // 显式映射：LocalVideoProcessStatusEnum 的值不再与后端 ProcessStatus
+    // 一一对应（本地多了 cancelled/failed 区分），不能按 value 直接查表。
+    switch (processStatus) {
+      case ProcessStatus.preparing:
+        return LocalVideoProcessStatusEnum.pending;
+      case ProcessStatus.processing:
+        return LocalVideoProcessStatusEnum.processing;
+      case ProcessStatus.completed:
+        return LocalVideoProcessStatusEnum.completed;
+      case ProcessStatus.failed:
+        return LocalVideoProcessStatusEnum.failed;
+      case ProcessStatus.cancelled:
+        return LocalVideoProcessStatusEnum.cancelled;
+    }
   }
 
   // 更新ProcessVideoRecord的进度
@@ -585,7 +613,38 @@ class VideoClipTaskManager extends AbstractTaskManager {
   }
 
   @override
-  Future<void> cancelTask(Task task) async {}
+  Future<void> cancelTask(Task task) async {
+    final clipTask = task as VideoClipTask;
+    final taskId = clipTask.id;
+
+    // 1. 本地检测任务：中断推理流水线。远端的 worker isolate 会收到取消
+    //    信号并杀掉自己持有的 ffmpeg 子进程（见 ClipCancelToken /
+    //    LocalDetectionIsolateRunner）。没有在跑的任务时这是空操作。
+    ClipCancelToken.cancelJob(taskId);
+
+    // 2. 还在上传：中止分片上传。
+    final uploadTaskId = clipTask.uploadTaskId;
+    if (uploadTaskId != null) {
+      try {
+        await _multipartUploader.cancelUpload(uploadTaskId);
+      } catch (e, stackTrace) {
+        AppLogger().e('Failed to cancel clip upload: $e', stackTrace, e);
+      }
+    }
+
+    // 3. 已提交后端剪辑：通知服务端停止该处理记录，避免继续白跑。
+    final recordId = clipTask.processRecordId;
+    if (recordId != null) {
+      try {
+        await Api.clip.cancelVideoProcess(recordId);
+      } catch (e, stackTrace) {
+        AppLogger().e('Failed to cancel remote clip job: $e', stackTrace, e);
+      }
+    }
+
+    // 4. 库里的“检测中”占位记录落成已取消，避免一直显示处理中。
+    await LocalVideoStorage().markProcessRecordCancelled(taskId);
+  }
 
   @override
   String getCreateTableSql() {

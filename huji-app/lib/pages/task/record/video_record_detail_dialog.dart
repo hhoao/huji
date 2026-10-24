@@ -622,6 +622,8 @@ class _VideoRecordDetailDialog extends StatelessWidget {
         return Colors.green;
       case ProcessStatus.failed:
         return Colors.red;
+      case ProcessStatus.cancelled:
+        return Colors.grey;
     }
   }
 

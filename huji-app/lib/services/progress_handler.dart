@@ -1,6 +1,7 @@
 import 'package:logger/logger.dart';
 import 'package:huji_app/l10n/l10n_resolve.dart';
 import 'package:huji_app/models/task.dart';
+import 'package:huji_app/services/clip_cancel_token.dart';
 
 /// 进度回调函数类型
 typedef ProgressCallback = void Function(double progress, String message);
@@ -78,7 +79,11 @@ class ProgressHandler {
     _currentFrames = 0;
     _currentProgress = 0.0;
     _currentMessage = '';
-    _isCancelled = false;
+    // NOTE: `_isCancelled` is intentionally NOT reset here. A handler instance
+    // belongs to exactly one pipeline run (constructed in
+    // `LocalDetectionService.runAutoclip`), and a cancel that lands before
+    // frame extraction starts would otherwise be silently undone — the
+    // pipeline would keep running after the user pressed 取消.
 
     updateStatus(TaskStatusEnum.processing);
   }
@@ -136,5 +141,12 @@ class ProgressHandler {
 
     _logger.w('任务已取消');
     _statusCallback?.call(_currentStatus, _currentMessage);
+  }
+
+  /// 已取消时抛出 [ClipCancelledException]，用于在流水线检查点中断执行。
+  void throwIfCancelled() {
+    if (_isCancelled) {
+      throw const ClipCancelledException();
+    }
   }
 }

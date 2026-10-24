@@ -90,6 +90,7 @@ const _$ProcessStatusEnumMap = {
   ProcessStatus.processing: 1,
   ProcessStatus.completed: 2,
   ProcessStatus.failed: 3,
+  ProcessStatus.cancelled: 4,
 };
 
 VideoProcessRecordVO _$VideoProcessRecordVOFromJson(

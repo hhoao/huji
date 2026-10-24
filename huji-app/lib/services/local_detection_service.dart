@@ -6,6 +6,8 @@ import 'package:huji_app/core/batch/badminton_batch_action_segment_detector.dart
 import 'package:huji_app/core/batch/batch_action_segment_detector.dart';
 import 'package:huji_app/core/batch/pingpong_batch_action_segment_detector.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/clip_cancel_token.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/inference/ncnn_model_asset_resolver.dart';
 import 'package:huji_app/services/large_model_service.dart';
@@ -49,6 +51,7 @@ class LocalDetectionService {
     String? matchType,
     ProgressHandler? progressHandler,
     ProgressCallback? onProgress,
+    ClipCancelToken? cancelToken,
     @visibleForTesting
     BatchActionSegmentDetector<VideoClipConfigReqVo>? detectorOverride,
   }) async {
@@ -74,6 +77,17 @@ class LocalDetectionService {
             }
           },
         );
+
+    // 用户取消时：先停掉进度上报，再杀掉本次流水线的 ffmpeg 子进程。
+    // 推理本身在 native 线程里无法中断，但抽帧被打断后，流水线会在下一个
+    // 检查点（ProgressHandler.throwIfCancelled）抛出 ClipCancelledException。
+    void handleCancel() {
+      handler.cancel();
+      unawaited(FFmpegRunner.instance.cancel());
+    }
+
+    cancelToken?.addListener(handleCancel);
+    cancelToken?.throwIfCancelled();
 
     Future<void> runPipeline() => detector.autoclipVideo(
           inputVideoPath: videoPath,
@@ -166,8 +180,11 @@ class LocalDetectionService {
     required String sportTypeKey,
     required String matchType,
     ProgressCallback? onProgress,
+    ClipCancelToken? cancelToken,
   }) {
     final job = (_inferenceQueue ?? Future.value()).then((_) async {
+      // 排队期间就被取消：不必再启动任何工作。
+      cancelToken?.throwIfCancelled();
       // macOS 走 FFmpegKit（worker isolate 里插件的 EventChannel 订阅
       // 会崩），与 Android 一样在主 isolate 跑：ffmpeg 在 native 线程执行，
       // ncnn 推理经 FFI 在 native 线程池执行也不阻塞 UI。
@@ -184,6 +201,7 @@ class LocalDetectionService {
           clipConfig: clipConfig,
           inferenceSpec: inferenceSpec,
           onProgress: onProgress,
+          cancelToken: cancelToken,
         );
       }
       final service = LocalDetectionService();
@@ -193,6 +211,7 @@ class LocalDetectionService {
         sportTypeKey: sportTypeKey,
         matchType: matchType,
         onProgress: onProgress,
+        cancelToken: cancelToken,
       );
     });
     _inferenceQueue = job.then((_) {}, onError: (_) {});

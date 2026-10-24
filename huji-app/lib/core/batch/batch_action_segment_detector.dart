@@ -15,6 +15,7 @@ import 'package:huji_app/services/inference/ncnn_model_predictor.dart';
 import 'package:huji_app/services/inference/ncnn_predictor_pool.dart';
 
 import '../../models/autoclip_models.dart';
+import '../../services/clip_cancel_token.dart';
 import '../../services/progress_handler.dart';
 import '../../utils/video_utils.dart';
 
@@ -164,6 +165,11 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     final expectedLen = ImagePreprocessor.rgb24ByteLength(width, height);
 
     await for (final bytes in frameStream) {
+      // 用户取消后立刻停止抽帧/推理：ffmpeg 进程可能已被 kill，但流里仍
+      // 可能排着缓冲帧，这里再兜一道，避免取消后继续烧 CPU。
+      if (progressHandler?.isCancelled == true) {
+        throw const ClipCancelledException();
+      }
       if (bytes.length < expectedLen) {
         throw StateError(
           'RGB stream frame has ${bytes.length} bytes, expected $expectedLen',
@@ -178,6 +184,10 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       results.add(PredictedFrameInfo(actionType: res, seconds: currentSecond));
       currentSecond += 1 / perSecondFrames;
       progressHandler?.forword();
+    }
+
+    if (progressHandler?.isCancelled == true) {
+      throw const ClipCancelledException();
     }
 
     return results;
@@ -348,6 +358,8 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       // 获取模型名称
       final modelName = getCurrentPredictModel(clipConfig);
 
+      progressHandler?.throwIfCancelled();
+
       // 预测动作点
       final predictionActionsPoints = await _predictVideoActionPoints(
         cleanableFileCollection: cleanableFileCollection,
@@ -358,12 +370,16 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         progressHandler: progressHandler,
       );
 
+      progressHandler?.throwIfCancelled();
+
       // 转换为片段
       final (matchSegments, allSegments) = convertActionPointToMatchSegments(
         clipConfig,
         predictionActionsPoints,
         inputVideoInfo,
       );
+
+      progressHandler?.throwIfCancelled();
 
       final (allMatchSegments, greatMatchSegments) = await filterSegments(
         cleanableFileCollection,
@@ -372,6 +388,8 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         matchSegments,
       );
 
+      progressHandler?.throwIfCancelled();
+
       final videoOutputInfo = VideoClipOutputInfo(
         inputVideoInfo: inputVideoInfo,
         allMatchSegments: allMatchSegments,
@@ -379,6 +397,11 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       );
       progressHandler?.complete(videoOutputInfo);
     } catch (e, stackTrace) {
+      if (e is ClipCancelledException) {
+        // 取消不是失败：交给调用方按 cancelled 处理，不上报错误。
+        _logger.i('本机检测已取消');
+        rethrow;
+      }
       _logger.e('处理视频失败', error: e, stackTrace: stackTrace);
       progressHandler?.reportError(
         resolveHujiL10n().processVideoFailed,
@@ -397,8 +420,13 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
     final cleanableFiles = cleanableFileCollection ?? CleanableFileCollection();
 
     try {
+      // 取消可能发生在进入流水线之前（例如模型解析期间）。
+      progressHandler?.throwIfCancelled();
+
       // 获取视频信息
       final inputVideoInfo = await VideoUtils.getVideoInfo(inputVideoPath);
+
+      progressHandler?.throwIfCancelled();
 
       // 处理视频
       await handleVideo(

@@ -5,6 +5,7 @@ import 'dart:ui';
 import 'package:flutter/services.dart';
 import 'package:huji_app/api/models/autoclip/clip_models.dart';
 import 'package:huji_app/models/autoclip_models.dart';
+import 'package:huji_app/services/clip_cancel_token.dart';
 import 'package:huji_app/services/inference/inference_spec.dart';
 import 'package:huji_app/services/local_detection_service.dart';
 
@@ -20,7 +21,10 @@ class LocalDetectionIsolateRunner {
     required VideoClipConfigReqVo clipConfig,
     required InferenceSpec inferenceSpec,
     void Function(double progress, String message)? onProgress,
+    ClipCancelToken? cancelToken,
   }) async {
+    cancelToken?.throwIfCancelled();
+
     final rootToken = RootIsolateToken.instance;
     if (rootToken == null) {
       throw StateError('RootIsolateToken is unavailable');
@@ -31,7 +35,23 @@ class LocalDetectionIsolateRunner {
     final exitPort = ReceivePort();
     final completer = Completer<LocalDetectionResult>();
 
+    // 取消信号需要从 UI isolate 传到 worker isolate：worker 会先把自己的
+    // 控制端口发回来，之后我们才能把 'cancel' 消息发过去。
+    SendPort? workerControlPort;
+    var cancelRequested = false;
+
+    void sendCancelIfPossible() {
+      if (workerControlPort != null) {
+        workerControlPort!.send('cancel');
+      } else {
+        cancelRequested = true;
+      }
+    }
+
+    void onCancel() => sendCancelIfPossible();
+
     void settlePorts() {
+      cancelToken?.removeListener(onCancel);
       receivePort.close();
       errorPort.close();
       exitPort.close();
@@ -42,6 +62,7 @@ class LocalDetectionIsolateRunner {
       _LocalDetectionIsolateArgs(
         replyPort: receivePort.sendPort,
         rootToken: rootToken,
+        jobId: cancelToken?.jobId,
         videoPath: videoPath,
         clipConfigJson: clipConfig.toJson(),
         inferenceSpecMessage: inferenceSpec.toIsolateMessage(),
@@ -53,11 +74,21 @@ class LocalDetectionIsolateRunner {
       onExit: exitPort.sendPort,
     );
 
+    cancelToken?.addListener(onCancel);
+    if (cancelToken?.isCancelled ?? false) {
+      onCancel();
+    }
+
     var lastSentPercent = -1;
     receivePort.listen((message) {
       if (message is! Map) return;
       final type = message['type'] as String?;
       switch (type) {
+        case 'control':
+          workerControlPort = message['port'] as SendPort?;
+          if (cancelRequested) {
+            sendCancelIfPossible();
+          }
         case 'progress':
           final progress = (message['progress'] as num).toDouble();
           final percent = (progress * 100).round();
@@ -117,6 +148,7 @@ class LocalDetectionIsolateRunner {
 class _LocalDetectionIsolateArgs {
   final SendPort replyPort;
   final RootIsolateToken rootToken;
+  final String? jobId;
   final String videoPath;
   final Map<String, dynamic> clipConfigJson;
   final Map<String, dynamic> inferenceSpecMessage;
@@ -124,6 +156,7 @@ class _LocalDetectionIsolateArgs {
   const _LocalDetectionIsolateArgs({
     required this.replyPort,
     required this.rootToken,
+    required this.jobId,
     required this.videoPath,
     required this.clipConfigJson,
     required this.inferenceSpecMessage,
@@ -134,6 +167,21 @@ class _LocalDetectionIsolateArgs {
 Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
   BackgroundIsolateBinaryMessenger.ensureInitialized(args.rootToken);
   DartPluginRegistrant.ensureInitialized();
+
+  // 接收来自 UI isolate 的取消信号。该 isolate 有自己的静态状态，无法直接
+  // 访问 UI isolate 的 ClipCancelToken，所以这里重建一个本地 token，并由
+  // runAutoclip 在取消时杀掉本 isolate 的 ffmpeg 子进程。
+  final controlPort = ReceivePort();
+  ClipCancelToken? localToken;
+  if (args.jobId != null) {
+    localToken = ClipCancelToken.forJob(args.jobId!);
+    controlPort.listen((message) {
+      if (message == 'cancel') {
+        localToken?.cancel();
+      }
+    });
+  }
+  args.replyPort.send({'type': 'control', 'port': controlPort.sendPort});
 
   try {
     final inferenceSpec =
@@ -149,6 +197,7 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
       videoPath: args.videoPath,
       clipConfig: clipConfig,
       desktopInferenceSpec: inferenceSpec,
+      cancelToken: localToken,
       onProgress: (progress, message) {
         final percent = (progress * 100).round();
         if (percent == lastSentPercent) return;
@@ -175,6 +224,11 @@ Future<void> _isolateEntry(_LocalDetectionIsolateArgs args) async {
       'message': '$e',
       'stackTrace': '$stackTrace',
     });
+  } finally {
+    controlPort.close();
+    if (args.jobId != null) {
+      ClipCancelToken.release(args.jobId!);
+    }
   }
 }
 

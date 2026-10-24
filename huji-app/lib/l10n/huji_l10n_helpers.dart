@@ -56,6 +56,7 @@ extension HujiVideoRecordL10n on HujiLocalizations {
     ProcessStatus.processing => taskStatusProcessing,
     ProcessStatus.completed => taskStatusCompleted,
     ProcessStatus.failed => taskStatusFailed,
+    ProcessStatus.cancelled => taskStatusCancelled,
   };
 
   String sportTypeLabel(SportType type) => switch (type) {
@@ -98,6 +99,8 @@ extension HujiVideoRecordL10n on HujiLocalizations {
         LocalVideoProcessStatusEnum.pending => localVideoStatusPending,
         LocalVideoProcessStatusEnum.processing => localVideoStatusProcessing,
         LocalVideoProcessStatusEnum.completed => taskStatusCompleted,
+        LocalVideoProcessStatusEnum.cancelled => taskStatusCancelled,
+        LocalVideoProcessStatusEnum.failed => taskStatusFailed,
       };
 
   String permissionNameLabel(Permission permission) => switch (permission) {

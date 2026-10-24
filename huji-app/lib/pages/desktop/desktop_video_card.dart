@@ -359,6 +359,10 @@ class DesktopLibraryRecordBadge extends StatelessWidget {
       );
     case LocalVideoProcessStatusEnum.processing:
       return (label: l10n.desktopLibraryBadgeProcessing, color: cs.primary);
+    case LocalVideoProcessStatusEnum.cancelled:
+      return (label: l10n.taskStatusCancelled, color: cs.outline);
+    case LocalVideoProcessStatusEnum.failed:
+      return (label: l10n.taskStatusFailed, color: cs.error);
     case LocalVideoProcessStatusEnum.completed:
       break;
   }

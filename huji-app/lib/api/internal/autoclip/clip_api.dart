@@ -38,4 +38,8 @@ abstract class ClipApi {
   Future<VideoProcessProgressVO> getVideoProcessProgress(
     @Queries() VideoProgressQueryParams params,
   );
+
+  // 取消视频自动剪辑
+  @POST('/autoclip/clip/cancel')
+  Future<void> cancelVideoProcess(@Query('recordId') int recordId);
 }

@@ -105,6 +105,8 @@ class _VideoProgressPageState extends State<VideoProgressPage> {
         return Colors.green;
       case ProcessStatus.failed:
         return Colors.red;
+      case ProcessStatus.cancelled:
+        return Colors.grey;
     }
   }
 
