@@ -487,17 +487,26 @@ List<String> _losslessAudioArgs({
       ...['-ss', _tFloor(clip.startSeconds), '-to', _t(clip.endSeconds), '-i', videoPath],
   ];
 
+  // 每段先归一化再拼接：
+  // - `asetpts=N/SR/TB` 用累计样本数重建时间戳。`-ss/-to` 裁切后的首尾是半帧，
+  //   FFmpeg 9 会把这些半帧偏移带进 concat 输出，接缝处出现约半帧（~45ms）的
+  //   时间戳空洞（FFmpeg 8 不会）——空洞会让接缝之后的音频整体后移。
+  // - `apad,atrim=duration=` 把每段补/裁到标称时长，音轨与逐帧精确的视频轨等长，
+  //   避免累计漂移。
+  final filters = <String>[
+    for (var i = 0; i < clips.length; i++)
+      '[$i:a:0]asetpts=N/SR/TB,apad,'
+          'atrim=duration=${_t(clips[i].endSeconds - clips[i].startSeconds)}[a$i]',
+  ];
+
   if (clips.length == 1) {
-    args.addAll(['-map', '0:a:0']);
+    filters.add('[a0]anull[aout]');
   } else {
-    final inputs = [for (var i = 0; i < clips.length; i++) '[$i:a:0]'].join();
-    args.addAll([
-      '-filter_complex',
-      '${inputs}concat=n=${clips.length}:v=0:a=1[aout]',
-      '-map', '[aout]',
-    ]);
+    final inputs = [for (var i = 0; i < clips.length; i++) '[a$i]'].join();
+    filters.add('${inputs}concat=n=${clips.length}:v=0:a=1[aout]');
   }
 
+  args.addAll(['-filter_complex', filters.join(';'), '-map', '[aout]']);
   args.addAll(['-c:a', 'aac', '-b:a', '128k', outputPath]);
   return args;
 }
