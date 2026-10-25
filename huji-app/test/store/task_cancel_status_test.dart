@@ -47,8 +47,17 @@ void main() {
     if (db.isOpen) {
       await db.close();
     }
-    if (tempRoot.existsSync()) {
-      tempRoot.deleteSync(recursive: true);
+    // Windows keeps the sqlite file handle for a short while after close, so
+    // deleting the temp root can fail with "used by another process" even
+    // though every test passed. Retry briefly before giving up on cleanup.
+    for (var attempt = 0; attempt < 10; attempt++) {
+      if (!tempRoot.existsSync()) return;
+      try {
+        tempRoot.deleteSync(recursive: true);
+        return;
+      } on FileSystemException {
+        await Future<void>.delayed(const Duration(milliseconds: 100));
+      }
     }
   });
 

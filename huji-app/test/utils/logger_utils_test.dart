@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:huji_app/utils/logger_utils.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   late Directory temp;
@@ -77,7 +78,12 @@ void main() {
         appDataRoot: temp.path,
       );
 
-      expect(files, [newer.path, older.path]);
+      // Directory.list() returns platform separators while the test builds
+      // paths with '/', so compare file names instead of full paths.
+      expect(files.map(p.basename).toList(), [
+        p.basename(newer.path),
+        p.basename(older.path),
+      ]);
     },
   );
 
