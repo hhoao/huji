@@ -62,8 +62,10 @@ class MobileFFmpegRunner implements FFmpegRunner {
     );
 
     DateTime? lastHeartbeat;
+    var lastState = SessionState.created;
     while (true) {
       final state = await session.getState();
+      lastState = state;
       if (state == SessionState.completed ||
           state == SessionState.failed ||
           state == SessionState.created) {
@@ -90,17 +92,44 @@ class MobileFFmpegRunner implements FFmpegRunner {
             ? -1
             : 1;
 
+    // A failed session with a null return code (native side never produced
+    // one) used to surface as a bare `exitCode=1` with empty output, which is
+    // undiagnosable. Keep state + raw code in the failure detail.
+    final diagnostics = code == 0
+        ? ''
+        : 'ffmpeg session state=${_stateName(lastState)}, '
+            'returnCode=${returnCode?.getValue() ?? 'null'}';
+
     _log(
       'ffmpeg 结束 (${DateTime.now().difference(startedAt).inSeconds}s, '
-      'code=$code): ${_shortCmd(cmd)}'
-      '${code != 0 && (output?.isNotEmpty ?? false) ? '\n输出: ${output!.length > 500 ? output.substring(0, 500) : output}' : ''}',
+      'code=$code, state=${_stateName(lastState)}, '
+      'returnCode=${returnCode?.getValue() ?? 'null'}): ${_shortCmd(cmd)}'
+      '${diagnostics.isNotEmpty && (output?.isNotEmpty ?? false) ? '\n输出: ${output!.length > 500 ? output.substring(0, 500) : output}' : ''}',
     );
 
     return FFmpegResult(
       returnCode: code,
-      output: output,
+      output: code == 0
+          ? output
+          : [
+              diagnostics,
+              if (output != null && output.isNotEmpty) output,
+            ].join('\n'),
       failStackTrace: failStackTrace,
     );
+  }
+
+  static String _stateName(SessionState state) {
+    switch (state) {
+      case SessionState.created:
+        return 'CREATED';
+      case SessionState.running:
+        return 'RUNNING';
+      case SessionState.completed:
+        return 'COMPLETED';
+      case SessionState.failed:
+        return 'FAILED';
+    }
   }
 
   static void _log(String message) {

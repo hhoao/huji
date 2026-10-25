@@ -21,10 +21,39 @@ class ImagePreprocessor {
   ///
   /// `force_original_aspect_ratio=increase` is the same geometry as
   /// ultralytics Resize(short side = size); default `crop` is centered.
-  static String ffmpegClassifyVf({required num fps, int size = inputSize}) {
-    return 'fps=$fps,'
-        'scale=$size:$size:force_original_aspect_ratio=increase:flags=bilinear,'
-        'crop=$size:$size';
+  ///
+  /// [rotation] is ffprobe's `side_data_list.rotation` in degrees. When set,
+  /// the matching transpose runs *after* the crop instead of relying on
+  /// ffmpeg's autorotate (which transposes every decoded frame at source
+  /// resolution — ~2.8× slower on a 4K 10-bit stream, identical pixels for a
+  /// centered square crop). Callers must pass `-noautorotate` when they pass
+  /// a non-zero [rotation].
+  static String ffmpegClassifyVf({
+    required num fps,
+    int size = inputSize,
+    double rotation = 0,
+  }) {
+    final filters = <String>[
+      'fps=$fps',
+      'scale=$size:$size:force_original_aspect_ratio=increase:flags=bilinear',
+      'crop=$size:$size',
+      ...ffmpegRotationFilters(rotation),
+    ];
+    return filters.join(',');
+  }
+
+  /// Transpose filters reproducing ffmpeg's autorotate for [rotation].
+  ///
+  /// ffprobe reports the display-matrix rotation; ffmpeg's autorotate applies
+  /// the opposite angle (`theta = -rotation`) with the same mapping as
+  /// `ffmpeg_filter.c` (`90 → transpose=clock`, `180 → hflip+vflip`,
+  /// `270 → transpose=cclock`).
+  static List<String> ffmpegRotationFilters(double rotation) {
+    final theta = ((-rotation) % 360 + 360) % 360;
+    if (theta >= 45 && theta < 135) return const ['transpose=1'];
+    if (theta >= 135 && theta < 225) return const ['hflip', 'vflip'];
+    if (theta >= 225 && theta < 315) return const ['transpose=2'];
+    return const [];
   }
 
   /// Decode PNG/JPEG bytes, classify-crop to [size]×[size], return RGB HWC bytes.

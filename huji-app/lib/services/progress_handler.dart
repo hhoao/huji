@@ -92,8 +92,23 @@ class ProgressHandler {
     if (_isCancelled) return;
 
     _currentFrames++;
-    _currentProgress = _currentFrames / _totalFrames;
+    final value = _totalFrames > 0 ? _currentFrames / _totalFrames : 0.0;
+    // 抽帧阶段（reportFrameProgress）可能已经报过更靠前的进度：进度条只
+    // 前进不回退。
+    if (value > _currentProgress) _currentProgress = value;
 
+    _progressCallback?.call(_currentProgress, _currentMessage);
+  }
+
+  /// 抽帧阶段的上报：按"已处理到的视频帧数"（全局时间轴）折算。
+  ///
+  /// 走 ffmpeg-kit 的平台是先把整段抽到临时文件再逐帧推理，抽帧期间若不
+  /// 上报，4K 长视频会出现十几分钟停在 0% 的假死现象。
+  void reportFrameProgress(double frames) {
+    if (_isCancelled || _totalFrames <= 0) return;
+    final value = (frames / _totalFrames).clamp(0.0, 1.0);
+    if (value <= _currentProgress) return;
+    _currentProgress = value;
     _progressCallback?.call(_currentProgress, _currentMessage);
   }
 

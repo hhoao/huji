@@ -7,6 +7,7 @@ import 'package:huji_app/l10n/app_localizations.dart';
 import 'package:huji_app/l10n/huji_localizations_setup.dart';
 import 'package:go_router/go_router.dart';
 import 'package:huji_app/router/modules/desktop.dart';
+import 'package:huji_app/services/ffmpeg/ffmpeg_runner.dart';
 import 'package:huji_app/services/notification/notification_manager.dart';
 import 'package:huji_app/services/platform_capability.dart';
 import 'package:huji_app/services/app/boot_splash.dart';
@@ -123,6 +124,12 @@ class _DesktopAppState extends State<DesktopApp> {
       TitleBarStyle.hidden,
       windowButtonVisibility: false,
     );
+
+    // 关闭走 Dart：退出前要先把 ffmpeg-kit 的会话停掉。ffmpeg 的解码线程
+    // 不随 Dart 结束，进程退出时插件 DLL 先卸载、线程还在跑已卸载的
+    // avcodec 代码 → Windows 上 0xc0000005（CrashDumps 里的
+    // `avcodec-62.dll_unloaded`）。见 _WindowListener.onWindowClose。
+    await windowManager.setPreventClose(true);
 
     final systemView = WidgetsBinding.instance.platformDispatcher.implicitView;
     final systemMq = systemView == null
@@ -290,6 +297,31 @@ class _DesktopAppState extends State<DesktopApp> {
 }
 
 class _WindowListener extends WindowListener {
+  /// True while the close path is already draining ffmpeg.
+  bool _closing = false;
+
+  @override
+  void onWindowClose() async {
+    // setPreventClose(true) routes every close here (window button, Alt+F4,
+    // WM_CLOSE). Give the native ffmpeg worker threads a chance to unwind
+    // before the engine unloads the plugin DLLs — otherwise the process dies
+    // with an access violation inside the already-unloaded avcodec (Windows).
+    if (_closing) return;
+    _closing = true;
+    try {
+      await FFmpegRunner.instance
+          .cancel()
+          .timeout(const Duration(seconds: 2), onTimeout: () {});
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+    } catch (_) {
+      // Best effort: never block the user from closing the app.
+    } finally {
+      try {
+        await windowManager.destroy();
+      } catch (_) {}
+    }
+  }
+
   @override
   void onWindowResize() async {
     final prefs = await SharedPreferences.getInstance();

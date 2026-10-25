@@ -138,6 +138,14 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
         duration: videoSegmentInfo.endTime - videoSegmentInfo.startTime,
         width: size,
         height: size,
+        // 抽帧（尤其 ffmpeg-kit 路径）是本流水线最慢的阶段：把 ffmpeg 已
+        // 处理的媒体时长折算到全局帧位置上报，避免长时间 0%。
+        onProgress: progressHandler == null
+            ? null
+            : (processedSeconds) => progressHandler.reportFrameProgress(
+                (videoSegmentInfo.startTime + processedSeconds) *
+                    perSecondFrames,
+              ),
       ),
       perSecondFrames: perSecondFrames,
       videoSegmentInfo: videoSegmentInfo,
@@ -242,9 +250,15 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       }
 
       final useAccelerator = GpuDeviceSelector.hasAccelerator;
+      // Windows 的 GPU 推理走 ncnn_helper 子进程，进程内 Vulkan 探测被 shim
+      // 禁用，`hasAccelerator` 恒为 false。若按 CPU 并行开多个 worker，
+      // 每个 worker 都会并发跑一条 ffmpeg 抽帧——4K 源上就是多路解码互抢
+      // CPU（实测 2 路并发比串行慢 ~40%，还多占一倍临时空间）。Windows
+      // 因此按"有加速器"处理：单 worker，抽帧串行。
+      final hasGpuBackend = useAccelerator || Platform.isWindows;
       final workerCount = _ncnnWorkerCount(
         segments.length,
-        useAccelerator: useAccelerator,
+        useAccelerator: hasGpuBackend,
       );
       pool = await NcnnPredictorPool.create(
         paramFilePath: seedPredictor.paramFilePath,
@@ -255,7 +269,8 @@ abstract class BatchActionSegmentDetector<C extends VideoClipConfigReqVo>
       await seedPredictor.dispose();
       _logger.i(
         'ncnn pool: $workerCount workers for ${segments.length} segments '
-        '(accelerator=$useAccelerator)',
+        '(accelerator=${GpuDeviceSelector.hasAccelerator}, '
+        'gpuBackend=$hasGpuBackend)',
       );
 
       final futures = <Future<List<PredictedFrameInfo>>>[];

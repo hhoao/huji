@@ -107,6 +107,9 @@ class VideoUtils {
   /// 缓存的编码器映射 {codec: acceleratedCodec}
   static final Map<String, String> _codecCache = {};
 
+  /// 缓存的视频旋转角 {videoPath: degrees}（ffprobe 只探一次）
+  static final Map<String, double> _rotationCache = {};
+
   // ==================== 操作取消支持 ====================
 
   /// 取消标记
@@ -1355,11 +1358,110 @@ class VideoUtils {
     return parts.join('\n');
   }
 
+  /// Display-matrix rotation of the first video stream, in degrees
+  /// (ffprobe's `side_data_list.rotation`). 0 when absent or unprobeable.
+  ///
+  /// Cached per path: extraction needs it for every chunk of the same file.
+  static Future<double> getVideoRotation(String inputFile) async {
+    final cached = _rotationCache[inputFile];
+    if (cached != null) return cached;
+
+    var rotation = 0.0;
+    try {
+      final result = await FFmpegRunner.instance.executeProbe([
+        '-v',
+        'error',
+        '-select_streams',
+        'v:0',
+        '-show_entries',
+        'stream=codec_name:stream_side_data=rotation',
+        '-of',
+        'json',
+        inputFile,
+      ]);
+      if (result.isSuccess) {
+        final jsonData = json.decode(result.output ?? '');
+        final streams = jsonData['streams'] as List?;
+        final stream = streams != null && streams.isNotEmpty
+            ? streams.first as Map<String, dynamic>
+            : null;
+        final sideData = stream?['side_data_list'] as List?;
+        if (sideData != null) {
+          for (final entry in sideData) {
+            final value = (entry as Map<String, dynamic>)['rotation'];
+            if (value is num) rotation = value.toDouble();
+          }
+        }
+      }
+    } catch (e) {
+      _logger.w('获取视频旋转角失败: $inputFile, $e');
+    }
+
+    _rotationCache[inputFile] = rotation;
+    return rotation;
+  }
+
+  /// Hardware decode args for frame extraction.
+  ///
+  /// Windows only: the bundled ffmpeg-kit build exposes `d3d11va`, and
+  /// software HEVC Main10 4K60 decodes at ~10 fps there (a 120 s chunk then
+  /// takes 15 min). Callers must fall back to software decode when the
+  /// hardware path fails.
+  static List<String> _hwAccelArgs() =>
+      Platform.isWindows ? const ['-hwaccel', 'd3d11va'] : const [];
+
+  /// Builds one frame-extraction ffmpeg command.
+  ///
+  /// [hwAccel] is empty for the software fallback retry. When the stream is
+  /// rotated, ffmpeg's autorotate is disabled and the transpose is applied by
+  /// [ImagePreprocessor.ffmpegClassifyVf] *after* the crop — same pixels, but
+  /// without transposing every full-resolution frame.
+  static List<String> _buildFrameExtractArgs({
+    required String videoPath,
+    required String vf,
+    required List<String> hwAccel,
+    required bool rotationHandled,
+    required List<String> outputArgs,
+    double? startTime,
+    double? duration,
+  }) {
+    final args = <String>['-loglevel', logLevel, ...hwAccel];
+    if (rotationHandled) args.add('-noautorotate');
+    if (startTime != null && startTime > 0) {
+      args.addAll(['-ss', startTime.toString()]);
+    }
+    args.addAll(['-i', videoPath]);
+    if (duration != null && duration > 0) {
+      args.addAll(['-t', duration.toString()]);
+    }
+    args.addAll(['-vf', vf, ...outputArgs]);
+    return args;
+  }
+
+  /// Deletes leftover `*.rgb` frames before retrying an extraction, so stale
+  /// higher-numbered frames from a failed attempt can't be streamed as if the
+  /// retry had produced them.
+  static Future<void> _clearExtractedFrames(String tempDir) async {
+    try {
+      await for (final entity in Directory(tempDir).list()) {
+        if (entity is File && entity.path.endsWith('.rgb')) {
+          await entity.delete();
+        }
+      }
+    } catch (e) {
+      _logger.w('清理残留抽帧失败: $tempDir, $e');
+    }
+  }
+
   /// Extract classify-cropped RGB24 frames (skips PNG encode/decode).
   ///
   /// Output files: `000001.rgb`, … each exactly [width]*[height]*3 bytes.
   /// Prefer [streamIntervalRawRgbFrames] to avoid filling /tmp.
   /// [width] and [height] must match (YOLO classify square crop).
+  ///
+  /// [onProgress] receives the media time (seconds) ffmpeg has processed so
+  /// far — extraction is the slow phase on high-resolution sources, and
+  /// without it the UI shows 0 % for many minutes.
   static Future<void> intervalExtractRawRgbFrames({
     required String videoPath,
     required int frameInterval,
@@ -1368,28 +1470,25 @@ class VideoUtils {
     double? duration,
     int width = 640,
     int height = 640,
+    void Function(double processedSeconds)? onProgress,
   }) async {
     if (width != height) {
       throw ArgumentError(
         'classify RGB extract requires a square crop, got ${width}x$height',
       );
     }
+
+    final rotation = await getVideoRotation(videoPath);
+    // Only bypass ffmpeg's autorotate when we can reproduce it exactly
+    // (multiples of 90°). Odd angles keep autorotate — slower but correct.
+    final rotationHandled =
+        ImagePreprocessor.ffmpegRotationFilters(rotation).isNotEmpty;
     final vf = ImagePreprocessor.ffmpegClassifyVf(
       fps: frameInterval,
       size: width,
+      rotation: rotation,
     );
-
-    final args = <String>['-loglevel', logLevel];
-    if (startTime != null && startTime > 0) {
-      args.addAll(['-ss', startTime.toString()]);
-    }
-    args.addAll(['-i', videoPath]);
-    if (duration != null && duration > 0) {
-      args.addAll(['-t', duration.toString()]);
-    }
-    args.addAll([
-      '-vf',
-      vf,
+    final outputArgs = <String>[
       '-f',
       'image2',
       '-vcodec',
@@ -1398,9 +1497,45 @@ class VideoUtils {
       'rgb24',
       '-y',
       path.join(tempDir, '%06d.rgb'),
-    ]);
+    ];
 
-    final result = await FFmpegRunner.instance.execute(args);
+    List<String> build(List<String> hwAccel) => _buildFrameExtractArgs(
+      videoPath: videoPath,
+      vf: vf,
+      hwAccel: hwAccel,
+      rotationHandled: rotationHandled,
+      outputArgs: outputArgs,
+      startTime: startTime,
+      duration: duration,
+    );
+
+    final hwAccel = _hwAccelArgs();
+    var args = build(hwAccel);
+    var result = await FFmpegRunner.instance.execute(
+      args,
+      onProgress: onProgress == null
+          ? null
+          : (ms) => onProgress(ms / 1000),
+    );
+
+    // 用户取消不是失败：FFmpegKit.cancel() 会把会话以 cancel 返回码结束，
+    // 若当成"帧提取失败"上报，任务会被误标为 failed。
+    if (result.isCancelled) throw OperationCancelledException();
+
+    if (!result.isSuccess && hwAccel.isNotEmpty) {
+      _logger.w(
+        '硬件解码失败，回退软解: ${_ffmpegFailureDetail(result: result, args: args)}',
+      );
+      await _clearExtractedFrames(tempDir);
+      args = build(const []);
+      result = await FFmpegRunner.instance.execute(
+        args,
+        onProgress: onProgress == null
+            ? null
+            : (ms) => onProgress(ms / 1000),
+      );
+      if (result.isCancelled) throw OperationCancelledException();
+    }
 
     if (!result.isSuccess) {
       final detail = _ffmpegFailureDetail(result: result, args: args);
@@ -1418,6 +1553,10 @@ class VideoUtils {
   /// extracted to temp files first (same layout as
   /// [intervalExtractRawRgbFrames]) and streamed in order. On Linux/Windows
   /// desktop the bundled ffmpeg binary streams from stdout.
+  ///
+  /// [onProgress] reports the media time (seconds) the extraction has covered;
+  /// the ffmpeg-kit path only starts yielding once extraction finished, so
+  /// without it callers see no progress for the whole (slow) extract.
   static Stream<Uint8List> streamIntervalRawRgbFrames({
     required String videoPath,
     required int frameInterval,
@@ -1425,6 +1564,7 @@ class VideoUtils {
     double? duration,
     int width = 640,
     int height = 640,
+    void Function(double processedSeconds)? onProgress,
   }) async* {
     if (width != height) {
       throw ArgumentError(
@@ -1439,24 +1579,29 @@ class VideoUtils {
         duration: duration,
         width: width,
         height: height,
+        onProgress: onProgress,
       );
       return;
     }
 
+    final rotation = await getVideoRotation(videoPath);
+    final rotationHandled =
+        ImagePreprocessor.ffmpegRotationFilters(rotation).isNotEmpty;
     final vf = ImagePreprocessor.ffmpegClassifyVf(
       fps: frameInterval,
       size: width,
+      rotation: rotation,
     );
 
-    final args = <String>['-loglevel', logLevel];
-    if (startTime != null && startTime > 0) {
-      args.addAll(['-ss', startTime.toString()]);
-    }
-    args.addAll(['-i', videoPath]);
-    if (duration != null && duration > 0) {
-      args.addAll(['-t', duration.toString()]);
-    }
-    args.addAll(['-vf', vf, '-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1']);
+    final args = _buildFrameExtractArgs(
+      videoPath: videoPath,
+      vf: vf,
+      hwAccel: _hwAccelArgs(),
+      rotationHandled: rotationHandled,
+      outputArgs: const ['-f', 'rawvideo', '-pix_fmt', 'rgb24', 'pipe:1'],
+      startTime: startTime,
+      duration: duration,
+    );
 
     final process = await FFmpegRunner.instance.start(args);
     final stderrBuf = StringBuffer();
@@ -1518,6 +1663,7 @@ class VideoUtils {
     double? duration,
     int width = 640,
     int height = 640,
+    void Function(double processedSeconds)? onProgress,
   }) async* {
     final tempDir = await storage.createTempInCleanupDirectory(
       prefix: 'stream_frames_',
@@ -1532,6 +1678,7 @@ class VideoUtils {
         duration: duration,
         width: width,
         height: height,
+        onProgress: onProgress,
       );
 
       final frameSize = width * height * 3;

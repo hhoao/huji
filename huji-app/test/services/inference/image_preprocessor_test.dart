@@ -173,6 +173,48 @@ void main() {
       );
       expect(vf, contains('crop=224:224'));
     });
+
+    test('appends the transpose after crop for rotated sources', () {
+      final vf = ImagePreprocessor.ffmpegClassifyVf(fps: 6, rotation: -90);
+      expect(vf.endsWith(',transpose=1'), isTrue, reason: vf);
+      // crop must come before the transpose: only the 640×640 output is
+      // rotated, never the full-resolution frame (autorotate is disabled).
+      expect(
+        vf.indexOf('crop=640:640'),
+        lessThan(vf.indexOf('transpose=1')),
+      );
+      expect(vf, isNot(contains('autorotate')));
+    });
+
+    test('no rotation filters for an unrotated source', () {
+      final vf = ImagePreprocessor.ffmpegClassifyVf(fps: 6);
+      expect(vf, isNot(contains('transpose')));
+      expect(vf, isNot(contains('hflip')));
+    });
+  });
+
+  group('ImagePreprocessor.ffmpegRotationFilters', () {
+    test('maps ffprobe rotation to ffmpeg autorotate transposes', () {
+      // ffprobe reports the display matrix angle; ffmpeg autorotate applies
+      // the opposite angle (measured against the real DJI file: -90 →
+      // transpose=1).
+      expect(ImagePreprocessor.ffmpegRotationFilters(0), isEmpty);
+      expect(ImagePreprocessor.ffmpegRotationFilters(-90), ['transpose=1']);
+      expect(ImagePreprocessor.ffmpegRotationFilters(270), ['transpose=1']);
+      expect(ImagePreprocessor.ffmpegRotationFilters(90), ['transpose=2']);
+      expect(ImagePreprocessor.ffmpegRotationFilters(-270), ['transpose=2']);
+      expect(
+        ImagePreprocessor.ffmpegRotationFilters(180),
+        ['hflip', 'vflip'],
+      );
+      expect(
+        ImagePreprocessor.ffmpegRotationFilters(-180),
+        ['hflip', 'vflip'],
+      );
+      // Near-square / unknown angles are treated as unrotated.
+      expect(ImagePreprocessor.ffmpegRotationFilters(30), isEmpty);
+      expect(ImagePreprocessor.ffmpegRotationFilters(360), isEmpty);
+    });
   });
 
   group('VideoUtils classify extract', () {
