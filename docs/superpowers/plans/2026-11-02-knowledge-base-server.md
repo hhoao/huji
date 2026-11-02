@@ -1934,16 +1934,20 @@ public class AdminTechMediaController {
         }
         // 必须用显式 set：accessLevel 要能写回 NULL（表示继承知识点），
         // 而 MyBatis-Plus 默认的 NOT_NULL 策略会把 null 字段从 UPDATE 中剔除。
+        // 其余可空字段必须是条件 set：管理端只改状态/排序时不应把文件ID、说明等清空。
         LambdaUpdateWrapper<TechMediaDO> wrapper =
                 new LambdaUpdateWrapper<TechMediaDO>()
                         .eq(TechMediaDO::getId, reqVO.getId())
                         .set(TechMediaDO::getKnowledgeId, reqVO.getKnowledgeId())
                         .set(TechMediaDO::getMediaType, reqVO.getMediaType())
-                        .set(TechMediaDO::getFileId, reqVO.getFileId())
-                        .set(TechMediaDO::getSourceUrl, reqVO.getSourceUrl())
-                        .set(TechMediaDO::getThumbnailFileId, reqVO.getThumbnailFileId())
-                        .set(TechMediaDO::getCaption, reqVO.getCaption())
-                        .set(TechMediaDO::getDuration, reqVO.getDuration())
+                        .set(reqVO.getFileId() != null, TechMediaDO::getFileId, reqVO.getFileId())
+                        .set(reqVO.getSourceUrl() != null, TechMediaDO::getSourceUrl, reqVO.getSourceUrl())
+                        .set(
+                                reqVO.getThumbnailFileId() != null,
+                                TechMediaDO::getThumbnailFileId,
+                                reqVO.getThumbnailFileId())
+                        .set(reqVO.getCaption() != null, TechMediaDO::getCaption, reqVO.getCaption())
+                        .set(reqVO.getDuration() != null, TechMediaDO::getDuration, reqVO.getDuration())
                         .set(TechMediaDO::getAccessLevel, reqVO.getAccessLevel())
                         .set(reqVO.getSort() != null, TechMediaDO::getSort, reqVO.getSort())
                         .set(reqVO.getStatus() != null, TechMediaDO::getStatus, reqVO.getStatus());
