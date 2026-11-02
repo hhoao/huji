@@ -66,20 +66,15 @@ CREATE TABLE tech_media (
         REFERENCES tech_knowledge (id) ON DELETE CASCADE
 ) COMMENT '知识库素材表';
 
--- 存量 tech_videos 若为空则跳过。注意：原表只有 file_id，没有 video_url；
--- thumbnail_url 是 URL 无法映射到 thumbnail_file_id，迁移时留空。
--- 必须过滤软删除行，否则被删除的视频会以 active 状态复活；
--- 去重按 (knowledge_id, file_id) 逐行判断，避免一次部分执行后整体静默跳过。
+-- 本脚本为一次性迁移：第 8-11 行的 ALTER 不可重复执行，重跑会在最前面报错，
+-- 因此回填无需再做去重保护（tech_media 由本脚本创建，执行到此必为空）。
+-- 注意：原表只有 file_id，没有 video_url；thumbnail_url 是 URL，无法映射到
+-- thumbnail_file_id，迁移时留空。必须过滤软删除行，否则被删除的视频会以
+-- active 状态复活。
 INSERT INTO tech_media (knowledge_id, media_type, file_id, caption, duration, sort, status, creator, tenant_id)
 SELECT v.knowledge_id, 'video', v.file_id, v.title, v.duration, v.sort, v.status, v.creator, v.tenant_id
 FROM tech_videos v
-WHERE v.deleted = 0
-  AND NOT EXISTS (
-      SELECT 1 FROM tech_media m
-      WHERE m.knowledge_id = v.knowledge_id
-        AND m.media_type = 'video'
-        AND m.file_id <=> v.file_id
-  );
+WHERE v.deleted = 0;
 ```
 
 - [ ] **Step 2: 静态校验迁移脚本**
