@@ -73,14 +73,17 @@ FROM tech_videos
 WHERE NOT EXISTS (SELECT 1 FROM tech_media);
 ```
 
-- [ ] **Step 2: 在本地库执行并验证**
+- [ ] **Step 2: 静态校验迁移脚本**
+
+当前开发机没有 MySQL 服务（`mysql` 客户端未安装、3306 无监听），因此本步只做静态一致性校验，真实执行留到部署环节由人工完成。
 
 Run:
 ```bash
-mysql -h127.0.0.1 -uroot -p autoclip < sql/mysql/migration/2026-11-02-knowledge-base.sql
-mysql -h127.0.0.1 -uroot -p autoclip -e "SHOW COLUMNS FROM tech_knowledge LIKE 'access_level'; SHOW COLUMNS FROM tech_media;"
+grep -n "access_level\|cover_file_id" sql/mysql/migration/2026-11-02-knowledge-base.sql
+grep -n "access_level\|cover_file_id" sql/mysql/autoclip-core.sql
+grep -c "CREATE TABLE IF NOT EXISTS tech_media" sql/mysql/migration/2026-11-02-knowledge-base.sql
 ```
-Expected: `tech_knowledge` 出现 `access_level`、`cover_file_id`；`tech_media` 输出 18 行字段。
+Expected: 两份文件中都能查到 `access_level` 与 `cover_file_id`；最后一条输出 `1`。同时人工核对 `tech_media` 的 18 个字段与 DO 字段一一对应。
 
 - [ ] **Step 3: 同步全量建库脚本**
 
@@ -150,7 +153,7 @@ class KnowledgeAccessLevelEnumTest {
 
 - [ ] **Step 2: 运行测试确认编译失败**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeAccessLevelEnumTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeAccessLevelEnumTest`
 Expected: compile error，`KnowledgeAccessLevelEnum` 不存在
 
 - [ ] **Step 3: 实现枚举与错误码**
@@ -219,7 +222,7 @@ public enum TechMediaTypeEnum {
 
 - [ ] **Step 4: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeAccessLevelEnumTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeAccessLevelEnumTest`
 Expected: PASS，4 个用例全绿
 
 - [ ] **Step 5: Commit**
@@ -316,7 +319,7 @@ class TechMediaServiceImplTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=TechMediaServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=TechMediaServiceImplTest`
 Expected: compile error，`TechMediaDO` 不存在
 
 - [ ] **Step 3: 实现 DO**
@@ -479,7 +482,7 @@ public class TechMediaServiceImpl implements TechMediaService {
 
 - [ ] **Step 5: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=TechMediaServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=TechMediaServiceImplTest`
 Expected: PASS，3 个用例全绿
 
 - [ ] **Step 6: Commit**
@@ -575,7 +578,7 @@ class FileServicePresignTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-module-infra -am test -Dtest=FileServicePresignTest`
+Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServicePresignTest`
 Expected: compile error，`getFileUrl` 不存在
 
 - [ ] **Step 3: 实现**
@@ -618,7 +621,7 @@ Expected: compile error，`getFileUrl` 不存在
 
 - [ ] **Step 4: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-module-infra -am test -Dtest=FileServicePresignTest`
+Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServicePresignTest`
 Expected: PASS，4 个用例全绿
 
 - [ ] **Step 5: Commit**
@@ -746,7 +749,7 @@ class KnowledgeAccessServiceImplTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeAccessServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeAccessServiceImplTest`
 Expected: compile error，`KnowledgeAccessServiceImpl` 不存在
 
 - [ ] **Step 3: 实现**
@@ -818,7 +821,7 @@ public class KnowledgeAccessServiceImpl implements KnowledgeAccessService {
 
 - [ ] **Step 4: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeAccessServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeAccessServiceImplTest`
 Expected: PASS，10 个用例全绿
 
 - [ ] **Step 5: Commit**
@@ -961,7 +964,7 @@ class KnowledgeQueryServiceImplTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeQueryServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeQueryServiceImplTest`
 Expected: compile error，相关 VO 与 Service 不存在
 
 - [ ] **Step 3: 实现 VO**
@@ -1275,7 +1278,7 @@ public class KnowledgeQueryServiceImpl implements KnowledgeQueryService {
 
 - [ ] **Step 5: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeQueryServiceImplTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeQueryServiceImplTest`
 Expected: PASS，3 个用例全绿
 
 - [ ] **Step 6: Commit**
@@ -1399,7 +1402,7 @@ class KnowledgeMediaUrlTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeMediaUrlTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeMediaUrlTest`
 Expected: compile error，`KnowledgeMediaUrlServiceImpl` 不存在
 
 - [ ] **Step 3: 实现地址服务与 Controller**
@@ -1580,12 +1583,12 @@ public class AppKnowledgeController {
 
 - [ ] **Step 4: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-core -am test -Dtest=KnowledgeMediaUrlTest`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeMediaUrlTest`
 Expected: PASS，4 个用例全绿
 
 - [ ] **Step 5: 全量编译并跑知识库相关测试**
 
-Run: `mvn -pl autoclip-core -am test -Dtest='Knowledge*Test,TechMediaServiceImplTest'`
+Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest='Knowledge*Test,TechMediaServiceImplTest'`
 Expected: 全部 PASS
 
 - [ ] **Step 6: Commit**
@@ -1671,7 +1674,7 @@ class FileServiceCreateTest {
 
 - [ ] **Step 2: 运行测试确认失败**
 
-Run: `mvn -pl autoclip-module-infra -am test -Dtest=FileServiceCreateTest`
+Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServiceCreateTest`
 Expected: compile error，`createFileAndGetFile` 不存在
 
 - [ ] **Step 3: 重构 FileServiceImpl**
@@ -1900,7 +1903,7 @@ public class AdminTechMediaController {
 
 - [ ] **Step 5: 运行测试确认通过**
 
-Run: `mvn -pl autoclip-module-infra -am test -Dtest=FileServiceCreateTest`
+Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServiceCreateTest`
 Expected: PASS
 
 - [ ] **Step 6: Commit**
@@ -1945,16 +1948,12 @@ git commit -m "feat(core): add admin knowledge media endpoints"
 Run: `mvn -pl autoclip-core -am compile`
 Expected: BUILD SUCCESS
 
-- [ ] **Step 3: 冒烟验证**
+- [ ] **Step 3: 编译验证**
 
-启动服务后调用：
+Run: `mvn -pl autoclip-core -am -DskipTests compile`
+Expected: BUILD SUCCESS
 
-```bash
-curl -X POST http://localhost:48080/admin-api/autoclip/tech-knowledge/create \
-  -H 'Content-Type: application/json' -H 'Authorization: Bearer <token>' \
-  -d '{"title":"正手攻球","categoryId":1,"level":1,"accessLevel":"basic"}'
-```
-Expected: 返回 `{"code":0,...}`；再调用 `GET http://localhost:48080/app-api/autoclip/knowledge/page` 能看到该条目且 `accessLevel` 为 `basic`。
+> 运行时冒烟（启动服务、`/admin-api/autoclip/tech-knowledge/create` 断言 `accessLevel` 生效）需要数据库与 MinIO，当前开发机不具备条件，留到部署环境由人工执行。
 
 - [ ] **Step 4: Commit**
 
