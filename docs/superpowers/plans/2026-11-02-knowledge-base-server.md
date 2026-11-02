@@ -1648,8 +1648,11 @@ git commit -m "feat(core): expose app knowledge endpoints"
 - Modify: `autoclip-module-infra/src/main/java/com/hhoa/autoclip/module/infra/service/file/FileServiceImpl.java`
 - Create: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/AdminTechMediaController.java`
 - Create: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaSaveReqVO.java`
+- Create: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaUpdateReqVO.java`
 - Create: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaUploadRespVO.java`
-- Modify: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/dal/dataobject/TechMediaDO.java`（无需改动，已在 Task 3 定义）
+- Modify: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/dal/mysql/TechMediaMapper.java`（新增管理端查询）
+- Modify: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/service/TechMediaService.java`
+- Modify: `autoclip-core/src/main/java/com/hhoa/autoclip/module/core/service/impl/TechMediaServiceImpl.java`
 - Test: `autoclip-module-infra/src/test/java/com/hhoa/autoclip/module/infra/service/file/FileServiceCreateTest.java`
 
 **Interfaces:**
@@ -1784,9 +1787,6 @@ import lombok.Data;
 @Data
 public class AdminTechMediaSaveReqVO {
 
-    @Schema(description = "素材编号，更新时必填")
-    private Long id;
-
     @NotNull(message = "所属知识点不能为空")
     private Integer knowledgeId;
 
@@ -1816,6 +1816,25 @@ public class AdminTechMediaSaveReqVO {
 package com.hhoa.autoclip.module.core.controller.admin.vo;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+
+@Schema(description = "管理后台 - 知识库素材更新 Request VO")
+@Data
+@EqualsAndHashCode(callSuper = true)
+public class AdminTechMediaUpdateReqVO extends AdminTechMediaSaveReqVO {
+
+    @Schema(description = "素材编号", requiredMode = Schema.RequiredMode.REQUIRED)
+    @NotNull(message = "素材编号不能为空")
+    private Long id;
+}
+```
+
+```java
+package com.hhoa.autoclip.module.core.controller.admin.vo;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -1835,8 +1854,10 @@ package com.hhoa.autoclip.module.core.controller.admin;
 import static com.hhoa.autoclip.framework.common.pojo.CommonResult.success;
 
 import cn.hutool.core.io.IoUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.hhoa.autoclip.framework.common.pojo.CommonResult;
 import com.hhoa.autoclip.module.core.controller.admin.vo.AdminTechMediaSaveReqVO;
+import com.hhoa.autoclip.module.core.controller.admin.vo.AdminTechMediaUpdateReqVO;
 import com.hhoa.autoclip.module.core.controller.admin.vo.AdminTechMediaUploadRespVO;
 import com.hhoa.autoclip.module.core.dal.dataobject.TechMediaDO;
 import com.hhoa.autoclip.module.core.dal.mysql.TechMediaMapper;
@@ -1888,9 +1909,9 @@ public class AdminTechMediaController {
     }
 
     @GetMapping("/list")
-    @Operation(summary = "素材列表")
+    @Operation(summary = "素材列表（管理端，含已禁用）")
     public CommonResult<List<TechMediaDO>> list(@RequestParam("knowledgeId") Integer knowledgeId) {
-        return success(techMediaService.getMediaList(knowledgeId));
+        return success(techMediaService.getMediaListForAdmin(knowledgeId));
     }
 
     @PostMapping("/create")
@@ -1898,26 +1919,44 @@ public class AdminTechMediaController {
     public CommonResult<Long> create(@Valid @RequestBody AdminTechMediaSaveReqVO reqVO) {
         TechMediaDO media = new TechMediaDO();
         copy(reqVO, media);
+        // 默认值只在这里补：更新时补默认值会把已禁用的记录重新启用
+        media.setSort(reqVO.getSort() == null ? 0 : reqVO.getSort());
+        media.setStatus(reqVO.getStatus() == null ? 1 : reqVO.getStatus());
         techMediaMapper.insert(media);
         return success(media.getId());
     }
 
     @PutMapping("/update")
     @Operation(summary = "更新素材")
-    public CommonResult<Boolean> update(@Valid @RequestBody AdminTechMediaSaveReqVO reqVO) {
-        if (reqVO.getId() == null) {
+    public CommonResult<Boolean> update(@Valid @RequestBody AdminTechMediaUpdateReqVO reqVO) {
+        if (techMediaService.getMedia(reqVO.getId()) == null) {
             throw exception(ErrorCodeConstants.TECH_MEDIA_NOT_EXISTS);
         }
-        TechMediaDO media = new TechMediaDO();
-        copy(reqVO, media);
-        media.setId(reqVO.getId());
-        techMediaMapper.updateById(media);
+        // 必须用显式 set：accessLevel 要能写回 NULL（表示继承知识点），
+        // 而 MyBatis-Plus 默认的 NOT_NULL 策略会把 null 字段从 UPDATE 中剔除。
+        LambdaUpdateWrapper<TechMediaDO> wrapper =
+                new LambdaUpdateWrapper<TechMediaDO>()
+                        .eq(TechMediaDO::getId, reqVO.getId())
+                        .set(TechMediaDO::getKnowledgeId, reqVO.getKnowledgeId())
+                        .set(TechMediaDO::getMediaType, reqVO.getMediaType())
+                        .set(TechMediaDO::getFileId, reqVO.getFileId())
+                        .set(TechMediaDO::getSourceUrl, reqVO.getSourceUrl())
+                        .set(TechMediaDO::getThumbnailFileId, reqVO.getThumbnailFileId())
+                        .set(TechMediaDO::getCaption, reqVO.getCaption())
+                        .set(TechMediaDO::getDuration, reqVO.getDuration())
+                        .set(TechMediaDO::getAccessLevel, reqVO.getAccessLevel())
+                        .set(reqVO.getSort() != null, TechMediaDO::getSort, reqVO.getSort())
+                        .set(reqVO.getStatus() != null, TechMediaDO::getStatus, reqVO.getStatus());
+        techMediaMapper.update(null, wrapper);
         return success(true);
     }
 
     @DeleteMapping("/delete")
     @Operation(summary = "删除素材")
     public CommonResult<Boolean> delete(@RequestParam("id") Long id) {
+        if (techMediaService.getMedia(id) == null) {
+            throw exception(ErrorCodeConstants.TECH_MEDIA_NOT_EXISTS);
+        }
         techMediaMapper.deleteById(id);
         return success(true);
     }
@@ -1931,18 +1970,54 @@ public class AdminTechMediaController {
         media.setCaption(reqVO.getCaption());
         media.setDuration(reqVO.getDuration());
         media.setAccessLevel(reqVO.getAccessLevel());
-        media.setSort(reqVO.getSort() == null ? 0 : reqVO.getSort());
-        media.setStatus(reqVO.getStatus() == null ? 1 : reqVO.getStatus());
     }
 }
 ```
 
-- [ ] **Step 5: 运行测试确认通过**
+- [ ] **Step 5: 补齐管理端专用查询与接口约束**
+
+`TechMediaMapper` 追加（不加 `status` 过滤，管理端要能看到并重新启用已禁用的记录）：
+
+```java
+    default List<TechMediaDO> selectListByKnowledgeIdForAdmin(Integer knowledgeId) {
+        return selectList(
+                new LambdaQueryWrapperX<TechMediaDO>()
+                        .eq(TechMediaDO::getKnowledgeId, knowledgeId)
+                        .orderByAsc(TechMediaDO::getSort)
+                        .orderByAsc(TechMediaDO::getId));
+    }
+```
+
+`TechMediaService` 追加并在实现类里委托：
+
+```java
+    /** 管理端使用：包含已禁用记录 */
+    List<TechMediaDO> getMediaListForAdmin(Integer knowledgeId);
+```
+
+```java
+    @Override
+    public List<TechMediaDO> getMediaListForAdmin(Integer knowledgeId) {
+        return techMediaMapper.selectListByKnowledgeIdForAdmin(knowledgeId);
+    }
+```
+
+`FileService.createFileAndGetFile` 的 `content` 参数补上与 `createFile` 相同的约束：
+
+```java
+    FileDO createFileAndGetFile(
+            @NotEmpty(message = "文件内容不能为空") byte[] content,
+            String name,
+            String directory,
+            String type);
+```
+
+- [ ] **Step 6: 运行测试确认通过**
 
 Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServiceCreateTest`
 Expected: PASS
 
-- [ ] **Step 6: Commit**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add autoclip-module-infra/src/main/java/com/hhoa/autoclip/module/infra/service/file/FileService.java \
@@ -1950,7 +2025,11 @@ git add autoclip-module-infra/src/main/java/com/hhoa/autoclip/module/infra/servi
         autoclip-module-infra/src/test/java/com/hhoa/autoclip/module/infra/service/file/FileServiceCreateTest.java \
         autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/AdminTechMediaController.java \
         autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaSaveReqVO.java \
-        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaUploadRespVO.java
+        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaUpdateReqVO.java \
+        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/controller/admin/vo/AdminTechMediaUploadRespVO.java \
+        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/dal/mysql/TechMediaMapper.java \
+        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/service/TechMediaService.java \
+        autoclip-core/src/main/java/com/hhoa/autoclip/module/core/service/impl/TechMediaServiceImpl.java
 git commit -m "feat(core): add admin knowledge media endpoints"
 ```
 
