@@ -1390,6 +1390,15 @@ class KnowledgeMediaUrlTest {
     }
 
     @Test
+    void getUrl_knowledgeDisabled_throws() throws Exception {
+        when(techMediaService.getMedia(31L)).thenReturn(media(null));
+        TechKnowledgeDO disabled = knowledge("free");
+        disabled.setStatusCode(0);
+        when(techKnowledgeMapper.selectById(12)).thenReturn(disabled);
+        assertThrows(ServiceException.class, () -> service.getUrl(31L, 1L));
+    }
+
+    @Test
     void getUrl_locked_throws() throws Exception {
         when(techMediaService.getMedia(31L)).thenReturn(media(null));
         when(techKnowledgeMapper.selectById(12)).thenReturn(knowledge("advanced"));
@@ -1501,7 +1510,8 @@ public class KnowledgeMediaUrlServiceImpl implements KnowledgeMediaUrlService {
             throw exception(TECH_MEDIA_NOT_EXISTS);
         }
         TechKnowledgeDO knowledge = techKnowledgeMapper.selectById(media.getKnowledgeId());
-        if (knowledge == null) {
+        if (knowledge == null || !Integer.valueOf(1).equals(knowledge.getStatusCode())) {
+            // 未发布/已下线的知识点，其素材同样不可签发
             throw exception(TECH_KNOWLEDGE_NOT_EXISTS);
         }
         KnowledgeAccessLevelEnum level =
@@ -1509,7 +1519,7 @@ public class KnowledgeMediaUrlServiceImpl implements KnowledgeMediaUrlService {
         if (!knowledgeAccessService.canAccess(level, userId)) {
             throw exception(KNOWLEDGE_LOCKED);
         }
-        // 存量外链不参与访问控制，仅在无 fileId 时回退
+        // 存量外链不做签名，仅在无 fileId 时回退；访问控制已在上方完成
         if (media.getFileId() == null) {
             return new KnowledgeMediaUrlRespVO(media.getSourceUrl(), LocalDateTime.now().plus(PAID_EXPIRATION));
         }
@@ -1610,7 +1620,7 @@ public class AppKnowledgeController {
 - [ ] **Step 4: 运行测试确认通过**
 
 Run: `mvn -pl autoclip-core -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=KnowledgeMediaUrlTest`
-Expected: PASS，4 个用例全绿
+Expected: PASS，5 个用例全绿
 
 - [ ] **Step 5: 全量编译并跑知识库相关测试**
 
