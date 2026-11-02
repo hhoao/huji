@@ -612,7 +612,14 @@ Expected: compile error，`getFileUrl` 不存在
         if (file == null) {
             return null;
         }
-        FileClient client = fileConfigService.getFileClient(file.getConfigId());
+        FileClient client;
+        try {
+            client = fileConfigService.getFileClient(file.getConfigId());
+        } catch (CacheLoader.InvalidCacheLoadException ex) {
+            // getFileClient 内部是 Guava getUnchecked：配置被删除时抛此异常，而不是返回 null
+            log.warn("[getFileUrl][配置({}) 不存在，无法签发文件({})]", file.getConfigId(), fileId);
+            return null;
+        }
         if (client == null) {
             return null;
         }
@@ -623,10 +630,25 @@ Expected: compile error，`getFileUrl` 不存在
     }
 ```
 
+类上需要补 `@Slf4j`，并新增 `import com.google.common.cache.CacheLoader;`。
+
+对应地，测试里保留原来的 `getFileUrl_clientMissing_returnsNull`（防御性分支），并**追加**一条真实路径的用例：
+
+```java
+    @Test
+    void getFileUrl_configDeleted_returnsNull() throws Exception {
+        FileDO file = new FileDO().setConfigId(3L).setPath("auto_clip/knowledge/video/a.mp4");
+        when(fileMapper.selectById(9L)).thenReturn(file);
+        when(fileConfigService.getFileClient(3L))
+                .thenThrow(new com.google.common.cache.CacheLoader.InvalidCacheLoadException("null"));
+        assertNull(fileService.getFileUrl(9L, Duration.ofDays(1)));
+    }
+```
+
 - [ ] **Step 4: 运行测试确认通过**
 
 Run: `mvn -pl autoclip-module-infra -am test -Dsurefire.failIfNoSpecifiedTests=false -Dtest=FileServicePresignTest`
-Expected: PASS，4 个用例全绿
+Expected: PASS，5 个用例全绿
 
 - [ ] **Step 5: Commit**
 
