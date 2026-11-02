@@ -42,7 +42,7 @@ ALTER TABLE tech_knowledge
     ADD COLUMN access_level VARCHAR(16) NOT NULL DEFAULT 'free'
         COMMENT '访问级别：free-免费 basic-基础订阅 advanced-高级订阅' AFTER cover_file_id;
 
-CREATE TABLE IF NOT EXISTS tech_media (
+CREATE TABLE tech_media (
     id                BIGINT PRIMARY KEY AUTO_INCREMENT,
     knowledge_id      INT           NOT NULL COMMENT '所属知识点',
     media_type        VARCHAR(16)   NOT NULL COMMENT 'image/video',
@@ -66,11 +66,20 @@ CREATE TABLE IF NOT EXISTS tech_media (
         REFERENCES tech_knowledge (id) ON DELETE CASCADE
 ) COMMENT '知识库素材表';
 
--- 存量 tech_videos 若为空则跳过；非空时逐条搬迁（source_url 保留原始外链）
-INSERT INTO tech_media (knowledge_id, media_type, source_url, caption, duration, sort, status, creator)
-SELECT knowledge_id, 'video', video_url, title, duration, sort, status, creator
-FROM tech_videos
-WHERE NOT EXISTS (SELECT 1 FROM tech_media);
+-- 存量 tech_videos 若为空则跳过。注意：原表只有 file_id，没有 video_url；
+-- thumbnail_url 是 URL 无法映射到 thumbnail_file_id，迁移时留空。
+-- 必须过滤软删除行，否则被删除的视频会以 active 状态复活；
+-- 去重按 (knowledge_id, file_id) 逐行判断，避免一次部分执行后整体静默跳过。
+INSERT INTO tech_media (knowledge_id, media_type, file_id, caption, duration, sort, status, creator, tenant_id)
+SELECT v.knowledge_id, 'video', v.file_id, v.title, v.duration, v.sort, v.status, v.creator, v.tenant_id
+FROM tech_videos v
+WHERE v.deleted = 0
+  AND NOT EXISTS (
+      SELECT 1 FROM tech_media m
+      WHERE m.knowledge_id = v.knowledge_id
+        AND m.media_type = 'video'
+        AND m.file_id <=> v.file_id
+  );
 ```
 
 - [ ] **Step 2: 静态校验迁移脚本**
@@ -83,7 +92,7 @@ grep -n "access_level\|cover_file_id" sql/mysql/migration/2026-11-02-knowledge-b
 grep -n "access_level\|cover_file_id" sql/mysql/autoclip-core.sql
 grep -c "CREATE TABLE IF NOT EXISTS tech_media" sql/mysql/migration/2026-11-02-knowledge-base.sql
 ```
-Expected: 两份文件中都能查到 `access_level` 与 `cover_file_id`；最后一条输出 `1`。同时人工核对 `tech_media` 的 18 个字段与 DO 字段一一对应。
+Expected: 两份文件中都能查到 `access_level` 与 `cover_file_id`；最后一条输出 `1`。同时人工核对 `tech_media` 的 17 个字段与 DO 字段一一对应。
 
 - [ ] **Step 3: 同步全量建库脚本**
 
