@@ -9,6 +9,7 @@ restcut_app/
 # IDE/tool-local metadata
 .teampilot/
 .zcode/
+.qoder/
 
 # Vendored package clones (not wired into the build)
 huji-app/packages/flutter-shadcn-ui/
