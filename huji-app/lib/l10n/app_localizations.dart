@@ -6536,6 +6536,18 @@ abstract class HujiLocalizations {
   /// **'No suitable software encoder found'**
   String get softwareEncoderNotFound;
 
+  /// No description provided for @sortAscending.
+  ///
+  /// In en, this message translates to:
+  /// **'Ascending'**
+  String get sortAscending;
+
+  /// No description provided for @sortByCreatedTime.
+  ///
+  /// In en, this message translates to:
+  /// **'Created time'**
+  String get sortByCreatedTime;
+
   /// No description provided for @sortByFileSize.
   ///
   /// In en, this message translates to:
@@ -6559,6 +6571,12 @@ abstract class HujiLocalizations {
   /// In en, this message translates to:
   /// **'Name'**
   String get sortByName;
+
+  /// No description provided for @sortDescending.
+  ///
+  /// In en, this message translates to:
+  /// **'Descending'**
+  String get sortDescending;
 
   /// No description provided for @sortOptionsTitle.
   ///

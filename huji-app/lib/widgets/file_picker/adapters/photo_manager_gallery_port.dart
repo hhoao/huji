@@ -7,28 +7,26 @@ class PhotoManagerGalleryPort implements TpGalleryPort {
   final Map<String, AssetPathEntity> _albumsById = {};
   final Map<String, AssetEntity> _assetsById = {};
 
+  /// Sort configuration used to fetch [_albumsById]; the native asset pages
+  /// follow the album's filter option, so it must be refreshed when it changes.
+  String? _albumCacheKey;
+
   @override
   Future<List<TpGalleryAlbum>> listAlbums({
     required bool includeVideos,
     required bool includeImages,
+    String sortType = 'date',
+    bool ascending = false,
   }) async {
-    final requestType = _requestType(
+    final albums = await _ensureAlbums(
       includeVideos: includeVideos,
       includeImages: includeImages,
+      sortType: sortType,
+      ascending: ascending,
     );
-    if (requestType == null) {
+    if (albums == null) {
       return const [];
     }
-
-    final albums = await PhotoManager.getAssetPathList(
-      type: requestType,
-      hasAll: true,
-      onlyAll: false,
-    );
-
-    _albumsById
-      ..clear()
-      ..addEntries(albums.map((album) => MapEntry(album.id, album)));
 
     final albumModels = <TpGalleryAlbum>[];
     for (final album in albums) {
@@ -52,7 +50,19 @@ class PhotoManagerGalleryPort implements TpGalleryPort {
     required int pageSize,
     required bool includeVideos,
     required bool includeImages,
+    String sortType = 'date',
+    bool ascending = false,
   }) async {
+    final albums = await _ensureAlbums(
+      includeVideos: includeVideos,
+      includeImages: includeImages,
+      sortType: sortType,
+      ascending: ascending,
+    );
+    if (albums == null) {
+      return const [];
+    }
+
     final album = _albumsById[albumId];
     if (album == null) {
       return const [];
@@ -70,6 +80,43 @@ class PhotoManagerGalleryPort implements TpGalleryPort {
     });
 
     return filtered.map(_toGalleryAsset).toList();
+  }
+
+  Future<List<AssetPathEntity>?> _ensureAlbums({
+    required bool includeVideos,
+    required bool includeImages,
+    required String sortType,
+    required bool ascending,
+  }) async {
+    final requestType = _requestType(
+      includeVideos: includeVideos,
+      includeImages: includeImages,
+    );
+    if (requestType == null) {
+      return null;
+    }
+
+    final cacheKey =
+        '$sortType|$ascending|$includeVideos|$includeImages';
+    if (cacheKey == _albumCacheKey) {
+      return _albumsById.values.toList();
+    }
+
+    final albums = await PhotoManager.getAssetPathList(
+      type: requestType,
+      hasAll: true,
+      onlyAll: false,
+      filterOption: FilterOptionGroup(
+        orders: [OrderOption(type: OrderOptionType.createDate, asc: ascending)],
+      ),
+    );
+
+    _albumCacheKey = cacheKey;
+    _albumsById
+      ..clear()
+      ..addEntries(albums.map((album) => MapEntry(album.id, album)));
+
+    return albums;
   }
 
   @override

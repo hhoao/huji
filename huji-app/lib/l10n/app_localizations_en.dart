@@ -3657,6 +3657,12 @@ class HujiLocalizationsEn extends HujiLocalizations {
   String get softwareEncoderNotFound => 'No suitable software encoder found';
 
   @override
+  String get sortAscending => 'Ascending';
+
+  @override
+  String get sortByCreatedTime => 'Created time';
+
+  @override
   String get sortByFileSize => 'File size';
 
   @override
@@ -3667,6 +3673,9 @@ class HujiLocalizationsEn extends HujiLocalizations {
 
   @override
   String get sortByName => 'Name';
+
+  @override
+  String get sortDescending => 'Descending';
 
   @override
   String get sortOptionsTitle => 'Sort by';

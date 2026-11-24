@@ -3565,6 +3565,12 @@ class HujiLocalizationsZh extends HujiLocalizations {
   String get softwareEncoderNotFound => '未找到合适的软件编码器';
 
   @override
+  String get sortAscending => '正序';
+
+  @override
+  String get sortByCreatedTime => '按拍摄时间排序';
+
+  @override
   String get sortByFileSize => '按文件大小排序';
 
   @override
@@ -3575,6 +3581,9 @@ class HujiLocalizationsZh extends HujiLocalizations {
 
   @override
   String get sortByName => '按名称排序';
+
+  @override
+  String get sortDescending => '倒序';
 
   @override
   String get sortOptionsTitle => '排序方式';
