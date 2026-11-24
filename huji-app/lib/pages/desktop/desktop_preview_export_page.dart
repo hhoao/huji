@@ -9,6 +9,7 @@ import 'package:huji_app/services/storage_service.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_host.dart';
 import 'package:huji_app/shell/workspace/workspace_tab_store.dart';
 import 'package:huji_app/utils/desktop_style.dart';
+import 'package:huji_app/utils/logger_utils.dart';
 import 'package:huji_app/utils/video_export_utils.dart';
 import 'package:huji_app/utils/video_utils.dart';
 import 'package:shared_ui/shared_ui.dart';
@@ -96,8 +97,7 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (_savePath.isEmpty) {
-      final home = Platform.environment['HOME'] ?? '/tmp';
-      _savePath = '$home/Videos/${context.hujiL10n.videosFolderName}';
+      _savePath = _defaultSavePath(context.hujiL10n.videosFolderName);
     }
     // 命令注册跟随"当前界面"：仅当本 tab 正展示 /preview 时持有播放快捷键，
     // 被切走（换 tab、切去精修页、回固定导航页）即注销并暂停播放。
@@ -116,6 +116,19 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
         );
       _commandBinding!.attach();
     }
+  }
+
+  /// Windows 没有 HOME（用的是 USERPROFILE）。若回退到 `/tmp` 再拼 `/Videos/x`，
+  /// 得到的是 POSIX 风格路径，目录选择器拿它当 initialDirectory 会直接抛
+  /// 0x80070057（参数错误）。分平台取 home 并用 p.join 生成原生分隔符路径。
+  static String _defaultSavePath(String folderName) {
+    final home = Platform.isWindows
+        ? Platform.environment['USERPROFILE']
+        : Platform.environment['HOME'];
+    if (home == null || home.isEmpty) {
+      return p.join(Directory.systemTemp.path, 'Videos', folderName);
+    }
+    return p.join(home, 'Videos', folderName);
   }
 
   @override
@@ -354,12 +367,27 @@ class _DesktopPreviewExportPageState extends State<DesktopPreviewExportPage> {
 
   Future<void> _pickSaveDirectory() async {
     final l10n = context.hujiL10n;
-    final picked = await DesktopFilePickerPort().pickDirectory(
-      dialogTitle: l10n.saveToLabel,
-      initialDirectory: _savePath.isEmpty ? null : _savePath,
-    );
+    List<TpPickedEntry>? picked;
+    try {
+      picked = await DesktopFilePickerPort().pickDirectory(
+        dialogTitle: l10n.saveToLabel,
+        initialDirectory: _savePath.isEmpty ? null : _savePath,
+      );
+    } catch (e, stackTrace) {
+      // 目录选择器在 Windows 上可能因 initialDirectory 非法直接抛
+      // 0x80070057，异常若不处理，用户看到的就是"点了没反应"。
+      AppLogger().e('打开保存目录选择器失败: $e', stackTrace, e);
+      if (!mounted) return;
+      TpToast.show(
+        context,
+        message: l10n.operationFailed,
+        variant: TpToastVariant.error,
+      );
+      return;
+    }
     if (!mounted || picked == null || picked.isEmpty) return;
-    setState(() => _savePath = picked.first.path);
+    final selected = picked.first.path;
+    setState(() => _savePath = selected);
   }
 
   Future<void> _openPrecisionEdit(BuildContext context) async {

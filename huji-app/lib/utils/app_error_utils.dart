@@ -248,11 +248,15 @@ class AppErrorUtils {
     if (error is FileSystemException) {
       final osMessage = error.osError?.message.toLowerCase() ?? '';
       final message = error.message.toLowerCase();
+      // writeFrom 只有带真实文件路径时才可能是磁盘写失败；path 为空是往
+      // 无效的 stdout 句柄写 ffmpeg 日志（Windows 无控制台），与存储无关，
+      // 误判会弹出“存储空间不足”。
+      final hasTargetPath = error.path?.isNotEmpty ?? false;
       if (osMessage.contains('no space left on device') ||
           osMessage.contains('directory not empty') ||
           osMessage.contains('operation not permitted') ||
           osMessage.contains('permission denied') ||
-          message.contains('writefrom failed') ||
+          (hasTargetPath && message.contains('writefrom failed')) ||
           message.contains('deletion failed') ||
           message.contains('cannot copy file')) {
         return true;

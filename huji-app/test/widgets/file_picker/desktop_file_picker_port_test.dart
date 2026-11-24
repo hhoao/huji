@@ -33,4 +33,35 @@ void main() {
       );
     });
   });
+
+  group('normalizeInitialDirectory', () {
+    test('returns null for empty and relative paths', () {
+      expect(DesktopFilePickerPort.normalizeInitialDirectory(''), isNull);
+      expect(
+        DesktopFilePickerPort.normalizeInitialDirectory('Videos/弧迹'),
+        isNull,
+      );
+    });
+
+    test('normalizes separators and drops the trailing separator', () {
+      if (Platform.isWindows) {
+        expect(
+          DesktopFilePickerPort.normalizeInitialDirectory('C:/Users/me/Videos/'),
+          r'C:\Users\me\Videos',
+        );
+      } else {
+        expect(
+          DesktopFilePickerPort.normalizeInitialDirectory('/home/me//Videos/'),
+          '/home/me/Videos',
+        );
+      }
+    });
+
+    test('returns null for paths without a drive or share root', () {
+      expect(
+        DesktopFilePickerPort.normalizeInitialDirectory(r'\tmp\Videos'),
+        isNull,
+      );
+    });
+  });
 }

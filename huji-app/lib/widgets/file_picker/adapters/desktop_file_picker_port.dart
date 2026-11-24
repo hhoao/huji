@@ -75,21 +75,38 @@ class DesktopFilePickerPort implements TpDesktopPickerPort {
   }
 
   static String? _resolveInitialDirectory(String? dirPath) {
-    if (dirPath == null || dirPath.isEmpty) {
+    final normalized = normalizeInitialDirectory(dirPath ?? '');
+    if (normalized == null) {
       return null;
     }
 
-    final dir = Directory(dirPath);
+    final dir = Directory(normalized);
     if (dir.existsSync()) {
       return omitIfUnsafeForLinuxFilePickerInitialDirectory(dir.path);
     }
 
-    final parent = Directory(dirPath).parent;
+    final parent = dir.parent;
     if (parent.existsSync()) {
       return omitIfUnsafeForLinuxFilePickerInitialDirectory(parent.path);
     }
 
     return null;
+  }
+
+  /// Windows 的 SHCreateItemFromParsingName 只接受规范的绝对路径：相对路径、
+  /// 缺盘符的 `\foo`，以及 `/` 与 `\` 混用的字符串都会返回 E_INVALIDARG
+  /// （0x80070057），目录框根本弹不出来。这里统一规范化；无法安全交给原生
+  /// 解析的路径返回 null，宁可不带初始目录，也不要让对话框抛异常。
+  static String? normalizeInitialDirectory(String dirPath) {
+    if (dirPath.isEmpty || !path.isAbsolute(dirPath)) {
+      return null;
+    }
+    final normalized = path.normalize(dirPath);
+    if (Platform.isWindows && path.rootPrefix(normalized).length <= 1) {
+      // 盘符缺失（如 `\Videos`）同样会让解析失败。
+      return null;
+    }
+    return normalized;
   }
 
   /// Linux file_picker encodes [initialDirectory] as DBus bytes from UTF-16
